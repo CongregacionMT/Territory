@@ -1,1 +1,28 @@
-<p>territory-page works!</p>
+<div class="container">
+  <div class="d-flex justify-content-center">
+    <h1 class="my-4">Selecciona un mapa</h1>
+  </div>
+  <div class="card-container">
+    <app-card-xl *ngFor="let terr of territorioMaps" mapSRC={{terr.src}} mapName={{terr.name}} ></app-card-xl>
+  </div>
+  <hr>
+  <div class="d-flex justify-content-center">
+    <h2 class="my-2 text-center">Territorios de María Teresa por Número</h2>
+  </div>
+  <div class="card-s-container">
+    <app-card-s 
+      *ngFor="let item of territoriesMT"
+      terrNumber={{item.territorio}}>
+    </app-card-s>
+  </div>
+  <hr>
+  <div class="d-flex justify-content-center">
+    <h2 class="my-2 text-center">Territorios de Christophersen por Número</h2>
+  </div>
+  <div class="card-s-container">
+    <app-card-s 
+      *ngFor="let item of territoriesC"
+      terrNumber={{item.territorio}}>
+    </app-card-s>
+  </div>
+</div>

@@ -1,16 +1,8 @@
-.card-container{
-    display: flex;
-    justify-content: center;
-}
-.card-s-container{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
 .card{
     width: 18rem;
     background-color: #454b4f;
     margin: 1rem;
+    flex-wrap: wrap;
 }
 .card:hover{
     cursor:pointer;
@@ -22,15 +14,4 @@
     box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
     -webkit-box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
     -moz-box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
-}
-@media (max-width: 990px) {
-    .card-container{
-        flex-wrap: wrap;
-    }
-}
-@media (max-width: 768px) {
-    .card-container{
-        align-items: center;
-        flex-direction: column;
-    }
 }
