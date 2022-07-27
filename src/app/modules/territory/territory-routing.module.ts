@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AssignmentRecordPageComponent } from './pages/assignment-record-page/assignment-record-page.component';
+import { TerritoryPageComponent } from './pages/territory-page/territory-page.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: AssignmentRecordPageComponent,
+    component: TerritoryPageComponent,
   }
 ];
 
@@ -13,4 +13,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class AssignmentRecordRoutingModule { }
+export class TerritoryRoutingModule { }
