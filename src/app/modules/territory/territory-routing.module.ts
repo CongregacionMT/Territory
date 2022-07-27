@@ -1,11 +1,16 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { MariaTeresaComponent } from './pages/maria-teresa/maria-teresa.component';
 import { TerritoryPageComponent } from './pages/territory-page/territory-page.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: TerritoryPageComponent,
+    children: [
+      { path: '', component: TerritoryPageComponent},
+      { path: 'maria-teresa', component: MariaTeresaComponent},
+      {path: '**', redirectTo: ''},
+    ],
   }
 ];
 
