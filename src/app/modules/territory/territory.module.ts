@@ -6,14 +6,15 @@ import { TerritoryPageComponent } from './pages/territory-page/territory-page.co
 import { CardXlComponent } from '@shared/components/card-xl/card-xl.component';
 import { CardSComponent } from '@shared/components/card-s/card-s.component';
 import { MariaTeresaComponent } from './pages/maria-teresa/maria-teresa.component';
-
+import { CardTerritoryComponent } from './pages/card-territory/card-territory.component';
 
 @NgModule({
   declarations: [
     TerritoryPageComponent,
     CardSComponent,
     CardXlComponent,
-    MariaTeresaComponent
+    MariaTeresaComponent,
+    CardTerritoryComponent
   ],
   imports: [
     CommonModule,
