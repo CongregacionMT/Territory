@@ -1,0 +1,9 @@
+<nav style="--bs-breadcrumb-divider: '>'" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item d-flex" *ngFor="let route of routerBreadcrum">
+        <a [routerLink]="'../' + route.route" class="route">{{route.route}}</a>
+        <p class="slash ms-3 me-2 my-0" >/</p>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{{ultimateElement}}</li>
+  </ol>
+</nav>

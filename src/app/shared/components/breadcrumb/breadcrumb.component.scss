@@ -1,0 +1,29 @@
+.breadcrumb {
+  background-color: #333333;
+  padding: 1em;
+  margin-top: 2em;
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+}
+.route{
+  color: lightgreen;
+}
+a {
+  text-decoration: none;
+  background-color: transparent;
+}
+.route:hover{
+  color: #007bff;
+  display: inline-block;
+  text-decoration: underline;
+  padding: 0rem;
+}
+.breadcrumb-item.active {
+  color: #ddd;
+}
+.slash{
+  color: #585858;
+}

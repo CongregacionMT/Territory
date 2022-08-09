@@ -1,6 +1,7 @@
 <div class="container">
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
   <div class="d-flex justify-content-center">
-    <h1 class="my-4">Selecciona un mapa</h1>
+    <h1 class="mt-0 mb-3">Selecciona un mapa</h1>
   </div>
   <div class="card-container" routerLink="maria-teresa">
     <app-card-xl *ngFor="let terr of territorioMaps" mapSRC={{terr.src}} mapName={{terr.name}} ></app-card-xl>

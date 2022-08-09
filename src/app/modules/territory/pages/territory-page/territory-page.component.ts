@@ -6,6 +6,14 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./territory-page.component.scss']
 })
 export class TerritoryPageComponent implements OnInit {
+  routerBreadcrum: any[] = [
+    {
+      route: "Home"
+    },
+    {
+      route: "Territorios"
+    }
+  ]
   territorioMaps: any[] = [
     {
       name: "Maria Teresa",

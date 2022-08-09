@@ -7,6 +7,7 @@ import { CardXlComponent } from '@shared/components/card-xl/card-xl.component';
 import { CardSComponent } from '@shared/components/card-s/card-s.component';
 import { MariaTeresaComponent } from './pages/maria-teresa/maria-teresa.component';
 import { CardTerritoryComponent } from './pages/card-territory/card-territory.component';
+import { BreadcrumbComponent } from '@shared/components/breadcrumb/breadcrumb.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { CardTerritoryComponent } from './pages/card-territory/card-territory.co
     CardSComponent,
     CardXlComponent,
     MariaTeresaComponent,
-    CardTerritoryComponent
+    CardTerritoryComponent,
+    BreadcrumbComponent
   ],
   imports: [
     CommonModule,
