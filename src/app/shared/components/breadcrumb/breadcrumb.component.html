@@ -4,7 +4,9 @@
       class="breadcrumb-item d-flex"
       *ngFor="let route of routerBreadcrum; count as c; index as i"
     >
-      <a [routerLink]="returnBack.repeat(c - i) + route.route" class="route">{{ route.route }}</a>
+      <a [routerLink]="returnBack.repeat(c - i)" class="route">{{
+        route.route
+      }}</a>
       <p class="slash ms-3 me-2 my-0">/</p>
     </li>
     <li class="breadcrumb-item active" aria-current="page">
