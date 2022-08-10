@@ -12,17 +12,17 @@ export class TerritorioMapsMockService {
       {
         name: 'Maria Teresa',
         src: 'https://i.postimg.cc/5XbRCwC8/mt.png',
-        link: '',
+        link: 'maria-teresa',
       },
       {
         name: 'Christophersen',
         src: 'https://i.postimg.cc/KRXVZXcq/christ.png',
-        link: '',
+        link: 'christophersen',
       },
       {
         name: 'Rural',
         src: 'https://i.postimg.cc/bsQ5r6sz/rural.png',
-        link: '',
+        link: 'rural',
       },
     ]);
   }

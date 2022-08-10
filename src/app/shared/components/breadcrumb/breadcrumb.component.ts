@@ -7,12 +7,15 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class BreadcrumbComponent implements OnInit {
   @Input() routerBreadcrum: any;
+  returnBack: string = "../";
   ultimateElement: string = "";
   constructor() {}
 
   ngOnInit(): void {
+    
     this.ultimateElement = this.routerBreadcrum[this.routerBreadcrum.length - 1].route;
     this.routerBreadcrum.pop()
+    
   }
 
 }
