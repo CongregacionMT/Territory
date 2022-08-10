@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { AssignmentRecordRoutingModule } from './assignment-record-routing.module';
 import { AssignmentRecordPageComponent } from './pages/assignment-record-page/assignment-record-page.component';
+import { SharedModule } from '@shared/shared.module';
 
 
 @NgModule({
@@ -11,7 +12,8 @@ import { AssignmentRecordPageComponent } from './pages/assignment-record-page/as
   ],
   imports: [
     CommonModule,
-    AssignmentRecordRoutingModule
+    AssignmentRecordRoutingModule,
+    SharedModule
   ]
 })
 export class AssignmentRecordModule { }

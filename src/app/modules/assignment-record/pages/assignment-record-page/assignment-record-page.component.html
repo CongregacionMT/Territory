@@ -1,1 +1,11 @@
-<p>assignment-record-page works!</p>
+<div class="container">
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  <div class="card-container">
+    <app-card-xl
+      *ngFor="let terr of territorioMaps"
+      mapSRC="{{ terr.src }}"
+      mapName="{{ terr.name }}"
+      routerLink="maria-teresa"
+    ></app-card-xl>
+  </div>
+</div>
