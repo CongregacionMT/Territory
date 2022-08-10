@@ -1,95 +1,33 @@
 import { Component, OnInit } from '@angular/core';
+import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
+import { TerritoriesChristMockService } from '@shared/mocks/territories-christ-mock.service';
+import { TerritoriesMTMockService } from '@shared/mocks/territories-mtmock.service';
+import { TerritorioMapsMockService } from '@shared/mocks/territorio-maps-mock.service';
 
 @Component({
   selector: 'app-territory-page',
   templateUrl: './territory-page.component.html',
-  styleUrls: ['./territory-page.component.scss']
+  styleUrls: ['./territory-page.component.scss'],
 })
 export class TerritoryPageComponent implements OnInit {
-  routerBreadcrum: any[] = [
-    {
-      route: "Home"
-    },
-    {
-      route: "Territorios"
-    }
-  ]
-  territorioMaps: any[] = [
-    {
-      name: "Maria Teresa",
-      src: "https://i.postimg.cc/5XbRCwC8/mt.png",
-      link: ""
-    },
-    {
-      name: "Christophersen",
-      src: "https://i.postimg.cc/KRXVZXcq/christ.png",
-      link: ""
-    },
-    {
-      name: "Rural",
-      src: "https://i.postimg.cc/bsQ5r6sz/rural.png",
-      link: ""
-    }
-  ]
-  territoriesMT: any[] = [
-    {
-      territorio: 1,
-    },
-    {
-      territorio: 2
-    },
-    {
-      territorio: 3
-    },
-    {
-      territorio: 4
-    },
-    {
-      territorio: 5
-    },
-    {
-      territorio: 6
-    },
-    {
-      territorio: 7
-    },
-    {
-      territorio: 8
-    },
-    {
-      territorio: 9
-    },
-    {
-      territorio: 10
-    },
-    {
-      territorio: 11
-    },
-    {
-      territorio: 12
-    },
-    {
-      territorio: 13
-    },
-    {
-      territorio: 14
-    },
-    {
-      territorio: 17
-    }
-  ];
-  territoriesC: any[] = [
-    {
-      territorio: 1,
-    },
-    {
-      territorio: 2
-    }
-  ];
+  routerBreadcrum: any = [];
+  territorioMaps: any = [];
+  territoriesMT: any[] = [];
+  territoriesC: any[] = [];
 
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor(
+    private routerBreadcrumMockService: RouterBreadcrumMockService,
+    private territorioMapsMockService: TerritorioMapsMockService,
+    private territoriesMTMockService: TerritoriesMTMockService,
+    private territoriesChristMockService: TerritoriesChristMockService
+  ) {
+    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
+    this.territorioMaps = territorioMapsMockService.getMaps();
+    this.territoriesMT = territoriesMTMockService.getTerritories();
+    this.territoriesC = territoriesChristMockService.getTerritories();
   }
 
+  ngOnInit(): void {
+    this.routerBreadcrum = this.routerBreadcrum[0];
+  }
 }

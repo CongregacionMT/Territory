@@ -3,28 +3,35 @@
   <div class="d-flex justify-content-center">
     <h1 class="mt-0 mb-3">Selecciona un mapa</h1>
   </div>
-  <div class="card-container" routerLink="maria-teresa">
-    <app-card-xl *ngFor="let terr of territorioMaps" mapSRC={{terr.src}} mapName={{terr.name}} ></app-card-xl>
+  <div class="card-container">
+    <app-card-xl
+      *ngFor="let terr of territorioMaps"
+      mapSRC="{{ terr.src }}"
+      mapName="{{ terr.name }}"
+      routerLink="maria-teresa"
+    ></app-card-xl>
   </div>
-  <hr>
+  <hr />
   <div class="d-flex justify-content-center">
     <h2 class="my-2 text-center">Territorios de María Teresa por Número</h2>
   </div>
   <div class="card-s-container">
-    <app-card-s 
+    <app-card-s
       *ngFor="let item of territoriesMT"
-      terrNumber={{item.territorio}}
-      routerLink="tarjeta-mt">
+      terrNumber="{{ item.territorio }}"
+      routerLink="tarjeta-mt"
+    >
     </app-card-s>
   </div>
-  <hr>
+  <hr />
   <div class="d-flex justify-content-center">
     <h2 class="my-2 text-center">Territorios de Christophersen por Número</h2>
   </div>
   <div class="card-s-container">
-    <app-card-s 
+    <app-card-s
       *ngFor="let item of territoriesC"
-      terrNumber={{item.territorio}}>
+      terrNumber="{{ item.territorio }}"
+    >
     </app-card-s>
   </div>
 </div>
