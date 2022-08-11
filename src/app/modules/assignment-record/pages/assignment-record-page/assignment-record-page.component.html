@@ -5,7 +5,7 @@
       *ngFor="let terr of territorioMaps"
       mapSRC="{{ terr.src }}"
       mapName="{{ terr.name }}"
-      routerLink="maria-teresa"
+      [routerLink]="terr.link"
     ></app-card-xl>
   </div>
 </div>
