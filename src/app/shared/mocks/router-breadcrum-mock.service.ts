@@ -65,6 +65,48 @@ export class RouterBreadcrumMockService {
           route: 'Rural'
         }
       ],
+      [
+        {
+          route: 'Home',
+        },
+        {
+          route: 'Registro de territorios',
+        },
+        {
+          route: 'Maria Teresa'
+        },
+        {
+          route: 'Territorio'
+        }
+      ],
+      [
+        {
+          route: 'Home',
+        },
+        {
+          route: 'Registro de territorios',
+        },
+        {
+          route: 'Christophersen'
+        },
+        {
+          route: 'Territorio'
+        }
+      ],
+      [
+        {
+          route: 'Home',
+        },
+        {
+          route: 'Registro de territorios',
+        },
+        {
+          route: 'Rural'
+        },
+        {
+          route: 'Territorio'
+        }
+      ],
     ]);
   }
 }
