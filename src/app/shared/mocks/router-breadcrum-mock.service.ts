@@ -107,6 +107,17 @@ export class RouterBreadcrumMockService {
           route: 'Territorio'
         }
       ],
+      [
+        {
+          route: 'Home',
+        },
+        {
+          route: 'Territorios',
+        },
+        {
+          route: 'Territorio'
+        }
+      ],
     ]);
   }
 }
