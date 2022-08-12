@@ -108,5 +108,8 @@
       }
     }
   },
-  "defaultProject": "territory"
+  "defaultProject": "territory",
+  "cli": {
+    "analytics": false
+  }
 }
