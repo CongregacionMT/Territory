@@ -8,7 +8,7 @@ import { MariaTeresaAssignmentComponent } from './pages/maria-teresa-assignment/
 import { ChristophersenAssignmentComponent } from './pages/christophersen-assignment/christophersen-assignment.component';
 import { RuralAssignmentComponent } from './pages/rural-assignment/rural-assignment.component';
 import { NumberTerritoryComponent } from './pages/number-territory/number-territory.component';
-
+import { DataTablesModule } from "angular-datatables";
 
 @NgModule({
   declarations: [
@@ -21,7 +21,8 @@ import { NumberTerritoryComponent } from './pages/number-territory/number-territ
   imports: [
     CommonModule,
     AssignmentRecordRoutingModule,
-    SharedModule
+    SharedModule,
+    DataTablesModule
   ]
 })
 export class AssignmentRecordModule { }
