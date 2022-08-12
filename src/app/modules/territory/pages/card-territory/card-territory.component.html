@@ -3,15 +3,12 @@
   <h1 class="text-center pb-4">Tarjeta del mapa del territorio</h1>
 </div>
 <div class="container">
-  <div class="d-flex justify-content-center my-4">
-    <div class="row form-card" style="width: 100%;">
-      <div class="col d-flex justify-content-center">
-        <h3>Localidad:&nbsp;&nbsp;</h3>
-        <h3><i>María_Teresa</i></h3>
-      </div>
-      <div class="col d-flex justify-content-center">
-        <h3>Territorio_N°1&nbsp;</h3>
-      </div>
+  <div class="d-flex flex-column align-items-center my-4">
+    <div class="">
+      <h3>Localidad:&nbsp;&nbsp;<i>María&nbsp;Teresa</i></h3>
+    </div>
+    <div class="">
+      <h3>Territorio:&nbsp;&nbsp;<i>N°&nbsp;1</i></h3>
     </div>
   </div>
   <div class="d-flex justify-content-center">
@@ -23,16 +20,29 @@
   </div>
   <div class="d-flex justify-content-center">
     <form class="d-flex flex-column" class="my-4 form-card">
-      <label for="driver">Conductor</label>
+      <label for="driver" class="fs-5">Conductor</label>
       <input
         type="text"
         placeholder="Nombre del conductor"
         class="form-control"
         id="driver"
       />
+      <div class="bg-dark mt-4 p-2 rounded">
+        <div class="d-flex justify-content-center">
+          <label class="fs-3 fw-bold">Manzanas completadas</label>
+        </div>
+        <div class="d-flex justify-content-around flex-wrap">
+          <div *ngFor="let apple of applesData; index as i">
+            <div class="form-check form-check-inline my-2">
+              <input class="form-check-input check" type="checkbox" [id]="apple.name + i" [value]="apple.name" [checked]="apple.checked">
+              <label class="form-check-label fs-4 ms-3" [for]="apple.name + i">{{apple.name}}</label>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="row">
         <div class="col mt-3">
-          <label for="start">Inicio (Se entregó)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+          <label for="start" class="fs-5">Inicio (Se entregó)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
           <input
             id="start"
             type="date"
@@ -43,7 +53,7 @@
           
         </div>
         <div class="col mt-3">
-          <label for="end">Conclución (Se devolvió)</label>
+          <label for="end" class="fs-5">Conclución (Se devolvió)</label>
           <input
             id="end"
             type="date"
@@ -56,8 +66,8 @@
       <div class="d-flex justify-content-center mt-4">
         <textarea name="comentarios" class="form-control" id="" cols="150" rows="2" placeholder="Comentarios (opcional)"></textarea>
       </div>
-      <button class="btn btn-success mt-3">Enviar tarjeta</button>
-      <button class="btn btn-secondary mt-3 ms-3" routerLink="../territorios">cancelar</button>
+      <button class="btn btn-success mt-3 btn-lg">Enviar tarjeta</button>
+      <button class="btn btn-secondary mt-3 ms-3 btn-lg" routerLink="../territorios">Cancelar</button>
     </form>
   </div>
 </div>
