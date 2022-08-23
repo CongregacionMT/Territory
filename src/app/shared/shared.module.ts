@@ -4,12 +4,15 @@ import {RouterModule} from '@angular/router';
 import { BreadcrumbComponent } from "./components/breadcrumb/breadcrumb.component";
 import { CardSComponent } from "./components/card-s/card-s.component";
 import { CardXlComponent } from "./components/card-xl/card-xl.component";
+import { FocusInvalidInputDirective } from './directives/focus-invalid-input.directive';
+
 
 @NgModule({
     declarations: [
         BreadcrumbComponent,
         CardSComponent,
-        CardXlComponent
+        CardXlComponent,
+        FocusInvalidInputDirective
     ],
     imports: [
         CommonModule,
@@ -18,7 +21,8 @@ import { CardXlComponent } from "./components/card-xl/card-xl.component";
     exports: [
         BreadcrumbComponent,
         CardSComponent,
-        CardXlComponent
+        CardXlComponent,
+        FocusInvalidInputDirective
     ]
 })
 export class SharedModule { }
