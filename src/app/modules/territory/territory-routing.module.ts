@@ -12,6 +12,7 @@ const routes: Routes = [
       { path: '', component: TerritoryPageComponent},
       { path: 'maria-teresa', component: MariaTeresaComponent},
       { path: 'tarjeta-mt', component: CardTerritoryComponent},
+      { path: 'tarjeta-c', component: CardTerritoryComponent},
       {path: '**', redirectTo: ''},
     ],
   }
