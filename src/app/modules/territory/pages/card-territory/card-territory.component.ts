@@ -1,50 +1,51 @@
-import { Component, OnInit, ViewChild} from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Card } from '@core/models/Card';
+import { CardService } from '@core/services/card.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-
 @Component({
   selector: 'app-card-territory',
   templateUrl: './card-territory.component.html',
   styleUrls: ['./card-territory.component.scss'],
 })
-export class CardTerritoryComponent implements OnInit {
-
+export class CardTerritoryComponent implements OnInit, OnDestroy {
+  card: Card = {
+    id: 0,
+    location: 'Maria Teresa',
+    numberTerritory: 1,
+    iframe: '',
+    driver: '',
+    start: '',
+    end: '',
+    link: '',
+    comments: '',
+    applesData: [{name:'', checked: false}],
+    revision: false
+  }
   routerBreadcrum: any = [];
-  applesData: Array<any> = [
-    {
-      name: 'Manzana 1',
-      checked: true,
-    },
-    {
-      name: 'Manzana 2',
-      checked: true,
-    },
-    {
-      name: 'Manzana 3',
-      checked: false,
-    },
-    {
-      name: 'Manzana 4',
-      checked: false,
-    },
-    {
-      name: 'Manzana 5',
-      checked: false,
-    },
-  ];
   formCard: FormGroup;
   driverError: boolean = false;
   startError: boolean = false;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private domSanitizer: DomSanitizer,
+    private cardService: CardService
   ) {
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
+
+    this.card.id = this.cardService.dataCard.id;
+    this.card.location = this.cardService.dataCard.location;
+    this.card.iframe = this.cardService.dataCard.iframe;
+    this.card.applesData = this.cardService.dataCard.applesData;
+    this.card.numberTerritory = this.cardService.dataCard.numberTerritory;
+    this.card.revision = this.cardService.dataCard.revision;
     this.formCard = this.fb.group({
-      driver: new FormControl('', [Validators.required]),
+      driver: new FormControl(this.card.driver, [Validators.required]),
       checkArray: new FormArray([]),
-      start: new FormControl('', [Validators.required]),
-      end: new FormControl(''),
+      start: new FormControl(this.card.start, [Validators.required]),
+      end: new FormControl(this.card.end),
       comments: ['']
     })
   }
@@ -52,11 +53,12 @@ export class CardTerritoryComponent implements OnInit {
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[9];
     const checkArray: FormArray = this.formCard.get('checkArray') as FormArray;
-    this.applesData.forEach((manzana) => {
+    this.card.applesData.forEach((manzana) => {
       if(manzana.checked === true){
         checkArray.push(new FormControl(manzana.name));
       }
     })
+    this.card.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1GOPjTgnhJgIJWBGZhvgc2eLcCnDkPS8&ehbc=2E312F" width="640" height="480" ></iframe>')
   }
 
   onCheckboxChange(e:any){
@@ -93,5 +95,10 @@ export class CardTerritoryComponent implements OnInit {
       this.startError = false;
       console.log(this.formCard.value);
     }
+  }
+
+  ngOnDestroy() {
+    this.cardService.rollbackCard();
+    this.card.revision = false;
   }
 }
