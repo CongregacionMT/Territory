@@ -30,4 +30,10 @@ export class TerritoryPageComponent implements OnInit {
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[0];
   }
+
+  onProgress(card: any){
+    if(card.name === "Rural"){
+      alert("Próximamente estará disponible . . . 👨‍🔧👨‍🏭👨‍💻")
+    }
+  }
 }
