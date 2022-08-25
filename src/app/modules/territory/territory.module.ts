@@ -4,15 +4,15 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { TerritoryRoutingModule } from './territory-routing.module';
 import { TerritoryPageComponent } from './pages/territory-page/territory-page.component';
-import { MariaTeresaComponent } from './pages/maria-teresa/maria-teresa.component';
 import { CardTerritoryComponent } from './pages/card-territory/card-territory.component';
 import { SharedModule } from '@shared/shared.module';
+import { MapasComponent } from './pages/mapas/mapas.component';
 
 @NgModule({
   declarations: [
     TerritoryPageComponent,
-    MariaTeresaComponent,
-    CardTerritoryComponent
+    CardTerritoryComponent,
+    MapasComponent
   ],
   imports: [
     CommonModule,
