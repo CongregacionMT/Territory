@@ -10,15 +10,14 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class MapasComponent implements OnInit {
   
   mapa: any;
-  constructor(private rutaActiva: ActivatedRoute, private domSanitizer: DomSanitizer) { }
+  constructor(private activatedRoute: ActivatedRoute, private domSanitizer: DomSanitizer) { }
 
   ngOnInit(): void {
-    console.log(this.rutaActiva.snapshot.url[0].path);  
-    if(this.rutaActiva.snapshot.url[0].path === 'maria-teresa'){
+    if(this.activatedRoute.snapshot.url[0].path === 'maria-teresa'){
       this.mapa = this.domSanitizer.bypassSecurityTrustHtml(
         '<iframe src="https://www.google.com/maps/d/embed?mid=1H-aEAUqqCeX8rRRNykvly38QZIZJ76s&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
       )
-    } else if (this.rutaActiva.snapshot.url[0].path === 'christophersen'){
+    } else if (this.activatedRoute.snapshot.url[0].path === 'christophersen'){
       this.mapa = this.domSanitizer.bypassSecurityTrustHtml(
         '<iframe src="https://www.google.com/maps/d/embed?mid=1WYVbLbcT5UJDQawb4ahOIfdCwEfocFY&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
       )
