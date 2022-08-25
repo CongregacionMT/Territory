@@ -15,7 +15,10 @@ const routes: Routes = [
         { path: '', component: MariaTeresaAssignmentComponent },
         { path: 'territorio', component: NumberTerritoryComponent },
       ]},
-      { path: 'christophersen', component: ChristophersenAssignmentComponent },
+      { path: 'christophersen', children: [
+        { path: '', component: ChristophersenAssignmentComponent },
+        { path: 'territorio', component: NumberTerritoryComponent }
+      ] },
       { path: 'rural', component: RuralAssignmentComponent },
       { path: '**', redirectTo: '' },
     ],
