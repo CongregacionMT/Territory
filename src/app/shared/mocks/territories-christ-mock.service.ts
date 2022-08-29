@@ -10,9 +10,11 @@ export class TerritoriesChristMockService {
   getTerritories() {
     return ([
       {
+        collection: "TerritorioC-1",
         territorio: 1,
       },
       {
+        collection: "TerritorioC-2",
         territorio: 2
       }
     ]);

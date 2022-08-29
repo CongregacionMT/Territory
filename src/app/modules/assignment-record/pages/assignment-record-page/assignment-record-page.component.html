@@ -12,7 +12,7 @@
   <h1 class="text-center">Revisión de tarjetas recibidas</h1>
   <div class="card-container">
     <app-card-s
-      *ngFor="let card of cantCardsReceived"
+      *ngFor="let card of allCardsReceived"
       [terrNumber]="card.numberTerritory"
       (click)="cardReceived(card)"
     ></app-card-s>

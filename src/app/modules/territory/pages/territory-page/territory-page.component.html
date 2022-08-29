@@ -20,7 +20,8 @@
     <app-card-s
       *ngFor="let item of territoriesMT"
       terrNumber="{{ item.territorio }}"
-      routerLink="tarjeta-mt"
+      [routerLink]="item.collection"
+      (click)="this.cardService.rollbackCard()"
     >
     </app-card-s>
   </div>
@@ -32,7 +33,8 @@
     <app-card-s
       *ngFor="let item of territoriesC"
       terrNumber="{{ item.territorio }}"
-      routerLink="tarjeta-c"
+      [routerLink]="item.collection"
+      (click)="this.cardService.rollbackCard()"
     >
     </app-card-s>
   </div>
