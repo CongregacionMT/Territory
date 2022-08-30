@@ -7,7 +7,12 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class TerritoryDataService {
-
+  // PATH
+  // 0 => MT
+  // 1 => CHT
+  // 2 => RURAL
+  pathNumberTerritory: number = 0;
+  
   diferent: boolean = false;
   countFalseApples: number = 0;
   constructor(private firestore: Firestore, private router: Router) { }
@@ -52,6 +57,7 @@ export class TerritoryDataService {
       card.completed+=1
       card.creation = Timestamp.now()
       addDoc(cardRef, card);
+      this.router.navigate(['home']);
       return
     } else {
       this.router.navigate(['home']);

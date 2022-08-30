@@ -7,7 +7,8 @@
     <app-card-s
       *ngFor="let item of territoriesMT"
       terrNumber="{{ item.territorio }}"
-      routerLink="territorio"
+      [routerLink]="item.collection"
+      (click)="pathMT()"
     >
     </app-card-s>
   </div>

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { DataNumberTerritoryService } from '@shared/mocks/data-number-territory.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TerritoryDataService } from '@core/services/territory-data.service';
+import { Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-number-territory',
@@ -10,24 +11,30 @@ import { Router } from '@angular/router';
 })
 export class NumberTerritoryComponent implements OnInit {
   routerBreadcrum: any = [];
+  path: any;
   dataList: any[] = [];
+  dtTrigger: Subject<any> = new Subject<any>();
   dtOptions: DataTables.Settings = {};
+  numberTerritory: number = 0;
+  appleCount: any;
+  cardSubscription: Subscription;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private dataNumberTerritoryService: DataNumberTerritoryService,
+    private activatedRoute: ActivatedRoute,
+    private territorieDataService: TerritoryDataService,
     private router: Router
-  ) {
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    if(this.router.url === '/registro-territorios/maria-teresa/territorio'){
-      this.routerBreadcrum = this.routerBreadcrum[6];
-      this.dataList = dataNumberTerritoryService.getDataListMT1();
-    } else if(this.router.url === '/registro-territorios/christophersen/territorio'){
-      this.routerBreadcrum = this.routerBreadcrum[7];
-      this.dataList = dataNumberTerritoryService.getDataListC1();
+    ) {
+      this.cardSubscription = Subscription.EMPTY;
+      this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
+      if(this.territorieDataService.pathNumberTerritory === 0){
+        this.routerBreadcrum = this.routerBreadcrum[6];
+      } else if(this.territorieDataService.pathNumberTerritory === 1){
+        this.routerBreadcrum = this.routerBreadcrum[7];
+      }
     }
-  }
-
+    
   ngOnInit(): void {
+    // tabla
     this.dtOptions = {
       pagingType: 'full_numbers',
       paging: false,
@@ -37,9 +44,28 @@ export class NumberTerritoryComponent implements OnInit {
       },
       lengthChange: true,
       ordering: true,
-      autoWidth: true,
-      stateSave: true,
-      responsive: true,
+      stateSave: true
     };
+    // RECIBIR LA DATA
+    this.path = this.activatedRoute.snapshot.params['collection'];
+    this.territorieDataService.getCardTerritorie(this.path).subscribe(card => {
+      this.dataList = card;
+      this.numberTerritory = card[0].numberTerritory
+      this.dtTrigger.next(""); 
+      this.dataList.map((list: any, index: any) => {
+        this.appleCount = 0;
+        list.applesData.map((apple: any) => {
+          if(apple.checked === true){
+            this.appleCount+=1
+          }
+        });
+        if(this.appleCount === 0){
+          this.dataList.splice(index, 1);
+        }
+      })
+    });
+  }
+  ngOnDestroy(): void {
+    this.dtTrigger.unsubscribe();
   }
 }

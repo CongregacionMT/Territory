@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { TerritoriesChristMockService } from '@shared/mocks/territories-christ-mock.service';
 
@@ -12,7 +13,8 @@ export class ChristophersenAssignmentComponent implements OnInit {
   territoriesC: any[] = [];
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoriesChristMockService: TerritoriesChristMockService
+    private territoriesChristMockService: TerritoriesChristMockService,
+    private territoryDataService: TerritoryDataService
   ) {
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     this.territoriesC = this.territoriesChristMockService.getTerritories();
@@ -20,5 +22,9 @@ export class ChristophersenAssignmentComponent implements OnInit {
 
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[4];
+  }
+
+  pathCH(){
+    this.territoryDataService.pathNumberTerritory = 1;
   }
 }

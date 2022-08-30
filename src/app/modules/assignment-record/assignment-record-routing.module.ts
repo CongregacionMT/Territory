@@ -13,11 +13,11 @@ const routes: Routes = [
       { path: '', component: AssignmentRecordPageComponent },
       { path: 'maria-teresa', children: [
         { path: '', component: MariaTeresaAssignmentComponent },
-        { path: 'territorio', component: NumberTerritoryComponent },
+        { path: ':collection', component: NumberTerritoryComponent },
       ]},
       { path: 'christophersen', children: [
         { path: '', component: ChristophersenAssignmentComponent },
-        { path: 'territorio', component: NumberTerritoryComponent }
+        { path: ':collection', component: NumberTerritoryComponent }
       ] },
       { path: 'rural', component: RuralAssignmentComponent },
       { path: '**', redirectTo: '' },
