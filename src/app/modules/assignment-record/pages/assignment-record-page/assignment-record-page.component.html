@@ -1,0 +1,20 @@
+<div class="container">
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  <div class="card-container">
+    <app-card-xl
+      *ngFor="let terr of territorioMaps"
+      mapSRC="{{ terr.src }}"
+      mapName="{{ terr.name }}"
+      [routerLink]="terr.link"
+    ></app-card-xl>
+  </div>
+  <hr />
+  <h1 class="text-center">Revisión de tarjetas recibidas</h1>
+  <div class="card-s-container">
+    <app-card-s
+      *ngFor="let card of allCardsReceived"
+      [terrNumber]="card.numberTerritory"
+      (click)="cardReceived(card)"
+    ></app-card-s>
+  </div>
+</div>

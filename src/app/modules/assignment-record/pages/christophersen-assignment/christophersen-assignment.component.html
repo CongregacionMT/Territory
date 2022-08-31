@@ -1,0 +1,33 @@
+<div class="container">
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  <div class="d-flex justify-content-center">
+    <h2 class="my-2 text-center">Territorios por número</h2>
+  </div>
+  <div class="card-s-container">
+    <app-card-s
+      *ngFor="let item of territoriesC"
+      terrNumber="{{ item.territorio }}"
+      [routerLink]="item.collection"
+      (click)="pathCH()"
+    >
+    </app-card-s>
+  </div>
+  <div class="d-flex justify-content-evenly my-5">
+    <button class="btn btn-danger btn-lg me-2">
+      Descargar registro PDF
+      <img
+        src="https://i.postimg.cc/JnNJyZDx/pdf.png"
+        alt="pdf"
+        style="width: 1.7rem"
+      />
+    </button>
+    <button class="btn btn-success btn-lg ms-2">
+      Descargar registro Excel
+      <img
+        src="https://i.postimg.cc/Y962Nxx4/excel.png"
+        alt="excel"
+        style="width: 2rem"
+      />
+    </button>
+  </div>
+</div>
