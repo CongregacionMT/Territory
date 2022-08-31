@@ -10,6 +10,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class MapasComponent implements OnInit {
   
   mapa: any;
+  soon: boolean = false;
   constructor(private activatedRoute: ActivatedRoute, private domSanitizer: DomSanitizer) { }
 
   ngOnInit(): void {
@@ -21,6 +22,8 @@ export class MapasComponent implements OnInit {
       this.mapa = this.domSanitizer.bypassSecurityTrustHtml(
         '<iframe src="https://www.google.com/maps/d/embed?mid=1WYVbLbcT5UJDQawb4ahOIfdCwEfocFY&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
       )
+    } else {
+      this.soon = true;
     }
   }
 }
