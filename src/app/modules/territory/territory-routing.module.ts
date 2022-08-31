@@ -12,6 +12,7 @@ const routes: Routes = [
       { path: '', component: TerritoryPageComponent},
       { path: 'maria-teresa', component: MapasComponent},
       { path: 'christophersen', component: MapasComponent},
+      { path: 'rural', component: MapasComponent},
       { path: ':collection', component: CardTerritoryComponent},
       { path: ':collection', component: CardTerritoryComponent},
       {path: '**', redirectTo: ''},

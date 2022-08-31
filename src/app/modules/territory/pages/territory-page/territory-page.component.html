@@ -13,29 +13,31 @@
     ></app-card-xl>
   </div>
   <hr />
-  <div class="d-flex justify-content-center">
-    <h2 class="my-2 text-center">Territorios de María Teresa por Número</h2>
-  </div>
-  <div class="card-s-container">
-    <app-card-s
-      *ngFor="let item of territoriesMT"
-      terrNumber="{{ item.territorio }}"
-      [routerLink]="item.collection"
-      (click)="this.cardService.rollbackCard()"
-    >
-    </app-card-s>
-  </div>
-  <hr />
-  <div class="d-flex justify-content-center">
-    <h2 class="my-2 text-center">Territorios de Christophersen por Número</h2>
-  </div>
-  <div class="card-s-container">
-    <app-card-s
-      *ngFor="let item of territoriesC"
-      terrNumber="{{ item.territorio }}"
-      [routerLink]="item.collection"
-      (click)="this.cardService.rollbackCard()"
-    >
-    </app-card-s>
+  <div *ngIf="isAdmin || isDriver">
+    <div class="d-flex justify-content-center">
+      <h2 class="my-2 text-center">Territorios de María Teresa por Número</h2>
+    </div>
+    <div class="card-s-container">
+      <app-card-s
+        *ngFor="let item of territoriesMT"
+        terrNumber="{{ item.territorio }}"
+        [routerLink]="item.collection"
+        (click)="this.cardService.rollbackCard()"
+      >
+      </app-card-s>
+    </div>
+    <hr />
+    <div class="d-flex justify-content-center">
+      <h2 class="my-2 text-center">Territorios de Christophersen por Número</h2>
+    </div>
+    <div class="card-s-container">
+      <app-card-s
+        *ngFor="let item of territoriesC"
+        terrNumber="{{ item.territorio }}"
+        [routerLink]="item.collection"
+        (click)="this.cardService.rollbackCard()"
+      >
+      </app-card-s>
+    </div>
   </div>
 </div>

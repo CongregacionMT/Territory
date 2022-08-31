@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Card } from '@core/models/Card';
 import { CardService } from '@core/services/card.service';
+import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { TerritorioMapsMockService } from '@shared/mocks/territorio-maps-mock.service';
@@ -20,12 +21,15 @@ export class AssignmentRecordPageComponent implements OnInit {
     private territorioMapsMockService: TerritorioMapsMockService,
     private territorieDataService: TerritoryDataService,
     private cardService: CardService,
-    private router: Router
+    private router: Router,
+    private spinner: SpinnerService
   ) {
+    this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     this.territorioMaps = territorioMapsMockService.getMaps();
     this.territorieDataService.getRevisionCardTerritorie().subscribe(card => {
     this.allCardsReceived = card;
+    this.spinner.cerrarSpinner()
     });
   }
 

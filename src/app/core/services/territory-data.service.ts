@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, deleteDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
+import { SpinnerService } from './spinner.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class TerritoryDataService {
   
   diferent: boolean = false;
   countFalseApples: number = 0;
-  constructor(private firestore: Firestore, private router: Router) { }
+  constructor(private firestore: Firestore, private router: Router, private spinner: SpinnerService) { }
 
   // TARJETAS DE CONDUCTORES
   getCardTerritorie(collectionParam: string): Observable<any>{
@@ -27,6 +28,7 @@ export class TerritoryDataService {
   sendRevisionCardTerritorie(card: any){
     const cardRef = collection(this.firestore, "revision"); 
     this.router.navigate(['home']);
+    this.spinner.cerrarSpinner()
     setTimeout(() => {
       alert("La tarjeta se envió correctamente! Muchas gracias 😁");  
     }, 1000);
@@ -58,9 +60,11 @@ export class TerritoryDataService {
       card.creation = Timestamp.now()
       addDoc(cardRef, card);
       this.router.navigate(['home']);
+      this.spinner.cerrarSpinner()
       return
     } else {
       this.router.navigate(['home']);
+      this.spinner.cerrarSpinner()
       return addDoc(cardRef, card);
     }
   }

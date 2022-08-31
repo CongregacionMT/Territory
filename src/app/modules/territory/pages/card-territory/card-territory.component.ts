@@ -7,6 +7,7 @@ import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { Subscription } from 'rxjs';
+import { SpinnerService } from '@core/services/spinner.service';
 @Component({
   selector: 'app-card-territory',
   templateUrl: './card-territory.component.html',
@@ -39,8 +40,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     private domSanitizer: DomSanitizer,
     private territorieDataService: TerritoryDataService,
     private cardService: CardService,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private spinner: SpinnerService
     ) {
+    this.spinner.cargarSpinner();
     this.cardSubscription = Subscription.EMPTY;      
     this.formCard = this.fb.group({
       driver: new FormControl(this.card.driver, [Validators.required]),
@@ -61,15 +64,19 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
         const applesData: FormArray = this.formCard.get('applesData') as FormArray;
         applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
       });
+      this.spinner.cerrarSpinner()
     } else {      
       // SI NO ESTOY REVISANDO LA CARD, ENTONCES MUESTRO LA ULTIMA TARJETA.
       this.path = this.activatedRoute.snapshot.params['collection'];
-      this.cardSubscription = this.territorieDataService.getCardTerritorie(this.path).subscribe(card => {
-        this.card = card[0];
-        this.card.applesData.map((apple: any) => {
-          const applesData: FormArray = this.formCard.get('applesData') as FormArray;
-          applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
-        });
+      this.cardSubscription = this.territorieDataService.getCardTerritorie(this.path).subscribe({
+        next: card => {
+          this.card = card[0];
+          this.card.applesData.map((apple: any) => {
+            const applesData: FormArray = this.formCard.get('applesData') as FormArray;
+            applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
+          });
+          this.spinner.cerrarSpinner()
+        }
       })
     }
   }
@@ -148,6 +155,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     } else {
       this.driverError = false;
       this.startError = false;
+      this.spinner.cargarSpinner();
       // Rellenar card con los datos ingresados
       this.card.driver = this.formCard.value.driver;
       this.card.start = this.formCard.value.start;
@@ -156,7 +164,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       this.card.applesData = this.formCard.value.applesData;
       // Comparar si estoy revisando o no
       if(this.card.revision === true){
-        this.territorieDataService.postCardTerritorie(this.card, this.card.link); 
+        this.territorieDataService.postCardTerritorie(this.card, this.card.link);
       } else {
         this.card.creation = Timestamp.now()
         this.territorieDataService.sendRevisionCardTerritorie(this.card);

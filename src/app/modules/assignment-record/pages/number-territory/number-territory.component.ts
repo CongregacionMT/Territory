@@ -3,6 +3,7 @@ import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.
 import { ActivatedRoute, Router } from '@angular/router';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Subject, Subscription } from 'rxjs';
+import { SpinnerService } from '@core/services/spinner.service';
 
 @Component({
   selector: 'app-number-territory',
@@ -22,8 +23,10 @@ export class NumberTerritoryComponent implements OnInit {
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private activatedRoute: ActivatedRoute,
     private territorieDataService: TerritoryDataService,
-    private router: Router
+    private router: Router,
+    private spinner: SpinnerService
     ) {
+      this.spinner.cargarSpinner();
       this.cardSubscription = Subscription.EMPTY;
       this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
       if(this.territorieDataService.pathNumberTerritory === 0){
@@ -48,21 +51,24 @@ export class NumberTerritoryComponent implements OnInit {
     };
     // RECIBIR LA DATA
     this.path = this.activatedRoute.snapshot.params['collection'];
-    this.territorieDataService.getCardTerritorie(this.path).subscribe(card => {
-      this.dataList = card;
-      this.numberTerritory = card[0].numberTerritory
-      this.dtTrigger.next(""); 
-      this.dataList.map((list: any, index: any) => {
-        this.appleCount = 0;
-        list.applesData.map((apple: any) => {
-          if(apple.checked === true){
-            this.appleCount+=1
+    this.territorieDataService.getCardTerritorie(this.path).subscribe({
+      next: card => {
+        this.dataList = card;
+        this.numberTerritory = card[0].numberTerritory
+        this.dtTrigger.next(""); 
+        this.dataList.map((list: any, index: any) => {
+          this.appleCount = 0;
+          list.applesData.map((apple: any) => {
+            if(apple.checked === true){
+              this.appleCount+=1
+            }
+          });
+          if(this.appleCount === 0){
+            this.dataList.splice(index, 1);
           }
-        });
-        if(this.appleCount === 0){
-          this.dataList.splice(index, 1);
-        }
-      })
+        })
+        this.spinner.cerrarSpinner()
+      }
     });
   }
   ngOnDestroy(): void {
