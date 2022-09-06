@@ -68,4 +68,11 @@ export class TerritoryDataService {
       return addDoc(cardRef, card);
     }
   }
+
+  // SALIDAS
+
+  getDepartures(){
+    const cardRef = collection(this.firestore, "Departures");
+    return collectionData(cardRef) as Observable<any>;
+  }
 }
