@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, deleteDoc } from '@angular/fire/firestore';
+import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
@@ -74,5 +74,10 @@ export class TerritoryDataService {
   getDepartures(){
     const cardRef = collection(this.firestore, "Departures");
     return collectionData(cardRef) as Observable<any>;
+  }
+
+  putDepartures(departures: any){
+    const departuresRef = doc(this.firestore, "Departures", "docDeparture");
+    updateDoc(departuresRef, departures);
   }
 }
