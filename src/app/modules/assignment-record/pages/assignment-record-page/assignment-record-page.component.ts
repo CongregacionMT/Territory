@@ -16,6 +16,7 @@ export class AssignmentRecordPageComponent implements OnInit {
   routerBreadcrum: any = [];
   territorioMaps: any = [];
   allCardsReceived: any = [];
+  cardConfirmation: any;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private territorioMapsMockService: TerritorioMapsMockService,
@@ -28,16 +29,22 @@ export class AssignmentRecordPageComponent implements OnInit {
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     this.territorioMaps = territorioMapsMockService.getMaps();
     this.territorieDataService.getRevisionCardTerritorie().subscribe(card => {
-    this.allCardsReceived = card;
-    this.spinner.cerrarSpinner()
+      this.allCardsReceived = card;
+      this.cardConfirmation = JSON.parse(JSON.stringify(card));
+      this.spinner.cerrarSpinner()
     });
   }
 
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[2];
   }
-
   cardReceived(card: Card){
     this.cardService.goRevisionCard(card);
+  }
+  cardConfirmationDelete(card: any){    
+    this.cardConfirmation = card;
+  }
+  cardDelete(){
+    this.territorieDataService.deleteCardTerritorie(this.cardConfirmation);
   }
 }

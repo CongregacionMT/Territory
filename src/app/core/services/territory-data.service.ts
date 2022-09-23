@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc } from '@angular/fire/firestore';
+import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
@@ -39,7 +39,7 @@ export class TerritoryDataService {
   getRevisionCardTerritorie(): Observable<any>{
     const cardRef = collection(this.firestore, "revision");
     const q = query(cardRef, orderBy("creation", "desc"));
-    return collectionData(q) as Observable<any>;
+    return collectionData(q, {idField: 'id'}) as Observable<any>;
   }
 
   postCardTerritorie(card: any, collectionName: any){
@@ -67,6 +67,12 @@ export class TerritoryDataService {
       this.spinner.cerrarSpinner()
       return addDoc(cardRef, card);
     }
+  }
+
+  deleteCardTerritorie(card: any){
+    const cardRef = collection(this.firestore, "revision");
+    console.log(card.id);
+    deleteDoc(doc(this.firestore, "revision", card.id));
   }
 
   // SALIDAS

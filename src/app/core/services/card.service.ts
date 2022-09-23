@@ -19,7 +19,8 @@ export class CardService {
       comments: '',
       link: '',
       applesData: [],
-      revision: false
+      revision: false,
+      revisionComplete: false
     }
   }
   rollbackCard(){
