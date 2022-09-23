@@ -30,4 +30,59 @@
       />
     </button>
   </div>
+  <!-- Tabla de territorios completa -->
+  <table class="table table-dark table-full">
+    <thead>
+      <tr>
+        <th
+          *ngFor="let item of territoriesC"
+          scope="col"
+          class="fs-5 text-center"
+        >
+          Territorio {{ item.territorio }}
+        </th>
+      </tr>
+    </thead>
+
+    <tbody class="table-group-divider">
+      <tr class="m-0 p-0">
+        <td *ngFor="let dataList of dataListFull">
+          <table class="table table-dark m-0" *ngFor="let list of dataList">
+            <tr>
+              <td
+                class="d-flex justify-content-center fs-4"
+                style="border-bottom: 0px transparent"
+              >
+                {{ list.driver }}
+              </td>
+            </tr>
+            <tr>
+              <table
+                class="table table-dark table-striped table-hover table-bordered row-border m-0"
+              >
+                <tr
+                  class="d-flex justify-content-around"
+                  style="border: 0px transparent"
+                >
+                  <th scope="col" class="px-2">Entregó</th>
+                  <th scope="col" class="px-2">Devolvió</th>
+                </tr>
+                <tr
+                  class="d-flex justify-content-around py-0"
+                  style="border: 0px transparent"
+                >
+                  <td class="pe-3">{{ list.start | date: "dd-MM-yyyy"}}</td>
+                  |
+                  <td class="ps-3">
+                    {{ list.end ? (list.end | date: "dd-MM-yyyy") : "-- --" }}
+                  </td>
+                </tr>
+              </table>
+            </tr>
+            <hr class="m-1" />
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
