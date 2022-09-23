@@ -37,6 +37,7 @@ export class AssignmentRecordPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[2];
+    
   }
   cardReceived(card: Card){
     this.cardService.goRevisionCard(card);

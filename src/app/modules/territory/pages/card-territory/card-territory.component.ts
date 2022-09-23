@@ -165,8 +165,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       this.card.applesData = this.formCard.value.applesData;
       // Comparar si estoy revisando o no
       if(this.card.revision === true){
-        this.card.revisionComplete = true;
         this.territorieDataService.postCardTerritorie(this.card, this.card.link);
+        this.territorieDataService.putCardTerritorie(this.card);
       } else {
         this.card.creation = Timestamp.now()
         this.territorieDataService.sendRevisionCardTerritorie(this.card);

@@ -10,20 +10,22 @@
   </div>
   <hr />
   <h1 class="text-center">Revisión de tarjetas recibidas</h1>
-  <div
-    class="card-s-container"
-    *ngFor="let card of allCardsReceived"
-    
-  >
-    <div class="card" style="width: auto">
-      <div class="card-body d-flex flex-column text-dark" (click)="cardReceived(card)">
-        <h6 class="text-center">❌(Sin revisar)</h6>
-        <h4>🔸{{ card.location }}</h4>
-        <h4>🔸{{ card.driver }}</h4>
-        <h4>🔸N°{{ card.numberTerritory }}</h4>
-        <h4>🔸{{ card.start | date: "dd-MM-yyyy" }}</h4>
+  <div class="d-flex justify-content-center">
+    <div
+      class="card-s-container"
+      *ngFor="let card of allCardsReceived"
+      
+    >
+      <div class="card" style="width: auto">
+        <div class="card-body d-flex flex-column text-dark" (click)="cardReceived(card)">
+          <h6 class="text-center">{{card.revisionComplete ? "✔ Revisado" : "❌(Sin revisar)"}} </h6>
+          <h4>🔸{{ card.location }}</h4>
+          <h4>🔸{{ card.driver }}</h4>
+          <h4>🔸N°{{ card.numberTerritory }}</h4>
+          <h4>🔸{{ card.start | date: "dd-MM-yyyy" }}</h4>
+        </div>
+        <button class="btn btn-danger m-2" data-bs-toggle="modal" data-bs-target="#exampleModal" (click)="cardConfirmationDelete(card)">Eliminar</button>
       </div>
-      <button class="btn btn-danger m-2" data-bs-toggle="modal" data-bs-target="#exampleModal" (click)="cardConfirmationDelete(card)">Eliminar</button>
     </div>
   </div>
   <!-- Modal -->

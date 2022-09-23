@@ -69,9 +69,13 @@ export class TerritoryDataService {
     }
   }
 
+  putCardTerritorie(card: any){
+    const revisionRef = doc(this.firestore, "revision", card.id);
+    card.revisionComplete = true;
+    updateDoc(revisionRef, card);
+  }
+
   deleteCardTerritorie(card: any){
-    const cardRef = collection(this.firestore, "revision");
-    console.log(card.id);
     deleteDoc(doc(this.firestore, "revision", card.id));
   }
 

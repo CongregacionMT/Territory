@@ -22,7 +22,6 @@ export class HomePageComponent implements OnInit {
         }
       })
     }
-    console.log("window", window);
     if(this.deferredPrompt){
       this.btnPWA = false;
     }
