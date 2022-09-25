@@ -1,8 +1,26 @@
 <div class="container">
     <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
-    <h1>Cantidad de veces que se completó cada territorio</h1>
-    <h1>Cantidad de veces que se completo María Teresa</h1>
-    <h1>Cantidad de veces que se completó Cristophersen</h1>
-    <p>v2</p>
-    <h1 class="text-center">Territorios entregados esta semana</h1>
+    <h1 class="text-center pb-2">Estadísticas de María Teresa</h1>
+    <table class="table table-dark table-hover table-striped-columns">
+        <thead>
+            <tr>
+                <th>Territorio</th>
+                <th>Completado</th>
+                <th>P.D. en completarse</th>
+                <th>P. veces asignado</th>
+                <th>Cantidad de Manzanas</th>
+                <th>última vez asignado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let dataList of dataListFull;">
+                <td>Número {{dataList[0].numberTerritory}}</td>
+                <td>{{dataList[0].completed}}</td>
+                <td>{{dataList | timesAssigned: true}}</td>
+                <td>{{dataList | timesAssigned: false}}</td>
+                <td>{{dataList[0].applesData.length}} manzanas</td>
+                <td>{{dataList[0].start | date:"dd-MM-yyyy"}}</td>
+            </tr>
+        </tbody>
+    </table>
 </div>

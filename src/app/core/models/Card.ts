@@ -17,6 +17,7 @@ export class Card {
     link?: string;
     applesData: CardapplesData[];
     revision?: boolean;
+    revisionComplete?: boolean;
     constructor(){
         this.applesData = [{name:'', checked: false}]
     }

@@ -8,13 +8,201 @@
       [routerLink]="terr.link"
     ></app-card-xl>
   </div>
+
   <hr />
+
+  <h1 class="text-center">Territorios entregados esta semana</h1>
+  <div class="d-flex justify-content-center flex-wrap">
+    <div class="card-s-container" *ngFor="let card of allCardsAssigned">
+      <div class="card" style="width: auto">
+        <div class="card-body d-flex flex-column text-dark pb-0">
+          <h4>🔸Localidad: {{ card.location }}</h4>
+          <h4>🔸Conductor: {{ card.driver }}</h4>
+          <h4>🔸Territorio: N° {{ card.territory }}</h4>
+        </div>
+        <button
+          class="btn btn-danger m-2"
+          (click)="deleteCardAssigned(card)"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+    <!-- Nuevo -->
+    <div
+      class="card-s-container"
+      data-bs-toggle="modal"
+      data-bs-target="#creationModal"
+    >
+      <div
+        class="card-new d-flex justify-content-center align-items-center"
+        style="width: 200px"
+      >
+        <div
+          class="card-border d-flex justify-content-center align-items-center"
+          style="width: 180px; height: 165px"
+        >
+          <h1 class="fs-1 text-secondary text-center">+</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr />
+
   <h1 class="text-center">Revisión de tarjetas recibidas</h1>
-  <div class="card-s-container">
-    <app-card-s
-      *ngFor="let card of allCardsReceived"
-      [terrNumber]="card.numberTerritory"
-      (click)="cardReceived(card)"
-    ></app-card-s>
+  <div class="d-flex justify-content-center flex-wrap">
+    <div class="card-s-container" *ngFor="let card of allCardsReceived">
+      <div class="card" style="width: auto">
+        <div
+          class="card-body d-flex flex-column text-dark pb-0"
+          (click)="cardReceived(card)"
+        >
+          <h6 class="text-center">
+            {{ card.revisionComplete ? "✔ Revisado" : "❌(Sin revisar)" }}
+          </h6>
+          <h4>🔸{{ card.location }}</h4>
+          <h4>🔸{{ card.driver }}</h4>
+          <h4>🔸N°{{ card.numberTerritory }}</h4>
+          <h4>🔸{{ card.start | date: "dd-MM-yyyy" }}</h4>
+        </div>
+        <button
+          class="btn btn-danger m-2"
+          data-bs-toggle="modal"
+          data-bs-target="#exampleModal"
+          (click)="cardConfirmationDelete(card)"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal de creación de asignación -->
+  <div
+    class="modal fade"
+    id="creationModal"
+    tabindex="-1"
+    aria-labelledby="creationModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-dark" id="exampleModalLabel">
+            Nueva tarjeta
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="formCard" (ngSubmit)="postCardAssigned()">
+            <div class="d-flex align-items-center">
+              <h4 class="text-dark">🔸Localidad:</h4>
+              <input
+                type="text"
+                class="form-control ms-2"
+                formControlName="location"
+              />
+            </div>
+            <div class="d-flex align-items-center my-4">
+              <h4 class="text-dark">🔸Conductor:</h4>
+              <input type="text" class="form-control ms-2" formControlName="driver"/>
+            </div>
+            <div class="d-flex align-items-center">
+              <h4 class="text-dark">🔸Territorio:</h4>
+              <input type="number" class="form-control ms-2" formControlName="territory"/>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                data-bs-dismiss="modal"
+                [disabled]="formCard.invalid"
+              >
+                Crear tarjeta
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal de confirmación -->
+  <div
+    class="modal fade"
+    id="exampleModal"
+    tabindex="-1"
+    aria-labelledby="exampleModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-dark" id="exampleModalLabel">
+            ¿Estás seguro de que quieres eliminar esta tarjeta?
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-center">
+            <h4 class="text-dark">🔸Localidad:</h4>
+            <p class="text-dark fs-4 mb-2 ps-2">
+              {{ cardConfirmation.location }}
+            </p>
+          </div>
+          <div class="d-flex align-items-center">
+            <h4 class="text-dark">🔸Conductor:</h4>
+            <p class="text-dark fs-4 mb-2 ps-2">
+              {{ cardConfirmation.driver }}
+            </p>
+          </div>
+          <div class="d-flex align-items-center">
+            <h4 class="text-dark">🔸Territorio:</h4>
+            <p class="text-dark fs-4 mb-2 ps-2">
+              N°{{ cardConfirmation.numberTerritory }}
+            </p>
+          </div>
+          <div class="d-flex align-items-center">
+            <h4 class="text-dark">🔸Fecha:</h4>
+            <p class="text-dark fs-4 mb-2 ps-2">
+              {{ cardConfirmation.start | date: "dd-MM-yyyy" }}
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            data-bs-dismiss="modal"
+            (click)="cardDelete()"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

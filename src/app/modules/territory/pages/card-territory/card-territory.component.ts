@@ -25,7 +25,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     comments: '',
     creation: '',
     applesData: [{name:'', checked: false}],
-    revision: false
+    revision: false,
+    revisionComplete: false
   }
   iframe: any;
   path: string = "";
@@ -165,6 +166,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       // Comparar si estoy revisando o no
       if(this.card.revision === true){
         this.territorieDataService.postCardTerritorie(this.card, this.card.link);
+        this.territorieDataService.putCardTerritorie(this.card);
       } else {
         this.card.creation = Timestamp.now()
         this.territorieDataService.sendRevisionCardTerritorie(this.card);

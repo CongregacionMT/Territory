@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc } from '@angular/fire/firestore';
+import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
@@ -35,11 +35,11 @@ export class TerritoryDataService {
     return addDoc(cardRef, card);
   }
 
-  // TARJETAS PARA REVICIÓN
+  // TARJETAS PARA REVISIÓN
   getRevisionCardTerritorie(): Observable<any>{
     const cardRef = collection(this.firestore, "revision");
     const q = query(cardRef, orderBy("creation", "desc"));
-    return collectionData(q) as Observable<any>;
+    return collectionData(q, {idField: 'id'}) as Observable<any>;
   }
 
   postCardTerritorie(card: any, collectionName: any){
@@ -69,13 +69,32 @@ export class TerritoryDataService {
     }
   }
 
-  // SALIDAS
+  putCardTerritorie(card: any){
+    const revisionRef = doc(this.firestore, "revision", card.id);
+    card.revisionComplete = true;
+    updateDoc(revisionRef, card);
+  }
 
+  deleteCardTerritorie(card: any){
+    deleteDoc(doc(this.firestore, "revision", card.id));
+  }
+  // TARJETAS ASIGNADAS DURANTE LA SEMANA
+  getCardAssigned(){
+    const cardRef = collection(this.firestore, "Assigned");
+    return collectionData(cardRef, {idField: 'id'}) as Observable<any>;
+  }
+  postCardAssigned(card: any){
+    const cardRef = collection(this.firestore, "Assigned");
+    return addDoc(cardRef, card);
+  }
+  deleteCardAssigned(card: any){
+    deleteDoc(doc(this.firestore, "Assigned", card.id));
+  }
+  // SALIDAS
   getDepartures(){
     const cardRef = collection(this.firestore, "Departures");
     return collectionData(cardRef) as Observable<any>;
   }
-
   putDepartures(departures: any){
     const departuresRef = doc(this.firestore, "Departures", "docDeparture");
     updateDoc(departuresRef, departures);
