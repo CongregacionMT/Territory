@@ -35,7 +35,7 @@ export class TerritoryDataService {
     return addDoc(cardRef, card);
   }
 
-  // TARJETAS PARA REVICIÓN
+  // TARJETAS PARA REVISIÓN
   getRevisionCardTerritorie(): Observable<any>{
     const cardRef = collection(this.firestore, "revision");
     const q = query(cardRef, orderBy("creation", "desc"));
@@ -78,14 +78,23 @@ export class TerritoryDataService {
   deleteCardTerritorie(card: any){
     deleteDoc(doc(this.firestore, "revision", card.id));
   }
-
+  // TARJETAS ASIGNADAS DURANTE LA SEMANA
+  getCardAssigned(){
+    const cardRef = collection(this.firestore, "Assigned");
+    return collectionData(cardRef, {idField: 'id'}) as Observable<any>;
+  }
+  postCardAssigned(card: any){
+    const cardRef = collection(this.firestore, "Assigned");
+    return addDoc(cardRef, card);
+  }
+  deleteCardAssigned(card: any){
+    deleteDoc(doc(this.firestore, "Assigned", card.id));
+  }
   // SALIDAS
-
   getDepartures(){
     const cardRef = collection(this.firestore, "Departures");
     return collectionData(cardRef) as Observable<any>;
   }
-
   putDepartures(departures: any){
     const departuresRef = doc(this.firestore, "Departures", "docDeparture");
     updateDoc(departuresRef, departures);

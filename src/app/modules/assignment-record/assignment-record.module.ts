@@ -9,6 +9,7 @@ import { ChristophersenAssignmentComponent } from './pages/christophersen-assign
 import { RuralAssignmentComponent } from './pages/rural-assignment/rural-assignment.component';
 import { NumberTerritoryComponent } from './pages/number-territory/number-territory.component';
 import { DataTablesModule } from "angular-datatables";
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { DataTablesModule } from "angular-datatables";
     CommonModule,
     AssignmentRecordRoutingModule,
     SharedModule,
-    DataTablesModule
+    DataTablesModule,
+    ReactiveFormsModule
   ]
 })
 export class AssignmentRecordModule { }
