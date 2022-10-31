@@ -35,6 +35,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   driverError: boolean = false;
   startError: boolean = false;
   cardSubscription: Subscription;
+  countTrueApples: number = 0;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private fb: FormBuilder,
@@ -72,10 +73,17 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       this.cardSubscription = this.territorieDataService.getCardTerritorie(this.path).subscribe({
         next: card => {
           this.card = card[0];
+          this.countTrueApples = 0;
           this.card.applesData.map((apple: any) => {
             const applesData: FormArray = this.formCard.get('applesData') as FormArray;
             applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
+            if(apple.checked === true){
+              this.countTrueApples+=1;
+            }
           });
+          if(this.countTrueApples !== 0){
+            this.formCard.patchValue({start: this.card.start});
+          }
           this.spinner.cerrarSpinner()
         }
       })
