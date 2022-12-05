@@ -30,7 +30,7 @@ export class MariaTeresaAssignmentComponent implements OnInit {
     this.routerBreadcrum = this.routerBreadcrum[3];
     // RECIBIR LA DATA
     this.territoriesMT.map((territory) => {
-      this.territorieDataService.getCardTerritorie(territory.collection).subscribe({
+      this.territorieDataService.getTerritorieRecord(territory.collection).subscribe({
         next: card => {
           card.map((list: any, index: any) => {
             this.appleCount = 0;
