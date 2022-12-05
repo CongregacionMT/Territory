@@ -19,6 +19,7 @@
           <h4>🔸Localidad: {{ card.location }}</h4>
           <h4>🔸Conductor: {{ card.driver }}</h4>
           <h4>🔸Territorio: N° {{ card.territory }}</h4>
+          <h4>🔸Fecha: {{ card.date | date:"dd-MM-yyyy" }}</h4>
         </div>
         <button
           class="btn btn-danger m-2"
@@ -102,19 +103,31 @@
           <form [formGroup]="formCard" (ngSubmit)="postCardAssigned()">
             <div class="d-flex align-items-center">
               <h4 class="text-dark">🔸Localidad:</h4>
-              <input
-                type="text"
-                class="form-control ms-2"
-                formControlName="location"
-              />
+              <select class="form-select ms-2" formControlName="location">
+                <option selected>Maria Teresa</option>
+                <option>Christophersen</option>
+                <option>Rural</option>
+              </select>
             </div>
             <div class="d-flex align-items-center my-4">
               <h4 class="text-dark">🔸Conductor:</h4>
-              <input type="text" class="form-control ms-2" formControlName="driver"/>
+              <select class="form-select ms-2" formControlName="driver">
+                <option selected>Miguel</option>
+                <option>David</option>
+                <option>Mariano</option>
+                <option>Nicolas</option>
+                <option>Jonathan</option>
+                <option>Facundo</option>
+                <option>Viajero</option>
+              </select>
             </div>
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center my-4">
               <h4 class="text-dark">🔸Territorio:</h4>
               <input type="number" class="form-control ms-2" formControlName="territory"/>
+            </div>
+            <div class="d-flex align-items-center my-4">
+              <h4 class="text-dark">🔸Fecha:</h4>
+              <input type="date" class="form-control ms-2" formControlName="date"/>
             </div>
             <div class="modal-footer">
               <button
