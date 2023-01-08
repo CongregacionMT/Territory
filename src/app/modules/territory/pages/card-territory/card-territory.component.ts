@@ -34,8 +34,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   formCard: FormGroup;
   driverError: boolean = false;
   startError: boolean = false;
+  endError: boolean = false;
   cardSubscription: Subscription;
   countTrueApples: number = 0;
+  countFalseApples: number = 0;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private fb: FormBuilder,
@@ -84,7 +86,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
           if(this.countTrueApples !== 0){
             this.formCard.patchValue({start: this.card.start});
           }
-          this.spinner.cerrarSpinner()
+          this.countTrueApples=0;
+          this.spinner.cerrarSpinner();
         }
       })
     }
@@ -161,28 +164,39 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
   submitForm(){
     // Validar formulario
-    if (this.formCard.invalid) {
-      if(this.formCard.controls?.['driver'].invalid){
-        this.driverError = this.formCard.controls?.['driver'].invalid;
+    if(this.formCard.controls?.['driver'].invalid){
+      this.driverError = this.formCard.controls?.['driver'].invalid;
+      return;
+    }
+    if(this.formCard.controls?.['start'].invalid){
+      this.startError = this.formCard.controls?.['start'].invalid;
+      return;
+    }
+    if(this.formCard.controls?.['end'].value === ""){
+      this.formCard.value.applesData.map((apple: any) => {
+        if(apple.checked === false){
+          this.countFalseApples+=1;
+        }
+      });
+      if(this.countFalseApples === 0){
+        this.endError = true;
         return;
       }
-      if(this.formCard.controls?.['start'].invalid){
-        this.driverError = false;
-        this.startError = this.formCard.controls?.['start'].invalid;
-      }
+      this.countFalseApples=0;
+    }
+    this.driverError = false;
+    this.startError = false;
+    this.endError = false;
+
+    this.spinner.cargarSpinner();
+    this.fillCard();
+    // Comparar si estoy revisando o no
+    if(this.card.revision === true){
+      this.territorieDataService.postCardTerritorie(this.card, this.card.link);
+      this.territorieDataService.putCardTerritorie(this.card);
     } else {
-      this.driverError = false;
-      this.startError = false;
-      this.spinner.cargarSpinner();
-      this.fillCard();
-      // Comparar si estoy revisando o no
-      if(this.card.revision === true){
-        this.territorieDataService.postCardTerritorie(this.card, this.card.link);
-        this.territorieDataService.putCardTerritorie(this.card);
-      } else {
-        this.card.creation = Timestamp.now()
-        this.territorieDataService.sendRevisionCardTerritorie(this.card);
-      }
+      this.card.creation = Timestamp.now()
+      this.territorieDataService.sendRevisionCardTerritorie(this.card);
     }
   }
 
