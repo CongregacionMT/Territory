@@ -150,6 +150,15 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   get driver(){return this.formCard.get('driver');}
   get start(){return this.formCard.get('start');}
 
+  fillCard(){
+    // Rellenar card con los datos ingresados
+    this.card.driver = this.formCard.value.driver;
+    this.card.start = this.formCard.value.start;
+    this.card.end = this.formCard.value.end;
+    this.card.comments = this.formCard.value.comments;      
+    this.card.applesData = this.formCard.value.applesData;
+  }
+
   submitForm(){
     // Validar formulario
     if (this.formCard.invalid) {
@@ -165,12 +174,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       this.driverError = false;
       this.startError = false;
       this.spinner.cargarSpinner();
-      // Rellenar card con los datos ingresados
-      this.card.driver = this.formCard.value.driver;
-      this.card.start = this.formCard.value.start;
-      this.card.end = this.formCard.value.end;
-      this.card.comments = this.formCard.value.comments;
-      this.card.applesData = this.formCard.value.applesData;
+      this.fillCard();
       // Comparar si estoy revisando o no
       if(this.card.revision === true){
         this.territorieDataService.postCardTerritorie(this.card, this.card.link);
