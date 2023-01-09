@@ -1,13 +1,14 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
+import { ModalComponent } from '@shared/components/modal/modal.component';
 @Component({
   selector: 'app-card-territory',
   templateUrl: './card-territory.component.html',
@@ -38,6 +39,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   cardSubscription: Subscription;
   countTrueApples: number = 0;
   countFalseApples: number = 0;
+  @ViewChild(ModalComponent) modalComponent: any;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private fb: FormBuilder,
@@ -45,7 +47,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     private territorieDataService: TerritoryDataService,
     private cardService: CardService,
     private activatedRoute: ActivatedRoute,
-    private spinner: SpinnerService
+    private spinner: SpinnerService,
+    private router: Router
     ) {
     this.spinner.cargarSpinner();
     this.cardSubscription = Subscription.EMPTY;      
@@ -69,7 +72,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
         applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
       });
       this.spinner.cerrarSpinner()
-    } else {      
+    } else {
       // SI NO ESTOY REVISANDO LA CARD, ENTONCES MUESTRO LA ULTIMA TARJETA.
       this.path = this.activatedRoute.snapshot.params['collection'];
       this.cardSubscription = this.territorieDataService.getCardTerritorie(this.path).subscribe({
@@ -153,6 +156,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   get driver(){return this.formCard.get('driver');}
   get start(){return this.formCard.get('start');}
 
+  openModal(){
+    this.modalComponent.openModal();
+  }
+
   fillCard(){
     // Rellenar card con los datos ingresados
     this.card.driver = this.formCard.value.driver;
@@ -192,11 +199,18 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.fillCard();
     // Comparar si estoy revisando o no
     if(this.card.revision === true){
-      this.territorieDataService.postCardTerritorie(this.card, this.card.link);
+      this.territorieDataService.postCardTerritorie(this.card, this.card.link)
+      ?.then(() => {
+        console.log("todo bien");
+      })
       this.territorieDataService.putCardTerritorie(this.card);
     } else {
       this.card.creation = Timestamp.now()
-      this.territorieDataService.sendRevisionCardTerritorie(this.card);
+      this.territorieDataService.sendRevisionCardTerritorie(this.card)
+      ?.then(() => {
+        this.spinner.cerrarSpinner();
+        this.openModal();
+      })
     }
   }
 

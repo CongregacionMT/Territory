@@ -25,14 +25,9 @@ export class TerritoryDataService {
     return collectionData(q) as Observable<any>;
   }
 
-  sendRevisionCardTerritorie(card: any){
+  async sendRevisionCardTerritorie(card: any){
     const cardRef = collection(this.firestore, "revision"); 
-    this.router.navigate(['home']);
-    this.spinner.cerrarSpinner()
-    setTimeout(() => {
-      alert("La tarjeta se envió correctamente! Muchas gracias 😁");  
-    }, 1000);
-    return addDoc(cardRef, card);
+    await addDoc(cardRef, card);
   }
 
   // TARJETAS PARA REVISIÓN
