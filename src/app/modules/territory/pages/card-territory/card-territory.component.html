@@ -103,6 +103,16 @@
           Ingresá la fecha de inicio por favor
         </div>
       </div>
+      <div
+        class="alert alert-danger mt-3"
+        role="alert"
+        style="border-radius: 3px; padding: 5px"
+        *ngIf="endError"
+      >
+        <div class="container-error-message">
+          Ingresá la fecha de conclución por favor
+        </div>
+      </div>
       <div class="d-flex justify-content-center mt-4">
         <textarea
           name="comments"
@@ -121,10 +131,11 @@
       <button
         type="button"
         class="btn btn-secondary mt-3 ms-3 btn-lg"
-        routerLink="territorios"
+        routerLink="../../registro-territorios"
       >
         Cancelar
       </button>
+      <app-modal></app-modal>
     </form>
   </div>
 </div>

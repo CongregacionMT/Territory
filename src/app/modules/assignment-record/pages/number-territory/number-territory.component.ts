@@ -67,8 +67,12 @@ export class NumberTerritoryComponent implements OnInit {
             this.dataList.splice(index, 1);
           }
         })
-        this.spinner.cerrarSpinner()
-      }
+        this.spinner.cerrarSpinner();    
+        this.dataList.map((list) => {
+          let date = new Date(list.creation.seconds * 1000);
+          list.creation = date.getDate()+"-"+(date.getMonth()+1)+"-"+date.getFullYear();
+        });
+      }      
     });
   }
   ngOnDestroy(): void {

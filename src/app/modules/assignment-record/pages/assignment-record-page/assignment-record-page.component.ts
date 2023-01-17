@@ -45,7 +45,8 @@ export class AssignmentRecordPageComponent implements OnInit {
     this.formCard = this.fb.group({
       location: new FormControl("", [Validators.required]),
       driver: new FormControl("", [Validators.required]),
-      territory: new FormControl("", [Validators.required])
+      territory: new FormControl("", [Validators.required]),
+      date: new FormControl("", [Validators.required]),
     })
   }
 

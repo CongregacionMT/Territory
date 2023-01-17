@@ -10,6 +10,7 @@ import { RuralAssignmentComponent } from './pages/rural-assignment/rural-assignm
 import { NumberTerritoryComponent } from './pages/number-territory/number-territory.component';
 import { DataTablesModule } from "angular-datatables";
 import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { ReactiveFormsModule } from '@angular/forms';
     AssignmentRecordRoutingModule,
     SharedModule,
     DataTablesModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    HttpClientModule
   ]
 })
 export class AssignmentRecordModule { }

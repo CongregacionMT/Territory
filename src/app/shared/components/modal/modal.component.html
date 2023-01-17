@@ -1,0 +1,28 @@
+<div
+  class="modal fade"
+  id="modalID"
+  tabindex="-1"
+  aria-labelledby="modalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark" style="--bs-bg-opacity: .5;">
+      <div class="modal-header bg-success border border-success">
+        <img src="../../../../assets/img/tildeVerde.png" style="width: 30px;">
+        <h1 class="modal-title fs-5 text-center mx-3" id="modalLabel">Enviado al siervo de territorios</h1>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body bg-success border border-success">
+        <p class="fs-4 text-center">✨ ¡Muchas gracias por tu trabajo! 😄</p>
+      </div>
+      <div class="modal-footer bg-success border border-success">
+        <button type="button" class="btn btn-dark" routerLink="../../" (click)="hideModal()">Finalizar</button>
+      </div>
+    </div>
+  </div>
+</div>

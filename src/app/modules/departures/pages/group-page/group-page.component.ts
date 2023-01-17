@@ -1,55 +1,50 @@
-import { Component, } from '@angular/core';
-import { FormBuilder, FormGroup, FormControl, FormArray } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { SpinnerService } from '../../../../core/services/spinner.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
+import { ActivatedRoute, Params } from '@angular/router';
 
 @Component({
-  selector: 'app-departure-page',
-  templateUrl: './departure-page.component.html',
-  styleUrls: ['./departure-page.component.scss']
+  selector: 'app-group-page',
+  templateUrl: './group-page.component.html',
+  styleUrls: ['./group-page.component.scss']
 })
-export class DeparturePageComponent {
+export class GroupPageComponent implements OnInit {
   routerBreadcrum: any = [];
   isAdmin: boolean = false;
-  departures: any[] = [
-    {
-      date: ""
-    },
-    {
-      departures: []
-    }
-  ];
-  editDepartures: any[] = [];
+  numberGroup: any;
+  dateDeparture: any = new FormControl("");
+  departures$: any = [];
+  editDepartures: any = {};
   formDeparture: FormGroup;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private territoryDataService: TerritoryDataService,
     private fb: FormBuilder,
-    private spinner: SpinnerService
-  ) {
+    private spinner: SpinnerService,
+    private rutaActiva: ActivatedRoute,
+  ){
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     if(localStorage.getItem("tokenAdmin")){
       this.isAdmin = true;
     }
     this.formDeparture = this.fb.group({
-      date: new FormControl(""),
       departure: new FormArray([])
     });
+    this.numberGroup = this.rutaActiva.snapshot.params;
   }
-
   ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[1];
-    this.territoryDataService.getDepartures().subscribe({
+    this.routerBreadcrum = this.routerBreadcrum[11];
+    this.territoryDataService.getDepartures(this.numberGroup.number).subscribe({
       next: (departure) => {
         // Tabla de salidas
-        this.departures = departure;
-        // Datos para editar
+        this.departures$ = departure.departure;                
+        // Datos para editar        
         this.editDepartures = JSON.parse(JSON.stringify(departure));
-        this.formDeparture.patchValue({date: this.editDepartures[0].date});
-        this.departureFormArray.clear()
-        this.editDepartures[0].departure.map((departure: any, index: number) => {          
+        this.departureFormArray.clear()        
+        this.editDepartures.departure.map((departure: any, index: number) => {
           this.departureFormArray.push(this.fb.group({
             day: new FormControl(departure.day),
             driver: new FormControl(departure.driver),
@@ -58,7 +53,12 @@ export class DeparturePageComponent {
             point: new FormControl(departure.point),
           }));
         });
-        this.spinner.cerrarSpinner();
+        this.territoryDataService.getDateDepartures().subscribe({
+          next: (date) => {
+            this.dateDeparture.setValue(date.date);
+            this.spinner.cerrarSpinner();
+          }
+        });
       }
     })
   }
@@ -94,7 +94,7 @@ export class DeparturePageComponent {
   }
   rollbackInputForm(){
     this.departureFormArray.clear()
-    this.editDepartures[0].departure.map((departure: any, index: number) => {          
+    this.editDepartures.departure.map((departure: any, index: number) => {          
       this.departureFormArray.push(this.fb.group({
         day: new FormControl(departure.day),
         driver: new FormControl(departure.driver),
@@ -105,6 +105,8 @@ export class DeparturePageComponent {
     });
   }
   submitForm(){
-    this.territoryDataService.putDepartures(this.formDeparture.value);
+    console.log(this.dateDeparture.value);
+    this.territoryDataService.putDate({date: this.dateDeparture.value});
+    this.territoryDataService.putDepartures(this.formDeparture.value, this.numberGroup.number);
   }
 }

@@ -13,7 +13,7 @@
     </app-card-s>
   </div>
   <div class="d-flex justify-content-evenly my-5">
-    <button class="btn btn-danger btn-lg me-2">
+    <button class="btn btn-danger btn-lg me-2" (click)="downloadPDF()">
       Descargar registro PDF
       <img
         src="https://i.postimg.cc/JnNJyZDx/pdf.png"
@@ -49,7 +49,7 @@
         <tr class="m-0 p-0">
           <td *ngFor="let dataList of dataListFull">
             <table class="table table-dark m-0" *ngFor="let list of dataList">
-              <tr>
+              <tr *ngIf="list.end">
                 <td
                   class="d-flex justify-content-center fs-4"
                   style="border-bottom: 0px transparent"
@@ -57,7 +57,7 @@
                   {{ list.driver }}
                 </td>
               </tr>
-              <tr>
+              <tr *ngIf="list.end">
                 <table
                   class="table table-dark table-striped table-hover table-bordered row-border m-0"
                 >
@@ -80,7 +80,7 @@
                   </tr>
                 </table>
               </tr>
-              <hr class="m-1" />
+              <hr class="m-1" *ngIf="list.end"/>
             </table>
           </td>
         </tr>

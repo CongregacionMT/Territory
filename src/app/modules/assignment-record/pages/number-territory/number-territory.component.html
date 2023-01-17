@@ -11,8 +11,9 @@
       <thead>
         <tr>
           <th scope="col">Conductor</th>
-          <th scope="col">Inicio</th>
-          <th scope="col">Conclución</th>
+          <th scope="col">Inicio de T</th>
+          <th scope="col">Conclución de T</th>
+          <th scope="col">Entregó</th>
           <th scope="col">Manzanas</th>
           <th scope="col">Comentarios</th>
         </tr>
@@ -21,8 +22,9 @@
       <tbody class="table-group-divider">
         <tr *ngFor="let data of dataList">
           <td scope="row">{{ data.driver }}</td>
-          <td>{{ data.start }}</td>
-          <td>{{ data.end }}</td>
+          <td>{{ data.start | date:"dd-MM-yyyy"}}</td>
+          <td>{{ data.end | date:"dd-MM-yyyy"}}</td>
+          <td>{{ data.creation }}</td>
           <td class="">
             <div
               *ngFor="let apples of data.applesData"
