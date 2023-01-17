@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc } from '@angular/fire/firestore';
+import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc, docData } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
@@ -86,13 +86,21 @@ export class TerritoryDataService {
     deleteDoc(doc(this.firestore, "Assigned", card.id));
   }
   // SALIDAS
-  getDepartures(){
-    const cardRef = collection(this.firestore, "Departures");
-    return collectionData(cardRef) as Observable<any>;
+  getDepartures(group: any){    
+    const departuresRef = doc(this.firestore, "Departures", `docDeparture${group}`);
+    return docData(departuresRef) as Observable<any>;
   }
-  putDepartures(departures: any){
-    const departuresRef = doc(this.firestore, "Departures", "docDeparture");
+  getDateDepartures(){
+    const dateDeparturesRef = doc(this.firestore, "Departures", "dateDeparture");    
+    return docData(dateDeparturesRef) as Observable<any>;
+  }
+  putDepartures(departures: any, group: any){
+    const departuresRef = doc(this.firestore, "Departures", `docDeparture${group}`);
     updateDoc(departuresRef, departures);
+  }
+  putDate(date: any){
+    const departuresRef = doc(this.firestore, "Departures", `dateDeparture`);
+    updateDoc(departuresRef, date);
   }
   // REGISTRO DE TERRITORIOS
   getTerritorieRecord(collectionParam: string): Observable<any>{

@@ -1,0 +1,30 @@
+<div style="overflow-x: auto">
+    <table
+      class="table table-dark table-hover table-striped table-bordered caption-buttom"
+    >
+      <caption>
+        Salidas a predicar ({{dateDeparture}})
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Dia</th>
+          <th scope="col">Horario</th>
+          <th scope="col">Conductor</th>
+          <th scope="col">Territorio</th>
+          <th scope="col">Desde</th>
+        </tr>
+      </thead>
+      <tbody class="table-group-divider">
+        <tr
+          *ngFor="let departure of departures"
+          [ngClass]="departure.point === '' ? 'table-primary' : 'table-success'"
+        >
+          <th scope="row">{{ departure.day }}</th>
+          <td>{{ departure.schedule }}</td>
+          <td>{{ departure.driver }}</td>
+          <td>{{ departure.territory }}</td>
+          <td>{{ departure.point }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>

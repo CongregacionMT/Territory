@@ -11,6 +11,10 @@ const routes: Routes = [
     loadChildren: () => import('./modules/territory/territory.module').then(m => m.TerritoryModule)
   },
   {
+    path: 'salidas',
+    loadChildren: () => import('./modules/departures/departures.module').then(m => m.DeparturesModule)
+  },
+  {
     path: 'registro-territorios',
     loadChildren: () => import('./modules/assignment-record/assignment-record.module').then(m => m.AssignmentRecordModule)
   },

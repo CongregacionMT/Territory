@@ -1,0 +1,14 @@
+<div class="container table-responsive">
+    <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+    <div class="d-flex justify-content-center">
+      <h1 class="mt-0 mb-3">Selecciona tu grupo</h1>
+    </div>
+    <div class="card-container d-flex justify-content-center mb-3">
+      <app-card-xl
+        *ngFor="let group of groupList"
+        [mapName]="group.name"
+        [mapSRC]="group.src"
+        [routerLink]="group.link"
+      ></app-card-xl>
+    </div>
+</div>

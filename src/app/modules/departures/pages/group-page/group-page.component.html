@@ -1,40 +1,15 @@
 <div class="container table-responsive">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
   <div>
+    <h2 class="text-center fw-bold text-info">(Grupo {{numberGroup.number}})</h2>
     <h1 class="text-center">Salidas a predicar</h1>
-    <h2 class="text-center">{{ departures[0].date }}</h2>
+    <h2 class="text-center">{{ dateDeparture.value }}</h2>
   </div>
-  <div style="overflow-x: auto">
-    <table
-      class="table table-dark table-hover table-striped table-bordered caption-buttom"
-    >
-      <caption>
-        Salidas a predicar ({{
-          departures[0].date
-        }})
-      </caption>
-      <thead>
-        <tr>
-          <th scope="col">Dia</th>
-          <th scope="col">Horario</th>
-          <th scope="col">Conductor</th>
-          <th scope="col">Territorio</th>
-          <th scope="col">P. Encuentro</th>
-        </tr>
-      </thead>
-      <tbody class="table-group-divider">
-        <tr
-          *ngFor="let departure of departures[0].departure"
-          [ngClass]="departure.point === '' ? 'table-primary' : 'table-success'"
-        >
-          <th scope="row">{{ departure.day }}</th>
-          <td>{{ departure.schedule }}</td>
-          <td>{{ departure.driver }}</td>
-          <td>{{ departure.territory }}</td>
-          <td>{{ departure.point }}</td>
-        </tr>
-      </tbody>
-    </table>
+  <div *ngIf="departures$.length > 0">
+    <app-table-departures
+      [departures]="departures$"
+      [dateDeparture]="dateDeparture.value"
+    ></app-table-departures>
   </div>
   <!-- Button trigger modal -->
   <div class="d-flex justify-content-center mb-4" *ngIf="isAdmin">
@@ -47,7 +22,6 @@
       Editar salidas
     </button>
   </div>
-
   <!-- Modal -->
   <div
     class="modal fade"
@@ -72,7 +46,11 @@
           <form [formGroup]="formDeparture" (ngSubmit)="submitForm()">
             <div class="input-group mb-3">
               <span class="input-group-text">Semana</span>
-              <input type="text" class="form-control" formControlName="date" />
+              <input 
+                type="text" 
+                class="form-control" 
+                [formControl]="dateDeparture" 
+              />
             </div>
             <div
               class="input-group input-group-sm py-2"

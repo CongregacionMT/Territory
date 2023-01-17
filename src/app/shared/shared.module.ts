@@ -6,6 +6,7 @@ import { CardSComponent } from "./components/card-s/card-s.component";
 import { CardXlComponent } from "./components/card-xl/card-xl.component";
 import { ModalComponent } from "./components/modal/modal.component";
 import { FocusInvalidInputDirective } from './directives/focus-invalid-input.directive';
+import { TableDeparturesComponent } from './components/table-departures/table-departures.component';
 
 
 @NgModule({
@@ -14,7 +15,8 @@ import { FocusInvalidInputDirective } from './directives/focus-invalid-input.dir
         CardSComponent,
         CardXlComponent,
         FocusInvalidInputDirective,
-        ModalComponent
+        ModalComponent,
+        TableDeparturesComponent
     ],
     imports: [
         CommonModule,
@@ -25,7 +27,8 @@ import { FocusInvalidInputDirective } from './directives/focus-invalid-input.dir
         CardSComponent,
         CardXlComponent,
         FocusInvalidInputDirective,
-        ModalComponent
+        ModalComponent,
+        TableDeparturesComponent
     ]
 })
 export class SharedModule { }

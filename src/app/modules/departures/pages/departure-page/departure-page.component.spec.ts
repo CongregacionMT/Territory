@@ -11,9 +11,7 @@ describe('DeparturePageComponent', () => {
       declarations: [ DeparturePageComponent ]
     })
     .compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(DeparturePageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
