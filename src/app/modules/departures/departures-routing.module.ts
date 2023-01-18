@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { DeparturePageComponent } from './pages/departure-page/departure-page.component';
 import { GroupPageComponent } from './pages/group-page/group-page.component';
+import { TablePublishersPageComponent } from './pages/table-publishers-page/table-publishers-page.component';
 
 const routes: Routes = [
   {
@@ -9,6 +10,7 @@ const routes: Routes = [
     children: [
       { path: '', component: DeparturePageComponent },
       { path: 'grupo/:number', component: GroupPageComponent },
+      { path: 'publicadores', component: TablePublishersPageComponent },
       { path: '**', redirectTo: '' },
     ],
   },

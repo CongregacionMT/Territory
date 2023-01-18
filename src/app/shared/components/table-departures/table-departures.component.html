@@ -12,18 +12,23 @@
           <th scope="col">Conductor</th>
           <th scope="col">Territorio</th>
           <th scope="col">Desde</th>
+          <th scope="col">Salida de grupo</th>
         </tr>
       </thead>
       <tbody class="table-group-divider">
         <tr
           *ngFor="let departure of departures"
-          [ngClass]="departure.point === '' ? 'table-primary' : 'table-success'"
+          [ngClass]="departure.point === '' ? 'table-primary' : 
+          departure.checked ? 'table-info' : 'table-success'"
         >
           <th scope="row">{{ departure.day }}</th>
           <td>{{ departure.schedule }}</td>
           <td>{{ departure.driver }}</td>
           <td>{{ departure.territory }}</td>
           <td>{{ departure.point }}</td>
+          <td>
+            <tr *ngIf="departure.checked">Salida de grupo</tr>
+          </td>
         </tr>
       </tbody>
     </table>

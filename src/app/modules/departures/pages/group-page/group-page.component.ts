@@ -51,6 +51,7 @@ export class GroupPageComponent implements OnInit {
             schedule: new FormControl(departure.schedule),
             territory: new FormControl(departure.territory),
             point: new FormControl(departure.point),
+            checked: new FormControl(departure.checked),
           }));
         });
         this.territoryDataService.getDateDepartures().subscribe({
@@ -74,6 +75,8 @@ export class GroupPageComponent implements OnInit {
         item.value.territory = e.target.value; 
       } else if(key === item.value.point && indexChange === indexArray){
         item.value.point = e.target.value; 
+      } else if(key === item.value.checked && indexChange === indexArray){
+        item.value.checked = e.target.checked;
       }
     })
   }
@@ -101,11 +104,11 @@ export class GroupPageComponent implements OnInit {
         schedule: new FormControl(departure.schedule),
         territory: new FormControl(departure.territory),
         point: new FormControl(departure.point),
+        checked: new FormControl(departure.checked),
       }));
     });
   }
   submitForm(){
-    console.log(this.dateDeparture.value);
     this.territoryDataService.putDate({date: this.dateDeparture.value});
     this.territoryDataService.putDepartures(this.formDeparture.value, this.numberGroup.number);
   }

@@ -85,6 +85,12 @@ export class TerritoryDataService {
   deleteCardAssigned(card: any){
     deleteDoc(doc(this.firestore, "Assigned", card.id));
   }
+  // GRUPOS
+  getGroupList(){
+    const groupRef = collection(this.firestore, 'Groups');
+    return collectionData(groupRef, {idField: 'id'}) as Observable<any>;
+  }
+
   // SALIDAS
   getDepartures(group: any){    
     const departuresRef = doc(this.firestore, "Departures", `docDeparture${group}`);

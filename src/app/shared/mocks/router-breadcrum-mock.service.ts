@@ -136,6 +136,17 @@ export class RouterBreadcrumMockService {
         {
           route: 'Grupo'
         }
+      ],
+      [
+        {
+          route: 'Home',
+        },
+        {
+          route: 'Salidas'
+        },
+        {
+          route: 'Lista'
+        }
       ]
     ]);
   }
