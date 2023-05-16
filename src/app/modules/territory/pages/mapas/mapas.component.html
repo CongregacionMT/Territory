@@ -1,2 +1,29 @@
 <h1 class="text-center" *ngIf="soon">Próximamente . . . 👨‍🏭👨‍💻👨‍🔧</h1>
-<div class="map-responsive" [innerHTML]="mapa"></div>
+<div class="d-flex align-items-center mt-2">
+  <img src="../../../../../assets/img/arrow.gif" alt="arrow" class="gif">
+  <div class="d-flex justify-content-center w-100">
+    <h3 class="text-center">Tocar el boton superior izquierdo para desplegar los caminos disponibles</h3>
+  </div>
+</div>
+<div [class]="class" [innerHTML]="mapa"></div>
+<section class="d-flex justify-content-center flex-wrap">
+  <div *ngFor="let dataRuralItem of dataRural" class="d-flex flex-column align-items-center px-4">
+    <hr>
+    <h2>{{dataRuralItem.title}}</h2>
+    <ul class="fs-5">
+      <li>Distancia: {{dataRuralItem.distance}}</li>
+      <li>Vehículo: {{dataRuralItem.vehicle}}</li>
+      <li>Tiempo aproximado: {{dataRuralItem.time}}</li>
+      <li>
+        <label for="rural-road">Completado</label>
+        <input
+          id="rural-road"
+          type="date"
+          class="form-control"
+          placeholder="dd-mm-yyyy"
+        >
+        <button class="btn btn-success mt-2">Enviar</button>
+      </li>
+    </ul>
+  </div>
+</section>

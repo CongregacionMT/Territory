@@ -13,7 +13,7 @@ export class TerritoryDataService {
   // 1 => CHT
   // 2 => RURAL
   pathNumberTerritory: number = 0;
-  
+
   diferent: boolean = false;
   countFalseApples: number = 0;
   constructor(private firestore: Firestore, private router: Router, private spinner: SpinnerService) { }
@@ -26,7 +26,7 @@ export class TerritoryDataService {
   }
 
   async sendRevisionCardTerritorie(card: any){
-    const cardRef = collection(this.firestore, "revision"); 
+    const cardRef = collection(this.firestore, "revision");
     await addDoc(cardRef, card);
   }
 
@@ -39,7 +39,7 @@ export class TerritoryDataService {
 
   postCardTerritorie(card: any, collectionName: any){
     card.revision = false;
-    const cardRef = collection(this.firestore, collectionName);    
+    const cardRef = collection(this.firestore, collectionName);
     this.countFalseApples = 0;
     card.applesData.map((apple: any) => {
       if(apple.checked === false){
@@ -92,12 +92,12 @@ export class TerritoryDataService {
   }
 
   // SALIDAS
-  getDepartures(group: any){    
+  getDepartures(group: any){
     const departuresRef = doc(this.firestore, "Departures", `docDeparture${group}`);
     return docData(departuresRef) as Observable<any>;
   }
   getDateDepartures(){
-    const dateDeparturesRef = doc(this.firestore, "Departures", "dateDeparture");    
+    const dateDeparturesRef = doc(this.firestore, "Departures", "dateDeparture");
     return docData(dateDeparturesRef) as Observable<any>;
   }
   putDepartures(departures: any, group: any){
@@ -107,6 +107,12 @@ export class TerritoryDataService {
   putDate(date: any){
     const departuresRef = doc(this.firestore, "Departures", `dateDeparture`);
     updateDoc(departuresRef, date);
+  }
+
+  // RURAL
+  getTerritorieRural(){
+    const collectionRef = collection(this.firestore, "TerritorioRural");
+    return collectionData(collectionRef) as Observable<any>;
   }
   // REGISTRO DE TERRITORIOS
   getTerritorieRecord(collectionParam: string): Observable<any>{
