@@ -1,8 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DataRural } from '@core/models/DataRural';
 import { TerritoryDataService } from '../../../../core/services/territory-data.service';
+import { FormBuilder } from '@angular/forms';
+import { SpinnerService } from '@core/services/spinner.service';
+import { ModalFormRuralComponent } from '@modules/territory/components/modal-form-rural/modal-form-rural.component';
+import { ModeModal } from '@core/models/ModeModal';
 
 @Component({
   selector: 'app-mapas',
@@ -15,7 +19,8 @@ export class MapasComponent implements OnInit {
   class: string = 'map-responsive'
   soon: boolean = false;
   dataRural: DataRural[] = [];
-  constructor(private activatedRoute: ActivatedRoute, private domSanitizer: DomSanitizer, private territoriyDataService: TerritoryDataService) { }
+  @ViewChild(ModalFormRuralComponent) modalFormRuralComponent: ModalFormRuralComponent | undefined;
+  constructor(private activatedRoute: ActivatedRoute, private domSanitizer: DomSanitizer, private territoriyDataService: TerritoryDataService, private fb: FormBuilder, private territorieDataService: TerritoryDataService, private spinner: SpinnerService) {}
 
   ngOnInit(): void {
     if(this.activatedRoute.snapshot.url[0].path === 'maria-teresa'){
@@ -33,10 +38,28 @@ export class MapasComponent implements OnInit {
       this.territoriyDataService.getTerritorieRural().subscribe({
         next: (road: DataRural[]) => {
           this.dataRural = road;
+          this.spinner.cerrarSpinner();
         }
       })
     } else {
       this.soon = true;
+    }
+  }
+
+  openModal(mode: ModeModal, form?: DataRural){
+    if(this.modalFormRuralComponent){
+      if(mode === 'creation'){
+        this.modalFormRuralComponent.openModalCreation();
+      } else if (mode === 'edition'){
+        this.modalFormRuralComponent.openModalEdition(form);
+      }
+    }
+  }
+
+  deleteRoad(roadId: string | undefined){
+    // Agregar validación.
+    if(roadId){
+      this.territorieDataService.deleteRoad(roadId);
     }
   }
 }

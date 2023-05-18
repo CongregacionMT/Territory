@@ -3,6 +3,7 @@ import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestam
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
+import { DataRural } from '@core/models/DataRural';
 
 @Injectable({
   providedIn: 'root'
@@ -112,7 +113,18 @@ export class TerritoryDataService {
   // RURAL
   getTerritorieRural(){
     const collectionRef = collection(this.firestore, "TerritorioRural");
-    return collectionData(collectionRef) as Observable<any>;
+    return collectionData(collectionRef, {idField: 'id'}) as Observable<any>;
+  }
+  postNewRoad(road: DataRural){
+    const cardRef = collection(this.firestore, "TerritorioRural");
+    return addDoc(cardRef, road);
+  }
+  putNewRoad(road: any, docId: string){
+    const roadRef = doc(this.firestore, "TerritorioRural", docId);
+    updateDoc(roadRef, road);
+  }
+  deleteRoad(docId: string){
+    deleteDoc(doc(this.firestore, "TerritorioRural", docId));
   }
   // REGISTRO DE TERRITORIOS
   getTerritorieRecord(collectionParam: string): Observable<any>{
