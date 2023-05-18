@@ -7,6 +7,10 @@ import { CardXlComponent } from "./components/card-xl/card-xl.component";
 import { ModalComponent } from "./components/modal/modal.component";
 import { FocusInvalidInputDirective } from './directives/focus-invalid-input.directive';
 import { TableDeparturesComponent } from './components/table-departures/table-departures.component';
+import { MatDialogModule } from "@angular/material/dialog";
+import { ConfirmDialogComponent } from "./components/confirm-dialog/confirm-dialog.component";
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 
 @NgModule({
@@ -16,11 +20,15 @@ import { TableDeparturesComponent } from './components/table-departures/table-de
         CardXlComponent,
         FocusInvalidInputDirective,
         ModalComponent,
-        TableDeparturesComponent
+        TableDeparturesComponent,
+        ConfirmDialogComponent,
     ],
     imports: [
         CommonModule,
-        RouterModule
+        RouterModule,
+        MatDialogModule,
+        MatIconModule,
+        MatButtonModule,
     ],
     exports: [
         BreadcrumbComponent,

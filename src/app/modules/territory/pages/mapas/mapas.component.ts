@@ -7,6 +7,7 @@ import { FormBuilder } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { ModalFormRuralComponent } from '@modules/territory/components/modal-form-rural/modal-form-rural.component';
 import { ModeModal } from '@core/models/ModeModal';
+import { needConfirmation } from '@shared/decorators/confirm-dialog.decorator';
 
 @Component({
   selector: 'app-mapas',
@@ -56,8 +57,8 @@ export class MapasComponent implements OnInit {
     }
   }
 
+  @needConfirmation({title: 'Eliminar camino', message: '¿Estás seguro de eliminar este camino?'})
   deleteRoad(roadId: string | undefined){
-    // Agregar validación.
     if(roadId){
       this.territorieDataService.deleteRoad(roadId);
     }
