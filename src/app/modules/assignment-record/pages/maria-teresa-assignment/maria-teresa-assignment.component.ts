@@ -4,6 +4,7 @@ import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.
 import { TerritoriesMTMockService } from '@shared/mocks/territories-mtmock.service';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { HttpClient } from '@angular/common/http';
+import { SpinnerService } from '@core/services/spinner.service';
 @Component({
   selector: 'app-maria-teresa-assignment',
   templateUrl: './maria-teresa-assignment.component.html',
@@ -21,10 +22,12 @@ export class MariaTeresaAssignmentComponent implements OnInit {
     private territoryDataService: TerritoryDataService,
     private territorieDataService: TerritoryDataService,
     private http: HttpClient,
+    private spinner: SpinnerService,
   ) {
     this.territoriesMT = territoriesMTMockService.getTerritories();
+    this.spinner.cargarSpinner();
   }
-  
+
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum = this.routerBreadcrum[3];
@@ -44,6 +47,7 @@ export class MariaTeresaAssignmentComponent implements OnInit {
             }
           });
           this.dataListFull.push(card);
+          this.spinner.cerrarSpinner();
         }
       })
     });

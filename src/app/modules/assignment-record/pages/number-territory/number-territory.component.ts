@@ -55,7 +55,7 @@ export class NumberTerritoryComponent implements OnInit {
       next: card => {
         this.dataList = card;
         this.numberTerritory = card[0].numberTerritory
-        this.dtTrigger.next(""); 
+        this.dtTrigger.next("");
         this.dataList.map((list: any, index: any) => {
           this.appleCount = 0;
           list.applesData.map((apple: any) => {
@@ -67,12 +67,12 @@ export class NumberTerritoryComponent implements OnInit {
             this.dataList.splice(index, 1);
           }
         })
-        this.spinner.cerrarSpinner();    
+        this.spinner.cerrarSpinner();
         this.dataList.map((list) => {
           let date = new Date(list.creation.seconds * 1000);
           list.creation = date.getDate()+"-"+(date.getMonth()+1)+"-"+date.getFullYear();
         });
-      }      
+      }
     });
   }
   ngOnDestroy(): void {
