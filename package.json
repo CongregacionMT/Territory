@@ -13,6 +13,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/cli": "~14.1.3",
     "@angular-devkit/core": "^14.1.3",
     "@angular-devkit/schematics": "^14.1.3",
     "@angular/animations": "^14.1.3",
