@@ -5,7 +5,6 @@ import { CardService } from '@core/services/card.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { TerritorioMapsMockService } from '@shared/mocks/territorio-maps-mock.service';
 import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 
 @Component({
@@ -22,7 +21,6 @@ export class AssignmentRecordPageComponent implements OnInit {
   formCard: FormGroup;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territorioMapsMockService: TerritorioMapsMockService,
     private territorieDataService: TerritoryDataService,
     private cardService: CardService,
     private router: Router,
@@ -31,7 +29,6 @@ export class AssignmentRecordPageComponent implements OnInit {
   ) {
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    this.territorioMaps = territorioMapsMockService.getMaps();
     // get tarjetas asignadas esta semana
     this.territorieDataService.getCardAssigned().subscribe(card => {
       this.allCardsAssigned = card;
@@ -52,6 +49,11 @@ export class AssignmentRecordPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[2];
+    this.territorieDataService.getMaps()
+    .subscribe(map => {
+      this.territorioMaps = map[0].maps;
+      this.spinner.cerrarSpinner();
+    })
   }
   // Territorios asignados esta semana
   postCardAssigned(){
@@ -65,7 +67,7 @@ export class AssignmentRecordPageComponent implements OnInit {
   cardReceived(card: Card){
     this.cardService.goRevisionCard(card);
   }
-  cardConfirmationDelete(card: any){    
+  cardConfirmationDelete(card: any){
     this.cardConfirmation = card;
   }
   cardDelete(){

@@ -19,6 +19,16 @@ export class TerritoryDataService {
   countFalseApples: number = 0;
   constructor(private firestore: Firestore, private router: Router, private spinner: SpinnerService) { }
 
+  // MAPAS
+  getMaps(){
+    const mapRef = collection(this.firestore, 'MapsTerritory');
+    return collectionData(mapRef) as Observable<any>;
+  }
+  // NUMERO DE TERRITORIOS
+  getNumberTerritory(){
+    const numberRef = collection(this.firestore, 'NumberTerritory');
+    return collectionData(numberRef) as Observable<any>;
+  }
   // TARJETAS DE CONDUCTORES
   getCardTerritorie(collectionParam: string): Observable<any>{
     const cardRef = collection(this.firestore, collectionParam);

@@ -1,17 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { Subject } from 'rxjs';
-import { TerritoriesMTMockService } from '../../../../shared/mocks/territories-mtmock.service';
 @Component({
   selector: 'app-statistics-page',
   templateUrl: './statistics-page.component.html',
   styleUrls: ['./statistics-page.component.scss'],
 })
-export class StatisticsPageComponent implements OnInit {
+export class StatisticsPageComponent implements OnInit, OnDestroy{
   routerBreadcrum: any = [];
-  territoriesMT: any[] = [];
+  territoriesMT: TerritoryNumberData[] = [];
   dataListFull: any[] = [];
   datalistFilter: any[] = [];
   dataStadistics: any[] = [];
@@ -22,7 +22,6 @@ export class StatisticsPageComponent implements OnInit {
   order: any = 1;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoriesMTMockService: TerritoriesMTMockService,
     private territorieDataService: TerritoryDataService,
     private spinner: SpinnerService,
   ) {
@@ -32,7 +31,10 @@ export class StatisticsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[10];
-    this.territoriesMT = this.territoriesMTMockService.getTerritories();
+    this.territorieDataService.getNumberTerritory()
+    .subscribe(number => {
+      this.territoriesMT = number[0].numberTerritory;
+    });
     // tabla
     this.dtOptions = {
       paging: false,

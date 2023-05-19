@@ -22,7 +22,6 @@ export class MapasComponent implements OnInit {
   mapa: any;
   class: string = 'map-responsive';
   showRural: boolean = false;
-  soon: boolean = false;
   dataRural: DataRural[] = [];
   @ViewChild(ModalFormRuralComponent) modalFormRuralComponent: ModalFormRuralComponent | undefined;
   constructor(private activatedRoute: ActivatedRoute, private domSanitizer: DomSanitizer, private territoriyDataService: TerritoryDataService, private fb: FormBuilder, private territorieDataService: TerritoryDataService, private spinner: SpinnerService) {
@@ -50,8 +49,6 @@ export class MapasComponent implements OnInit {
           this.spinner.cerrarSpinner();
         }
       })
-    } else {
-      this.soon = true;
     }
   }
 

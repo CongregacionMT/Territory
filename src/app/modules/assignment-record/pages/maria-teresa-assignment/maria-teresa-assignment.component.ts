@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { TerritoriesMTMockService } from '@shared/mocks/territories-mtmock.service';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { HttpClient } from '@angular/common/http';
 import { SpinnerService } from '@core/services/spinner.service';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 @Component({
   selector: 'app-maria-teresa-assignment',
   templateUrl: './maria-teresa-assignment.component.html',
@@ -12,19 +12,17 @@ import { SpinnerService } from '@core/services/spinner.service';
 })
 export class MariaTeresaAssignmentComponent implements OnInit {
   routerBreadcrum: any = [];
-  territoriesMT: any[] = [];
+  territoriesMT: TerritoryNumberData[] = [];
   dataListFull: any[] = [];
   appleCount: any;
   s13PDF: any;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoriesMTMockService: TerritoriesMTMockService,
     private territoryDataService: TerritoryDataService,
     private territorieDataService: TerritoryDataService,
     private http: HttpClient,
     private spinner: SpinnerService,
   ) {
-    this.territoriesMT = territoriesMTMockService.getTerritories();
     this.spinner.cargarSpinner();
   }
 
@@ -50,6 +48,10 @@ export class MariaTeresaAssignmentComponent implements OnInit {
           this.spinner.cerrarSpinner();
         }
       })
+    });
+    this.territorieDataService.getNumberTerritory()
+    .subscribe(number => {
+      this.territoriesMT = number[0].numberTerritory;
     });
     // Busco el PDF original para modificarlo
     const httpOptions = {

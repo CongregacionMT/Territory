@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { TerritoriesChristMockService } from '@shared/mocks/territories-christ-mock.service';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { HttpClient } from '@angular/common/http';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 
 @Component({
   selector: 'app-christophersen-assignment',
@@ -12,19 +12,16 @@ import { HttpClient } from '@angular/common/http';
 })
 export class ChristophersenAssignmentComponent implements OnInit {
   routerBreadcrum: any = [];
-  territoriesC: any[] = [];
+  territoriesC: TerritoryNumberData[] = [];
   dataListFull: any[] = [];
   appleCount: any;
   s13PDF: any;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoriesChristMockService: TerritoriesChristMockService,
     private territorieDataService: TerritoryDataService,
     private http: HttpClient,
-  ) {
-    this.territoriesC = this.territoriesChristMockService.getTerritories();
-  }
-  
+  ) {}
+
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum = this.routerBreadcrum[4];
@@ -46,6 +43,10 @@ export class ChristophersenAssignmentComponent implements OnInit {
           this.dataListFull.push(card);
         }
       })
+    });
+    this.territorieDataService.getNumberTerritory()
+    .subscribe(number => {
+      this.territoriesC = number[0].numberTerritoryCH;
     });
     console.log("full: ", this.dataListFull);
     // Busco el PDF original para modificarlo

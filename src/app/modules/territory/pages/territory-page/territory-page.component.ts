@@ -1,12 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-
-
 import { CardService } from '@core/services/card.service';
-import { TerritoriesChristMockService } from '@shared/mocks/territories-christ-mock.service';
-import { TerritoriesMTMockService } from '@shared/mocks/territories-mtmock.service';
-import { TerritorioMapsMockService } from '@shared/mocks/territorio-maps-mock.service';
+import { MapData } from '@core/models/MapData';
+import { SpinnerService } from '@core/services/spinner.service';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 
 @Component({
   selector: 'app-territory-page',
@@ -15,35 +13,37 @@ import { TerritorioMapsMockService } from '@shared/mocks/territorio-maps-mock.se
 })
 export class TerritoryPageComponent implements OnInit {
   routerBreadcrum: any = [];
-  territorioMaps: any = [];
-  territoriesMT: any[] = [];
-  territoriesC: any[] = [];
+  territorioMaps: MapData[] = [];
+  territoriesMT: TerritoryNumberData[] = [];
+  territoriesC: TerritoryNumberData[] = [];
   isAdmin: boolean = false;
   isDriver: boolean = false;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private territorieDataService: TerritoryDataService,
-    private territorioMapsMockService: TerritorioMapsMockService,
-    private territoriesMTMockService: TerritoriesMTMockService,
-    private territoriesChristMockService: TerritoriesChristMockService,
+    private spinner: SpinnerService,
     public cardService: CardService
   ) {
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    this.territorioMaps = territorioMapsMockService.getMaps();
-    this.territoriesMT = territoriesMTMockService.getTerritories();
-    this.territoriesC = territoriesChristMockService.getTerritories();
   }
 
   ngOnInit(): void {
+    this.spinner.cargarSpinner();
     this.routerBreadcrum = this.routerBreadcrum[0];
     if(localStorage.getItem("tokenAdmin")){
       this.isAdmin = true;
     } else if(localStorage.getItem("tokenConductor")){
       this.isDriver = true;
     }
-  }
-
-  onProgress(card: any){
-    
+    this.territorieDataService.getMaps()
+    .subscribe(map => {
+      this.territorioMaps = map[0].maps;
+      this.spinner.cerrarSpinner();
+    });
+    this.territorieDataService.getNumberTerritory()
+    .subscribe(number => {
+      this.territoriesMT = number[0].numberTerritory;
+      this.territoriesC = number[0].numberTerritoryCH;
+    });
   }
 }
