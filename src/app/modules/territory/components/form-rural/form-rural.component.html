@@ -1,39 +1,36 @@
-<section class="d-flex justify-content-center">
-  <div class="d-flex flex-column align-items-center p-4 bg-gradient rounded formRoad">
-    <h2 class="pb-3 text-center">Agregar un nuevo camino rural</h2>
-    <form [formGroup]="formRoad" (ngSubmit)="postForm(this.editionForm?.id)">
-      <div class="d-flex align-items-center">
-        <h4>🔸Nombre:</h4>
-        <input type="text" class="form-control ms-2" formControlName="title" placeholder="Nombre del camino">
-      </div>
-      <div class="d-flex align-items-center my-4">
-        <h4>🔸Distancia:</h4>
-        <input type="text" class="form-control ms-2" formControlName="distance" placeholder="Distancia total">
-      </div>
-      <div class="d-flex align-items-center my-4">
-        <h4>🔸Vehiculo:</h4>
-        <input type="text" class="form-control ms-2" formControlName="vehicle" placeholder="Vehiculo">
-      </div>
-      <div class="d-flex align-items-center my-4">
-        <h4>🔸Tiempo aproximado:</h4>
-        <input type="text" class="form-control ms-2" formControlName="time" placeholder="Tiempo aproximado en terminar el trayecto">
-      </div>
-      <div class="d-flex align-items-center my-4">
-        <h4>🔸Ultima vez que se completó (opcional):</h4>
-        <input type="date" class="form-control"
-        placeholder="dd-mm-yyyy" formControlName="lastDate">
-      </div>
-      <div class="modal-footer">
-        <button
-          type="submit"
-          class="btn btn-primary"
-          data-bs-dismiss="modal"
-          [disabled]="formRoad.invalid"
-        >
-          <span *ngIf="!this.editionForm?.id; else edition">Crear camino</span>
-          <ng-template #edition><span>Editar camino</span></ng-template>
-        </button>
-      </div>
-    </form>
-  </div>
+<section class="d-flex justify-content-center rounded formRoad">
+  <form [formGroup]="formRoad" (ngSubmit)="postForm(this.editionForm?.id)">
+    <div class="mb-3">
+      <label for="title" class="form-label text-dark">Nombre</label>
+      <input id="title" type="text" class="form-control" formControlName="title" placeholder="Ingresar un nombre">
+    </div>
+    <div class="mb-3">
+      <label for="distance" class="form-label text-dark">Distancia</label>
+      <input id="distance" type="text" class="form-control" formControlName="distance" placeholder="Distancia total">
+    </div>
+    <div class="mb-3">
+      <label for="vehicle" class="form-label text-dark">Vehiculo</label>
+      <input id="vehicle" type="text" class="form-control" formControlName="vehicle" placeholder="Vehiculo">
+    </div>
+    <div class="mb-3">
+      <label for="time" class="form-label text-dark">Tiempo aproximado</label>
+      <input id="time" type="text" class="form-control" formControlName="time" placeholder="Ejemplo: 2hs aprox">
+    </div>
+    <div class="mb-3">
+      <label for="lastDate" class="form-label text-dark">Ultima vez que se completó (opcional)</label>
+      <input id="lastDate" type="date" class="form-control"
+      placeholder="dd-mm-yyyy" formControlName="lastDate">
+    </div>
+    <div>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        data-bs-dismiss="modal"
+        [disabled]="formRoad.invalid"
+      >
+        <span *ngIf="!this.editionForm?.id; else edition">Crear camino</span>
+        <ng-template #edition><span>Actualizar</span></ng-template>
+      </button>
+    </div>
+  </form>
 </section>
