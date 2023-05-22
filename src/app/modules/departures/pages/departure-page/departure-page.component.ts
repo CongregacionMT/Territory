@@ -1,4 +1,4 @@
-import { Component, } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { GroupsMockService } from '@shared/mocks/groups-mock.service';
 
@@ -7,7 +7,8 @@ import { GroupsMockService } from '@shared/mocks/groups-mock.service';
   templateUrl: './departure-page.component.html',
   styleUrls: ['./departure-page.component.scss']
 })
-export class DeparturePageComponent {
+export class DeparturePageComponent implements OnInit{
+  isAdmin: boolean = false;
   routerBreadcrum: any = [];
   groupList: any[] = []
   constructor(

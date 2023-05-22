@@ -1,0 +1,89 @@
+<div *ngFor="let group of groupKeys.sort()">
+  <h3 class="text-center">{{ getGroupTitle(group) }}</h3>
+  <form [formGroup]="formDeparture" (ngSubmit)="submitForm(1)" class="d-flex flex-column justify-center">
+    <div
+      class="input-group input-group-sm py-2"
+      style="min-width: 720px"
+      *ngFor="let days of filterControlsByGroup(group); let i = index"
+    >
+      <span class="input-group-text">
+        <input
+          type="date"
+          class="form-control"
+          placeholder="Día"
+          [value]="days.get('date')?.value || ''"
+          (change)="onChangeInput($event, days.get('date')?.value, i)"
+        />
+      </span>
+      <span class="input-group-text">
+        <input
+          type="time"
+          aria-label="schedule"
+          class="form-control"
+          placeholder="Horario"
+          [value]="days.get('schedule')?.value || ''"
+          (change)="onChangeInput($event, days.get('schedule')?.value, i)"
+        />
+      </span>
+      <input
+        type="text"
+        aria-label="driver"
+        class="form-control"
+        placeholder="Conductor"
+        [value]="days.get('driver')?.value || ''"
+        (change)="onChangeInput($event, days.get('driver')?.value, i)"
+      />
+      <input
+        type="text"
+        aria-label="point"
+        class="form-control"
+        placeholder="Punto de encuentro"
+        [value]="days.get('point')?.value || ''"
+        (change)="onChangeInput($event, days.get('point')?.value, i)"
+      />
+      <input
+        type="text"
+        aria-label="territory"
+        class="form-control"
+        placeholder="Territorio"
+        [value]="days.get('territory')?.value || ''"
+        (change)="onChangeInput($event, days.get('territory')?.value, i)"
+      />
+      <div class="m-0 p-0">
+        <select class="form-select custom-btn h-100 me-5" [class]="'btn btn-square btn-' + days.get('color')?.value" (change)="onChangeColor($event, i)">
+          <option [value]="'secondary'" disabled selected>Seleccionar color</option>
+          <option value="primary">Azul</option>
+          <option value="secondary">Gris</option>
+          <option value="success">Verde</option>
+          <option value="danger">Rojo</option>
+          <option value="warning">Amarillo</option>
+          <option value="info">Celeste</option>
+          <option value="light">Blanco</option>
+          <option value="dark">Negro</option>
+        </select>
+      </div>
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="deleteInputForm(i)"
+      >
+        Quitar
+      </button>
+    </div>
+    <div class="modal-footer mx-4">
+      <button
+        type="button"
+        class="btn btn-success text-center me-auto"
+        (click)="addInputForm(group)"
+      >
+        Nueva salida +
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+      >
+        Guardar salidas
+      </button>
+    </div>
+  </form>
+</div>
