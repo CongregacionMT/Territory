@@ -1,7 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure } from '../../../../core/models/Departures';
+import { SpinnerService } from '@core/services/spinner.service';
+import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-form-edit-departures',
@@ -14,10 +16,13 @@ export class FormEditDeparturesComponent implements OnInit{
   selectedColor: string = 'primary';
   groupKeys: number[] = [];
   groupedDepartures: { [key: string]: Departure[] } = {};
+  verticalPosition: MatSnackBarVerticalPosition = 'top';
   @Input() formDepartureDataInput: Departure[] = [] as Departure[];
   constructor(
     private territoryDataService: TerritoryDataService,
     private fb: FormBuilder,
+    private spinner: SpinnerService,
+    private _snackBar: MatSnackBar,
   ){
     this.formDeparture = this.fb.group({
       departure0: new FormArray([])
@@ -44,6 +49,11 @@ export class FormEditDeparturesComponent implements OnInit{
       }));
     });
   }
+  openSnackBar(message: string, action: string) {
+    this._snackBar.open(message, action, {
+      verticalPosition: this.verticalPosition,
+    });
+  }
   get departureFormArray() {
     const departureGroupKey = `departure${this.numberGroup}`;
     if (!this.formDeparture.get(departureGroupKey)) {
@@ -67,45 +77,64 @@ export class FormEditDeparturesComponent implements OnInit{
       return 'Grupo ' + group;
     }
   }
-  onChangeInput(e: any, key: any, indexChange: any) {
-    this.departureFormArray.controls.forEach((item: any, indexArray: any) => {
-      const itemValue = item.getRawValue(); // Obtener el valor del FormGroup
-      if (key === itemValue.date && indexChange === indexArray) {
-        item.get('date').setValue(e.target.value);
-      } else if (key === itemValue.driver && indexChange === indexArray) {
-        item.get('driver').setValue(e.target.value);
-      } else if (key === itemValue.schedule && indexChange === indexArray) {
-        item.get('schedule').setValue(e.target.value);
-      } else if (key === itemValue.territory && indexChange === indexArray) {
-        item.get('territory').setValue(e.target.value);
-      } else if (key === itemValue.point && indexChange === indexArray) {
-        item.get('point').setValue(e.target.value);
-      } else if (key === itemValue.checked && indexChange === indexArray) {
-        item.get('checked').setValue(e.target.checked);
+  onChangeInput(e: any, key: any, indexChange: any, group: number) {
+    const departureGroupKey = `departure${group}`;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
+    const controls = departureFormArrayItem.controls;
+    this.numberGroup = group;
+    controls.forEach((item: AbstractControl<any, any>, index: number) => {
+      if (index === indexChange) {
+        if (key === 'date') {
+          item.get('date')?.setValue(e.target.value);
+        } else if (key === 'driver') {
+          item.get('driver')?.setValue(e.target.value);
+        } else if (key === 'schedule') {
+          item.get('schedule')?.setValue(e.target.value);
+        } else if (key === 'territory') {
+          item.get('territory')?.setValue(e.target.value);
+        } else if (key === 'point') {
+          item.get('point')?.setValue(e.target.value);
+        } else if (key === 'color') {
+          item.get('color')?.setValue(e.target.value);
+        } else if (key === 'group') {
+          item.get('group')?.setValue(e.target.value);
+        }
       }
     });
   }
-  onChangeColor(event: any, index: number) {
+  onChangeColor(event: any, index: number, group: number) {
+    this.numberGroup = group;
     const departureControl = this.departureFormArray.controls[index];
     const selectedValue = event.target.value;
     departureControl.get('color')?.setValue(selectedValue);
   }
   addInputForm(group: number){
+    this.numberGroup = group;
     this.departureFormArray.push(this.fb.group({
       date: new FormControl(''),
       driver: new FormControl(''),
       schedule: new FormControl(''),
       territory: new FormControl(''),
       point: new FormControl(''),
-      color: new FormControl(''),
-      group: new FormControl(''),
+      color: new FormControl('secondary'),
+      group: new FormControl(group),
     }));
   }
-  deleteInputForm(index: number){
-    this.departureFormArray.removeAt(index)
+  deleteInputForm(index: number, group: number){
+    this.numberGroup = group;
+    this.departureFormArray.removeAt(index);
+    if(this.departureFormArray.length === 0){
+      const indexToRemove = this.groupKeys.indexOf(this.numberGroup);
+      if (indexToRemove !== -1) {
+        this.groupKeys.splice(indexToRemove, 1);
+        for (let i = indexToRemove; i < this.groupKeys.length; i++) {
+          this.groupKeys[i] = this.groupKeys[i] - 1;
+        }
+      }
+    }
   }
   rollbackInputForm(){
-    this.departureFormArray.clear()
+    this.departureFormArray.clear();
     this.formDepartureDataInput.map((departure: any, index: number) => {
       this.departureFormArray.push(this.fb.group({
         date: new FormControl(departure.day),
@@ -118,7 +147,13 @@ export class FormEditDeparturesComponent implements OnInit{
       }));
     });
   }
-  submitForm(group: number){
-    this.territoryDataService.putDepartures(this.formDeparture.value, group);
+  addNewGroup(){
+    this.groupKeys.push(this.groupKeys.length);
+    this.addInputForm(this.groupKeys.length - 1);
+  }
+  submitForm() {
+    this.openSnackBar('Salidas actualizadas! 😉', 'ok');
+    const departures = this.groupKeys.map(number => this.formDeparture.value?.[`departure${number}`]).flat();
+    this.territoryDataService.putDepartures({ departure: departures });
   }
 }

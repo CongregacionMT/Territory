@@ -11,7 +11,7 @@
           class="form-control"
           placeholder="Día"
           [value]="days.get('date')?.value || ''"
-          (change)="onChangeInput($event, days.get('date')?.value, i, group)"
+          (change)="onChangeInput($event, 'date', i, group)"
         />
       </span>
       <span class="input-group-text">
@@ -21,7 +21,7 @@
           class="form-control"
           placeholder="Horario"
           [value]="days.get('schedule')?.value || ''"
-          (change)="onChangeInput($event, days.get('schedule')?.value, i, group)"
+          (change)="onChangeInput($event, 'schedule', i, group)"
         />
       </span>
       <input
@@ -30,7 +30,7 @@
         class="form-control"
         placeholder="Conductor"
         [value]="days.get('driver')?.value || ''"
-        (change)="onChangeInput($event, days.get('driver')?.value, i, group)"
+        (change)="onChangeInput($event, 'driver', i, group)"
       />
       <input
         type="text"
@@ -38,7 +38,7 @@
         class="form-control"
         placeholder="Punto de encuentro"
         [value]="days.get('point')?.value || ''"
-        (change)="onChangeInput($event, days.get('point')?.value, i, group)"
+        (change)="onChangeInput($event, 'point', i, group)"
       />
       <input
         type="text"
@@ -46,7 +46,7 @@
         class="form-control"
         placeholder="Territorio"
         [value]="days.get('territory')?.value || ''"
-        (change)="onChangeInput($event, days.get('territory')?.value, i, group)"
+        (change)="onChangeInput($event, 'territory', i, group)"
       />
       <div class="m-0 p-0">
         <select class="form-select custom-btn h-100 me-5" [class]="'btn btn-square btn-' + days.get('color')?.value" (change)="onChangeColor($event, i, group)">
