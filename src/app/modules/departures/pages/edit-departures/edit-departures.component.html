@@ -7,7 +7,7 @@
       class="form-control"
       [formControl]="dateDeparture"
     />
-    <button class="btn btn-primary">Actualizar fecha</button>
+    <button class="btn btn-primary" (click)="updateDate()">Actualizar fecha</button>
   </div>
 </section>
 <div *ngIf="dataLoaded">

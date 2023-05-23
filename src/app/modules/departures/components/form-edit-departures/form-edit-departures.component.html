@@ -1,9 +1,8 @@
 <div *ngFor="let group of groupKeys.sort()">
   <h3 class="text-center">{{ getGroupTitle(group) }}</h3>
-  <form [formGroup]="formDeparture" (ngSubmit)="submitForm(1)" class="d-flex flex-column justify-center">
+  <form [formGroup]="formDeparture" class="d-flex flex-column justify-center">
     <div
-      class="input-group input-group-sm py-2"
-      style="min-width: 720px"
+      class="input-group input-group-sm py-2 departure-input"
       *ngFor="let days of filterControlsByGroup(group); let i = index"
     >
       <span class="input-group-text">
@@ -12,7 +11,7 @@
           class="form-control"
           placeholder="Día"
           [value]="days.get('date')?.value || ''"
-          (change)="onChangeInput($event, days.get('date')?.value, i)"
+          (change)="onChangeInput($event, days.get('date')?.value, i, group)"
         />
       </span>
       <span class="input-group-text">
@@ -22,7 +21,7 @@
           class="form-control"
           placeholder="Horario"
           [value]="days.get('schedule')?.value || ''"
-          (change)="onChangeInput($event, days.get('schedule')?.value, i)"
+          (change)="onChangeInput($event, days.get('schedule')?.value, i, group)"
         />
       </span>
       <input
@@ -31,7 +30,7 @@
         class="form-control"
         placeholder="Conductor"
         [value]="days.get('driver')?.value || ''"
-        (change)="onChangeInput($event, days.get('driver')?.value, i)"
+        (change)="onChangeInput($event, days.get('driver')?.value, i, group)"
       />
       <input
         type="text"
@@ -39,7 +38,7 @@
         class="form-control"
         placeholder="Punto de encuentro"
         [value]="days.get('point')?.value || ''"
-        (change)="onChangeInput($event, days.get('point')?.value, i)"
+        (change)="onChangeInput($event, days.get('point')?.value, i, group)"
       />
       <input
         type="text"
@@ -47,10 +46,10 @@
         class="form-control"
         placeholder="Territorio"
         [value]="days.get('territory')?.value || ''"
-        (change)="onChangeInput($event, days.get('territory')?.value, i)"
+        (change)="onChangeInput($event, days.get('territory')?.value, i, group)"
       />
       <div class="m-0 p-0">
-        <select class="form-select custom-btn h-100 me-5" [class]="'btn btn-square btn-' + days.get('color')?.value" (change)="onChangeColor($event, i)">
+        <select class="form-select custom-btn h-100 me-5" [class]="'btn btn-square btn-' + days.get('color')?.value" (change)="onChangeColor($event, i, group)">
           <option [value]="'secondary'" disabled selected>Seleccionar color</option>
           <option value="primary">Azul</option>
           <option value="secondary">Gris</option>
@@ -65,7 +64,7 @@
       <button
         type="button"
         class="btn btn-danger"
-        (click)="deleteInputForm(i)"
+        (click)="deleteInputForm(i, group)"
       >
         Quitar
       </button>
@@ -78,12 +77,25 @@
       >
         Nueva salida +
       </button>
-      <button
-        type="submit"
-        class="btn btn-primary"
-      >
-        Guardar salidas
-      </button>
     </div>
+    <hr>
   </form>
+</div>
+<div class="ms-4">
+  <button
+    type="submit"
+    class="btn btn-success"
+    (click)="addNewGroup()"
+  >
+    Nuevo grupo +
+  </button>
+</div>
+<div class="d-flex justify-content-center pb-3">
+  <button
+    type="submit"
+    class="btn btn-primary"
+    (click)="submitForm()"
+  >
+    Guardar salidas
+  </button>
 </div>

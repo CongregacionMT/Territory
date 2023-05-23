@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepartureData, Departure } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -21,6 +22,7 @@ export class EditDeparturesComponent implements OnInit{
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private territoryDataService: TerritoryDataService,
     private spinner: SpinnerService,
+    private _snackBar: MatSnackBar,
   ){
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
   }
@@ -38,8 +40,8 @@ export class EditDeparturesComponent implements OnInit{
       this.formDepartureData = departure.departure;
     })
   }
-
   updateDate(){
+    this._snackBar.open('Fecha actualizada', 'Ok');
     this.territoryDataService.putDate({date: this.dateDeparture.value});
   }
 }

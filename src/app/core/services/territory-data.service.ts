@@ -103,16 +103,16 @@ export class TerritoryDataService {
   }
 
   // SALIDAS
-  getDepartures(group: any){
-    const departuresRef = doc(this.firestore, "Departures", `docDeparture${group}`);
+  getDepartures(){
+    const departuresRef = doc(this.firestore, "Departures", `docDeparture`);
     return docData(departuresRef) as Observable<any>;
   }
   getDateDepartures(){
     const dateDeparturesRef = doc(this.firestore, "Departures", "dateDeparture");
     return docData(dateDeparturesRef) as Observable<any>;
   }
-  putDepartures(departures: any, group: any){
-    const departuresRef = doc(this.firestore, "Departures", `docDeparture${group}`);
+  putDepartures(departures: any){
+    const departuresRef = doc(this.firestore, "Departures", `docDeparture`);
     updateDoc(departuresRef, departures);
   }
   putDate(date: any){

@@ -11,6 +11,7 @@ import { MatDialogModule } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "./components/confirm-dialog/confirm-dialog.component";
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
 
 
 @NgModule({
@@ -29,6 +30,7 @@ import { MatButtonModule } from '@angular/material/button';
         MatDialogModule,
         MatIconModule,
         MatButtonModule,
+        MatSnackBarModule,
     ],
     exports: [
         BreadcrumbComponent,
