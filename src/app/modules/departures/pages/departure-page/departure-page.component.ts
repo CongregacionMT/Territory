@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { GroupsMockService } from '@shared/mocks/groups-mock.service';
+import { SpinnerService } from '@core/services/spinner.service';
+import { TerritoryDataService } from '@core/services/territory-data.service';
+import { Departure, DepartureData } from '@core/models/Departures';
 
 @Component({
   selector: 'app-departure-page',
@@ -10,15 +12,33 @@ import { GroupsMockService } from '@shared/mocks/groups-mock.service';
 export class DeparturePageComponent implements OnInit{
   isAdmin: boolean = false;
   routerBreadcrum: any = [];
-  groupList: any[] = []
+  groupedDepartures: { [key: string]: Departure[] } = {};
+  groupKeys: any[] = [];
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private groupsMockService: GroupsMockService
+    private territoryDataService: TerritoryDataService,
+    private spinner: SpinnerService,
   ) {
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    this.groupList = groupsMockService.getGroups();
   }
   ngOnInit(): void {
+    this.spinner.cargarSpinner();
     this.routerBreadcrum = this.routerBreadcrum[1];
+    this.territoryDataService.getDepartures().subscribe((departures: DepartureData) => {
+      departures.departure.map((dep) => {
+        const groupKey = dep.group;
+        if (!this.groupedDepartures[groupKey]) {
+          this.groupKeys.push({
+            name: `Grupo ${groupKey}`,
+            src: '../../../assets/img/group.png',
+            link: `grupo/${groupKey}`,
+          });
+          this.groupedDepartures[groupKey] = [];
+        }
+        this.groupedDepartures[groupKey].push(dep);
+      });
+      this.spinner.cerrarSpinner();
+      this.groupKeys.shift();
+    });
   }
 }

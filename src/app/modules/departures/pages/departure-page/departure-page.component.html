@@ -5,7 +5,7 @@
     </div>
     <div class="card-container d-flex justify-content-center mb-3">
       <app-card-xl
-        *ngFor="let group of groupList"
+        *ngFor="let group of groupKeys"
         [mapName]="group.name"
         [mapSRC]="group.src"
         [routerLink]="group.link"

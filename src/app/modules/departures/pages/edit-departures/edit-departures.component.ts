@@ -15,8 +15,6 @@ export class EditDeparturesComponent implements OnInit{
   dataLoaded: boolean = false;
   routerBreadcrum: any = [];
   dateDeparture: any = new FormControl("");
-  generalDeparture: any;
-  groupDeparture: any;
   formDepartureData: Departure[] = {} as Departure[];
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
