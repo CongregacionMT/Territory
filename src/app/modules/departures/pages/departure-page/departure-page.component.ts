@@ -4,6 +4,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { ActivatedRoute } from '@angular/router';
+import { Departure, DepartureData } from '@core/models/Departures';
 
 @Component({
   selector: 'app-departure-page',
@@ -14,7 +15,7 @@ export class DeparturePageComponent implements OnInit {
   routerBreadcrum: any = [];
   numberGroup: any;
   dateDeparture: any = new FormControl("");
-  departures$: any = [];
+  departures$: Departure[] = [];
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private territoryDataService: TerritoryDataService,
@@ -29,9 +30,14 @@ export class DeparturePageComponent implements OnInit {
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[11];
     this.territoryDataService.getDepartures().subscribe({
-      next: (departure) => {
+      next: (departure: DepartureData) => {
         // Tabla de salidas
         this.departures$ = departure.departure;
+        this.departures$.sort((a, b) => {
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateA.getTime() - dateB.getTime();
+        });
         this.territoryDataService.getDateDepartures().subscribe({
           next: (date) => {
             this.dateDeparture.setValue(date.date);

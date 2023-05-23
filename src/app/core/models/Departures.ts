@@ -10,5 +10,4 @@ export interface Departure {
 
 export interface DepartureData {
   departure: Departure[];
-  departureGroup: Departure[];
 }
