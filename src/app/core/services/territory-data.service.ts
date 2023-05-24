@@ -142,4 +142,9 @@ export class TerritoryDataService {
     const q = query(cardRef, orderBy("creation"));
     return collectionData(q) as Observable<any>;
   }
+  // ESTADÍSTICAS
+  getStatisticsButtons(){
+    const mapRef = collection(this.firestore, 'Statistics');
+    return collectionData(mapRef) as Observable<any>;
+  }
 }

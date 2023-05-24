@@ -1,12 +1,16 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { StatisticsPageComponent } from './pages/statistics-page/statistics-page.component';
+import { HomeStatisticsPageComponent } from './pages/home-statistics-page/home-statistics-page.component';
 
 const routes: Routes = [
   {
     path: '',
     children: [
-      { path: '', component: StatisticsPageComponent},
+      { path: '', component: HomeStatisticsPageComponent},
+      { path: 'maria-teresa', component: StatisticsPageComponent},
+      { path: 'christophersen', component: StatisticsPageComponent},
+      { path: 'rural', component: StatisticsPageComponent},
       {path: '**', redirectTo: ''},
     ],
   }

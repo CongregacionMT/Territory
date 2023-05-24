@@ -1,4 +1,4 @@
-export interface MapData {
+export interface CardButtonsData {
   name: string;
   src: string;
   link: string;

@@ -7,13 +7,15 @@ import { StatisticsPageComponent } from './pages/statistics-page/statistics-page
 import { TimesAssigned } from '@core/pipes/times-assigned.pipe';
 import { SortBy } from "@core/pipes/sort-by.pipe";
 import { DataTablesModule } from 'angular-datatables';
+import { HomeStatisticsPageComponent } from './pages/home-statistics-page/home-statistics-page.component';
 
 
 @NgModule({
   declarations: [
     StatisticsPageComponent,
     TimesAssigned,
-    SortBy
+    SortBy,
+    HomeStatisticsPageComponent
   ],
   imports: [
     CommonModule,
