@@ -1,35 +1,50 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { orderBy } from 'lodash';
 
 @Pipe({ name: 'sortBy' })
 export class SortBy implements PipeTransform {
   transform(array: Array<any>, args: string, order: number): Array<any> {
-    console.log("old", array);
-    let newArray = array.sort((a: any, b: any) => {
-      // if(a[0][args].includes('-')){
-      //   console.log("fecha");
-      //   if(new Date(a[0][args]).getDate() < new Date(b[0][args]).getDate()){
-      //     return -1
-      //   } else if(new Date(a[0][args]).getDate() > new Date(b[0][args]).getDate()){
-      //     return 1
-      //   } else {
-      //     return 0
-      //   }
-      // }
-      if (a[0][args] < b[0][args]) {
-        console.log("negativo", a[0][args]);
-        return -1;
-      } else if (a[0][args] > b[0][args]) {
-        console.log("positivo", a[0][args]);
-        return 1;
-      } else {
-        console.log("neutro", typeof a[0][args]);
-        return 0;
+    let newArray = [...array];
+
+    newArray.sort((a: any, b: any) => {
+      if (args === 'start' || args === 'end') {
+        const dateA = new Date(this.getDateValue(a, args));
+        const dateB = new Date(this.getDateValue(b, args));
+        return dateA.getTime() - dateB.getTime();
       }
+
+      return this.compareValues(a[0][args], b[0][args]);
     });
-    if(order !== 1){
+
+    if (order !== 1) {
       newArray.reverse();
     }
+
     return newArray;
+  }
+
+  private getDateValue(item: any, property: string): string {
+    const dates = ['end', 'start'];
+    let value = '';
+
+    if (dates.includes(property)) {
+      for (let i = 0; i < 6; i++) {
+        if (item[i]?.[property] !== '') {
+          value = item[i][property];
+          break;
+        }
+      }
+    }
+
+    return value;
+  }
+
+  private compareValues(valueA: any, valueB: any): number {
+    if (valueA < valueB) {
+      return -1;
+    } else if (valueA > valueB) {
+      return 1;
+    } else {
+      return 0;
+    }
   }
 }
