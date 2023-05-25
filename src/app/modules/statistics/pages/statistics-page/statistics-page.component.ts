@@ -1,102 +1,122 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { Subject } from 'rxjs';
+
 @Component({
   selector: 'app-statistics-page',
   templateUrl: './statistics-page.component.html',
   styleUrls: ['./statistics-page.component.scss'],
 })
-export class StatisticsPageComponent implements OnInit, OnDestroy{
+export class StatisticsPageComponent implements OnInit{
   routerBreadcrum: any = [];
-  territoriesMT: TerritoryNumberData[] = [];
+  loadingData: boolean = false;
+  territoryPath: any;
+  territory: TerritoryNumberData[] = [];
   dataListFull: any[] = [];
-  datalistFilter: any[] = [];
   dataStadistics: any[] = [];
   appleCount: any;
-  dtTrigger: Subject<any> = new Subject<any>();
-  dtOptions: DataTables.Settings = {};
-  path: any;
+  path: any = '';
   order: any = 1;
   constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
     private territorieDataService: TerritoryDataService,
     private spinner: SpinnerService,
+    private rutaActiva: ActivatedRoute,
   ) {
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    this.spinner.cargarSpinner();
+    this.territoryPath = this.rutaActiva.snapshot.url.join('/');;
   }
 
   ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[10];
-    this.territorieDataService.getNumberTerritory()
-    .subscribe(number => {
-      this.territoriesMT = number[0].numberTerritory;
-    });
-    // tabla
-    this.dtOptions = {
-      paging: false,
-      orderMulti: true,
-      pageLength: 100,
-      search: false,
-      // language: {
-      //   url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-AR.json',
-      // },
-      ordering: true,
-      stateSave: true
-    };
-    // RECIBIR LA DATA
-    this.territoriesMT.map((territory) => {
-      this.territorieDataService
-        .getCardTerritorie(territory.collection)
-        .subscribe({
-          next: (card) => {
-            this.dataListFull.push(JSON.parse(JSON.stringify(card)));
-            card.map((list: any, index: any) => {
-              this.appleCount = 0;
-              list.applesData.map((apple: any) => {
-                if (apple.checked === true) {
-                  this.appleCount += 1;
-                }
+    this.getDataStatisticTerritory();
+  }
+  getDataStatisticTerritory(){
+    let nameLocalStorage = this.territoryPath === "mariaTeresa" ? "statisticDataMT" : "statisticDataCH";
+    if(!localStorage.getItem(nameLocalStorage)){
+      if(!localStorage.getItem("numberTerritory")){
+        this.spinner.cargarSpinner();
+        this.territorieDataService.getNumberTerritory()
+        .subscribe(number => {
+          localStorage.setItem("numberTerritory", JSON.stringify(number[0]));
+          this.territory = number[0][this.territoryPath];
+          // RECIBIR LA DATA
+          this.territory.map((territory) => {
+            this.territorieDataService
+              .getCardTerritorie(territory.collection)
+              .subscribe({
+                next: (card) => {
+                  this.dataListFull.push(JSON.parse(JSON.stringify(card)));
+                  card.map((list: any, index: any) => {
+                    this.appleCount = 0;
+                    list.applesData.map((apple: any) => {
+                      if (apple.checked === true) {
+                        this.appleCount += 1;
+                      }
+                    });
+                    if (this.appleCount === 0) {
+                      card.splice(index, 1);
+                    }
+                  });
+                  const storeStatisticdData = localStorage.getItem(nameLocalStorage);
+                  const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
+                  statisticData.push(card);
+                  localStorage.setItem(nameLocalStorage, JSON.stringify(statisticData));
+                },
               });
-              if (this.appleCount === 0) {
-                card.splice(index, 1);
-              }
             });
-            this.dtTrigger.next("");
-            this.datalistFilter.push(JSON.parse(JSON.stringify(card)));
-            this.spinner.cerrarSpinner();
-            this.sortTable("Territorio");
-            console.log("DATA: ", this.dataListFull[0]);
-          },
+            this.sortTable("completed");
+            this.loadingData = true;
+          this.spinner.cerrarSpinner();
         });
-    });
+      } else {
+        const storedNumberTerritory = localStorage.getItem("numberTerritory");
+        const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
+        this.territory = numberTerritory?.[this.territoryPath];
+        this.territory.map((territory) => {
+          this.territorieDataService
+            .getCardTerritorie(territory.collection)
+            .subscribe({
+              next: (card) => {
+                this.dataListFull.push(JSON.parse(JSON.stringify(card)));
+                card.map((list: any, index: any) => {
+                  this.appleCount = 0;
+                  list.applesData.map((apple: any) => {
+                    if (apple.checked === true) {
+                      this.appleCount += 1;
+                    }
+                  });
+                  if (this.appleCount === 0) {
+                    card.splice(index, 1);
+                  }
+                });
+                const storeStatisticdData = localStorage.getItem(nameLocalStorage);
+                const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
+                statisticData.push(card);
+                localStorage.setItem(nameLocalStorage, JSON.stringify(statisticData));
+              },
+            });
+        });
+        this.sortTable("completed");
+        this.loadingData = true;
+        this.spinner.cerrarSpinner();
+      }
+    } else {
+      const storedStatisticData = localStorage.getItem(nameLocalStorage);
+      const statisticData = storedStatisticData ? JSON.parse(storedStatisticData) : [];
+      this.dataListFull = statisticData;
+      this.loadingData = true;
+    }
   }
   sortTable(prop: string) {
-    console.log("prop", prop);
-
     this.path = prop;
-    console.log("path", this.path);
-
     this.order = this.order * (-1);
-    console.log("order", this.order);
     return false;
   }
-
- getIcon(prop:string): string{
-   //Yo uso iconos font-awesome de ahí la nomenclatura
+  getIcon(prop:string): string{
     var iconClass = "fa fa-sort";
-
-     if(this.path.indexOf(prop) != -1)
-     {
+    if(this.path.indexOf(prop) != -1){
       iconClass = this.order===-1 ? 'fa fa-sort-down' : 'fa fa-sort-up';
-     }
-
-     return iconClass;
-  }
-  ngOnDestroy(): void {
-    this.dtTrigger.unsubscribe();
+    }
+    return iconClass;
   }
 }
