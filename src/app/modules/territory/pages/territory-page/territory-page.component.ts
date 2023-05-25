@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { CardService } from '@core/services/card.service';
-import { MapData } from '@core/models/MapData';
+import { CardButtonsData } from '@core/models/CardButtonsData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 
@@ -13,7 +13,7 @@ import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 })
 export class TerritoryPageComponent implements OnInit {
   routerBreadcrum: any = [];
-  territorioMaps: MapData[] = [];
+  territorioMaps: CardButtonsData[] = [];
   territoriesMT: TerritoryNumberData[] = [];
   territoriesC: TerritoryNumberData[] = [];
   isAdmin: boolean = false;
@@ -28,22 +28,34 @@ export class TerritoryPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.spinner.cargarSpinner();
     this.routerBreadcrum = this.routerBreadcrum[0];
     if(localStorage.getItem("tokenAdmin")){
       this.isAdmin = true;
     } else if(localStorage.getItem("tokenConductor")){
       this.isDriver = true;
     }
-    this.territorieDataService.getMaps()
-    .subscribe(map => {
-      this.territorioMaps = map[0].maps;
-      this.spinner.cerrarSpinner();
-    });
-    this.territorieDataService.getNumberTerritory()
-    .subscribe(number => {
-      this.territoriesMT = number[0].numberTerritory;
-      this.territoriesC = number[0].numberTerritoryCH;
-    });
+    if(!localStorage.getItem("territorioMaps")){
+      this.spinner.cargarSpinner();
+      this.territorieDataService.getMaps()
+      .subscribe(map => {
+        localStorage.setItem("territorioMaps", JSON.stringify(map[0].maps));
+        this.territorioMaps = map[0].maps;
+        this.spinner.cerrarSpinner();
+      });
+      this.territorieDataService.getNumberTerritory()
+      .subscribe(number => {
+        localStorage.setItem("numberTerritory", JSON.stringify(number[0]));
+        this.territoriesMT = number[0].mariaTeresa;
+        this.territoriesC = number[0].christophersen;
+      });
+    } else {
+      const storedTerritorioMaps = localStorage.getItem("territorioMaps");
+      const storedNumberTerritory = localStorage.getItem("numberTerritory");
+      const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
+
+      this.territorioMaps = storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [];
+      this.territoriesMT = numberTerritory.mariaTeresa;
+      this.territoriesC = numberTerritory.christophersen;
+    }
   }
 }
