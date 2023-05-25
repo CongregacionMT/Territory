@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
+import { forkJoin, tap } from 'rxjs';
 
 @Component({
   selector: 'app-statistics-page',
@@ -30,82 +31,55 @@ export class StatisticsPageComponent implements OnInit{
   ngOnInit(): void {
     this.getDataStatisticTerritory();
   }
-  getDataStatisticTerritory(){
-    let nameLocalStorage = this.territoryPath === "mariaTeresa" ? "statisticDataMT" : "statisticDataCH";
-    if(!localStorage.getItem(nameLocalStorage)){
-      if(!localStorage.getItem("numberTerritory")){
-        this.spinner.cargarSpinner();
-        this.territorieDataService.getNumberTerritory()
-        .subscribe(number => {
-          localStorage.setItem("numberTerritory", JSON.stringify(number[0]));
-          this.territory = number[0][this.territoryPath];
-          // RECIBIR LA DATA
-          this.territory.map((territory) => {
-            this.territorieDataService
-              .getCardTerritorie(territory.collection)
-              .subscribe({
-                next: (card) => {
-                  this.dataListFull.push(JSON.parse(JSON.stringify(card)));
-                  card.map((list: any, index: any) => {
-                    this.appleCount = 0;
-                    list.applesData.map((apple: any) => {
-                      if (apple.checked === true) {
-                        this.appleCount += 1;
-                      }
-                    });
-                    if (this.appleCount === 0) {
-                      card.splice(index, 1);
-                    }
-                  });
-                  const storeStatisticdData = localStorage.getItem(nameLocalStorage);
-                  const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
-                  statisticData.push(card);
-                  localStorage.setItem(nameLocalStorage, JSON.stringify(statisticData));
-                },
-              });
-            });
-            this.sortTable("completed");
-            this.loadingData = true;
-          this.spinner.cerrarSpinner();
-        });
-      } else {
-        const storedNumberTerritory = localStorage.getItem("numberTerritory");
-        const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
-        this.territory = numberTerritory?.[this.territoryPath];
-        this.territory.map((territory) => {
-          this.territorieDataService
-            .getCardTerritorie(territory.collection)
-            .subscribe({
-              next: (card) => {
-                this.dataListFull.push(JSON.parse(JSON.stringify(card)));
-                card.map((list: any, index: any) => {
-                  this.appleCount = 0;
-                  list.applesData.map((apple: any) => {
-                    if (apple.checked === true) {
-                      this.appleCount += 1;
-                    }
-                  });
-                  if (this.appleCount === 0) {
-                    card.splice(index, 1);
-                  }
-                });
-                const storeStatisticdData = localStorage.getItem(nameLocalStorage);
-                const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
-                statisticData.push(card);
-                localStorage.setItem(nameLocalStorage, JSON.stringify(statisticData));
-              },
-            });
-        });
-        this.sortTable("completed");
-        this.loadingData = true;
-        this.spinner.cerrarSpinner();
-      }
-    } else {
+  getDataStatisticTerritory() {
+    const nameLocalStorage = this.territoryPath === "mariaTeresa" ? "statisticDataMT" : "statisticDataCH";
+
+    if (localStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = localStorage.getItem(nameLocalStorage);
-      const statisticData = storedStatisticData ? JSON.parse(storedStatisticData) : [];
-      this.dataListFull = statisticData;
+      this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];
       this.loadingData = true;
+      return;
     }
+
+    const numberTerritory = localStorage.getItem("numberTerritory");
+    const observables = numberTerritory
+      ? this.territory.map((territory) =>
+          this.territorieDataService.getCardTerritorie(territory.collection)
+        )
+      : [
+          this.territorieDataService.getNumberTerritory().pipe(
+            tap((number) => {
+              localStorage.setItem("numberTerritory", JSON.stringify(number[0]));
+              this.territory = number[0][this.territoryPath];
+            })
+          ),
+          ...this.territory.map((territory) =>
+            this.territorieDataService.getCardTerritorie(territory.collection)
+          ),
+        ];
+
+    this.spinner.cargarSpinner();
+
+    forkJoin(observables).subscribe((results) => {
+      this.dataListFull = results.flat();
+      this.dataListFull.forEach((card: any[]) => {
+        card.forEach((list: any, index: number) => {
+          const appleCount = list.applesData.reduce(
+            (count: number, apple: any) => (apple.checked ? count + 1 : count),
+            0
+          );
+
+          if (appleCount === 0) {
+            card.splice(index, 1);
+          }
+        });
+      });
+
+      localStorage.setItem(nameLocalStorage, JSON.stringify(this.dataListFull));
+      this.sortTable("completed");
+      this.loadingData = true;
+      this.spinner.cerrarSpinner();
+    });
   }
   sortTable(prop: string) {
     this.path = prop;
