@@ -20,12 +20,14 @@ export class StatisticsPageComponent implements OnInit{
   appleCount: any;
   path: any = '';
   order: any = 1;
+  nameTitleTerritory: string = ''
   constructor(
     private territorieDataService: TerritoryDataService,
     private spinner: SpinnerService,
     private rutaActiva: ActivatedRoute,
   ) {
     this.territoryPath = this.rutaActiva.snapshot.url.join('/');;
+    this.nameTitleTerritory = this.territoryPath === "mariaTeresa" ? "María Teresa" : "Christophersen";
   }
 
   ngOnInit(): void {
