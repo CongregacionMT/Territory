@@ -16,12 +16,18 @@ export class HomeStatisticsPageComponent implements OnInit{
     private spinner: SpinnerService,
   ) {}
   ngOnInit(): void {
-    this.spinner.cargarSpinner();
-    this.territorieDataService.getStatisticsButtons()
-    .subscribe(number => {
-      console.log(number[0].territorio);
-      this.CardButtonsStatistics = number[0].territorio;
-      this.spinner.cerrarSpinner();
-    });
+    if(!localStorage.getItem("territorioStatistics")){
+      this.spinner.cargarSpinner();
+      this.territorieDataService.getStatisticsButtons()
+      .subscribe(number => {
+        localStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
+        this.CardButtonsStatistics = number[0].territorio;
+        this.spinner.cerrarSpinner();
+      });
+    } else {
+      const storedTerritorioStatistics = localStorage.getItem("territorioStatistics");
+      const numberTerritory = storedTerritorioStatistics ? JSON.parse(storedTerritorioStatistics) : [];
+      this.CardButtonsStatistics = numberTerritory.territorio;
+    }
   }
 }
