@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -20,7 +21,11 @@ export class StatisticsPageComponent implements OnInit{
   appleCount: any;
   path: any = '';
   order: any = 1;
-  nameTitleTerritory: string = ''
+  nameTitleTerritory: string = '';
+  green: FormControl;
+  blue: FormControl;
+  yellow: FormControl;
+  red: FormControl;
   constructor(
     private territorieDataService: TerritoryDataService,
     private spinner: SpinnerService,
@@ -28,6 +33,10 @@ export class StatisticsPageComponent implements OnInit{
   ) {
     this.territoryPath = this.rutaActiva.snapshot.url.join('/');;
     this.nameTitleTerritory = this.territoryPath === "mariaTeresa" ? "María Teresa" : "Christophersen";
+    this.green = new FormControl(28);
+    this.blue = new FormControl(42);
+    this.yellow = new FormControl(56);
+    this.red = new FormControl(57);
   }
 
   ngOnInit(): void {
@@ -82,6 +91,43 @@ export class StatisticsPageComponent implements OnInit{
       this.loadingData = true;
       this.spinner.cerrarSpinner();
     });
+  }
+  paintRow(dataList: any){
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateToday = new Date(`${year}-${month}-${day}`);
+    const dateCard = new Date(dataList[0].end !== ""
+    ? dataList[0].end
+    : dataList[1].end !== ""
+    ? dataList[1].end
+    : dataList[2].end !== ""
+    ? dataList[2].end
+    : dataList[3].end !== ""
+    ? dataList[3].end
+    : dataList[4].end !== ""
+    ? dataList[4].end
+    : dataList[5].end);
+
+    const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+
+    if(days < this.green.value){
+      // Menos de 28 dias
+      return 'success'
+    } else if(days < this.blue.value){
+      // Menos de 42 dias
+      return 'primary'
+    } else if(days < this.yellow.value){
+      // Menos de 56
+      return 'warning'
+    }  else if(days < this.red.value){
+      // Más de 56 días
+      return 'danger'
+    } else {
+      return 'danger'
+    }
   }
   sortTable(prop: string) {
     this.path = prop;

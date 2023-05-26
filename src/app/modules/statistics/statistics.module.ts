@@ -8,6 +8,7 @@ import { TimesAssigned } from '@core/pipes/times-assigned.pipe';
 import { SortBy } from "@core/pipes/sort-by.pipe";
 import { DataTablesModule } from 'angular-datatables';
 import { HomeStatisticsPageComponent } from './pages/home-statistics-page/home-statistics-page.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 
 @NgModule({
@@ -22,6 +23,7 @@ import { HomeStatisticsPageComponent } from './pages/home-statistics-page/home-s
     StatisticsRoutingModule,
     SharedModule,
     DataTablesModule,
+    ReactiveFormsModule,
   ]
 })
 export class StatisticsModule { }

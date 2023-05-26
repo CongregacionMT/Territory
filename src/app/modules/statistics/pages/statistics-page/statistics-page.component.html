@@ -9,7 +9,7 @@
       cellpadding="0"
     >
       <thead>
-        <tr>
+        <tr style="cursor: pointer">
           <th (click)="sortTable('numberTerritory')">
             Territorio
             <i [class]="getIcon('numberTerritory')" aria-hidden="true"></i>
@@ -18,10 +18,10 @@
             Completado
             <i [class]="getIcon('completed')" aria-hidden="true"></i>
           </th>
-          <!-- <th (click)="sortTable('applesData')">
+          <th (click)="sortTable('applesData')">
             Cantidad de Manzanas
             <i [class]="getIcon('applesData')" aria-hidden="true"></i>
-          </th> -->
+          </th>
           <th (click)="sortTable('driver')">
             último conductor asignado
             <i [class]="getIcon('driver')" aria-hidden="true"></i>
@@ -39,10 +39,11 @@
       <tbody>
         <tr
           *ngFor="let dataList of dataListFull | sortBy : path : order"
+          [class]="'table-' + paintRow(dataList)"
         >
           <td>Número {{ dataList[0].numberTerritory }}</td>
           <td>{{ dataList[0].completed }}</td>
-          <!-- <td>{{ dataList[0].applesData.length }} manzanas</td> -->
+          <td>{{ dataList[0].applesData.length }} manzanas</td>
           <td>{{ dataList[0].driver }}</td>
           <td>{{ dataList[0].start | date : "dd-MM-yyyy" }}</td>
           <td>
@@ -65,4 +66,45 @@
       </tbody>
     </table>
   </ng-container>
+  <div>
+    <div class="ms-3">
+      <p><strong>Colores:</strong>&nbsp;<em>Los colores de la tabla indicarán el tiempo transcurrido desde la última actividad en cada territorio.</em></p>
+    </div>
+    <div>
+      <ul>
+        <li class="d-flex align-items-center mb-3">
+          <i class="fas fa-circle me-2" style="color: #00ff00"></i>
+          <strong>Verde:</strong>&nbsp;<em>Se completó hace menos de </em>
+          <div class="input-group ms-3 me-3" style="width: 75px;">
+            <input [formControl]="green" class="form-control" type="number">
+          </div>
+          <em>dias</em>
+        </li>
+        <li class="d-flex align-items-center mb-3">
+          <i class="fas fa-circle me-2" style="color: #4193eb;"></i>
+          <strong>Azul:</strong>&nbsp;<em>Se completó hace menos de </em>
+          <div class="input-group ms-3 me-3" style="width: 75px;">
+            <input [formControl]="blue" class="form-control" type="number">
+          </div>
+          <em>dias</em>
+        </li>
+        <li class="d-flex align-items-center mb-3">
+          <i class="fas fa-circle me-2" style="color: #ffff00;"></i>
+          <strong>Amarillo:</strong>&nbsp;<em>Se completó hace menos de </em>
+          <div class="input-group ms-3 me-3" style="width: 75px;">
+            <input [formControl]="yellow" class="form-control" type="number">
+          </div>
+          <em>dias</em>
+        </li>
+        <li class="d-flex align-items-center mb-3 pb-3">
+          <i class="fas fa-circle me-2" style="color: #FF0000;"></i>
+          <strong>Rojo:</strong>&nbsp;<em>Se completó hace más de </em>
+          <div class="input-group ms-3 me-3" style="width: 75px;">
+            <input [formControl]="red" class="form-control" type="number">
+          </div>
+          <em>dias</em>
+        </li>
+      </ul>
+    </div>
+  </div>
 </div>
