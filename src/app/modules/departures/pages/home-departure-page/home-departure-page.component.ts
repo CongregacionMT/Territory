@@ -3,6 +3,7 @@ import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure, DepartureData } from '@core/models/Departures';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home-departure-page',
@@ -18,6 +19,7 @@ export class HomeDeparturePageComponent implements OnInit{
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private territoryDataService: TerritoryDataService,
     private spinner: SpinnerService,
+    private router: Router,
   ) {
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
   }
@@ -28,8 +30,9 @@ export class HomeDeparturePageComponent implements OnInit{
       departures.departure.map((dep) => {
         const groupKey = dep.group;
         if (!this.groupedDepartures[groupKey]) {
+          let nameGroup = groupKey === 0 ? "Salidas generales" : `Grupo ${groupKey}`;
           this.groupKeys.push({
-            name: `Grupo ${groupKey}`,
+            name: nameGroup,
             src: '../../../assets/img/group.png',
             link: `grupo/${groupKey}`,
           });
@@ -38,7 +41,13 @@ export class HomeDeparturePageComponent implements OnInit{
         this.groupedDepartures[groupKey].push(dep);
       });
       this.spinner.cerrarSpinner();
-      this.groupKeys.shift();
+      if(this.groupKeys.length <= 1){
+        if(!localStorage.getItem('tokenAdmin')){
+          this.router.navigate(['/salidas/grupo', '0']);
+        }
+      } else {
+        this.groupKeys.shift();
+      }
     });
   }
 }

@@ -13,7 +13,8 @@ import { Departure, DepartureData } from '@core/models/Departures';
 })
 export class DeparturePageComponent implements OnInit {
   routerBreadcrum: any = [];
-  numberGroup: any;
+  numberGroup: any = "0";
+  titleGroup: string = "";
   dateDeparture: any = new FormControl("");
   departures$: Departure[] = [];
   constructor(
@@ -26,6 +27,7 @@ export class DeparturePageComponent implements OnInit {
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     this.numberGroup = this.rutaActiva.snapshot.params;
+    this.titleGroup = this.numberGroup.number !== "0" ? `(Grupo ${this.numberGroup.number})` : "";
   }
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[11];
