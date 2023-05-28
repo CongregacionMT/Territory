@@ -19,22 +19,22 @@ export class HomeStatisticsPageComponent implements OnInit{
     private spinner: SpinnerService,
   ) {}
   ngOnInit(): void {
-    if(!localStorage.getItem("territorioStatistics")){
+    if(!sessionStorage.getItem("territorioStatistics")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getStatisticsButtons()
       .subscribe(number => {
-        localStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
+        sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
         this.CardButtonsStatistics = number[0].territorio;
         this.spinner.cerrarSpinner();
       });
     } else {
-      const storedTerritorioStatistics = localStorage.getItem("territorioStatistics");
+      const storedTerritorioStatistics = sessionStorage.getItem("territorioStatistics");
       const numberTerritory = storedTerritorioStatistics ? JSON.parse(storedTerritorioStatistics) : [];
       this.CardButtonsStatistics = numberTerritory.territorio;
     }
-    if(!localStorage.getItem("statisticDataMT") || !localStorage.getItem("statisticDataCH")){
+    if(!sessionStorage.getItem("statisticDataMT") || !sessionStorage.getItem("statisticDataCH")){
       this.spinner.cargarSpinner();
-      this.territoryNumberOfLocalStorage = JSON.parse(localStorage.getItem('numberTerritory') as string);
+      this.territoryNumberOfLocalStorage = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
       this.territoryNumberOfLocalStorage.mariaTeresa.map((territory) => {
         this.territorieDataService.getCardTerritorie(territory.collection)
         .subscribe((card) => {
@@ -49,10 +49,10 @@ export class HomeStatisticsPageComponent implements OnInit{
               card.splice(index, 1);
             }
           });
-          const storeStatisticdData = localStorage.getItem('statisticDataMT');
+          const storeStatisticdData = sessionStorage.getItem('statisticDataMT');
           const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
           statisticData.push(card);
-          localStorage.setItem('statisticDataMT', JSON.stringify(statisticData));
+          sessionStorage.setItem('statisticDataMT', JSON.stringify(statisticData));
           this.spinner.cerrarSpinner();
         })
       });
@@ -70,10 +70,10 @@ export class HomeStatisticsPageComponent implements OnInit{
               card.splice(index, 1);
             }
           });
-          const storeStatisticdData = localStorage.getItem('statisticDataCH');
+          const storeStatisticdData = sessionStorage.getItem('statisticDataCH');
           const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
           statisticData.push(card);
-          localStorage.setItem('statisticDataCH', JSON.stringify(statisticData));
+          sessionStorage.setItem('statisticDataCH', JSON.stringify(statisticData));
           this.spinner.cerrarSpinner();
         })
       });

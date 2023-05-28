@@ -44,8 +44,8 @@ export class StatisticsPageComponent implements OnInit{
   }
   getDataStatisticTerritory() {
     const nameLocalStorage = this.territoryPath === "mariaTeresa" ? "statisticDataMT" : "statisticDataCH";
-    if (localStorage.getItem(nameLocalStorage)) {
-      const storedStatisticData = localStorage.getItem(nameLocalStorage);
+    if (sessionStorage.getItem(nameLocalStorage)) {
+      const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
       this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];
       this.sortTable("completed");
       this.loadingData = true;

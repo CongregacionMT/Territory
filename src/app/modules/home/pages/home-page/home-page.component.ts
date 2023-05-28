@@ -36,11 +36,11 @@ export class HomePageComponent implements OnInit {
       this.isDriver = true;
     }
 
-    if(!localStorage.getItem("numberTerritory")){
+    if(!sessionStorage.getItem("numberTerritory")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getNumberTerritory()
       .subscribe(number => {
-        localStorage.setItem("numberTerritory", JSON.stringify(number[0]));
+        sessionStorage.setItem("numberTerritory", JSON.stringify(number[0]));
         this.spinner.cerrarSpinner();
       });
     }
