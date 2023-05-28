@@ -51,7 +51,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     private router: Router
     ) {
     this.spinner.cargarSpinner();
-    this.cardSubscription = Subscription.EMPTY;      
+    this.cardSubscription = Subscription.EMPTY;
     this.formCard = this.fb.group({
       driver: new FormControl(this.card.driver, [Validators.required]),
       applesData: new FormArray([]),
@@ -95,7 +95,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       })
     }
   }
-  
+
   ngOnInit(): void {
     // Breadcrum
     this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
@@ -148,7 +148,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const applesData: FormArray = this.formCard.get('applesData') as FormArray;
     applesData.controls.forEach((item: any) => {
       if(item.value.name === e.target.value){   
-        item.value.checked = e.target.checked;       
+        item.value.checked = e.target.checked;
       }
     })
   }
@@ -165,7 +165,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.card.driver = this.formCard.value.driver;
     this.card.start = this.formCard.value.start;
     this.card.end = this.formCard.value.end;
-    this.card.comments = this.formCard.value.comments;      
+    this.card.comments = this.formCard.value.comments;
     this.card.applesData = this.formCard.value.applesData;
   }
 
@@ -205,7 +205,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       })
       this.territorieDataService.putCardTerritorie(this.card);
     } else {
-      this.card.creation = Timestamp.now()
+      this.card.creation = Timestamp.now();
       this.territorieDataService.sendRevisionCardTerritorie(this.card)
       ?.then(() => {
         this.spinner.cerrarSpinner();

@@ -3,21 +3,26 @@ import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestam
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
+import { DataRural } from '@core/models/DataRural';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TerritoryDataService {
-  // PATH
-  // 0 => MT
-  // 1 => CHT
-  // 2 => RURAL
-  pathNumberTerritory: number = 0;
-  
   diferent: boolean = false;
   countFalseApples: number = 0;
   constructor(private firestore: Firestore, private router: Router, private spinner: SpinnerService) { }
 
+  // MAPAS
+  getMaps(){
+    const mapRef = collection(this.firestore, 'MapsTerritory');
+    return collectionData(mapRef) as Observable<any>;
+  }
+  // NUMERO DE TERRITORIOS
+  getNumberTerritory(){
+    const numberRef = collection(this.firestore, 'NumberTerritory');
+    return collectionData(numberRef) as Observable<any>;
+  }
   // TARJETAS DE CONDUCTORES
   getCardTerritorie(collectionParam: string): Observable<any>{
     const cardRef = collection(this.firestore, collectionParam);
@@ -26,7 +31,7 @@ export class TerritoryDataService {
   }
 
   async sendRevisionCardTerritorie(card: any){
-    const cardRef = collection(this.firestore, "revision"); 
+    const cardRef = collection(this.firestore, "revision");
     await addDoc(cardRef, card);
   }
 
@@ -39,7 +44,7 @@ export class TerritoryDataService {
 
   postCardTerritorie(card: any, collectionName: any){
     card.revision = false;
-    const cardRef = collection(this.firestore, collectionName);    
+    const cardRef = collection(this.firestore, collectionName);
     this.countFalseApples = 0;
     card.applesData.map((apple: any) => {
       if(apple.checked === false){
@@ -85,27 +90,55 @@ export class TerritoryDataService {
   deleteCardAssigned(card: any){
     deleteDoc(doc(this.firestore, "Assigned", card.id));
   }
+  // GRUPOS
+  getGroupList(){
+    const groupRef = collection(this.firestore, 'Groups');
+    return collectionData(groupRef, {idField: 'id'}) as Observable<any>;
+  }
+
   // SALIDAS
-  getDepartures(group: any){    
-    const departuresRef = doc(this.firestore, "Departures", `docDeparture${group}`);
+  getDepartures(){
+    const departuresRef = doc(this.firestore, "Departures", `docDeparture`);
     return docData(departuresRef) as Observable<any>;
   }
   getDateDepartures(){
-    const dateDeparturesRef = doc(this.firestore, "Departures", "dateDeparture");    
+    const dateDeparturesRef = doc(this.firestore, "Departures", "dateDeparture");
     return docData(dateDeparturesRef) as Observable<any>;
   }
-  putDepartures(departures: any, group: any){
-    const departuresRef = doc(this.firestore, "Departures", `docDeparture${group}`);
+  putDepartures(departures: any){
+    const departuresRef = doc(this.firestore, "Departures", `docDeparture`);
     updateDoc(departuresRef, departures);
   }
   putDate(date: any){
     const departuresRef = doc(this.firestore, "Departures", `dateDeparture`);
     updateDoc(departuresRef, date);
   }
+
+  // RURAL
+  getTerritorieRural(){
+    const collectionRef = collection(this.firestore, "TerritorioRural");
+    return collectionData(collectionRef, {idField: 'id'}) as Observable<any>;
+  }
+  postNewRoad(road: DataRural){
+    const cardRef = collection(this.firestore, "TerritorioRural");
+    return addDoc(cardRef, road);
+  }
+  putNewRoad(road: any, docId: string){
+    const roadRef = doc(this.firestore, "TerritorioRural", docId);
+    updateDoc(roadRef, road);
+  }
+  deleteRoad(docId: string){
+    deleteDoc(doc(this.firestore, "TerritorioRural", docId));
+  }
   // REGISTRO DE TERRITORIOS
   getTerritorieRecord(collectionParam: string): Observable<any>{
     const cardRef = collection(this.firestore, collectionParam);
     const q = query(cardRef, orderBy("creation"));
     return collectionData(q) as Observable<any>;
+  }
+  // ESTADÍSTICAS
+  getStatisticsButtons(){
+    const mapRef = collection(this.firestore, 'Statistics');
+    return collectionData(mapRef) as Observable<any>;
   }
 }

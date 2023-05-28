@@ -7,12 +7,16 @@ import { TerritoryPageComponent } from './pages/territory-page/territory-page.co
 import { CardTerritoryComponent } from './pages/card-territory/card-territory.component';
 import { SharedModule } from '@shared/shared.module';
 import { MapasComponent } from './pages/mapas/mapas.component';
+import { FormRuralComponent } from './components/form-rural/form-rural.component';
+import { ModalFormRuralComponent } from './components/modal-form-rural/modal-form-rural.component';
 
 @NgModule({
   declarations: [
     TerritoryPageComponent,
     CardTerritoryComponent,
-    MapasComponent
+    MapasComponent,
+    FormRuralComponent,
+    ModalFormRuralComponent
   ],
   imports: [
     CommonModule,

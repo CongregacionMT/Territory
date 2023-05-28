@@ -1,0 +1,17 @@
+<h2 class="text-center mt-2">Fecha para las salidas actuales</h2>
+<section>
+  <div class="input-group mb-3">
+    <span class="input-group-text">Semana</span>
+    <input
+      type="text"
+      class="form-control"
+      [formControl]="dateDeparture"
+    />
+    <button class="btn btn-primary" (click)="updateDate()">Actualizar fecha</button>
+  </div>
+</section>
+<div *ngIf="dataLoaded">
+  <app-form-edit-departures
+    [formDepartureDataInput]="formDepartureData"
+  ></app-form-edit-departures>
+</div>

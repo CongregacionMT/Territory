@@ -1,27 +1,43 @@
 # Territory
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.5.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.1.3
 
-## Development server
+## Steps to compile
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+1 - $ git clone https://github.com/Territories-TJ/territory.git
 
-## Code scaffolding
+2 - $ cd territory
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+3 - $ npm install
 
-## Build
+4 - $ ng serve
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+5 - Go to http://localhost:4200 :D
 
-## Running unit tests
+---------------------------------
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+V2
 
-## Running end-to-end tests
+POR HACER => {
+    Registro de territorios => {
+        _ Acomodar registros en grilla
+	    _ Descargar como PDF y Descargar como Excel
+    }
+    Estadisticas => {
+        _ Grilla de estadisticas MT y Ch => {
+            (agregar quizas un 'popover')
+            completado, tiempo en completarse, promedio de veces asignado ,Cantidad de Manzanas, última vez asignado(color)
+        }
+        _ Territorios asignados esta semana con el nombre del conductor
+    }
+    SALIDAS => {
+        arreglar router breadcrum in salidas, group. Hay que cambiar el indice de todo el mock y moverlo un numero en adelante.
+    }
+}
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
 
-## Further help
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+- Exportar como PDF
+
+- Exportar como Excel

@@ -1,0 +1,10 @@
+<div class="header">
+  <h2 mat-dialog-title>{{data.title}}</h2>
+</div>
+<div mat-dialog-content>
+  {{data.message}}
+</div>
+<div mat-dialog-actions [align]="'end'">
+  <button mat-raised-button [mat-dialog-close]="false">Cancelar</button>
+  <button mat-raised-button color="warn" [mat-dialog-close]="true">Eliminar</button>
+</div>

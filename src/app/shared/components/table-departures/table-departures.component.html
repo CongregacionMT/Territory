@@ -10,21 +10,22 @@
           <th scope="col">Dia</th>
           <th scope="col">Horario</th>
           <th scope="col">Conductor</th>
+          <th scope="col" class="text-nowrap">Púnto de encuentro</th>
           <th scope="col">Territorio</th>
-          <th scope="col">Desde</th>
         </tr>
       </thead>
       <tbody class="table-group-divider">
-        <tr
-          *ngFor="let departure of departures"
-          [ngClass]="departure.point === '' ? 'table-primary' : 'table-success'"
-        >
-          <th scope="row">{{ departure.day }}</th>
-          <td>{{ departure.schedule }}</td>
-          <td>{{ departure.driver }}</td>
-          <td>{{ departure.territory }}</td>
-          <td>{{ departure.point }}</td>
-        </tr>
+        <ng-container *ngFor="let departure of departures">
+          <ng-container *ngIf="currentPath === departure.group || departure.group === 0">
+            <tr [class]="'table-' + departure.color">
+              <th scope="row">{{ getDayOfWeek(departure.date) }}</th>
+              <td>{{ departure.schedule }}hs</td>
+              <td>{{ departure.driver }}</td>
+              <td>{{ departure.point }}</td>
+              <td>{{ departure.territory }}</td>
+            </tr>
+          </ng-container>
+        </ng-container>
       </tbody>
     </table>
   </div>

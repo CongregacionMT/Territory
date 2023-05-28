@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
+import { SpinnerService } from '@core/services/spinner.service';
+import { TerritoryDataService } from '@core/services/territory-data.service';
 
 @Component({
   selector: 'app-home-page',
@@ -14,7 +16,7 @@ export class HomePageComponent implements OnInit {
   btnLogin: boolean = false;
   btnPWA: boolean = true;
   deferredPrompt: any;
-  constructor(private router: Router, private swUpdate: SwUpdate) { 
+  constructor(private router: Router, private swUpdate: SwUpdate, private spinner: SpinnerService, private territorieDataService: TerritoryDataService) {
     if(this.swUpdate.available){
       this.swUpdate.available.subscribe(() => {
         if(confirm('Existe una nueva versión de la aplicación. ¿Deseas instalarla?')){
@@ -34,8 +36,17 @@ export class HomePageComponent implements OnInit {
       this.isDriver = true;
     }
 
+    if(!localStorage.getItem("numberTerritory")){
+      this.spinner.cargarSpinner();
+      this.territorieDataService.getNumberTerritory()
+      .subscribe(number => {
+        localStorage.setItem("numberTerritory", JSON.stringify(number[0]));
+        this.spinner.cerrarSpinner();
+      });
+    }
+
     // Mostrar boton de loguearse
-    
+
     this.isAdmin === true && this.isDriver === false ? this.btnLogin = false :this.btnLogin = true;
 
     this.isAdmin === false && this.isDriver === true ? this.btnLogin = false :this.btnLogin = true;
@@ -54,7 +65,7 @@ export class HomePageComponent implements OnInit {
   // PWA
 
   initPWA(){
-    
+
     // For Android
     if(window.matchMedia('(display-mode: standalone)').matches){
       console.log("app instalada");

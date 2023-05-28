@@ -1,0 +1,27 @@
+<!-- Modal de creación de asignación -->
+<div
+  class="modal fade"
+  id="modalID"
+  tabindex="-1"
+  aria-labelledby="creationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-dark" id="creationModalLabel">
+          {{title}}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div *ngIf="stateModal === 'open'" class="modal-body">
+        <app-form-rural [editionForm]="editionForm"></app-form-rural>
+      </div>
+    </div>
+  </div>
+</div>

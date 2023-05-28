@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { ENVIRONMENT_INITIALIZER, NgModule, importProvidersFrom, inject } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -8,6 +8,14 @@ import { initializeApp,provideFirebaseApp } from '@angular/fire/app';
 import { environment } from '../environments/environment';
 import { provideFirestore,getFirestore } from '@angular/fire/firestore';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { DialogService } from '@core/services/dialog.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+
+export function initializeDialogService() {
+  return () => {
+    inject(DialogService)
+  };
+}
 
 @NgModule({
   declarations: [
@@ -24,9 +32,17 @@ import { ServiceWorkerModule } from '@angular/service-worker';
       // Register the ServiceWorker as soon as the application is stable
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000'
-    })
+    }),
   ],
-  providers: [],
+  providers: [
+    importProvidersFrom(MatDialogModule),
+    {
+      provide: ENVIRONMENT_INITIALIZER,
+      useFactory: initializeDialogService,
+      deps: [MatDialog],
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

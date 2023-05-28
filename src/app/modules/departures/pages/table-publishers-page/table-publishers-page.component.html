@@ -1,0 +1,30 @@
+<div class="container">
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  <div class="table-group-container">
+    <div style="overflow-x: auto; width: 100%" *ngFor="let group of groupList">
+      <table class="table table-dark table-hover table-striped table-bordered">
+        <thead>
+          <tr>
+            <th class="text-center">{{ group.id }}</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          <tr
+            *ngFor="let publisher of group.publishers"
+            [ngClass]="
+              publisher.assignment === 'Superintendente'
+                ? 'table-success'
+                : publisher.assignment === 'Auxiliar'
+                ? 'table-primary'
+                : 'table-secondary'
+            "
+          >
+            <td colspan="2"
+              [ngClass]="publisher.assignment === 'Superintendente' || publisher.assignment === 'Auxiliar' ? 'text-center' : ''"
+            >{{ publisher.name }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
