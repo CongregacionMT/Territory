@@ -1,0 +1,10 @@
+.card-s-container{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.table-full{
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}

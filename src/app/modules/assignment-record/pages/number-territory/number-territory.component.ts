@@ -29,13 +29,9 @@ export class NumberTerritoryComponent implements OnInit {
       this.spinner.cargarSpinner();
       this.cardSubscription = Subscription.EMPTY;
       this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-      if(this.territorieDataService.pathNumberTerritory === 0){
-        this.routerBreadcrum = this.routerBreadcrum[6];
-      } else if(this.territorieDataService.pathNumberTerritory === 1){
-        this.routerBreadcrum = this.routerBreadcrum[7];
-      }
+      this.routerBreadcrum = this.routerBreadcrum[6];
     }
-    
+
   ngOnInit(): void {
     // tabla
     this.dtOptions = {

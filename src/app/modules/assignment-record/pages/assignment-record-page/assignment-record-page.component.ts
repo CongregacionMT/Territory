@@ -6,6 +6,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
+import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 
 @Component({
   selector: 'app-assignment-record-page',
@@ -19,6 +20,8 @@ export class AssignmentRecordPageComponent implements OnInit {
   allCardsAssigned: any = [];
   cardConfirmation: any;
   formCard: FormGroup;
+  territoryNumberOfLocalStorage: TerritoriesNumberData = {} as TerritoriesNumberData;
+  appleCount: any;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
     private territorieDataService: TerritoryDataService,
@@ -49,11 +52,64 @@ export class AssignmentRecordPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[2];
-    this.territorieDataService.getMaps()
-    .subscribe(map => {
-      this.territorioMaps = map[0].maps;
-      this.spinner.cerrarSpinner();
-    })
+    if(!localStorage.getItem("territorioMaps")){
+      this.spinner.cargarSpinner();
+      this.territorieDataService.getMaps()
+      .subscribe(map => {
+        localStorage.setItem("territorioMaps", JSON.stringify(map[0].maps));
+        this.territorioMaps = map[0].maps;
+        this.spinner.cerrarSpinner();
+      });
+    } else {
+      const storedTerritorioMaps = localStorage.getItem("territorioMaps");
+      this.territorioMaps = storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [];
+    }
+    if(!localStorage.getItem("statisticDataMT") || !localStorage.getItem("statisticDataCH")){
+      this.spinner.cargarSpinner();
+      this.territoryNumberOfLocalStorage = JSON.parse(localStorage.getItem('numberTerritory') as string);
+      this.territoryNumberOfLocalStorage.mariaTeresa.map((territory) => {
+        this.territorieDataService.getCardTerritorie(territory.collection)
+        .subscribe((card) => {
+          card.map((list: any, index: any) => {
+            this.appleCount = 0;
+            list.applesData.map((apple: any) => {
+              if (apple.checked === true) {
+                this.appleCount += 1;
+              }
+            });
+            if (this.appleCount === 0) {
+              card.splice(index, 1);
+            }
+          });
+          const storeStatisticdData = localStorage.getItem('statisticDataMT');
+          const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
+          statisticData.push(card);
+          localStorage.setItem('statisticDataMT', JSON.stringify(statisticData));
+          this.spinner.cerrarSpinner();
+        })
+      });
+      this.territoryNumberOfLocalStorage.christophersen.map((territory) => {
+        this.territorieDataService.getCardTerritorie(territory.collection)
+        .subscribe((card) => {
+          card.map((list: any, index: any) => {
+            this.appleCount = 0;
+            list.applesData.map((apple: any) => {
+              if (apple.checked === true) {
+                this.appleCount += 1;
+              }
+            });
+            if (this.appleCount === 0) {
+              card.splice(index, 1);
+            }
+          });
+          const storeStatisticdData = localStorage.getItem('statisticDataCH');
+          const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
+          statisticData.push(card);
+          localStorage.setItem('statisticDataCH', JSON.stringify(statisticData));
+          this.spinner.cerrarSpinner();
+        })
+      });
+    }
   }
   // Territorios asignados esta semana
   postCardAssigned(){

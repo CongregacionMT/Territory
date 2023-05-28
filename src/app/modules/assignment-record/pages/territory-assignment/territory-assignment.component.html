@@ -5,10 +5,9 @@
   </div>
   <div class="card-s-container">
     <app-card-s
-      *ngFor="let item of territoriesMT"
+      *ngFor="let item of territoriesNumber"
       terrNumber="{{ item.territorio }}"
       [routerLink]="item.collection"
-      (click)="pathMT()"
     >
     </app-card-s>
   </div>
@@ -36,7 +35,7 @@
     >
       <thead>
         <tr>
-          <th *ngFor="let item of territoriesMT" scope="col" class="fs-5 text-center">Territorio {{item.territorio}}</th>
+          <th *ngFor="let item of territoriesNumber" scope="col" class="fs-5 text-center">Territorio {{item.territorio}}</th>
         </tr>
       </thead>
 
