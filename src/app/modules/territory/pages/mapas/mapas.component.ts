@@ -29,7 +29,7 @@ export class MapasComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if(this.activatedRoute.snapshot.url[0].path === 'maria-teresa'){
+    if(this.activatedRoute.snapshot.url[0].path === 'mariaTeresa'){
       this.mapa = this.domSanitizer.bypassSecurityTrustHtml(
         '<iframe src="https://www.google.com/maps/d/embed?mid=1H-aEAUqqCeX8rRRNykvly38QZIZJ76s&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
       )

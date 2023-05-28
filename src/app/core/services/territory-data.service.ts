@@ -9,12 +9,6 @@ import { DataRural } from '@core/models/DataRural';
   providedIn: 'root'
 })
 export class TerritoryDataService {
-  // PATH
-  // 0 => MT
-  // 1 => CHT
-  // 2 => RURAL
-  pathNumberTerritory: number = 0;
-
   diferent: boolean = false;
   countFalseApples: number = 0;
   constructor(private firestore: Firestore, private router: Router, private spinner: SpinnerService) { }
