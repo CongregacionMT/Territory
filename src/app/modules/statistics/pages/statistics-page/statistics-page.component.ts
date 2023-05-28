@@ -4,7 +4,6 @@ import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { forkJoin, tap } from 'rxjs';
 
 @Component({
   selector: 'app-statistics-page',
@@ -33,6 +32,7 @@ export class StatisticsPageComponent implements OnInit{
   ) {
     this.territoryPath = this.rutaActiva.snapshot.url.join('/');;
     this.nameTitleTerritory = this.territoryPath === "mariaTeresa" ? "María Teresa" : "Christophersen";
+    this.loadingData = false;
     this.green = new FormControl(28);
     this.blue = new FormControl(42);
     this.yellow = new FormControl(56);
@@ -44,71 +44,32 @@ export class StatisticsPageComponent implements OnInit{
   }
   getDataStatisticTerritory() {
     const nameLocalStorage = this.territoryPath === "mariaTeresa" ? "statisticDataMT" : "statisticDataCH";
-
     if (localStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = localStorage.getItem(nameLocalStorage);
       this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];
+      this.sortTable("completed");
       this.loadingData = true;
       return;
     }
-
-    const numberTerritory = localStorage.getItem("numberTerritory");
-    const observables = numberTerritory
-      ? this.territory.map((territory) =>
-          this.territorieDataService.getCardTerritorie(territory.collection)
-        )
-      : [
-          this.territorieDataService.getNumberTerritory().pipe(
-            tap((number) => {
-              localStorage.setItem("numberTerritory", JSON.stringify(number[0]));
-              this.territory = number[0][this.territoryPath];
-            })
-          ),
-          ...this.territory.map((territory) =>
-            this.territorieDataService.getCardTerritorie(territory.collection)
-          ),
-        ];
-
-    this.spinner.cargarSpinner();
-
-    forkJoin(observables).subscribe((results) => {
-      this.dataListFull = results.flat();
-      this.dataListFull.forEach((card: any[]) => {
-        card.forEach((list: any, index: number) => {
-          const appleCount = list.applesData.reduce(
-            (count: number, apple: any) => (apple.checked ? count + 1 : count),
-            0
-          );
-
-          if (appleCount === 0) {
-            card.splice(index, 1);
-          }
-        });
-      });
-
-      localStorage.setItem(nameLocalStorage, JSON.stringify(this.dataListFull));
-      this.sortTable("completed");
-      this.loadingData = true;
-      this.spinner.cerrarSpinner();
-    });
   }
+
   paintRow(dataList: any){
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     const dateToday = new Date(`${year}-${month}-${day}`);
-    const dateCard = new Date(dataList[0].end !== ""
-    ? dataList[0].end
-    : dataList[1].end !== ""
-    ? dataList[1].end
-    : dataList[2].end !== ""
-    ? dataList[2].end
-    : dataList[3].end !== ""
-    ? dataList[3].end
-    : dataList[4].end !== ""
-    ? dataList[4].end
-    : dataList[5].end);
+    const dateCard = new Date(dataList[0]?.end !== ""
+    ? dataList[0]?.end
+    : dataList[1]?.end !== ""
+    ? dataList[1]?.end
+    : dataList[2]?.end !== ""
+    ? dataList[2]?.end
+    : dataList[3]?.end !== ""
+    ? dataList[3]?.end
+    : dataList[4]?.end !== ""
+    ? dataList[4]?.end
+    : dataList[5]?.end);
 
     const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
     const days = Math.floor(difference / (1000 * 60 * 60 * 24));

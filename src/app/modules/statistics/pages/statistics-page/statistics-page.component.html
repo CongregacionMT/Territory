@@ -1,5 +1,4 @@
 <div class="container">
-  <!-- <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb> -->
   <h1 class="text-center pb-2">Estadísticas de {{nameTitleTerritory}}</h1>
   <ng-container *ngIf="loadingData">
     <table
@@ -48,18 +47,13 @@
           <td>{{ dataList[0].start | date : "dd-MM-yyyy" }}</td>
           <td>
             {{
-              (dataList[0].end !== ""
-                ? dataList[0].end
-                : dataList[1].end !== ""
-                ? dataList[1].end
-                : dataList[2].end !== ""
-                ? dataList[2].end
-                : dataList[3].end !== ""
-                ? dataList[3].end
-                : dataList[4].end !== ""
-                ? dataList[4].end
-                : dataList[5].end
-              ) | date : "dd-MM-yyyy"
+              (dataList[0]?.end ||
+              dataList[1]?.end ||
+              dataList[2]?.end ||
+              dataList[3]?.end ||
+              dataList[4]?.end ||
+              dataList[5]?.end
+            ) | date : "dd-MM-yyyy"
             }}
           </td>
         </tr>

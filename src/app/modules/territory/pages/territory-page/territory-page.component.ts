@@ -42,12 +42,6 @@ export class TerritoryPageComponent implements OnInit {
         this.territorioMaps = map[0].maps;
         this.spinner.cerrarSpinner();
       });
-      this.territorieDataService.getNumberTerritory()
-      .subscribe(number => {
-        localStorage.setItem("numberTerritory", JSON.stringify(number[0]));
-        this.territoriesMT = number[0].mariaTeresa;
-        this.territoriesC = number[0].christophersen;
-      });
     } else {
       const storedTerritorioMaps = localStorage.getItem("territorioMaps");
       const storedNumberTerritory = localStorage.getItem("numberTerritory");
