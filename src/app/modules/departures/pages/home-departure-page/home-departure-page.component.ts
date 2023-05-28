@@ -22,6 +22,7 @@ export class HomeDeparturePageComponent implements OnInit{
     private router: Router,
   ) {
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
+    localStorage.getItem('tokenAdmin') ? this.isAdmin = true : this.isAdmin = false;
   }
   ngOnInit(): void {
     this.spinner.cargarSpinner();
