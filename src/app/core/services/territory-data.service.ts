@@ -26,7 +26,7 @@ export class TerritoryDataService {
   // TARJETAS DE CONDUCTORES
   getCardTerritorie(collectionParam: string): Observable<any>{
     const cardRef = collection(this.firestore, collectionParam);
-    const q = query(cardRef, orderBy("creation", "desc"));
+    const q = query(cardRef, orderBy("creation", "asc"));
     return collectionData(q) as Observable<any>;
   }
 
@@ -129,12 +129,6 @@ export class TerritoryDataService {
   }
   deleteRoad(docId: string){
     deleteDoc(doc(this.firestore, "TerritorioRural", docId));
-  }
-  // REGISTRO DE TERRITORIOS
-  getTerritorieRecord(collectionParam: string): Observable<any>{
-    const cardRef = collection(this.firestore, collectionParam);
-    const q = query(cardRef, orderBy("creation"));
-    return collectionData(q) as Observable<any>;
   }
   // ESTADÍSTICAS
   getStatisticsButtons(){
