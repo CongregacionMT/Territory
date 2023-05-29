@@ -19,7 +19,7 @@ export class TerritoryAssignmentComponent implements OnInit{
   territoriesNumber: TerritoryNumberData[] = [];
   dataListFull: any[] = [];
   appleCount: any;
-  s13PDF: any;
+  s13JPG: any;
   loadingData: boolean = false;
   constructor(
     private routerBreadcrumMockService: RouterBreadcrumMockService,
@@ -49,32 +49,26 @@ export class TerritoryAssignmentComponent implements OnInit{
     const httpOptions = {
       'responseType'  : 'arraybuffer' as 'json'
     };
-    const pdfPath = this.document.location.origin + '/assets/documents/S-13_S.pdf';
-    console.log("path: ", pdfPath);
+    const jpgPath = this.document.location.origin + '/assets/documents/S-13_S_image.jpg';
+    console.log("path: ", jpgPath);
 
-    this.http.get(pdfPath, httpOptions).subscribe({
-      next: pdf => this.s13PDF = pdf
+    this.http.get(jpgPath, httpOptions).subscribe({
+      next: jpg => this.s13JPG = jpg
     });
   }
   async downloadPDF(){
-    // Cargo el PDF original con la libreria 'pdf-lib'
-    const pdfDoc = await PDFDocument.load(this.s13PDF)
+    // Cargo el PDF original con la libreria 'pdf-lib y creo una pagina vacia'
+    const pdfDoc = await PDFDocument.create()
+    pdfDoc.addPage()
+    // Cargo la imagen del S-13
+    const jpgImageBytes = this.s13JPG;
+    const jpgImage = await pdfDoc.embedJpg(jpgImageBytes)
+    const jpgDims = jpgImage.scale(0.48);
     // Cargo una fuente generica
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
 
-    // Obtengo las paginas del documento
+    // Recorro los datos y si hay más de 4 por cada territorio, creo una nueva pagina
     const [firstPage] = pdfDoc.getPages();
-
-    // Dibujo el año actual
-    const dayNow = String(new Date().getFullYear());
-    firstPage.drawText(dayNow, {
-      x: 145,
-      y: 750,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    })
-
     let itemsListNumber: number[] = [];
     this.dataListFull.map((dataList, index: number) => {
       let items = 0;
@@ -85,25 +79,12 @@ export class TerritoryAssignmentComponent implements OnInit{
       });
       itemsListNumber.push(items);
     })
-    console.log("itemsListNumber", itemsListNumber);
     let maxItems = Math.max(...itemsListNumber);
-    console.log("max: ", maxItems);
-    // while (maxItems > 4) {
-    //   const newPage = pdfDoc.addPage([firstPage.getWidth(), firstPage.getHeight()]);
-    //   const newPageBackground = await pdfDoc.embedPage(firstPage);
-    //   newPage.drawPage(newPageBackground);
-    //   newPage.drawText(dayNow, {
-    //     x: 145,
-    //     y: 750,
-    //     size: 12,
-    //     font: helveticaFont,
-    //     color: rgb(0, 0, 0),
-    //   })
-    //   maxItems -= 4;
-    // }
-    console.log("paginas: ", pdfDoc.getPages());
-
-    // Ancho y Alto inicial de cada valor
+    while (maxItems > 4) {
+      pdfDoc.addPage([firstPage.getWidth(), firstPage.getHeight()]);
+      maxItems -= 4;
+    }
+    // Ancho y Alto inicial de los datos a mostrar
     const { width, height } = firstPage.getSize()
     let heigthTerritories = 675;
     let heigthDrivers = 685;
@@ -113,74 +94,149 @@ export class TerritoryAssignmentComponent implements OnInit{
     let widthStart = (width / 4 - 10) / 4 - 5;
     let widthEnd = (width / 4) / 4 + 50;
 
-    // Numeros de territorios
-    this.territoriesNumber.map((number, index) => {
-      let territorio = String(number.territorio);
-      firstPage.drawText(territorio, {
-        x: 50,
-        y: heigthTerritories,
+    // Obtengo las paginas del documento
+    const pages = pdfDoc.getPages();
+    pages.map((page) => {
+      // Datos iniciales por cada iteracion
+      heigthTerritories = 675;
+      heigthDrivers = 685;
+      heigthStart = 670;
+      heigthEnd = 670;
+      widthDrivers = 61;
+      widthStart = (width / 4 - 10) / 4 - 5;
+      widthEnd = (width / 4) / 4 + 50;
+      // Dibujo el PDF
+      page.drawImage(jpgImage, {
+        x: 0,
+        y: 0,
+        width: jpgDims.width,
+        height: jpgDims.height,
+      })
+      // Dibujo el año actual
+      const dayNow = String(new Date().getFullYear());
+      page.drawText(dayNow, {
+        x: 145,
+        y: 750,
         size: 12,
         font: helveticaFont,
         color: rgb(0, 0, 0),
-      });
-      heigthTerritories -= 31.5;
-    });
-    // Conductores y fechas
-    let territoryNumberCount = 1;
-    let listEnds = [];
-    this.dataListFull.map((dataList) => {
-      let items = 0;
-      let pages = pdfDoc.getPages();
-      dataList.map((list: any) => {
-        if(list.end){
-          if(items < 4){
-            if(territoryNumberCount === list.numberTerritory){
-              widthDrivers += 109;
-              widthStart += 109;
-              widthEnd += 109;
-            } else {
-              widthDrivers = 170;
-              widthStart = 140;
-              widthEnd = 195;
-              heigthDrivers -= 31.5;
-              heigthStart -= 31.5;
-              heigthEnd -= 31.5;
-              territoryNumberCount = list.numberTerritory;
-            }
-            // CONDUCTOR
-            pages[0].drawText(list.driver, {
-              x: widthDrivers,
-              y: heigthDrivers,
-              size: 10,
-              font: helveticaFont,
-              color: rgb(0, 0, 0),
-            });
-            // FECHA DE INICIO
-            // transformo la fecha
-            let dateStart = list.start.split(" ")[0].split("-").reverse().join("-");
-            pages[0].drawText(dateStart, {
-              x: widthStart,
-              y: heigthStart,
-              size: 8,
-              font: helveticaFont,
-              color: rgb(0, 0, 0),
-            });
-            // FECHA DE CONCLUCIÓN
-            // transformo la fecha
-            let dateEnd = list.end.split(" ")[0].split("-").reverse().join("-");
-            pages[0].drawText(dateEnd, {
-              x: widthEnd,
-              y: heigthEnd,
-              size: 8,
-              font: helveticaFont,
-              color: rgb(0, 0, 0),
-            });
-            items ++;
-            listEnds.push(list.end);
-          }
-        }
       })
-    });
+      // Numeros de territorios
+      this.territoriesNumber.map((number, index) => {
+        let territorio = String(number.territorio);
+        page.drawText(territorio, {
+          x: 50,
+          y: heigthTerritories,
+          size: 12,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+        heigthTerritories -= 31.5;
+      });
+      // Conductores y fechas
+      let territoryNumberCount = 1;
+      this.dataListFull.map((dataList) => {
+        let items = 0;
+        let inSecondPage = false;
+        dataList.map((list: any) => {
+          if(list.end){
+            if(items < 4){
+              if(territoryNumberCount === list.numberTerritory){
+                widthDrivers += 109;
+                widthStart += 109;
+                widthEnd += 109;
+              } else {
+                widthDrivers = 170;
+                widthStart = 140;
+                widthEnd = 195;
+                heigthDrivers -= 31.5;
+                heigthStart -= 31.5;
+                heigthEnd -= 31.5;
+                territoryNumberCount = list.numberTerritory;
+              }
+              // CONDUCTOR
+              pages[0].drawText(list.driver, {
+                x: widthDrivers,
+                y: heigthDrivers,
+                size: 10,
+                font: helveticaFont,
+                color: rgb(0, 0, 0),
+              });
+              // FECHA DE INICIO
+              // transformo la fecha
+              let dateStart = list.start.split(" ")[0].split("-").reverse().join("-");
+              pages[0].drawText(dateStart, {
+                x: widthStart,
+                y: heigthStart,
+                size: 8,
+                font: helveticaFont,
+                color: rgb(0, 0, 0),
+              });
+              // FECHA DE CONCLUCIÓN
+              // transformo la fecha
+              let dateEnd = list.end.split(" ")[0].split("-").reverse().join("-");
+              pages[0].drawText(dateEnd, {
+                x: widthEnd -5,
+                y: heigthEnd,
+                size: 8,
+                font: helveticaFont,
+                color: rgb(0, 0, 0),
+              });
+              items ++;
+            } else {
+              if(!inSecondPage){
+                inSecondPage = true;
+                widthDrivers = 61;
+                widthStart = (width / 4 - 10) / 4 - 5;
+                widthEnd = (width / 4) / 4 + 50;
+              }
+              if(territoryNumberCount === list.numberTerritory){
+                widthDrivers += 109;
+                widthStart += 109;
+                widthEnd += 109;
+              } else {
+                widthDrivers = 170;
+                widthStart = 140;
+                widthEnd = 195;
+                heigthDrivers -= 31.5;
+                heigthStart -= 31.5;
+                heigthEnd -= 31.5;
+                territoryNumberCount = list.numberTerritory;
+              }
+              // CONDUCTOR
+              pages[1].drawText(list.driver, {
+                x: widthDrivers,
+                y: heigthDrivers,
+                size: 10,
+                font: helveticaFont,
+                color: rgb(0, 0, 0),
+              });
+              // FECHA DE INICIO
+              // transformo la fecha
+              let dateStart = list.start.split(" ")[0].split("-").reverse().join("-");
+              pages[1].drawText(dateStart, {
+                x: widthStart,
+                y: heigthStart,
+                size: 8,
+                font: helveticaFont,
+                color: rgb(0, 0, 0),
+              });
+              // FECHA DE CONCLUCIÓN
+              // transformo la fecha
+              let dateEnd = list.end.split(" ")[0].split("-").reverse().join("-");
+              pages[1].drawText(dateEnd, {
+                x: widthEnd -5,
+                y: heigthEnd,
+                size: 8,
+                font: helveticaFont,
+                color: rgb(0, 0, 0),
+              });
+              items ++;
+            }
+          }
+        })
+      });
+    })
 
     // Guardo el PDF modificado
     const pdfBytes = await pdfDoc.save();
