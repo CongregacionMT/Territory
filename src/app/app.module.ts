@@ -4,7 +4,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { initializeApp,provideFirebaseApp } from '@angular/fire/app';
+import { initializeApp,provideFirebaseApp, getApp } from '@angular/fire/app';
+import { getMessaging, provideMessaging } from '@angular/fire/messaging';
 import { environment } from '../environments/environment';
 import { provideFirestore,getFirestore } from '@angular/fire/firestore';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -26,6 +27,7 @@ export function initializeDialogService() {
     AppRoutingModule,
     BrowserAnimationsModule,
     provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideMessaging(() => getMessaging(getApp())),
     provideFirestore(() => getFirestore()),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
