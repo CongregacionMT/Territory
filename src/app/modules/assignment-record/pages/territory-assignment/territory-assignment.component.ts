@@ -7,6 +7,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { ActivatedRoute } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
+import { Card } from '@core/models/Card';
 
 @Component({
   selector: 'app-territory-assignment',
@@ -18,6 +19,8 @@ export class TerritoryAssignmentComponent implements OnInit{
   territoryPath: any;
   territoriesNumber: TerritoryNumberData[] = [];
   dataListFull: any[] = [];
+  filterDataListFull: any[] = [];
+  selectedValueFilter: string = '1';
   appleCount: any;
   s13JPG: any;
   loadingData: boolean = false;
@@ -43,6 +46,7 @@ export class TerritoryAssignmentComponent implements OnInit{
     if (sessionStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
       this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];
+      this.dataListFull.length !== 0 ? this.sortByDate('1') : [];
       this.loadingData = true;
     }
     // Busco el PDF original para modificarlo
@@ -55,6 +59,40 @@ export class TerritoryAssignmentComponent implements OnInit{
     this.http.get(jpgPath, httpOptions).subscribe({
       next: jpg => this.s13JPG = jpg
     });
+  }
+  sortByDate(value: string){
+    const valueNumber = Number(value);
+    let newArray = [...this.dataListFull];
+    if(valueNumber === 1){
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const filteredDates = newArray.map((territory: Card[]) => {
+        return territory.filter((date: Card) => {
+          const dateStart = new Date(date.start || '');
+          return dateStart >= sixMonthsAgo
+        })
+      })
+      newArray = filteredDates;
+    } else if(valueNumber === 2){
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      const filteredDates = newArray.map((territory: Card[]) => {
+        return territory.filter((date: Card) => {
+          const dateStart = new Date(date.start || '');
+          return dateStart >= oneYearAgo
+        })
+      })
+      newArray = filteredDates;
+    } else {
+      const filteredDates = newArray.map((territory: Card[]) => {
+        return territory.filter((date: Card) => {
+          const dateStart = new Date(date.start || '');
+          return valueNumber === dateStart.getFullYear();
+        })
+      })
+      newArray = filteredDates;
+    }
+    this.filterDataListFull = newArray;
   }
   async downloadPDF(){
     // Cargo el PDF original con la libreria 'pdf-lib y creo una pagina vacia'
@@ -70,7 +108,7 @@ export class TerritoryAssignmentComponent implements OnInit{
     // Recorro los datos y si hay más de 4 por cada territorio, creo una nueva pagina
     const [firstPage] = pdfDoc.getPages();
     let itemsListNumber: number[] = [];
-    this.dataListFull.map((dataList, index: number) => {
+    this.filterDataListFull.map((dataList, index: number) => {
       let items = 0;
       dataList.map((list: any) => {
         if(list.end){
@@ -135,7 +173,7 @@ export class TerritoryAssignmentComponent implements OnInit{
       });
       // Conductores y fechas
       let territoryNumberCount = 1;
-      this.dataListFull.map((dataList) => {
+      this.filterDataListFull.map((dataList) => {
         let items = 0;
         let inSecondPage = false;
         dataList.map((list: any) => {
@@ -245,7 +283,7 @@ export class TerritoryAssignmentComponent implements OnInit{
     let blob = new Blob([pdfBytes], {type: "application/pdf"});
     let link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    let fileName = 'Registro de territorios';
+    let fileName = `Registro de territorios de ${this.territoryPath}`;
     link.download = fileName;
     link.click();
   }

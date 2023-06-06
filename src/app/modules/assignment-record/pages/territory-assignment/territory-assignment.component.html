@@ -1,17 +1,28 @@
 <div class="container">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
-  <div class="d-flex justify-content-evenly my-5">
-      <button class="btn btn-danger btn-lg me-2" (click)="downloadPDF()">
-        Descargar registro PDF
-        <img
-          src="https://i.postimg.cc/JnNJyZDx/pdf.png"
-          alt="pdf"
-          style="width: 1.7rem"
-        />
-      </button>
+  <div class="d-flex justify-content-evenly my-5 filter-class">
+    <div class="d-flex align-items-center m-4">
+      <label for="select-filter-register" class="text-center w-100 fs-4">Filtrar por: </label>
+      <select id="select-filter-register" class="form-select" aria-label="Default select example"
+      [(ngModel)]="selectedValueFilter"
+      (ngModelChange)="sortByDate($event)">
+        <option selected value=1>Últimos 6 meses</option>
+        <option value="2">Último año</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+      </select>
+    </div>
+    <button class="btn btn-danger btn-lg me-2" (click)="downloadPDF()">
+      Descargar registro PDF
+      <img
+        src="https://i.postimg.cc/JnNJyZDx/pdf.png"
+        alt="pdf"
+        style="width: 1.7rem"
+      />
+    </button>
   </div>
   <!-- Tabla de territorios completa -->
-  <div class="">
+  <div>
     <table
         class="table table-dark table-full"
       >
@@ -23,7 +34,7 @@
 
         <tbody class="table-group-divider">
           <tr class="m-0 p-0">
-            <td *ngFor="let dataList of dataListFull">
+            <td *ngFor="let dataList of filterDataListFull">
               <table class="table table-dark m-0" *ngFor="let list of dataList">
                 <tr *ngIf="list.end">
                   <td class="d-flex justify-content-center fs-4" style="border-bottom: 0px transparent;">{{list.driver}}</td>
