@@ -42,7 +42,7 @@ export class TerritoryAssignmentComponent implements OnInit{
     const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
     const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
     this.territoriesNumber = this.territoryPath === "mariaTeresa" ? numberTerritory.mariaTeresa : numberTerritory.christophersen;
-    const nameLocalStorage = this.territoryPath === "mariaTeresa" ? "statisticDataMT" : "statisticDataCH";
+    const nameLocalStorage = this.territoryPath === "mariaTeresa" ? "registerStatisticDataMT" : "registerStatisticDataCH";
     if (sessionStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
       this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];
