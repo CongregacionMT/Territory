@@ -18,6 +18,7 @@ export class HomePageComponent implements OnInit {
   btnLogin: boolean = false;
   btnPWA: boolean = true;
   deferredPrompt: any;
+  nameDriver: string = '';
   constructor(private router: Router, private swUpdate: SwUpdate, private spinner: SpinnerService, private territorieDataService: TerritoryDataService, private messagingService:MessagingService, private _snackBar: MatSnackBar,) {
     if(this.swUpdate.available){
       this.swUpdate.available.subscribe(() => {
@@ -29,6 +30,7 @@ export class HomePageComponent implements OnInit {
     if(this.deferredPrompt){
       this.btnPWA = false;
     }
+    this.nameDriver = localStorage.getItem('nombreConductor') as string;
   }
 
   ngOnInit(): void {
@@ -97,10 +99,14 @@ export class HomePageComponent implements OnInit {
       this.deferredPrompt = null;
     });
   }
+  capitalizeFirstLetter(text: string): string {
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
   activeNotification(){
     this.messagingService.requestPermission().then((token) => {
-      let nombreConductor = localStorage.getItem('nombreConductor') as string;
-      let userData = JSON.parse(localStorage.getItem(nombreConductor) as string);
+      let userData = JSON.parse(localStorage.getItem(this.nameDriver) as string);
       if(!userData.tokens.includes(token)){
         userData.tokens.push(token)
         this.territorieDataService.updateUser(userData.user, userData);

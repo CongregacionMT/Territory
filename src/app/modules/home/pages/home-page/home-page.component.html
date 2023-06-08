@@ -2,6 +2,7 @@
   <div class="d-flex justify-content-center">
     <h1 class="my-4">Congregación MT</h1>
   </div>
+  <h2 class="text-center text-info" *ngIf="isDriver || isAdmin">¡Bienvenido {{capitalizeFirstLetter(nameDriver)}}!</h2>
   <h2 class="text-center text-success" *ngIf="isDriver">(Conductor)</h2>
   <h2 class="text-center text-danger" *ngIf="isAdmin">(Administrador)</h2>
   <div class="card-container">
