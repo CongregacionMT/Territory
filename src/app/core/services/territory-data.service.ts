@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc, docData } from '@angular/fire/firestore';
+import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc, docData, where } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
@@ -140,5 +140,22 @@ export class TerritoryDataService {
     const cardRef = collection(this.firestore, collectionParam);
     const q = query(cardRef, orderBy("creation", "asc"));
     return collectionData(q) as Observable<any>;
+  }
+  // USERS
+  getUsers(){
+    const cardRef = collection(this.firestore, 'users');
+    return collectionData(cardRef) as Observable<any>;
+  }
+  loginUser(user: string, password: string){
+    const userRef = collection(this.firestore, 'users');
+    const q = query(userRef, where("user", "==", user), where("password", "==", password));
+    return collectionData(q) as Observable<any>;
+  }
+  updateUser(user: string, dataUser: any){
+    const userRef = doc(this.firestore, "users", user);
+    updateDoc(userRef, dataUser);
+  }
+  deleteUser(user: string){
+    deleteDoc(doc(this.firestore, "users", user));
   }
 }

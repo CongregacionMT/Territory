@@ -1,46 +1,60 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { SpinnerService } from '@core/services/spinner.service';
+import { TerritoryDataService } from '@core/services/territory-data.service';
 
 @Component({
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
   styleUrls: ['./login-page.component.scss']
 })
-export class LoginPageComponent implements OnInit {
+export class LoginPageComponent {
 
   @ViewChild('errorMessage', {static: false}) errorMessage: any;
 
   formLogin: FormGroup;
   user = "";
   password = "";
-
-  constructor(private router: Router, private fb: FormBuilder,) { 
+  passwordVisible: boolean = true;
+  constructor(
+    private router: Router,
+    private fb: FormBuilder,
+    private territoryDataService: TerritoryDataService,
+    private spinner: SpinnerService
+  ) {
     this.formLogin = this.fb.group({
       user: new FormControl('', [Validators.required]),
       password: new FormControl('', [Validators.required])
-    })
-  }
-
-  ngOnInit(): void {
+    });
   }
 
   async loginWhitUser(){
+    this.spinner.cargarSpinner();
     const messageError = this.errorMessage.nativeElement;
-    if(this.formLogin.value.user === "conductor" && this.formLogin.value.password === "PREDICAR241314"){
-      console.log("CONDUCTOR: ", this.formLogin.value);
-      localStorage.setItem("tokenConductor", "ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk");
-      this.router.navigate(['home']);
-    } else if(this.formLogin.value.user === "adminTerritorios" && this.formLogin.value.password === "ganado.desierto.Amasias.2007"){
-      console.log("ADMINISTRADOR: ", this.formLogin.value);
-      localStorage.setItem("tokenAdmin", "lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa");
-      this.router.navigate(['home']);
-    } else {
-      console.log("ERROR: ", this.formLogin.value);
-      messageError.style.display = 'block';
-    }
+    this.territoryDataService.loginUser(
+      this.formLogin.value.user,
+      this.formLogin.value.password
+    ).subscribe((user: any[]) => {
+      if(user.length !== 0){
+        if(user[0].rol === "admin"){
+          localStorage.setItem("tokenAdmin", "lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa");
+        } else {
+          localStorage.setItem("tokenConductor", "ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk");
+        }
+        localStorage.setItem(user[0].user, JSON.stringify(user[0]));
+        this.router.navigate(['home']);
+        this.spinner.cerrarSpinner();
+      } else {
+        console.log("ERROR: ", this.formLogin.value);
+        messageError.style.display = 'block';
+        this.spinner.cerrarSpinner();
+      }
+    })
   }
-
+  togglePasswordVisibility(): void {
+    this.passwordVisible = !this.passwordVisible;
+  }
   get User(){return this.formLogin.get('user');}
   get Password(){return this.formLogin.get('password');}
 }

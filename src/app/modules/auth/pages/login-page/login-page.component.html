@@ -30,13 +30,20 @@
 
         <div class="form-group mt-3">
           <label for="exampleInputPassword1">Contraseña</label>
-          <input
-            type="password"
-            class="form-control bg-dark text-white"
-            id="exampleInputPassword1"
-            placeholder="Escribe tu contraseña"
-            formControlName="password"
-          />
+          <div class="input-group">
+            <input
+              [type]="passwordVisible ? 'text' : 'password'"
+              class="form-control bg-dark text-white me-2"
+              id="password-input"
+              placeholder="Escribe tu contraseña"
+              formControlName="password"
+            />
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="button" (click)="togglePasswordVisibility()">
+                <i [ngClass]="passwordVisible ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
+              </button>
+            </div>
+          </div>
         </div>
         <!-- Error  -->
         <div
