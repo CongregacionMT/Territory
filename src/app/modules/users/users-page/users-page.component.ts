@@ -34,13 +34,17 @@ export class UsersPageComponent {
     private fb: FormBuilder,
     private _snackBar: MatSnackBar,
   ){
+    this.spinner.cargarSpinner();
     this.formUser = this.fb.group({
       user: new FormControl(null, [Validators.required]),
       password: new FormControl(null, [Validators.required]),
       tokens: new FormControl([], [Validators.required]),
       rol: new FormControl('conductor')
     });
-    this.territoryDataService.getUsers().subscribe(users => this.users = users);
+    this.territoryDataService.getUsers().subscribe(users => {
+      this.spinner.cerrarSpinner();
+      this.users = users
+    });
   }
   copyToClipboard(token: any): void {
     const dummyInput = document.createElement('input');
