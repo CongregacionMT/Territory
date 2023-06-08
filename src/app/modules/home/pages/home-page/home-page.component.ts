@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
+import { MessagingService } from '@core/services/messaging.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 
@@ -16,7 +18,7 @@ export class HomePageComponent implements OnInit {
   btnLogin: boolean = false;
   btnPWA: boolean = true;
   deferredPrompt: any;
-  constructor(private router: Router, private swUpdate: SwUpdate, private spinner: SpinnerService, private territorieDataService: TerritoryDataService) {
+  constructor(private router: Router, private swUpdate: SwUpdate, private spinner: SpinnerService, private territorieDataService: TerritoryDataService, private messagingService:MessagingService, private _snackBar: MatSnackBar,) {
     if(this.swUpdate.available){
       this.swUpdate.available.subscribe(() => {
         if(confirm('Existe una nueva versión de la aplicación. ¿Deseas instalarla?')){
@@ -93,6 +95,20 @@ export class HomePageComponent implements OnInit {
         this.btnPWA = true;
       }
       this.deferredPrompt = null;
+    });
+  }
+  activeNotification(){
+    this.messagingService.requestPermission().then((token) => {
+      let nombreConductor = localStorage.getItem('nombreConductor') as string;
+      let userData = JSON.parse(localStorage.getItem(nombreConductor) as string);
+      if(!userData.tokens.includes(token)){
+        userData.tokens.push(token)
+        this.territorieDataService.updateUser(userData.user, userData);
+        localStorage.setItem(userData.user, JSON.stringify(userData));
+        this._snackBar.open('🔔 Notificaciones activadas! 😉', 'ok');
+      } else {
+        this._snackBar.open('Las notificaciones ya están activadas para este dispositivo 🔔', 'ok');
+      }
     });
   }
 }

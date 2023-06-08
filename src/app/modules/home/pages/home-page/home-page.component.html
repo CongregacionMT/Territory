@@ -36,6 +36,7 @@
   </div>
   <div class="d-flex justify-content-center auth">
     <button class="btn btn-warning btn-lg" routerLink="/auth" *ngIf="btnLogin">Iniciar sesión</button>
+    <button class="btn btn-primary btn-lg mx-2" (click)="activeNotification()">Notificarme</button>
     <button class="btn btn-danger btn-lg" *ngIf="btnLogin === false" (click)="logout()">Cerrar sesión</button>
   </div>
   <div class="d-flex justify-content-center">

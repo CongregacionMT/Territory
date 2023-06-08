@@ -154,6 +154,7 @@ export class TerritoryDataService {
   updateUser(user: string, dataUser: any){
     const userRef = doc(this.firestore, "users", user);
     updateDoc(userRef, dataUser);
+    return docData(userRef) as Observable<any>;
   }
   deleteUser(user: string){
     deleteDoc(doc(this.firestore, "users", user));
