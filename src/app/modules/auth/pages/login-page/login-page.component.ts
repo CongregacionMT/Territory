@@ -43,6 +43,7 @@ export class LoginPageComponent {
           localStorage.setItem("tokenConductor", "ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk");
         }
         localStorage.setItem(user[0].user, JSON.stringify(user[0]));
+        localStorage.setItem('nombreConductor', user[0].user);
         this.router.navigate(['home']);
         this.spinner.cerrarSpinner();
       } else {
