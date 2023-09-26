@@ -53,10 +53,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.spinner.cargarSpinner();
     this.cardSubscription = Subscription.EMPTY;
     this.formCard = this.fb.group({
-      driver: new FormControl(this.card.driver, [Validators.required]),
-      applesData: new FormArray([]),
-      start: new FormControl(this.card.start, [Validators.required]),
-      end: new FormControl(this.card.end),
+      driver: [this.card.driver, Validators.required],
+      applesData: this.fb.array([]),
+      start: [this.card.start, Validators.required],
+      end: [this.card.end],
       comments: [this.card.comments]
     })
     // VALIDAR SI ESTOY REVISANDO O NO LA CARD
@@ -147,7 +147,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   onCheckboxChange(e:any){
     const applesData: FormArray = this.formCard.get('applesData') as FormArray;
     applesData.controls.forEach((item: any) => {
-      if(item.value.name === e.target.value){   
+      if(item.value.name === e.target.value){
         item.value.checked = e.target.checked;
       }
     })
@@ -160,13 +160,28 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.modalComponent.openModal();
   }
 
+  verifyUniqueCheck(arr: any[]){
+    const checkbox = new Set();
+    const result = [];
+
+    for (const objet of arr) {
+      if (!checkbox.has(objet.name)) {
+        checkbox.add(objet.name);
+        result.push(objet);
+      }
+    }
+
+    return result;
+  }
+
   fillCard(){
+    const uniqueCheck = this.verifyUniqueCheck(this.formCard.value.applesData);
     // Rellenar card con los datos ingresados
     this.card.driver = this.formCard.value.driver;
     this.card.start = this.formCard.value.start;
     this.card.end = this.formCard.value.end;
     this.card.comments = this.formCard.value.comments;
-    this.card.applesData = this.formCard.value.applesData;
+    this.card.applesData = uniqueCheck;
   }
 
   submitForm(){
