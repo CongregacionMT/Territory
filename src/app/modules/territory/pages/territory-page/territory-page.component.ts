@@ -44,12 +44,13 @@ export class TerritoryPageComponent implements OnInit {
       });
     } else {
       const storedTerritorioMaps = sessionStorage.getItem("territorioMaps");
-      const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
-      const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
-
       this.territorioMaps = storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [];
-      this.territoriesMT = numberTerritory.mariaTeresa;
-      this.territoriesC = numberTerritory.christophersen;
     }
+    
+    const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
+    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
+
+    this.territoriesMT = numberTerritory.mariaTeresa;
+    this.territoriesC = numberTerritory.christophersen;
   }
 }
