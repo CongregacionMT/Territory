@@ -45,7 +45,14 @@ export class HomePageComponent implements OnInit {
       this.territorieDataService.getNumberTerritory()
       .subscribe(number => {
         sessionStorage.setItem("numberTerritory", JSON.stringify(number[0]));
-        this.spinner.cerrarSpinner();
+      });
+    }
+
+    if(!sessionStorage.getItem("territorioStatistics")){
+      this.spinner.cargarSpinner();
+      this.territorieDataService.getStatisticsButtons()
+      .subscribe(number => {
+        sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
       });
     }
 
@@ -59,6 +66,8 @@ export class HomePageComponent implements OnInit {
 
     // Init PWA
     this.initPWA();
+
+    this.spinner.cerrarSpinner();
   }
 
   logout(){
