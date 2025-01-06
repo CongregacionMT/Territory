@@ -42,6 +42,7 @@ export class FormEditDeparturesComponent implements OnInit{
         date: new FormControl(departure.date),
         driver: new FormControl(departure.driver),
         schedule: new FormControl(departure.schedule),
+        location: new FormControl(departure.location),
         territory: new FormControl(departure.territory),
         point: new FormControl(departure.point),
         color: new FormControl(departure.color),
@@ -90,6 +91,8 @@ export class FormEditDeparturesComponent implements OnInit{
           item.get('driver')?.setValue(e.target.value);
         } else if (key === 'schedule') {
           item.get('schedule')?.setValue(e.target.value);
+        } else if (key === 'location') {
+          item.get('location')?.setValue(e.target.value);
         } else if (key === 'territory') {
           item.get('territory')?.setValue(e.target.value);
         } else if (key === 'point') {
