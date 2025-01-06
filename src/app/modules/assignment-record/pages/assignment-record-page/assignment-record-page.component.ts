@@ -52,23 +52,23 @@ export class AssignmentRecordPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[2];
-    if(!localStorage.getItem("territorioMaps")){
+    if(!sessionStorage.getItem("territorioMaps")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getMaps()
       .subscribe(map => {
-        localStorage.setItem("territorioMaps", JSON.stringify(map[0].maps));
+        sessionStorage.setItem("territorioMaps", JSON.stringify(map[0].maps));
         this.territorioMaps = map[0].maps;
         this.spinner.cerrarSpinner();
       });
     } else {
-      const storedTerritorioMaps = localStorage.getItem("territorioMaps");
+      const storedTerritorioMaps = sessionStorage.getItem("territorioMaps");
       this.territorioMaps = storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [];
     }
-    if(!localStorage.getItem("statisticDataMT") || !localStorage.getItem("statisticDataCH")){
+    if(!sessionStorage.getItem("registerStatisticDataMT") || !sessionStorage.getItem("registerStatisticDataCH")){
       this.spinner.cargarSpinner();
-      this.territoryNumberOfLocalStorage = JSON.parse(localStorage.getItem('numberTerritory') as string);
+      this.territoryNumberOfLocalStorage = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
       this.territoryNumberOfLocalStorage.mariaTeresa.map((territory) => {
-        this.territorieDataService.getCardTerritorie(territory.collection)
+        this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
         .subscribe((card) => {
           card.map((list: any, index: any) => {
             this.appleCount = 0;
@@ -81,15 +81,15 @@ export class AssignmentRecordPageComponent implements OnInit {
               card.splice(index, 1);
             }
           });
-          const storeStatisticdData = localStorage.getItem('statisticDataMT');
+          const storeStatisticdData = sessionStorage.getItem('registerStatisticDataMT');
           const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
           statisticData.push(card);
-          localStorage.setItem('statisticDataMT', JSON.stringify(statisticData));
+          sessionStorage.setItem('registerStatisticDataMT', JSON.stringify(statisticData));
           this.spinner.cerrarSpinner();
         })
       });
       this.territoryNumberOfLocalStorage.christophersen.map((territory) => {
-        this.territorieDataService.getCardTerritorie(territory.collection)
+        this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
         .subscribe((card) => {
           card.map((list: any, index: any) => {
             this.appleCount = 0;
@@ -102,10 +102,10 @@ export class AssignmentRecordPageComponent implements OnInit {
               card.splice(index, 1);
             }
           });
-          const storeStatisticdData = localStorage.getItem('statisticDataCH');
+          const storeStatisticdData = sessionStorage.getItem('registerStatisticDataCH');
           const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
           statisticData.push(card);
-          localStorage.setItem('statisticDataCH', JSON.stringify(statisticData));
+          sessionStorage.setItem('registerStatisticDataCH', JSON.stringify(statisticData));
           this.spinner.cerrarSpinner();
         })
       });

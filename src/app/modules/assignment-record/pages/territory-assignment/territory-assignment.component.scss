@@ -8,3 +8,8 @@
   overflow-x: auto;
   white-space: nowrap;
 }
+@media (max-width: 768px) {
+  .filter-class {
+    flex-direction: column !important;
+  }
+}

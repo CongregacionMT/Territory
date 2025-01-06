@@ -1,0 +1,64 @@
+<div class="container mt-3" style="max-width: 750px;">
+  <h1 class="text-center">Lista de Usuarios</h1>
+  <div>
+    <ul class="list-group mt-3">
+      <li class="list-group-item" *ngFor="let user of users">
+        <div class="row">
+          <div>
+            <div class="d-flex align-items-center my-2">
+              <h5 class="my-0">Usuario:</h5>
+              <p class="mx-2 fs-5 my-0">{{user.user}}</p>
+            </div>
+            <div class="d-flex align-items-center my-2">
+              <h5 class="my-0">Contraseña:</h5>
+              <p class="mx-2 fs-5 s-5 my-0">{{user.password}}</p>
+            </div>
+            <div class="d-flex align-items-center my-2">
+              <h5 class="my-0">Rol:</h5>
+              <p class="mx-2 fs-5 s-5 my-0">{{user.rol}}</p>
+            </div>
+            <div class="mb-2" *ngIf="user.rol !== 'admin' && user.tokens.length">
+              <h5 class="my-0">Token notification: </h5>
+              <div class="bg-info bg-gradient rounded p-2" style="cursor: pointer" (click)="alertSnack()" (click)="copyToClipboard(user.tokens)">
+                <p class="text-truncate" >{{user.tokens}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <button type="button" class="btn btn-danger" (click)="deleteUser(user.user)">Eliminar usuario</button>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div class="my-3">
+    <h1 class="text-center">Crear nuevo usuario</h1>
+    <form [formGroup]="formUser" (ngSubmit)="createUser()">
+      <div class="input-group mb-3">
+        <span class="input-group-text">Usuario</span>
+        <input type="text" class="form-control" formControlName="user">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text">Contraseña</span>
+        <input type="text" class="form-control" formControlName="password">
+      </div>
+      <select class="form-select" formControlName="rol">
+        <option selected value="conductor">Conductor</option>
+        <option value="admin">Administrador</option>
+      </select>
+      <div
+        #errorMessage
+        class="alert alert-danger mt-3"
+        role="alert"
+        style="border-radius: 3px; padding: 5px; display: none"
+      >
+        <div class="container-error-message">
+          El usuario o contraseña no pueden estar vacios. Intentalo de nuevo.
+        </div>
+      </div>
+      <button class="btn btn-primary my-3">Crear usuario</button>
+    </form>
+  </div>
+</div>
+
+

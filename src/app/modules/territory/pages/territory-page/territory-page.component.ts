@@ -34,22 +34,23 @@ export class TerritoryPageComponent implements OnInit {
     } else if(localStorage.getItem("tokenConductor")){
       this.isDriver = true;
     }
-    if(!localStorage.getItem("territorioMaps")){
+    if(!sessionStorage.getItem("territorioMaps")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getMaps()
       .subscribe(map => {
-        localStorage.setItem("territorioMaps", JSON.stringify(map[0].maps));
+        sessionStorage.setItem("territorioMaps", JSON.stringify(map[0].maps));
         this.territorioMaps = map[0].maps;
         this.spinner.cerrarSpinner();
       });
     } else {
-      const storedTerritorioMaps = localStorage.getItem("territorioMaps");
-      const storedNumberTerritory = localStorage.getItem("numberTerritory");
-      const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
-
+      const storedTerritorioMaps = sessionStorage.getItem("territorioMaps");
       this.territorioMaps = storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [];
-      this.territoriesMT = numberTerritory.mariaTeresa;
-      this.territoriesC = numberTerritory.christophersen;
     }
+    
+    const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
+    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
+
+    this.territoriesMT = numberTerritory.mariaTeresa;
+    this.territoriesC = numberTerritory.christophersen;
   }
 }

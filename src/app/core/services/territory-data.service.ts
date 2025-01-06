@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc, docData } from '@angular/fire/firestore';
+import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc, docData, where, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
@@ -130,15 +130,36 @@ export class TerritoryDataService {
   deleteRoad(docId: string){
     deleteDoc(doc(this.firestore, "TerritorioRural", docId));
   }
-  // REGISTRO DE TERRITORIOS
-  getTerritorieRecord(collectionParam: string): Observable<any>{
-    const cardRef = collection(this.firestore, collectionParam);
-    const q = query(cardRef, orderBy("creation"));
-    return collectionData(q) as Observable<any>;
-  }
   // ESTADÍSTICAS
   getStatisticsButtons(){
     const mapRef = collection(this.firestore, 'Statistics');
     return collectionData(mapRef) as Observable<any>;
+  }
+  // REGISTER
+  getCardTerritorieRegisterTable(collectionParam: string): Observable<any>{
+    const cardRef = collection(this.firestore, collectionParam);
+    const q = query(cardRef, orderBy("creation", "asc"));
+    return collectionData(q) as Observable<any>;
+  }
+  // USERS
+  getUsers(){
+    const cardRef = collection(this.firestore, 'users');
+    return collectionData(cardRef) as Observable<any>;
+  }
+  postUser(user: any){
+    setDoc(doc(this.firestore, "users", user.user), user);
+  }
+  loginUser(user: string, password: string){
+    const userRef = collection(this.firestore, 'users');
+    const q = query(userRef, where("user", "==", user), where("password", "==", password));
+    return collectionData(q) as Observable<any>;
+  }
+  updateUser(user: string, dataUser: any){
+    const userRef = doc(this.firestore, "users", user);
+    updateDoc(userRef, dataUser);
+    return docData(userRef) as Observable<any>;
+  }
+  deleteUser(user: string){
+    deleteDoc(doc(this.firestore, "users", user));
   }
 }

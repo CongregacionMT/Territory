@@ -9,6 +9,7 @@ import { DataTablesModule } from "angular-datatables";
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { TerritoryAssignmentComponent } from './pages/territory-assignment/territory-assignment.component';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { TerritoryAssignmentComponent } from './pages/territory-assignment/terri
     SharedModule,
     DataTablesModule,
     ReactiveFormsModule,
-    HttpClientModule
+    HttpClientModule,
+    FormsModule,
   ]
 })
 export class AssignmentRecordModule { }

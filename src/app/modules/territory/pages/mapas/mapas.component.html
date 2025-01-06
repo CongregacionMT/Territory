@@ -12,15 +12,15 @@
       <li>Distancia: {{dataRuralItem.distance}}</li>
       <li>Vehículo: {{dataRuralItem.vehicle}}</li>
       <li>Tiempo aproximado: {{dataRuralItem.time}}</li>
-      <li>Completado: {{dataRuralItem.lastDate | date:'longDate':'es'}}</li>
+      <li *ngIf="isAdmin">Completado: {{dataRuralItem.lastDate | date:'longDate':'es'}}</li>
     </ul>
     <div class="d-flex justify-content-around w-100">
-      <button type="button" class="btn btn-info mt-2" (click)="openModal('edition', dataRuralItem)">Editar</button>
-      <button type="button" class="btn btn-danger mt-2" (click)="deleteRoad(dataRuralItem.id)">Eliminar</button>
+      <button *ngIf="isAdmin" type="button" class="btn btn-info mt-2" (click)="openModal('edition', dataRuralItem)">Editar</button>
+      <button *ngIf="isAdmin" type="button" class="btn btn-danger mt-2" (click)="deleteRoad(dataRuralItem.id)">Eliminar</button>
     </div>
   </div>
   <app-modal-form-rural></app-modal-form-rural>
 </section>
-<div class="d-flex justify-content-center pb-3" *ngIf="showRural">
+<div class="d-flex justify-content-center pb-3" *ngIf="showRural && isAdmin">
   <button class="btn btn-success" (click)="openModal('creation')">Crear nuevo camino</button>
 </div>

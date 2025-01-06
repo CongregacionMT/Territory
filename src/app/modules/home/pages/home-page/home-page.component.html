@@ -2,6 +2,7 @@
   <div class="d-flex justify-content-center">
     <h1 class="my-4">Congregación MT</h1>
   </div>
+  <h2 class="text-center text-info" *ngIf="isDriver || isAdmin">¡Bienvenido {{capitalizeFirstLetter(nameDriver)}}!</h2>
   <h2 class="text-center text-success" *ngIf="isDriver">(Conductor)</h2>
   <h2 class="text-center text-danger" *ngIf="isAdmin">(Administrador)</h2>
   <div class="card-container">
@@ -33,9 +34,16 @@
         <h2 class="card-title mt-3 text-center">Registro de territorios</h2>
       </div>
     </div>
+    <div class="card" routerLink="../usuarios" *ngIf="isAdmin">
+      <div class="card-body d-flex flex-column align-items-center">
+        <img src="../../../../../assets/img/group.png" alt="map" style="width: 10rem;">
+        <h2 class="card-title mt-3 text-center">Usuarios</h2>
+      </div>
+    </div>
   </div>
   <div class="d-flex justify-content-center auth">
     <button class="btn btn-warning btn-lg" routerLink="/auth" *ngIf="btnLogin">Iniciar sesión</button>
+    <button class="btn btn-primary btn-lg mx-2" (click)="activeNotification()">Notificarme</button>
     <button class="btn btn-danger btn-lg" *ngIf="btnLogin === false" (click)="logout()">Cerrar sesión</button>
   </div>
   <div class="d-flex justify-content-center">

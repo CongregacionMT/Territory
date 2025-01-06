@@ -18,7 +18,7 @@ import localeEs from '@angular/common/locales/es';
   providers: [{ provide: LOCALE_ID, useValue: 'es' }]
 })
 export class MapasComponent implements OnInit {
-
+  isAdmin: boolean = false;
   mapa: any;
   class: string = 'map-responsive';
   showRural: boolean = false;
@@ -49,6 +49,7 @@ export class MapasComponent implements OnInit {
           this.spinner.cerrarSpinner();
         }
       })
+      this.isAdmin = localStorage.getItem('tokenAdmin') ? true : false;
     }
   }
 

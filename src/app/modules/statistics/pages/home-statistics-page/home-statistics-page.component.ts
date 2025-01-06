@@ -7,75 +7,101 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 @Component({
   selector: 'app-home-statistics-page',
   templateUrl: './home-statistics-page.component.html',
-  styleUrls: ['./home-statistics-page.component.scss']
+  styleUrls: ['./home-statistics-page.component.scss'],
 })
-export class HomeStatisticsPageComponent implements OnInit{
+export class HomeStatisticsPageComponent implements OnInit {
+  private readonly KEY_NAME_MT = 'statisticDataMT';
+  private readonly KEY_NAME_CH = 'statisticDataCH';
   routerBreadcrum: any = [];
   CardButtonsStatistics: CardButtonsData[] = [];
-  territoryNumberOfLocalStorage: TerritoriesNumberData = {} as TerritoriesNumberData;
+  territoryNumberOfLocalStorage: TerritoriesNumberData =
+    {} as TerritoriesNumberData;
   appleCount: any;
   constructor(
     private territorieDataService: TerritoryDataService,
-    private spinner: SpinnerService,
+    private spinner: SpinnerService
   ) {}
   ngOnInit(): void {
-    if(!localStorage.getItem("territorioStatistics")){
-      this.spinner.cargarSpinner();
-      this.territorieDataService.getStatisticsButtons()
-      .subscribe(number => {
-        localStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
-        this.CardButtonsStatistics = number[0].territorio;
+    let timeElapsed = 0;
+    this.spinner.cargarSpinner();
+    const interval = setInterval(() => {
+      if (
+        sessionStorage.getItem(this.KEY_NAME_MT) &&
+        sessionStorage.getItem(this.KEY_NAME_CH)
+      ) {
+        clearInterval(interval);
         this.spinner.cerrarSpinner();
-      });
-    } else {
-      const storedTerritorioStatistics = localStorage.getItem("territorioStatistics");
-      const numberTerritory = storedTerritorioStatistics ? JSON.parse(storedTerritorioStatistics) : [];
-      this.CardButtonsStatistics = numberTerritory.territorio;
-    }
-    if(!localStorage.getItem("statisticDataMT") || !localStorage.getItem("statisticDataCH")){
-      this.spinner.cargarSpinner();
-      this.territoryNumberOfLocalStorage = JSON.parse(localStorage.getItem('numberTerritory') as string);
+      }
+      timeElapsed += 1;
+    }, 300);
+    const storedTerritorioStatistics = sessionStorage.getItem(
+      'territorioStatistics'
+    );
+    const numberTerritory = storedTerritorioStatistics
+      ? JSON.parse(storedTerritorioStatistics)
+      : [];
+    this.CardButtonsStatistics = numberTerritory.territorio;
+    if (
+      !sessionStorage.getItem('statisticDataMT') ||
+      !sessionStorage.getItem('statisticDataCH')
+    ) {
+      this.territoryNumberOfLocalStorage = JSON.parse(
+        sessionStorage.getItem('numberTerritory') as string
+      );
+
       this.territoryNumberOfLocalStorage.mariaTeresa.map((territory) => {
-        this.territorieDataService.getCardTerritorie(territory.collection)
-        .subscribe((card) => {
-          card.map((list: any, index: any) => {
-            this.appleCount = 0;
-            list.applesData.map((apple: any) => {
-              if (apple.checked === true) {
-                this.appleCount += 1;
+        this.territorieDataService
+          .getCardTerritorie(territory.collection)
+          .subscribe((card) => {
+            card.map((list: any, index: any) => {
+              this.appleCount = 0;
+              list.applesData.map((apple: any) => {
+                if (apple.checked === true) {
+                  this.appleCount += 1;
+                }
+              });
+              if (this.appleCount === 0) {
+                card.splice(index, 1);
               }
             });
-            if (this.appleCount === 0) {
-              card.splice(index, 1);
-            }
+            const storeStatisticdData =
+              sessionStorage.getItem('statisticDataMT');
+            const statisticData = storeStatisticdData
+              ? JSON.parse(storeStatisticdData)
+              : [];
+            statisticData.push(card);
+            sessionStorage.setItem(
+              'statisticDataMT',
+              JSON.stringify(statisticData)
+            );
           });
-          const storeStatisticdData = localStorage.getItem('statisticDataMT');
-          const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
-          statisticData.push(card);
-          localStorage.setItem('statisticDataMT', JSON.stringify(statisticData));
-          this.spinner.cerrarSpinner();
-        })
       });
       this.territoryNumberOfLocalStorage.christophersen.map((territory) => {
-        this.territorieDataService.getCardTerritorie(territory.collection)
-        .subscribe((card) => {
-          card.map((list: any, index: any) => {
-            this.appleCount = 0;
-            list.applesData.map((apple: any) => {
-              if (apple.checked === true) {
-                this.appleCount += 1;
+        this.territorieDataService
+          .getCardTerritorie(territory.collection)
+          .subscribe((card) => {
+            card.map((list: any, index: any) => {
+              this.appleCount = 0;
+              list.applesData.map((apple: any) => {
+                if (apple.checked === true) {
+                  this.appleCount += 1;
+                }
+              });
+              if (this.appleCount === 0) {
+                card.splice(index, 1);
               }
             });
-            if (this.appleCount === 0) {
-              card.splice(index, 1);
-            }
+            const storeStatisticdData =
+              sessionStorage.getItem('statisticDataCH');
+            const statisticData = storeStatisticdData
+              ? JSON.parse(storeStatisticdData)
+              : [];
+            statisticData.push(card);
+            sessionStorage.setItem(
+              'statisticDataCH',
+              JSON.stringify(statisticData)
+            );
           });
-          const storeStatisticdData = localStorage.getItem('statisticDataCH');
-          const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
-          statisticData.push(card);
-          localStorage.setItem('statisticDataCH', JSON.stringify(statisticData));
-          this.spinner.cerrarSpinner();
-        })
       });
     }
   }

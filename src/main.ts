@@ -10,3 +10,13 @@ if (environment.production) {
 
 platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.error(err));
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./firebase-messaging-sw.js')
+      .then((registration) => {
+        console.log('Service Worker registrado correctamentes:', registration);
+      })
+      .catch((error) => {
+        console.error('Error al registrar el Service Workers:', error);
+      });
+  }
