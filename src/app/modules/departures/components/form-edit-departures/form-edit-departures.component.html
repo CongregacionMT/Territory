@@ -40,14 +40,39 @@
         [value]="days.get('point')?.value || ''"
         (change)="onChangeInput($event, 'point', i, group)"
       />
-      <input
-        type="text"
-        aria-label="territory"
-        class="form-control"
-        placeholder="Territorio"
-        [value]="days.get('territory')?.value || ''"
-        (change)="onChangeInput($event, 'territory', i, group)"
-      />
+      <div class="m-0 p-0">
+        <select class="custom-btn h-100 btn btn-light"
+                [value]="days.get('location')?.value || ''"
+                (change)="onChangeInput($event, 'location', i, group)">
+          <option disabled selected>Seleccionar localidad</option>
+          <option value="TerritorioMT">María Teresa</option>
+          <option value="TerritorioC">Christophersen</option>
+        </select>
+      </div>
+      <div class="m-0 p-0">
+        <select class="custom-btn h-100 btn btn-light"
+                [value]="days.get('territory')?.value || ''"
+                (change)="onChangeInput($event, 'territory', i, group)">
+          <option disabled selected>Seleccionar territorio</option>
+          <option value="N°1">N°1</option>
+          <option value="N°2">N°2</option>
+          <option value="N°3">N°3</option>
+          <option value="N°4">N°4</option>
+          <option value="N°5">N°5</option>
+          <option value="N°6">N°6</option>
+          <option value="N°7">N°7</option>
+          <option value="N°8">N°8</option>
+          <option value="N°9">N°9</option>
+          <option value="N°10">N°10</option>
+          <option value="N°11">N°11</option>
+          <option value="N°12">N°12</option>
+          <option value="N°13">N°13</option>
+          <option value="N°14">N°14</option>
+          <option value="N°15">N°15</option>
+          <option value="N°16">N°16</option>
+          <option value="N°17">N°17</option>
+        </select>
+      </div>
       <div class="m-0 p-0">
         <select class="form-select custom-btn h-100 me-5" [class]="'btn btn-square btn-' + days.get('color')?.value" (change)="onChangeColor($event, i, group)">
           <option [value]="'secondary'" disabled selected>Seleccionar color</option>

@@ -17,12 +17,15 @@
       <tbody class="table-group-divider">
         <ng-container *ngFor="let departure of departures">
           <ng-container *ngIf="currentPath === departure.group || departure.group === 0">
-            <tr [class]="'table-' + departure.color">
+            <tr [class]="'table-' + departure.color" >
               <th scope="row">{{ getDayOfWeek(departure.date) }}</th>
               <td>{{ departure.schedule }}hs</td>
               <td>{{ departure.driver }}</td>
               <td>{{ departure.point }}</td>
-              <td>{{ departure.territory }}</td>
+              <td [routerLink]="'../../territorios/' + departure.location + '-' + departure.territory.replace('N°', '')" class="cursor-pointer">
+                <span>{{ departure.territory }}</span>
+                <img src="https://api.iconify.design/fe:link-external.svg" alt="Link icon" class="ms-1 w-4 h-4">
+              </td>
             </tr>
           </ng-container>
         </ng-container>
