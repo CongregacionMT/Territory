@@ -20,7 +20,7 @@ const routes: Routes = [
   },
   {
     path: 'statistics',
-    loadChildren: () => import('./modules/statistics/statistics.module').then(m => m.StatisticsModule)
+    loadChildren: () => import('./modules/statistics/statistics.module').then(m => m.StatisticsModule), data: { scrollPositionRestoration: 'top' }
   },
   {
     path: 'usuarios',
