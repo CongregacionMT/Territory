@@ -8,7 +8,7 @@ const routes: Routes = [
     path: '',
     children: [
       { path: '', component: CartPageComponent},
-      { path: 'edit-assignment-cart', component: CartEditPageComponent},
+      { path: 'editar', component: CartEditPageComponent},
     ],
   }
 ];
