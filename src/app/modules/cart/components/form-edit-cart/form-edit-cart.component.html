@@ -1,0 +1,100 @@
+<form [formGroup]="formCart" class="d-flex flex-column justify-center">
+  <div
+    class="input-group input-group-sm py-2 departure-input"
+    *ngFor="let days of cartFormArray.controls; let i = index"
+  >
+    <div class="m-0 p-0">
+      <select
+        class="form-select custom-btn-start h-100 me-5 btn btn-square btn-secondary"
+        (change)="onChangeInput($event, 'date', i)"
+      >
+        <option
+          [value]="days.get('date')?.value || 'Seleccionar día'"
+          disabled
+          selected
+        >
+          {{ days.get("date")?.value || "Seleccionar día" }}
+        </option>
+        <option value="Lunes">Lunes</option>
+        <option value="Martes">Martes</option>
+        <option value="Miércoles">Miércoles</option>
+        <option value="Jueves">Jueves</option>
+        <option value="Viernes">Viernes</option>
+        <option value="Sábado">Sábado</option>
+        <option value="Domingo">Domingo</option>
+      </select>
+    </div>
+    <span class="input-group-text">
+      <input
+        type="time"
+        aria-label="schedule"
+        class="form-control"
+        placeholder="Horario"
+        [value]="days.get('schedule')?.value || ''"
+        (change)="onChangeInput($event, 'schedule', i)"
+      />
+    </span>
+    <input
+      type="text"
+      aria-label="asignado"
+      class="form-control"
+      placeholder="Publicador asignado"
+      [value]="days.get('assignment')?.value || ''"
+      (change)="onChangeInput($event, 'assignment', i)"
+    />
+    <div class="m-0 p-0">
+      <select
+        class="form-select custom-btn h-100 me-5 btn btn-success"
+        (change)="onChangeInput($event, 'location', i)"
+      >
+        <option
+          [ngValue]="days.get('location')?.value || null"
+          disabled
+          selected
+        >
+          {{ days.get("location")?.value?.name || "Seleccionar ubicación" }}
+        </option>
+        <option *ngFor="let location of locations" [ngValue]="location">
+          {{ location.name }}
+        </option>
+      </select>
+    </div>
+    <div class="m-0 p-0">
+      <select
+        class="form-select custom-btn h-100 me-5"
+        [class]="'btn btn-square btn-' + days.get('color')?.value"
+        (change)="onChangeColor($event, i)"
+      >
+        <option [value]="'secondary'" disabled selected>
+          Seleccionar color
+        </option>
+        <option value="primary">Azul</option>
+        <option value="secondary">Gris</option>
+        <option value="success">Verde</option>
+        <option value="danger">Rojo</option>
+        <option value="warning">Amarillo</option>
+        <option value="info">Celeste</option>
+        <option value="light">Blanco</option>
+        <option value="dark">Negro</option>
+      </select>
+    </div>
+    <button type="button" class="btn btn-danger" (click)="deleteInputForm(i)">
+      Quitar
+    </button>
+  </div>
+  <div class="modal-footer mx-4">
+    <button
+      type="button"
+      class="btn btn-success text-center me-auto"
+      (click)="addInputForm()"
+    >
+      Nueva asignación
+    </button>
+  </div>
+  <hr />
+</form>
+<div class="d-flex justify-content-center pb-3">
+  <button type="submit" class="btn btn-primary" (click)="submitForm()">
+    Guardar asignaciones
+  </button>
+</div>

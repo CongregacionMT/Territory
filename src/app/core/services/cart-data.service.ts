@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SpinnerService } from './spinner.service';
 import { doc, docData, Firestore, updateDoc } from '@angular/fire/firestore';
-import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -12,12 +10,13 @@ export class CartDataService {
   constructor(private firestore: Firestore) { }
 
   getCartAssignment(){
-    const departuresRef = doc(this.firestore, "Cart", `docCart`);
-    return docData(departuresRef) as Observable<any>;
+    const cartRef = doc(this.firestore, "Cart", `docCart`);
+    return docData(cartRef) as Observable<any>;
   }
 
-  putCartAssignment(departures: any){
-    const departuresRef = doc(this.firestore, "Cart", `docCart`);
-    updateDoc(departuresRef, departures);
+  putCartAssignment(cart: any){
+    console.log("cart", cart);
+    const cartRef = doc(this.firestore, "Cart", `docCart`);
+    updateDoc(cartRef, cart);
   }
 }

@@ -1,5 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, Input } from '@angular/core';
 import { CartData } from '@core/models/Cart';
 
 @Component({
@@ -7,20 +6,35 @@ import { CartData } from '@core/models/Cart';
   templateUrl: './table-cart-assignment.component.html',
   styleUrls: ['./table-cart-assignment.component.scss']
 })
-export class TableCartAssignmentComponent implements OnInit{
+export class TableCartAssignmentComponent implements OnInit {
   @Input() cartData: CartData[] = [] as CartData[];
-  currentPath: number = 0;
-  constructor(private route: ActivatedRoute) { }
 
   ngOnInit(): void {
-    let pathURL = this.route.snapshot.url.pop()?.path || 0;
-    this.currentPath = Number(pathURL);
-    console.log("data entrante:", this.currentPath);
+    this.sortCartData();
   }
-  getDayOfWeek(dateString: string): string {
-    const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    const date = new Date(dateString);
-    const dayOfWeekIndex = date.getDay();
-    return daysOfWeek[dayOfWeekIndex];
+
+  sortCartData(): void {
+    const dayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    this.cartData.sort((a, b) => {
+      const dayComparison = dayOrder.indexOf(a.date) - dayOrder.indexOf(b.date);
+      if (dayComparison !== 0) {
+        return dayComparison;
+      }
+      // Si los días son iguales, compara las horas
+      return this.compareTimes(a.schedule, b.schedule);
+    });
+  }
+
+  compareTimes(timeA: string, timeB: string): number {
+    const [hoursA, minutesA] = timeA.split(':').map(Number);
+    const [hoursB, minutesB] = timeB.split(':').map(Number);
+    if (hoursA !== hoursB) {
+      return hoursA - hoursB;
+    }
+    return minutesA - minutesB;
+  }
+
+  redirectToMap(link: string): void {
+    window.open(link, '_blank');
   }
 }

@@ -1,1 +1,5 @@
-<p>cart-edit-page works!</p>
+<div *ngIf="dataLoaded">
+  <app-form-edit-cart
+    [formCartDataInput]="formCartData"
+  ></app-form-edit-cart>
+</div>

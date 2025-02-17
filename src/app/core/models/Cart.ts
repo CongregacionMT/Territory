@@ -1,6 +1,11 @@
+export interface CartLocation {
+  name: string;
+  linkMap: string;
+}
+
 export interface CartData {
   assignment: string;
-  location: string;
+  location: CartLocation;
   date: string;
   schedule: string;
   color: string;
@@ -9,3 +14,4 @@ export interface CartData {
 export interface CartDataArray {
   cart: CartData[];
 }
+
