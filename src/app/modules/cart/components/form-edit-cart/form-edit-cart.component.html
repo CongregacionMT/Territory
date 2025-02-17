@@ -54,7 +54,7 @@
         >
           {{ days.get("location")?.value?.name || "Seleccionar ubicación" }}
         </option>
-        <option *ngFor="let location of locations" [ngValue]="location">
+        <option *ngFor="let location of locations" [ngValue]="location.name">
           {{ location.name }}
         </option>
       </select>
@@ -98,3 +98,48 @@
     Guardar asignaciones
   </button>
 </div>
+
+<!-- Nuevo formulario para gestionar ubicaciones -->
+<form [formGroup]="formLocations" class="d-flex flex-column justify-center mt-4">
+  <div
+    class="input-group input-group-sm py-2"
+    *ngFor="let location of locationsFormArray.controls; let i = index"
+    [formGroupName]="i"
+  >
+    <input
+      type="text"
+      aria-label="name"
+      class="form-control"
+      placeholder="Nombre de la ubicación"
+      formControlName="name"
+      [value]="location.get('name')?.value || ''"
+      (change)="onChangeLocationInput($event, 'name', i)"
+    />
+    <input
+      type="text"
+      aria-label="linkMap"
+      class="form-control"
+      placeholder="Enlace del mapa"
+      formControlName="linkMap"
+      [value]="location.get('linkMap')?.value || ''"
+      (change)="onChangeLocationInput($event, 'linkMap', i)"
+    />
+    <button type="button" class="btn btn-danger" (click)="deleteLocationForm(i)">
+      Quitar
+    </button>
+  </div>
+  <div class="modal-footer mx-4">
+    <button
+      type="button"
+      class="btn btn-success text-center me-auto"
+      (click)="addLocationForm()"
+    >
+      Nueva ubicación
+    </button>
+  </div>
+  <div class="d-flex justify-content-center pb-3">
+    <button type="submit" class="btn btn-primary" (click)="submitLocationsForm()">
+      Guardar ubicaciones
+    </button>
+  </div>
+</form>

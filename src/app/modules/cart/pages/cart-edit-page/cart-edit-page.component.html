@@ -1,5 +1,5 @@
-<div *ngIf="dataLoaded">
-  <app-form-edit-cart
-    [formCartDataInput]="formCartData"
-  ></app-form-edit-cart>
-</div>
+<app-form-edit-cart
+  *ngIf="dataLoaded"
+  [formCartDataInput]="formCartData"
+  [formLocationsDataInput]="formLocationsData"
+></app-form-edit-cart>
