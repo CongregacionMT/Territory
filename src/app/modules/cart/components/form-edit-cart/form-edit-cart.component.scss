@@ -1,0 +1,15 @@
+.custom-btn {
+  border-radius: 0 !important;
+}
+.custom-btn-start {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.departure-input{
+  min-width: 720px;
+}
+@media (max-width: 720px) {
+  .departure-input{
+    min-width: 1080px;
+  }
+}
