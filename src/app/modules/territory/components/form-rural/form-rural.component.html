@@ -19,18 +19,21 @@
     <div class="mb-3">
       <label for="lastDate" class="form-label text-dark">Ultima vez que se completó (opcional)</label>
       <input id="lastDate" type="date" class="form-control"
-      placeholder="dd-mm-yyyy" formControlName="lastDate">
-    </div>
-    <div>
-      <button
-        type="submit"
-        class="btn btn-primary"
-        data-bs-dismiss="modal"
-        [disabled]="formRoad.invalid"
-      >
-        <span *ngIf="!this.editionForm?.id; else edition">Crear camino</span>
-        <ng-template #edition><span>Actualizar</span></ng-template>
-      </button>
-    </div>
-  </form>
-</section>
+        placeholder="dd-mm-yyyy" formControlName="lastDate">
+      </div>
+      <div>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          data-bs-dismiss="modal"
+          [disabled]="formRoad.invalid"
+          >
+          @if (!this.editionForm?.id) {
+            <span>Crear camino</span>
+          } @else {
+            <span>Actualizar</span>
+          }
+        </button>
+      </div>
+    </form>
+  </section>

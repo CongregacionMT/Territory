@@ -6,12 +6,14 @@
       type="text"
       class="form-control"
       [formControl]="dateDeparture"
-    />
-    <button class="btn btn-primary" (click)="updateDate()">Actualizar fecha</button>
-  </div>
-</section>
-<div *ngIf="dataLoaded">
-  <app-form-edit-departures
-    [formDepartureDataInput]="formDepartureData"
-  ></app-form-edit-departures>
-</div>
+      />
+      <button class="btn btn-primary" (click)="updateDate()">Actualizar fecha</button>
+    </div>
+  </section>
+  @if (dataLoaded) {
+    <div>
+      <app-form-edit-departures
+        [formDepartureDataInput]="formDepartureData"
+      ></app-form-edit-departures>
+    </div>
+  }

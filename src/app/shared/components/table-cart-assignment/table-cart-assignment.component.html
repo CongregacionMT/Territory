@@ -9,7 +9,7 @@
       </tr>
     </thead>
     <tbody class="table-group-divider">
-      <ng-container *ngFor="let cart of cartData">
+      @for (cart of cartData; track cart) {
         <tr [class]="'table-' + cart.color">
           <th scope="row">{{ cart.date }}</th>
           <td>{{ cart.assignment }}</td>
@@ -19,7 +19,7 @@
             <img src="https://api.iconify.design/fe:link-external.svg" alt="Link icon" class="ms-1 w-4 h-4">
           </td>
         </tr>
-      </ng-container>
+      }
     </tbody>
   </table>
 </div>

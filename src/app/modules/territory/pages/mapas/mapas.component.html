@@ -1,26 +1,38 @@
-<div class="d-flex align-items-center mt-2" *ngIf="showRural">
-  <img src="../../../../../assets/img/arrow.gif" alt="arrow" class="gif">
-  <div class="d-flex justify-content-center w-100">
-    <h3 class="text-center">Tocar el boton superior izquierdo para desplegar los caminos disponibles</h3>
-  </div>
-</div>
-<div [class]="class" [innerHTML]="mapa"></div>
-<section class="d-flex justify-content-center flex-wrap">
-  <div *ngFor="let dataRuralItem of dataRural; let i = index;" class="d-flex flex-column align-items-center bg-secondary bg-opacity-25 rounded m-3 px-2 py-3">
-    <h2>{{dataRuralItem.title}}</h2>
-    <ul class="fs-5">
-      <li>Distancia: {{dataRuralItem.distance}}</li>
-      <li>Vehículo: {{dataRuralItem.vehicle}}</li>
-      <li>Tiempo aproximado: {{dataRuralItem.time}}</li>
-      <li *ngIf="isAdmin">Completado: {{dataRuralItem.lastDate | date:'longDate':'es'}}</li>
-    </ul>
-    <div class="d-flex justify-content-around w-100">
-      <button *ngIf="isAdmin" type="button" class="btn btn-info mt-2" (click)="openModal('edition', dataRuralItem)">Editar</button>
-      <button *ngIf="isAdmin" type="button" class="btn btn-danger mt-2" (click)="deleteRoad(dataRuralItem.id)">Eliminar</button>
+@if (showRural) {
+  <div class="d-flex align-items-center mt-2">
+    <img src="../../../../../assets/img/arrow.gif" alt="arrow" class="gif">
+    <div class="d-flex justify-content-center w-100">
+      <h3 class="text-center">Tocar el boton superior izquierdo para desplegar los caminos disponibles</h3>
     </div>
   </div>
+}
+<div [class]="class" [innerHTML]="mapa"></div>
+<section class="d-flex justify-content-center flex-wrap">
+  @for (dataRuralItem of dataRural; track dataRuralItem; let i = $index) {
+    <div class="d-flex flex-column align-items-center bg-secondary bg-opacity-25 rounded m-3 px-2 py-3">
+      <h2>{{dataRuralItem.title}}</h2>
+      <ul class="fs-5">
+        <li>Distancia: {{dataRuralItem.distance}}</li>
+        <li>Vehículo: {{dataRuralItem.vehicle}}</li>
+        <li>Tiempo aproximado: {{dataRuralItem.time}}</li>
+        @if (isAdmin) {
+          <li>Completado: {{dataRuralItem.lastDate | date:'longDate':'es'}}</li>
+        }
+      </ul>
+      <div class="d-flex justify-content-around w-100">
+        @if (isAdmin) {
+          <button type="button" class="btn btn-info mt-2" (click)="openModal('edition', dataRuralItem)">Editar</button>
+        }
+        @if (isAdmin) {
+          <button type="button" class="btn btn-danger mt-2" (click)="deleteRoad(dataRuralItem.id)">Eliminar</button>
+        }
+      </div>
+    </div>
+  }
   <app-modal-form-rural></app-modal-form-rural>
 </section>
-<div class="d-flex justify-content-center pb-3" *ngIf="showRural && isAdmin">
-  <button class="btn btn-success" (click)="openModal('creation')">Crear nuevo camino</button>
-</div>
+@if (showRural && isAdmin) {
+  <div class="d-flex justify-content-center pb-3">
+    <button class="btn btn-success" (click)="openModal('creation')">Crear nuevo camino</button>
+  </div>
+}

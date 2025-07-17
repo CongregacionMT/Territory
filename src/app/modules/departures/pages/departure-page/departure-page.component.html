@@ -7,12 +7,14 @@
     <h1 class="text-center">Salidas a predicar</h1>
     <h2 class="text-center">{{ dateDeparture.value }}</h2>
   </div>
-  <div *ngIf="departures$.length > 0">
-    <app-table-departures
-      [departures]="departures$"
-      [dateDeparture]="dateDeparture.value"
-    ></app-table-departures>
-  </div>
+  @if (departures$.length > 0) {
+    <div>
+      <app-table-departures
+        [departures]="departures$"
+        [dateDeparture]="dateDeparture.value"
+      ></app-table-departures>
+    </div>
+  }
   <div class="d-flex justify-content-center my-4">
     <button class="btn btn-primary btn-list-primary" routerLink="../publicadores">
       Lista de publicadores

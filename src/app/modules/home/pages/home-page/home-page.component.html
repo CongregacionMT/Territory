@@ -2,9 +2,15 @@
   <div class="d-flex justify-content-center">
     <h1 class="my-4">Congregación MT</h1>
   </div>
-  <h2 class="text-center text-info" *ngIf="isDriver || isAdmin">¡Bienvenido {{capitalizeFirstLetter(nameDriver)}}!</h2>
-  <h2 class="text-center text-success" *ngIf="isDriver">(Conductor)</h2>
-  <h2 class="text-center text-danger" *ngIf="isAdmin">(Administrador)</h2>
+  @if (isDriver || isAdmin) {
+    <h2 class="text-center text-info">¡Bienvenido {{capitalizeFirstLetter(nameDriver)}}!</h2>
+  }
+  @if (isDriver) {
+    <h2 class="text-center text-success">(Conductor)</h2>
+  }
+  @if (isAdmin) {
+    <h2 class="text-center text-danger">(Administrador)</h2>
+  }
   <div class="card-container">
     <!-- Territorios -->
     <div class="card" routerLink="../territorios">
@@ -28,32 +34,44 @@
       </div>
     </div>
     <!-- Salidas -->
-    <div class="card" routerLink="../statistics" *ngIf="isAdmin">
-      <div class="card-body d-flex flex-column align-items-center">
-        <img src="../../../../../assets/img/statistics.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title mt-3 text-center">Estadísticas</h2>
+    @if (isAdmin) {
+      <div class="card" routerLink="../statistics">
+        <div class="card-body d-flex flex-column align-items-center">
+          <img src="../../../../../assets/img/statistics.png" alt="map" style="width: 10rem;">
+          <h2 class="card-title mt-3 text-center">Estadísticas</h2>
+        </div>
       </div>
-    </div>
+    }
     <!-- Registro de asignación de territorios -->
-    <div class="card" routerLink="../registro-territorios" *ngIf="isAdmin">
-      <div class="card-body d-flex flex-column align-items-center">
-        <img src="../../../../../assets/img/asignacion.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title mt-3 text-center">Registro de territorios</h2>
+    @if (isAdmin) {
+      <div class="card" routerLink="../registro-territorios">
+        <div class="card-body d-flex flex-column align-items-center">
+          <img src="../../../../../assets/img/asignacion.png" alt="map" style="width: 10rem;">
+          <h2 class="card-title mt-3 text-center">Registro de territorios</h2>
+        </div>
       </div>
-    </div>
-    <div class="card" routerLink="../usuarios" *ngIf="isAdmin">
-      <div class="card-body d-flex flex-column align-items-center">
-        <img src="../../../../../assets/img/group.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title mt-3 text-center">Usuarios</h2>
+    }
+    @if (isAdmin) {
+      <div class="card" routerLink="../usuarios">
+        <div class="card-body d-flex flex-column align-items-center">
+          <img src="../../../../../assets/img/group.png" alt="map" style="width: 10rem;">
+          <h2 class="card-title mt-3 text-center">Usuarios</h2>
+        </div>
       </div>
-    </div>
+    }
   </div>
   <div class="d-flex justify-content-center auth">
-    <button class="btn btn-warning btn-lg" routerLink="/auth" *ngIf="btnLogin">Iniciar sesión</button>
+    @if (btnLogin) {
+      <button class="btn btn-warning btn-lg" routerLink="/auth">Iniciar sesión</button>
+    }
     <button class="btn btn-primary btn-lg mx-2" (click)="activeNotification()">Notificarme</button>
-    <button class="btn btn-danger btn-lg" *ngIf="btnLogin === false" (click)="logout()">Cerrar sesión</button>
+    @if (btnLogin === false) {
+      <button class="btn btn-danger btn-lg" (click)="logout()">Cerrar sesión</button>
+    }
   </div>
   <div class="d-flex justify-content-center">
-    <button class="btn btn-info btn-lg" *ngIf="btnPWA" (click)="installPWA()">Instalar App</button>
+    @if (btnPWA) {
+      <button class="btn btn-info btn-lg" (click)="installPWA()">Instalar App</button>
+    }
   </div>
 </div>

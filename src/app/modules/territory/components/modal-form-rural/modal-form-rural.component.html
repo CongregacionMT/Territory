@@ -5,7 +5,7 @@
   tabindex="-1"
   aria-labelledby="creationModalLabel"
   aria-hidden="true"
->
+  >
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -19,9 +19,11 @@
           aria-label="Close"
         ></button>
       </div>
-      <div *ngIf="stateModal === 'open'" class="modal-body">
-        <app-form-rural [editionForm]="editionForm"></app-form-rural>
-      </div>
+      @if (stateModal === 'open') {
+        <div class="modal-body">
+          <app-form-rural [editionForm]="editionForm"></app-form-rural>
+        </div>
+      }
     </div>
   </div>
 </div>
