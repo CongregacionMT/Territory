@@ -1,6 +1,5 @@
-import { enableProdMode, importProvidersFrom, provideEnvironmentInitializer, inject } from '@angular/core';
+import { enableProdMode, importProvidersFrom, provideEnvironmentInitializer, inject, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
 import { initializeDialogService } from './app/app.module';
 import { environment } from './environments/environment';
 import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
@@ -18,8 +17,12 @@ if (environment.production) {
   enableProdMode();
 }
 
+initializeApp(environment.firebase);
+
 bootstrapApplication(AppComponent, {
     providers: [
+        provideZonelessChangeDetection(),
+        provideBrowserGlobalErrorListeners(),
         importProvidersFrom(BrowserModule, AppRoutingModule, ServiceWorkerModule.register('ngsw-worker.js', {
             enabled: environment.production,
             // Register the ServiceWorker as soon as the application is stable

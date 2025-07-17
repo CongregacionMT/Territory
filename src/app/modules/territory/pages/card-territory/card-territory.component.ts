@@ -164,7 +164,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   get start(){return this.formCard.get('start');}
 
   openModal(){
-    this.modalComponent().openModal();
+    const modal = this.modalComponent();
+    if (modal) {
+      modal.openModal();
+    }
   }
 
   verifyUniqueCheck(arr: any[]){

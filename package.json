@@ -39,8 +39,7 @@
     "pdf-lib": "^1.17.1",
     "rxfire": "^6.1.0",
     "rxjs": "~7.8.1",
-    "tslib": "^2.5.1",
-    "zone.js": "~0.15.1"
+    "tslib": "^2.5.1"
   },
   "devDependencies": {
     "@angular-eslint/builder": "20.1.1",
