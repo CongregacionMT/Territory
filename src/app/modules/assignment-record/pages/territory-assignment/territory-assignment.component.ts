@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, DOCUMENT } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { ActivatedRoute } from '@angular/router';
-import { DOCUMENT } from '@angular/common';
+
 import { Card } from '@core/models/Card';
 
 @Component({
