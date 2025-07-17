@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, input } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { CartData, CartLocation } from '@core/models/Cart';
@@ -20,8 +20,8 @@ export class FormEditCartComponent implements OnInit {
   locations: CartLocation[] = [];
   selectedColor: string = 'primary';
   verticalPosition: MatSnackBarVerticalPosition = 'top';
-  @Input() formCartDataInput: CartData[] = [] as CartData[];
-  @Input() formLocationsDataInput: CartLocation[] = [] as CartLocation[];
+  readonly formCartDataInput = input<CartData[]>([] as CartData[]);
+  readonly formLocationsDataInput = input<CartLocation[]>([] as CartLocation[]);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -43,14 +43,14 @@ export class FormEditCartComponent implements OnInit {
 
   initializeForm(): void {
     this.cartFormArray.clear();
-    this.formCartDataInput.forEach((cart: CartData) => {
+    this.formCartDataInput().forEach((cart: CartData) => {
       this.cartFormArray.push(this.createCartGroup(cart));
     });
   }
 
   initializeLocationsForm(): void {
     this.locationsFormArray.clear();
-    this.formLocationsDataInput.forEach((location: CartLocation) => {
+    this.formLocationsDataInput().forEach((location: CartLocation) => {
       this.locations.push(location);
       this.locationsFormArray.push(this.createLocationGroup(location));
     });

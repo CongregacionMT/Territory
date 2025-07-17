@@ -9,7 +9,7 @@
       </tr>
     </thead>
     <tbody class="table-group-divider">
-      @for (cart of cartData; track cart) {
+      @for (cart of cartData(); track cart) {
         <tr [class]="'table-' + cart.color">
           <th scope="row">{{ cart.date }}</th>
           <td>{{ cart.assignment }}</td>

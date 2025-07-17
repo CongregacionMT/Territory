@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -8,15 +8,15 @@ import { RouterLink } from '@angular/router';
     imports: [RouterLink]
 })
 export class BreadcrumbComponent implements OnInit {
-  @Input() routerBreadcrum: any;
+  readonly routerBreadcrum = input<any>();
   returnBack: string = "../";
   ultimateElement: string = "";
   constructor() {}
 
   ngOnInit(): void {
     
-    this.ultimateElement = this.routerBreadcrum[this.routerBreadcrum.length - 1].route;
-    this.routerBreadcrum.pop()
+    this.ultimateElement = this.routerBreadcrum()[this.routerBreadcrum().length - 1].route;
+    this.routerBreadcrum().pop()
     
   }
 

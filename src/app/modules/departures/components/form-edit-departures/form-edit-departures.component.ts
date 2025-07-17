@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, input } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure } from '../../../../core/models/Departures';
@@ -23,7 +23,7 @@ export class FormEditDeparturesComponent implements OnInit{
   groupKeys: number[] = [];
   groupedDepartures: { [key: string]: Departure[] } = {};
   verticalPosition: MatSnackBarVerticalPosition = 'top';
-  @Input() formDepartureDataInput: Departure[] = [] as Departure[];
+  readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -34,7 +34,7 @@ export class FormEditDeparturesComponent implements OnInit{
   }
   ngOnInit(): void {
     this.departureFormArray.clear()
-    this.formDepartureDataInput.forEach((departure: Departure) => {
+    this.formDepartureDataInput().forEach((departure: Departure) => {
       const groupKey = departure.group;
       if (!this.groupedDepartures[groupKey]) {
         this.groupKeys.push(groupKey);
@@ -142,7 +142,7 @@ export class FormEditDeparturesComponent implements OnInit{
   }
   rollbackInputForm(){
     this.departureFormArray.clear();
-    this.formDepartureDataInput.map((departure: any, index: number) => {
+    this.formDepartureDataInput().map((departure: any, index: number) => {
       this.departureFormArray.push(this.fb.group({
         date: new FormControl(departure.day),
         driver: new FormControl(departure.driver),

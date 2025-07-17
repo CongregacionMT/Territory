@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 @Component({
     selector: 'app-card-xl',
@@ -6,8 +6,8 @@ import { Component, Input, OnInit } from '@angular/core';
     styleUrls: ['./card-xl.component.scss']
 })
 export class CardXlComponent implements OnInit {
-  @Input() mapSRC: any;
-  @Input() mapName: any;
+  readonly mapSRC = input<any>();
+  readonly mapName = input<any>();
   constructor() { }
 
   ngOnInit(): void {}

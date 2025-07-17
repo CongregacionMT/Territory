@@ -3,7 +3,7 @@
     class="table table-dark table-hover table-striped table-bordered caption-buttom"
     >
     <caption>
-      Salidas a predicar ({{dateDeparture}})
+      Salidas a predicar ({{dateDeparture()}})
     </caption>
     <thead>
       <tr>
@@ -15,7 +15,7 @@
       </tr>
     </thead>
     <tbody class="table-group-divider">
-      @for (departure of departures; track departure) {
+      @for (departure of departures(); track departure) {
         @if (currentPath === departure.group || departure.group === 0) {
           <tr [class]="'table-' + departure.color" >
             <th scope="row">{{ getDayOfWeek(departure.date) }}</th>

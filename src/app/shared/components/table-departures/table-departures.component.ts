@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, input } from '@angular/core';
 import { Departure } from '@core/models/Departures';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -11,8 +11,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 export class TableDeparturesComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
-  @Input() dateDeparture: any;
-  @Input() departures: Departure[] = [] as Departure[];
+  readonly dateDeparture = input<any>();
+  readonly departures = input<Departure[]>([] as Departure[]);
   currentPath: number = 0;
 
   /** Inserted by Angular inject() migration for backwards compatibility */

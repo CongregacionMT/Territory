@@ -1,6 +1,6 @@
 <nav style="--bs-breadcrumb-divider: '>'" aria-label="breadcrumb">
   <ol class="breadcrumb">
-    @for (route of routerBreadcrum; track route; let c = $count; let i = $index) {
+    @for (route of routerBreadcrum(); track route; let c = $count; let i = $index) {
       <li
         class="breadcrumb-item d-flex"
         >

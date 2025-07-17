@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, input } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DataRural } from '@core/models/DataRural';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -17,7 +17,7 @@ export class FormRuralComponent implements OnInit {
 
 
   formRoad: FormGroup;
-  @Input() editionForm: DataRural | undefined;
+  readonly editionForm = input<DataRural>();
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -32,12 +32,13 @@ export class FormRuralComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if(this.editionForm !== undefined){
-      this.formRoad.patchValue({title: this.editionForm.title});
-      this.formRoad.patchValue({distance: this.editionForm.distance});
-      this.formRoad.patchValue({vehicle: this.editionForm.vehicle});
-      this.formRoad.patchValue({time: this.editionForm.time});
-      this.formRoad.patchValue({lastDate: this.editionForm.lastDate});
+    const editionForm = this.editionForm();
+    if(editionForm !== undefined){
+      this.formRoad.patchValue({title: editionForm.title});
+      this.formRoad.patchValue({distance: editionForm.distance});
+      this.formRoad.patchValue({vehicle: editionForm.vehicle});
+      this.formRoad.patchValue({time: editionForm.time});
+      this.formRoad.patchValue({lastDate: editionForm.lastDate});
     } else {
       this.formRoad.reset();
     }
