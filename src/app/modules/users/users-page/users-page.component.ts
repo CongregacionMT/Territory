@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { TerritoryDataService } from '../../../core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -26,7 +26,7 @@ export class UsersPageComponent {
   private _snackBar = inject(MatSnackBar);
 
 
-  @ViewChild('errorMessage', {static: false}) errorMessage: any;
+  readonly errorMessage = viewChild<any>('errorMessage');
 
   users: User[] = [];
 
@@ -62,7 +62,7 @@ export class UsersPageComponent {
     this._snackBar.open('📝 Copiado al portapapeles!', 'ok');
   }
   createUser(){
-    const messageError = this.errorMessage.nativeElement;
+    const messageError = this.errorMessage().nativeElement;
     if(this.formUser.controls?.['user'].invalid || this.formUser.controls?.['password'].invalid){
       messageError.style.display = 'block';
     } else {

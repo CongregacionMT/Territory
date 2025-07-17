@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, LOCALE_ID, inject } from '@angular/core';
+import { Component, OnInit, LOCALE_ID, inject, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DataRural } from '@core/models/DataRural';
@@ -32,7 +32,7 @@ export class MapasComponent implements OnInit {
   class: string = 'map-responsive';
   showRural: boolean = false;
   dataRural: DataRural[] = [];
-  @ViewChild(ModalFormRuralComponent) modalFormRuralComponent: ModalFormRuralComponent | undefined;
+  readonly modalFormRuralComponent = viewChild(ModalFormRuralComponent);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -66,11 +66,12 @@ export class MapasComponent implements OnInit {
   }
 
   openModal(mode: ModeModal, form?: DataRural){
-    if(this.modalFormRuralComponent){
+    const modalFormRuralComponent = this.modalFormRuralComponent();
+    if(modalFormRuralComponent){
       if(mode === 'creation'){
-        this.modalFormRuralComponent.openModalCreation();
+        modalFormRuralComponent.openModalCreation();
       } else if (mode === 'edition'){
-        this.modalFormRuralComponent.openModalEdition(form);
+        modalFormRuralComponent.openModalEdition(form);
       }
     }
   }

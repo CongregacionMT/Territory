@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
@@ -52,7 +52,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   cardSubscription: Subscription;
   countTrueApples: number = 0;
   countFalseApples: number = 0;
-  @ViewChild(ModalComponent) modalComponent: any;
+  readonly modalComponent = viewChild(ModalComponent);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -164,7 +164,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   get start(){return this.formCard.get('start');}
 
   openModal(){
-    this.modalComponent.openModal();
+    this.modalComponent().openModal();
   }
 
   verifyUniqueCheck(arr: any[]){

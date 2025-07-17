@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -18,7 +18,7 @@ export class LoginPageComponent {
   private spinner = inject(SpinnerService);
 
 
-  @ViewChild('errorMessage', {static: false}) errorMessage: any;
+  readonly errorMessage = viewChild<any>('errorMessage');
 
   formLogin: FormGroup;
   user = "";
@@ -36,7 +36,7 @@ export class LoginPageComponent {
 
   async loginWhitUser(){
     this.spinner.cargarSpinner();
-    const messageError = this.errorMessage.nativeElement;
+    const messageError = this.errorMessage().nativeElement;
     this.territoryDataService.loginUser(
       this.formLogin.value.user,
       this.formLogin.value.password
