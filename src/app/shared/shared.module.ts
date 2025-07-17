@@ -12,6 +12,7 @@ import { ConfirmDialogComponent } from "./components/confirm-dialog/confirm-dial
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
+import { TableCartAssignmentComponent } from './components/table-cart-assignment/table-cart-assignment.component';
 
 
 @NgModule({
@@ -23,6 +24,7 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
         ModalComponent,
         TableDeparturesComponent,
         ConfirmDialogComponent,
+        TableCartAssignmentComponent,
     ],
     imports: [
         CommonModule,
@@ -38,7 +40,8 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
         CardXlComponent,
         FocusInvalidInputDirective,
         ModalComponent,
-        TableDeparturesComponent
+        TableDeparturesComponent,
+        TableCartAssignmentComponent
     ]
 })
 export class SharedModule { }

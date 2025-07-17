@@ -1,0 +1,19 @@
+.map-responsive{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+  gap: 2rem;
+}
+iframe{
+  width: 50%;
+  height: 100vh;
+}
+@media (max-width: 768px){
+  .map-responsive{
+    flex-direction: column;
+  }
+  iframe{
+    width: 100%;
+  }
+}
