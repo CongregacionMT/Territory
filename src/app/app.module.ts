@@ -1,4 +1,4 @@
-import { ENVIRONMENT_INITIALIZER, NgModule, importProvidersFrom, inject } from '@angular/core';
+import { ENVIRONMENT_INITIALIZER, NgModule, importProvidersFrom, inject, provideEnvironmentInitializer } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -26,9 +26,6 @@ export function initializeDialogService() {
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideMessaging(() => getMessaging(getApp())),
-    provideFirestore(() => getFirestore()),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
       // Register the ServiceWorker as soon as the application is stable
@@ -37,9 +34,12 @@ export function initializeDialogService() {
     }),
   ],
   providers: [
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideMessaging(() => getMessaging(getApp())),
+    provideFirestore(() => getFirestore()),
     importProvidersFrom(MatDialogModule),
     {
-      provide: ENVIRONMENT_INITIALIZER,
+      provide: provideEnvironmentInitializer(initializeDialogService),
       useFactory: initializeDialogService,
       deps: [MatDialog],
       multi: true

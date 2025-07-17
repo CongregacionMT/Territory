@@ -13,7 +13,6 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
     standalone: false
 })
 export class HomePageComponent implements OnInit {
-
   isAdmin: boolean = false;
   isDriver: boolean = false;
   btnLogin: boolean = false;
@@ -21,11 +20,11 @@ export class HomePageComponent implements OnInit {
   deferredPrompt: any;
   nameDriver: string = '';
   constructor(private router: Router, private swUpdate: SwUpdate, private spinner: SpinnerService, private territorieDataService: TerritoryDataService, private messagingService:MessagingService, private _snackBar: MatSnackBar,) {
-    if(this.swUpdate.available){
-      this.swUpdate.available.subscribe(() => {
-        if(confirm('Existe una nueva versión de la aplicación. ¿Deseas instalarla?')){
+    if(this.swUpdate.isEnabled){
+      this.swUpdate.checkForUpdate().then(() => {
+        this.swUpdate.activateUpdate().then(() => {
           window.location.reload();
-        }
+        });
       })
     }
     if(this.deferredPrompt){
