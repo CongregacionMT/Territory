@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { DataRural } from '@core/models/DataRural';
+import { FormRuralComponent } from '../form-rural/form-rural.component';
 
 declare var window: any;
 
@@ -8,7 +9,7 @@ declare var window: any;
     selector: 'app-modal-form-rural',
     templateUrl: './modal-form-rural.component.html',
     styleUrls: ['./modal-form-rural.component.scss'],
-    standalone: false
+    imports: [FormRuralComponent]
 })
 export class ModalFormRuralComponent implements OnInit {
   modalElement: any;

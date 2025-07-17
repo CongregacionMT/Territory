@@ -8,8 +8,8 @@ describe('DeparturePageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ DeparturePageComponent ]
-    })
+    imports: [DeparturePageComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(DeparturePageComponent);

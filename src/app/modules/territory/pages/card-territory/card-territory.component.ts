@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -9,11 +9,14 @@ import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.
 import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
 import { ModalComponent } from '@shared/components/modal/modal.component';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
+import { ModalComponent as ModalComponent_1 } from '../../../../shared/components/modal/modal.component';
 @Component({
     selector: 'app-card-territory',
     templateUrl: './card-territory.component.html',
     styleUrls: ['./card-territory.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, ReactiveFormsModule, FocusInvalidInputDirective, RouterLink, ModalComponent_1]
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
   card: any = {

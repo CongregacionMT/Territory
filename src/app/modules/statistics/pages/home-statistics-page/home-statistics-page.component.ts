@@ -3,12 +3,15 @@ import { CardButtonsData } from '@core/models/CardButtonsData';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-home-statistics-page',
     templateUrl: './home-statistics-page.component.html',
     styleUrls: ['./home-statistics-page.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, CardXlComponent, RouterLink]
 })
 export class HomeStatisticsPageComponent implements OnInit {
   private readonly KEY_NAME_MT = 'statisticDataMT';

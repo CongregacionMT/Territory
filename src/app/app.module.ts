@@ -18,33 +18,4 @@ export function initializeDialogService() {
   };
 }
 
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    ServiceWorkerModule.register('ngsw-worker.js', {
-      enabled: environment.production,
-      // Register the ServiceWorker as soon as the application is stable
-      // or after 30 seconds (whichever comes first).
-      registrationStrategy: 'registerWhenStable:30000'
-    }),
-  ],
-  providers: [
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideMessaging(() => getMessaging(getApp())),
-    provideFirestore(() => getFirestore()),
-    importProvidersFrom(MatDialogModule),
-    {
-      provide: provideEnvironmentInitializer(initializeDialogService),
-      useFactory: initializeDialogService,
-      deps: [MatDialog],
-      multi: true
-    }
-  ],
-  bootstrap: [AppComponent]
-})
-export class AppModule { }
+

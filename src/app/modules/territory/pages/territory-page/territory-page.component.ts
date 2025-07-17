@@ -5,12 +5,16 @@ import { CardService } from '@core/services/card.service';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
+import { RouterLink } from '@angular/router';
+import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 
 @Component({
     selector: 'app-territory-page',
     templateUrl: './territory-page.component.html',
     styleUrls: ['./territory-page.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, CardXlComponent, RouterLink, CardSComponent]
 })
 export class TerritoryPageComponent implements OnInit {
   routerBreadcrum: any = [];

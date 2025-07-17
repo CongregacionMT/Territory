@@ -1,16 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepartureData, Departure } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
+import { FormEditDeparturesComponent } from '../../components/form-edit-departures/form-edit-departures.component';
 
 @Component({
     selector: 'app-edit-departures',
     templateUrl: './edit-departures.component.html',
     styleUrls: ['./edit-departures.component.scss'],
-    standalone: false
+    imports: [ReactiveFormsModule, FormEditDeparturesComponent]
 })
 export class EditDeparturesComponent implements OnInit{
   dataLoaded: boolean = false;

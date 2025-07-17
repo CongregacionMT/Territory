@@ -1,15 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
+import { DatePipe } from '@angular/common';
+import { SortBy } from '@core/pipes/sort-by.pipe';
 
 @Component({
     selector: 'app-statistics-page',
     templateUrl: './statistics-page.component.html',
     styleUrls: ['./statistics-page.component.scss'],
-    standalone: false
+    imports: [ReactiveFormsModule, DatePipe, SortBy]
 })
 export class StatisticsPageComponent implements OnInit{
   routerBreadcrum: any = [];

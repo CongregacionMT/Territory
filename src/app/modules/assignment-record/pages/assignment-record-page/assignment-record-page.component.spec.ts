@@ -8,8 +8,8 @@ describe('AssignmentRecordPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AssignmentRecordPageComponent ]
-    })
+    imports: [AssignmentRecordPageComponent]
+})
     .compileComponents();
   });
 

@@ -4,12 +4,13 @@ import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { forkJoin } from 'rxjs';
+import { FormEditCartComponent } from '../../components/form-edit-cart/form-edit-cart.component';
 
 @Component({
     selector: 'app-cart-edit-page',
     templateUrl: './cart-edit-page.component.html',
     styleUrls: ['./cart-edit-page.component.scss'],
-    standalone: false
+    imports: [FormEditCartComponent]
 })
 export class CartEditPageComponent implements OnInit {
   dataLoaded: boolean = false;

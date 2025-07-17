@@ -8,15 +8,16 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { ModalFormRuralComponent } from '@modules/territory/components/modal-form-rural/modal-form-rural.component';
 import { ModeModal } from '@core/models/ModeModal';
 import { needConfirmation } from '@shared/decorators/confirm-dialog.decorator';
-import { registerLocaleData } from '@angular/common';
+import { registerLocaleData, DatePipe } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
+import { ModalFormRuralComponent as ModalFormRuralComponent_1 } from '../../components/modal-form-rural/modal-form-rural.component';
 
 @Component({
     selector: 'app-mapas',
     templateUrl: './mapas.component.html',
     styleUrls: ['./mapas.component.scss'],
     providers: [{ provide: LOCALE_ID, useValue: 'es' }],
-    standalone: false
+    imports: [ModalFormRuralComponent_1, DatePipe]
 })
 export class MapasComponent implements OnInit {
   isAdmin: boolean = false;

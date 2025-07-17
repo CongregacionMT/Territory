@@ -5,15 +5,19 @@ import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import { HttpClient } from '@angular/common/http';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { Card } from '@core/models/Card';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
+import { DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-territory-assignment',
     templateUrl: './territory-assignment.component.html',
     styleUrls: ['./territory-assignment.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, ReactiveFormsModule, FormsModule, CardSComponent, RouterLink, DatePipe]
 })
 export class TerritoryAssignmentComponent implements OnInit{
   routerBreadcrum: any = [];

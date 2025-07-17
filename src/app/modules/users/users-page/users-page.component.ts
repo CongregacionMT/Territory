@@ -2,7 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { TerritoryDataService } from '../../../core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { needConfirmation } from '@shared/decorators/confirm-dialog.decorator';
 
 interface User {
@@ -16,7 +16,7 @@ interface User {
     selector: 'app-users-page',
     templateUrl: './users-page.component.html',
     styleUrls: ['./users-page.component.scss'],
-    standalone: false
+    imports: [ReactiveFormsModule]
 })
 
 export class UsersPageComponent {

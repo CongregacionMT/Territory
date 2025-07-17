@@ -3,14 +3,16 @@ import { FormBuilder, FormControl } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Departure, DepartureData } from '@core/models/Departures';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { TableDeparturesComponent } from '../../../../shared/components/table-departures/table-departures.component';
 
 @Component({
     selector: 'app-departure-page',
     templateUrl: './departure-page.component.html',
     styleUrls: ['./departure-page.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, TableDeparturesComponent, RouterLink]
 })
 export class DeparturePageComponent implements OnInit {
   routerBreadcrum: any = [];

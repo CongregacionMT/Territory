@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure } from '../../../../core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -9,7 +9,7 @@ import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snac
     selector: 'app-form-edit-departures',
     templateUrl: './form-edit-departures.component.html',
     styleUrls: ['./form-edit-departures.component.scss'],
-    standalone: false
+    imports: [ReactiveFormsModule]
 })
 export class FormEditDeparturesComponent implements OnInit{
   numberGroup: number = 0;

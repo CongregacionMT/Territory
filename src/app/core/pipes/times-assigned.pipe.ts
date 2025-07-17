@@ -1,9 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({
-    name: 'timesAssigned',
-    standalone: false
-})
+@Pipe({ name: 'timesAssigned' })
 export class TimesAssigned implements PipeTransform {
   dataFilter: any;
   appleCount: any;

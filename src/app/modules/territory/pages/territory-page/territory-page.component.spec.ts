@@ -8,8 +8,8 @@ describe('TerritoryPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TerritoryPageComponent ]
-    })
+    imports: [TerritoryPageComponent]
+})
     .compileComponents();
   });
 

@@ -4,8 +4,7 @@ import { CartData } from '@core/models/Cart';
 @Component({
     selector: 'app-table-cart-assignment',
     templateUrl: './table-cart-assignment.component.html',
-    styleUrls: ['./table-cart-assignment.component.scss'],
-    standalone: false
+    styleUrls: ['./table-cart-assignment.component.scss']
 })
 export class TableCartAssignmentComponent implements OnInit {
   @Input() cartData: CartData[] = [] as CartData[];

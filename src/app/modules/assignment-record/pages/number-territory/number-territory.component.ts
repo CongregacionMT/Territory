@@ -5,12 +5,15 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Subject, Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
 import { Config } from 'datatables.net';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { DataTablesModule } from 'angular-datatables';
+import { DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-number-territory',
     templateUrl: './number-territory.component.html',
     styleUrls: ['./number-territory.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, DataTablesModule, DatePipe]
 })
 export class NumberTerritoryComponent implements OnInit {
   routerBreadcrum: any = [];

@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { MessagingService } from '@core/services/messaging.service';
 import { SpinnerService } from '@core/services/spinner.service';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
-    standalone: false
+    imports: [RouterOutlet]
 })
 export class AppComponent implements OnInit{
   isLoading$: boolean = false;

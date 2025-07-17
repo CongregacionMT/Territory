@@ -4,12 +4,15 @@ import { CartData, CartDataArray } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { TableCartAssignmentComponent } from '../../../../shared/components/table-cart-assignment/table-cart-assignment.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-cart-page',
     templateUrl: './cart-page.component.html',
     styleUrls: ['./cart-page.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, TableCartAssignmentComponent, RouterLink]
 })
 export class CartPageComponent implements OnInit{
   isAdmin: boolean = false;

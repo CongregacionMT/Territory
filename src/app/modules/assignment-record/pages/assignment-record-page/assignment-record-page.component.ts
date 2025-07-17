@@ -1,18 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Card } from '@core/models/Card';
 import { CardService } from '@core/services/card.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
+import { DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-assignment-record-page',
     templateUrl: './assignment-record-page.component.html',
     styleUrls: ['./assignment-record-page.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, CardXlComponent, RouterLink, ReactiveFormsModule, DatePipe]
 })
 export class AssignmentRecordPageComponent implements OnInit {
   routerBreadcrum: any = [];

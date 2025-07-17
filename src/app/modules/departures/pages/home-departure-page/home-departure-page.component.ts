@@ -3,13 +3,15 @@ import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure, DepartureData } from '@core/models/Departures';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 
 @Component({
     selector: 'app-home-departure-page',
     templateUrl: './home-departure-page.component.html',
     styleUrls: ['./home-departure-page.component.scss'],
-    standalone: false
+    imports: [BreadcrumbComponent, CardXlComponent, RouterLink]
 })
 export class HomeDeparturePageComponent implements OnInit{
   isAdmin: boolean = false;

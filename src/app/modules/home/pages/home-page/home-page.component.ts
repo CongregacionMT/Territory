@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { MessagingService } from '@core/services/messaging.service';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -10,7 +10,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
     selector: 'app-home-page',
     templateUrl: './home-page.component.html',
     styleUrls: ['./home-page.component.scss'],
-    standalone: false
+    imports: [RouterLink]
 })
 export class HomePageComponent implements OnInit {
   isAdmin: boolean = false;

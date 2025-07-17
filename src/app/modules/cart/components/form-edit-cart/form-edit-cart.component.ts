@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { CartData, CartLocation } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
@@ -8,7 +8,7 @@ import { CartDataService } from '@core/services/cart-data.service';
     selector: 'app-form-edit-cart',
     templateUrl: './form-edit-cart.component.html',
     styleUrls: ['./form-edit-cart.component.scss'],
-    standalone: false
+    imports: [ReactiveFormsModule]
 })
 export class FormEditCartComponent implements OnInit {
   formCart: FormGroup;
