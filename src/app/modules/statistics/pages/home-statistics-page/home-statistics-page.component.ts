@@ -5,9 +5,10 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 
 @Component({
-  selector: 'app-home-statistics-page',
-  templateUrl: './home-statistics-page.component.html',
-  styleUrls: ['./home-statistics-page.component.scss'],
+    selector: 'app-home-statistics-page',
+    templateUrl: './home-statistics-page.component.html',
+    styleUrls: ['./home-statistics-page.component.scss'],
+    standalone: false
 })
 export class HomeStatisticsPageComponent implements OnInit {
   private readonly KEY_NAME_MT = 'statisticDataMT';

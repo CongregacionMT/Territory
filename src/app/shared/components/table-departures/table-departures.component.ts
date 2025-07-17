@@ -3,9 +3,10 @@ import { Departure } from '@core/models/Departures';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: 'app-table-departures',
-  templateUrl: './table-departures.component.html',
-  styleUrls: ['./table-departures.component.scss']
+    selector: 'app-table-departures',
+    templateUrl: './table-departures.component.html',
+    styleUrls: ['./table-departures.component.scss'],
+    standalone: false
 })
 export class TableDeparturesComponent implements OnInit {
   @Input() dateDeparture: any;

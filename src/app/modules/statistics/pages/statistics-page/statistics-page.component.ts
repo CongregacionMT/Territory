@@ -6,9 +6,10 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 
 @Component({
-  selector: 'app-statistics-page',
-  templateUrl: './statistics-page.component.html',
-  styleUrls: ['./statistics-page.component.scss'],
+    selector: 'app-statistics-page',
+    templateUrl: './statistics-page.component.html',
+    styleUrls: ['./statistics-page.component.scss'],
+    standalone: false
 })
 export class StatisticsPageComponent implements OnInit{
   routerBreadcrum: any = [];

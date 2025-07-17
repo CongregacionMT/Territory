@@ -12,10 +12,11 @@ import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 
 @Component({
-  selector: 'app-mapas',
-  templateUrl: './mapas.component.html',
-  styleUrls: ['./mapas.component.scss'],
-  providers: [{ provide: LOCALE_ID, useValue: 'es' }]
+    selector: 'app-mapas',
+    templateUrl: './mapas.component.html',
+    styleUrls: ['./mapas.component.scss'],
+    providers: [{ provide: LOCALE_ID, useValue: 'es' }],
+    standalone: false
 })
 export class MapasComponent implements OnInit {
   isAdmin: boolean = false;

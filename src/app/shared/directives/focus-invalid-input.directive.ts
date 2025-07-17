@@ -1,7 +1,8 @@
 import { Directive, HostListener, ElementRef, Input } from '@angular/core';
 
 @Directive({
-  selector: '[appFocusInvalidInput]'
+    selector: '[appFocusInvalidInput]',
+    standalone: false
 })
 export class FocusInvalidInputDirective {
   constructor(private el: ElementRef) { }

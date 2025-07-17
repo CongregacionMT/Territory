@@ -6,9 +6,10 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-form-edit-departures',
-  templateUrl: './form-edit-departures.component.html',
-  styleUrls: ['./form-edit-departures.component.scss']
+    selector: 'app-form-edit-departures',
+    templateUrl: './form-edit-departures.component.html',
+    styleUrls: ['./form-edit-departures.component.scss'],
+    standalone: false
 })
 export class FormEditDeparturesComponent implements OnInit{
   numberGroup: number = 0;

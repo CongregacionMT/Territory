@@ -10,9 +10,10 @@ import { DOCUMENT } from '@angular/common';
 import { Card } from '@core/models/Card';
 
 @Component({
-  selector: 'app-territory-assignment',
-  templateUrl: './territory-assignment.component.html',
-  styleUrls: ['./territory-assignment.component.scss']
+    selector: 'app-territory-assignment',
+    templateUrl: './territory-assignment.component.html',
+    styleUrls: ['./territory-assignment.component.scss'],
+    standalone: false
 })
 export class TerritoryAssignmentComponent implements OnInit{
   routerBreadcrum: any = [];

@@ -6,9 +6,10 @@ import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.
 import { forkJoin } from 'rxjs';
 
 @Component({
-  selector: 'app-cart-edit-page',
-  templateUrl: './cart-edit-page.component.html',
-  styleUrls: ['./cart-edit-page.component.scss']
+    selector: 'app-cart-edit-page',
+    templateUrl: './cart-edit-page.component.html',
+    styleUrls: ['./cart-edit-page.component.scss'],
+    standalone: false
 })
 export class CartEditPageComponent implements OnInit {
   dataLoaded: boolean = false;

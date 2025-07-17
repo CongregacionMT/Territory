@@ -4,9 +4,10 @@ import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.
 import { TerritoryDataService } from '../../../../core/services/territory-data.service';
 
 @Component({
-  selector: 'app-table-publishers-page',
-  templateUrl: './table-publishers-page.component.html',
-  styleUrls: ['./table-publishers-page.component.scss']
+    selector: 'app-table-publishers-page',
+    templateUrl: './table-publishers-page.component.html',
+    styleUrls: ['./table-publishers-page.component.scss'],
+    standalone: false
 })
 export class TablePublishersPageComponent implements OnInit {
   routerBreadcrum: any = [];

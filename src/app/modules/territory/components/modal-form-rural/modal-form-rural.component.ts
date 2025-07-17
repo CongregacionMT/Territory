@@ -5,9 +5,10 @@ import { DataRural } from '@core/models/DataRural';
 declare var window: any;
 
 @Component({
-  selector: 'app-modal-form-rural',
-  templateUrl: './modal-form-rural.component.html',
-  styleUrls: ['./modal-form-rural.component.scss']
+    selector: 'app-modal-form-rural',
+    templateUrl: './modal-form-rural.component.html',
+    styleUrls: ['./modal-form-rural.component.scss'],
+    standalone: false
 })
 export class ModalFormRuralComponent implements OnInit {
   modalElement: any;

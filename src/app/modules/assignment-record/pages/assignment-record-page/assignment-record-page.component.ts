@@ -9,9 +9,10 @@ import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms'
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 
 @Component({
-  selector: 'app-assignment-record-page',
-  templateUrl: './assignment-record-page.component.html',
-  styleUrls: ['./assignment-record-page.component.scss'],
+    selector: 'app-assignment-record-page',
+    templateUrl: './assignment-record-page.component.html',
+    styleUrls: ['./assignment-record-page.component.scss'],
+    standalone: false
 })
 export class AssignmentRecordPageComponent implements OnInit {
   routerBreadcrum: any = [];

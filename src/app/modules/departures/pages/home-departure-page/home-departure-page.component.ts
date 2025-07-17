@@ -6,9 +6,10 @@ import { Departure, DepartureData } from '@core/models/Departures';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-home-departure-page',
-  templateUrl: './home-departure-page.component.html',
-  styleUrls: ['./home-departure-page.component.scss']
+    selector: 'app-home-departure-page',
+    templateUrl: './home-departure-page.component.html',
+    styleUrls: ['./home-departure-page.component.scss'],
+    standalone: false
 })
 export class HomeDeparturePageComponent implements OnInit{
   isAdmin: boolean = false;

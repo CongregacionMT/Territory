@@ -10,9 +10,10 @@ import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 @Component({
-  selector: 'app-card-territory',
-  templateUrl: './card-territory.component.html',
-  styleUrls: ['./card-territory.component.scss'],
+    selector: 'app-card-territory',
+    templateUrl: './card-territory.component.html',
+    styleUrls: ['./card-territory.component.scss'],
+    standalone: false
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
   card: any = {

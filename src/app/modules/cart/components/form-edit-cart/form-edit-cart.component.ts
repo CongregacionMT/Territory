@@ -5,9 +5,10 @@ import { CartData, CartLocation } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 
 @Component({
-  selector: 'app-form-edit-cart',
-  templateUrl: './form-edit-cart.component.html',
-  styleUrls: ['./form-edit-cart.component.scss'],
+    selector: 'app-form-edit-cart',
+    templateUrl: './form-edit-cart.component.html',
+    styleUrls: ['./form-edit-cart.component.scss'],
+    standalone: false
 })
 export class FormEditCartComponent implements OnInit {
   formCart: FormGroup;

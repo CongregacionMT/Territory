@@ -7,9 +7,10 @@ import { ActivatedRoute } from '@angular/router';
 import { Departure, DepartureData } from '@core/models/Departures';
 
 @Component({
-  selector: 'app-departure-page',
-  templateUrl: './departure-page.component.html',
-  styleUrls: ['./departure-page.component.scss']
+    selector: 'app-departure-page',
+    templateUrl: './departure-page.component.html',
+    styleUrls: ['./departure-page.component.scss'],
+    standalone: false
 })
 export class DeparturePageComponent implements OnInit {
   routerBreadcrum: any = [];

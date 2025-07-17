@@ -7,9 +7,10 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 
 @Component({
-  selector: 'app-territory-page',
-  templateUrl: './territory-page.component.html',
-  styleUrls: ['./territory-page.component.scss'],
+    selector: 'app-territory-page',
+    templateUrl: './territory-page.component.html',
+    styleUrls: ['./territory-page.component.scss'],
+    standalone: false
 })
 export class TerritoryPageComponent implements OnInit {
   routerBreadcrum: any = [];

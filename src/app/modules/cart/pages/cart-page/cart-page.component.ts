@@ -6,9 +6,10 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 
 @Component({
-  selector: 'app-cart-page',
-  templateUrl: './cart-page.component.html',
-  styleUrls: ['./cart-page.component.scss']
+    selector: 'app-cart-page',
+    templateUrl: './cart-page.component.html',
+    styleUrls: ['./cart-page.component.scss'],
+    standalone: false
 })
 export class CartPageComponent implements OnInit{
   isAdmin: boolean = false;

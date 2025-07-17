@@ -5,9 +5,10 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 
 @Component({
-  selector: 'app-form-rural',
-  templateUrl: './form-rural.component.html',
-  styleUrls: ['./form-rural.component.scss']
+    selector: 'app-form-rural',
+    templateUrl: './form-rural.component.html',
+    styleUrls: ['./form-rural.component.scss'],
+    standalone: false
 })
 export class FormRuralComponent implements OnInit {
 

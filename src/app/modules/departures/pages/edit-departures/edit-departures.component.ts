@@ -7,9 +7,10 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 
 @Component({
-  selector: 'app-edit-departures',
-  templateUrl: './edit-departures.component.html',
-  styleUrls: ['./edit-departures.component.scss']
+    selector: 'app-edit-departures',
+    templateUrl: './edit-departures.component.html',
+    styleUrls: ['./edit-departures.component.scss'],
+    standalone: false
 })
 export class EditDeparturesComponent implements OnInit{
   dataLoaded: boolean = false;

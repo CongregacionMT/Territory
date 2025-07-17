@@ -6,9 +6,10 @@ import { Subject, Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
 
 @Component({
-  selector: 'app-number-territory',
-  templateUrl: './number-territory.component.html',
-  styleUrls: ['./number-territory.component.scss'],
+    selector: 'app-number-territory',
+    templateUrl: './number-territory.component.html',
+    styleUrls: ['./number-territory.component.scss'],
+    standalone: false
 })
 export class NumberTerritoryComponent implements OnInit {
   routerBreadcrum: any = [];
