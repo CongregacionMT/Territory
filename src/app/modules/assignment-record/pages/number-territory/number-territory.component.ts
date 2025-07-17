@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Subject, Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
+import { Config } from 'datatables.net';
 
 @Component({
     selector: 'app-number-territory',
@@ -16,7 +17,7 @@ export class NumberTerritoryComponent implements OnInit {
   path: any;
   dataList: any[] = [];
   dtTrigger: Subject<any> = new Subject<any>();
-  dtOptions: DataTables.Settings = {};
+  dtOptions: Config = {};
   numberTerritory: number = 0;
   appleCount: any;
   cardSubscription: Subscription;
