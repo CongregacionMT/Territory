@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DataRural } from '@core/models/DataRural';
 import { FormRuralComponent } from '../form-rural/form-rural.component';
@@ -12,11 +12,16 @@ declare var window: any;
     imports: [FormRuralComponent]
 })
 export class ModalFormRuralComponent implements OnInit {
+  private router = inject(Router);
+
   modalElement: any;
   stateModal: 'open' | 'close' = 'close';
   title: string = 'Crear camino'
   editionForm: any;
-  constructor(private router: Router) { }
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() { }
 
   ngOnInit(): void {
     let modalID = document.getElementById("modalID");

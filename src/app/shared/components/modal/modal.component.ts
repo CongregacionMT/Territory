@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 declare var window: any;
@@ -10,8 +10,13 @@ declare var window: any;
     imports: [RouterLink]
 })
 export class ModalComponent implements OnInit {
+  private router = inject(Router);
+
   modalElement: any;
-  constructor(private router: Router) {}
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {}
 
   ngOnInit(): void {
     let modalID = document.getElementById("modalID");

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
@@ -14,6 +14,10 @@ import { SortBy } from '@core/pipes/sort-by.pipe';
     imports: [ReactiveFormsModule, DatePipe, SortBy]
 })
 export class StatisticsPageComponent implements OnInit{
+  private territorieDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+  private rutaActiva = inject(ActivatedRoute);
+
   routerBreadcrum: any = [];
   loadingData: boolean = false;
   territoryPath: any;
@@ -28,11 +32,10 @@ export class StatisticsPageComponent implements OnInit{
   blue: FormControl;
   yellow: FormControl;
   red: FormControl;
-  constructor(
-    private territorieDataService: TerritoryDataService,
-    private spinner: SpinnerService,
-    private rutaActiva: ActivatedRoute,
-  ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     this.territoryPath = this.rutaActiva.snapshot.url.join('/');;
     this.nameTitleTerritory = this.territoryPath === "mariaTeresa" ? "María Teresa" : "Christophersen";
     this.loadingData = false;

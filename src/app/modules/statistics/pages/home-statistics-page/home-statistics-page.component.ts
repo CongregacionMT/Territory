@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -14,6 +14,9 @@ import { RouterLink } from '@angular/router';
     imports: [BreadcrumbComponent, CardXlComponent, RouterLink]
 })
 export class HomeStatisticsPageComponent implements OnInit {
+  private territorieDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+
   private readonly KEY_NAME_MT = 'statisticDataMT';
   private readonly KEY_NAME_CH = 'statisticDataCH';
   routerBreadcrum: any = [];
@@ -21,10 +24,10 @@ export class HomeStatisticsPageComponent implements OnInit {
   territoryNumberOfLocalStorage: TerritoriesNumberData =
     {} as TerritoriesNumberData;
   appleCount: any;
-  constructor(
-    private territorieDataService: TerritoryDataService,
-    private spinner: SpinnerService
-  ) {}
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {}
   ngOnInit(): void {
     let timeElapsed = 0;
     this.spinner.cargarSpinner();

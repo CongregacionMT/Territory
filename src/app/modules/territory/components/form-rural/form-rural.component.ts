@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DataRural } from '@core/models/DataRural';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -11,14 +11,17 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
     imports: [ReactiveFormsModule]
 })
 export class FormRuralComponent implements OnInit {
+  private spinner = inject(SpinnerService);
+  private territorieDataService = inject(TerritoryDataService);
+  private fb = inject(FormBuilder);
+
 
   formRoad: FormGroup;
   @Input() editionForm: DataRural | undefined;
-  constructor(
-    private spinner: SpinnerService,
-    private territorieDataService: TerritoryDataService,
-    private fb: FormBuilder
-  ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     this.formRoad = this.fb.group({
       title: new FormControl("", [Validators.required]),
       distance: new FormControl("", [Validators.required]),

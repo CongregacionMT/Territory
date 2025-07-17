@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CartData, CartLocation } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -13,16 +13,21 @@ import { FormEditCartComponent } from '../../components/form-edit-cart/form-edit
     imports: [FormEditCartComponent]
 })
 export class CartEditPageComponent implements OnInit {
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private cartDataService = inject(CartDataService);
+  private spinner = inject(SpinnerService);
+
   dataLoaded: boolean = false;
   routerBreadcrum: any = [];
   formCartData: CartData[] = [] as CartData[];
   formLocationsData: CartLocation[] = [] as CartLocation[];
 
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private cartDataService: CartDataService,
-    private spinner: SpinnerService,
-  ){
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+
+  constructor(){
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
   }
 

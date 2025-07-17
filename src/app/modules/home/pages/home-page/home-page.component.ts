@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
@@ -13,13 +13,23 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
     imports: [RouterLink]
 })
 export class HomePageComponent implements OnInit {
+  private router = inject(Router);
+  private swUpdate = inject(SwUpdate);
+  private spinner = inject(SpinnerService);
+  private territorieDataService = inject(TerritoryDataService);
+  private messagingService = inject(MessagingService);
+  private _snackBar = inject(MatSnackBar);
+
   isAdmin: boolean = false;
   isDriver: boolean = false;
   btnLogin: boolean = false;
   btnPWA: boolean = true;
   deferredPrompt: any;
   nameDriver: string = '';
-  constructor(private router: Router, private swUpdate: SwUpdate, private spinner: SpinnerService, private territorieDataService: TerritoryDataService, private messagingService:MessagingService, private _snackBar: MatSnackBar,) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     if(this.swUpdate.isEnabled){
       this.swUpdate.checkForUpdate().then(() => {
         this.swUpdate.activateUpdate().then(() => {

@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -12,6 +12,11 @@ import { NgClass } from '@angular/common';
     imports: [ReactiveFormsModule, NgClass]
 })
 export class LoginPageComponent {
+  private router = inject(Router);
+  private fb = inject(FormBuilder);
+  private territoryDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+
 
   @ViewChild('errorMessage', {static: false}) errorMessage: any;
 
@@ -19,12 +24,10 @@ export class LoginPageComponent {
   user = "";
   password = "";
   passwordVisible: boolean = true;
-  constructor(
-    private router: Router,
-    private fb: FormBuilder,
-    private territoryDataService: TerritoryDataService,
-    private spinner: SpinnerService
-  ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     this.formLogin = this.fb.group({
       user: new FormControl('', [Validators.required]),
       password: new FormControl('', [Validators.required])

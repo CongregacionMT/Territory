@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure } from '../../../../core/models/Departures';
@@ -12,6 +12,11 @@ import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snac
     imports: [ReactiveFormsModule]
 })
 export class FormEditDeparturesComponent implements OnInit{
+  private territoryDataService = inject(TerritoryDataService);
+  private fb = inject(FormBuilder);
+  private spinner = inject(SpinnerService);
+  private _snackBar = inject(MatSnackBar);
+
   numberGroup: number = 0;
   formDeparture: FormGroup;
   selectedColor: string = 'primary';
@@ -19,12 +24,10 @@ export class FormEditDeparturesComponent implements OnInit{
   groupedDepartures: { [key: string]: Departure[] } = {};
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   @Input() formDepartureDataInput: Departure[] = [] as Departure[];
-  constructor(
-    private territoryDataService: TerritoryDataService,
-    private fb: FormBuilder,
-    private spinner: SpinnerService,
-    private _snackBar: MatSnackBar,
-  ){
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor(){
     this.formDeparture = this.fb.group({
       departure0: new FormArray([])
     });

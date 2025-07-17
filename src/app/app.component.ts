@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MessagingService } from '@core/services/messaging.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { RouterOutlet } from '@angular/router';
@@ -10,12 +10,15 @@ import { RouterOutlet } from '@angular/router';
     imports: [RouterOutlet]
 })
 export class AppComponent implements OnInit{
+  private spinner = inject(SpinnerService);
+  private messagingService = inject(MessagingService);
+
   isLoading$: boolean = false;
 
-  constructor(
-    private spinner: SpinnerService,
-    private messagingService:MessagingService,
-  ) {}
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+
+  constructor() {}
 
   ngOnInit(): void{
     this.spinner.getSpinner$().subscribe(spinner => {

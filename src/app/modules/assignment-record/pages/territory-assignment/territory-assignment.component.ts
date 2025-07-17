@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, DOCUMENT } from '@angular/core';
+import { Component, OnInit, DOCUMENT, inject } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
@@ -20,6 +20,14 @@ import { DatePipe } from '@angular/common';
     imports: [BreadcrumbComponent, ReactiveFormsModule, FormsModule, CardSComponent, RouterLink, DatePipe]
 })
 export class TerritoryAssignmentComponent implements OnInit{
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private territoryDataService = inject(TerritoryDataService);
+  private territorieDataService = inject(TerritoryDataService);
+  private http = inject(HttpClient);
+  private spinner = inject(SpinnerService);
+  private rutaActiva = inject(ActivatedRoute);
+  private document = inject<Document>(DOCUMENT);
+
   routerBreadcrum: any = [];
   territoryPath: any;
   territoriesNumber: TerritoryNumberData[] = [];
@@ -29,15 +37,10 @@ export class TerritoryAssignmentComponent implements OnInit{
   appleCount: any;
   s13JPG: any;
   loadingData: boolean = false;
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoryDataService: TerritoryDataService,
-    private territorieDataService: TerritoryDataService,
-    private http: HttpClient,
-    private spinner: SpinnerService,
-    private rutaActiva: ActivatedRoute,
-    @Inject(DOCUMENT) private document: Document
-  ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     this.territoryPath = this.rutaActiva.snapshot.url.join('/');
     this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum = this.routerBreadcrum[3];

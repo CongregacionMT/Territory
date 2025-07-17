@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { TerritoryDataService } from '../../../core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -20,6 +20,11 @@ interface User {
 })
 
 export class UsersPageComponent {
+  private territoryDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+  private fb = inject(FormBuilder);
+  private _snackBar = inject(MatSnackBar);
+
 
   @ViewChild('errorMessage', {static: false}) errorMessage: any;
 
@@ -29,12 +34,10 @@ export class UsersPageComponent {
   user = null;
   password = null;
   rol = 'conductor';
-  constructor(
-    private territoryDataService: TerritoryDataService,
-    private spinner: SpinnerService,
-    private fb: FormBuilder,
-    private _snackBar: MatSnackBar,
-  ){
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor(){
     this.spinner.cargarSpinner();
     this.formUser = this.fb.group({
       user: new FormControl(null, [Validators.required]),

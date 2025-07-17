@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { CartData, CartDataArray } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
@@ -15,15 +15,20 @@ import { RouterLink } from '@angular/router';
     imports: [BreadcrumbComponent, TableCartAssignmentComponent, RouterLink]
 })
 export class CartPageComponent implements OnInit{
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private cartDataService = inject(CartDataService);
+  private fb = inject(FormBuilder);
+  private spinner = inject(SpinnerService);
+
   isAdmin: boolean = false;
   routerBreadcrum: any = [];
   cartData$: CartData[] = [];
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private cartDataService: CartDataService,
-    private fb: FormBuilder,
-    private spinner: SpinnerService,
-  ){
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor(){
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     localStorage.getItem('tokenAdmin') ? this.isAdmin = true : this.isAdmin = false;

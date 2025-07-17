@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { Departure } from '@core/models/Departures';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -9,10 +9,15 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
     imports: [RouterLink]
 })
 export class TableDeparturesComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+
   @Input() dateDeparture: any;
   @Input() departures: Departure[] = [] as Departure[];
   currentPath: number = 0;
-  constructor(private route: ActivatedRoute) { }
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() { }
 
   ngOnInit(): void {
     let pathURL = this.route.snapshot.url.pop()?.path || 0;

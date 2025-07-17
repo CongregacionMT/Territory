@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { CardService } from '@core/services/card.service';
@@ -17,18 +17,23 @@ import { CardSComponent } from '../../../../shared/components/card-s/card-s.comp
     imports: [BreadcrumbComponent, CardXlComponent, RouterLink, CardSComponent]
 })
 export class TerritoryPageComponent implements OnInit {
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private territorieDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+  cardService = inject(CardService);
+
   routerBreadcrum: any = [];
   territorioMaps: CardButtonsData[] = [];
   territoriesMT: TerritoryNumberData[] = [];
   territoriesC: TerritoryNumberData[] = [];
   isAdmin: boolean = false;
   isDriver: boolean = false;
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territorieDataService: TerritoryDataService,
-    private spinner: SpinnerService,
-    public cardService: CardService
-  ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
   }
 

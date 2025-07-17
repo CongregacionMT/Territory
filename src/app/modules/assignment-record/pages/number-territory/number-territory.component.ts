@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -16,6 +16,12 @@ import { DatePipe } from '@angular/common';
     imports: [BreadcrumbComponent, DataTablesModule, DatePipe]
 })
 export class NumberTerritoryComponent implements OnInit {
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private activatedRoute = inject(ActivatedRoute);
+  private territorieDataService = inject(TerritoryDataService);
+  private router = inject(Router);
+  private spinner = inject(SpinnerService);
+
   routerBreadcrum: any = [];
   path: any;
   dataList: any[] = [];
@@ -24,13 +30,12 @@ export class NumberTerritoryComponent implements OnInit {
   numberTerritory: number = 0;
   appleCount: any;
   cardSubscription: Subscription;
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private activatedRoute: ActivatedRoute,
-    private territorieDataService: TerritoryDataService,
-    private router: Router,
-    private spinner: SpinnerService
-    ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
+      const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
       this.spinner.cargarSpinner();
       this.cardSubscription = Subscription.EMPTY;
       this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();

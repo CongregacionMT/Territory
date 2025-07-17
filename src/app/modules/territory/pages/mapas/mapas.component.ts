@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, LOCALE_ID } from '@angular/core';
+import { Component, OnInit, ViewChild, LOCALE_ID, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DataRural } from '@core/models/DataRural';
@@ -20,13 +20,23 @@ import { ModalFormRuralComponent as ModalFormRuralComponent_1 } from '../../comp
     imports: [ModalFormRuralComponent_1, DatePipe]
 })
 export class MapasComponent implements OnInit {
+  private activatedRoute = inject(ActivatedRoute);
+  private domSanitizer = inject(DomSanitizer);
+  private territoriyDataService = inject(TerritoryDataService);
+  private fb = inject(FormBuilder);
+  private territorieDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+
   isAdmin: boolean = false;
   mapa: any;
   class: string = 'map-responsive';
   showRural: boolean = false;
   dataRural: DataRural[] = [];
   @ViewChild(ModalFormRuralComponent) modalFormRuralComponent: ModalFormRuralComponent | undefined;
-  constructor(private activatedRoute: ActivatedRoute, private domSanitizer: DomSanitizer, private territoriyDataService: TerritoryDataService, private fb: FormBuilder, private territorieDataService: TerritoryDataService, private spinner: SpinnerService) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     registerLocaleData(localeEs);
   }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc, docData, where, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -9,9 +9,16 @@ import { DataRural } from '@core/models/DataRural';
   providedIn: 'root'
 })
 export class TerritoryDataService {
+  private firestore = inject(Firestore);
+  private router = inject(Router);
+  private spinner = inject(SpinnerService);
+
   diferent: boolean = false;
   countFalseApples: number = 0;
-  constructor(private firestore: Firestore, private router: Router, private spinner: SpinnerService) { }
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() { }
 
   // MAPAS
   getMaps(){

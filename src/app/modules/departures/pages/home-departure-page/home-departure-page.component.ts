@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -14,16 +14,21 @@ import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.c
     imports: [BreadcrumbComponent, CardXlComponent, RouterLink]
 })
 export class HomeDeparturePageComponent implements OnInit{
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private territoryDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+  private router = inject(Router);
+
   isAdmin: boolean = false;
   routerBreadcrum: any = [];
   groupedDepartures: { [key: string]: Departure[] } = {};
   groupKeys: any[] = [];
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoryDataService: TerritoryDataService,
-    private spinner: SpinnerService,
-    private router: Router,
-  ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     localStorage.getItem('tokenAdmin') ? this.isAdmin = true : this.isAdmin = false;
   }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { CartData, CartLocation } from '@core/models/Cart';
@@ -11,6 +11,10 @@ import { CartDataService } from '@core/services/cart-data.service';
     imports: [ReactiveFormsModule]
 })
 export class FormEditCartComponent implements OnInit {
+  private cartDataService = inject(CartDataService);
+  private fb = inject(FormBuilder);
+  private _snackBar = inject(MatSnackBar);
+
   formCart: FormGroup;
   formLocations: FormGroup;
   locations: CartLocation[] = [];
@@ -19,11 +23,10 @@ export class FormEditCartComponent implements OnInit {
   @Input() formCartDataInput: CartData[] = [] as CartData[];
   @Input() formLocationsDataInput: CartLocation[] = [] as CartLocation[];
 
-  constructor(
-    private cartDataService: CartDataService,
-    private fb: FormBuilder,
-    private _snackBar: MatSnackBar
-  ) {
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+
+  constructor() {
     this.formCart = this.fb.group({
       cart: this.fb.array([]),
     });

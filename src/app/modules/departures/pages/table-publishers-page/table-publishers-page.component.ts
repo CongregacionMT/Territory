@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { SpinnerService } from '@core/services/spinner.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { TerritoryDataService } from '../../../../core/services/territory-data.service';
@@ -12,13 +12,18 @@ import { NgClass } from '@angular/common';
     imports: [BreadcrumbComponent, NgClass]
 })
 export class TablePublishersPageComponent implements OnInit {
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private territoriyDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+
   routerBreadcrum: any = [];
   groupList: any[] = [];
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoriyDataService: TerritoryDataService,
-    private spinner: SpinnerService,
-  ){
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor(){
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -15,18 +15,23 @@ import { TableDeparturesComponent } from '../../../../shared/components/table-de
     imports: [BreadcrumbComponent, TableDeparturesComponent, RouterLink]
 })
 export class DeparturePageComponent implements OnInit {
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private territoryDataService = inject(TerritoryDataService);
+  private fb = inject(FormBuilder);
+  private spinner = inject(SpinnerService);
+  private rutaActiva = inject(ActivatedRoute);
+
   routerBreadcrum: any = [];
   numberGroup: any = "0";
   titleGroup: string = "";
   dateDeparture: any = new FormControl("");
   departures$: Departure[] = [];
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoryDataService: TerritoryDataService,
-    private fb: FormBuilder,
-    private spinner: SpinnerService,
-    private rutaActiva: ActivatedRoute,
-  ){
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor(){
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     this.numberGroup = this.rutaActiva.snapshot.params;

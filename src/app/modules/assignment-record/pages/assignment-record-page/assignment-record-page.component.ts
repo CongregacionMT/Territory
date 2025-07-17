@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Card } from '@core/models/Card';
 import { CardService } from '@core/services/card.service';
@@ -18,6 +18,13 @@ import { DatePipe } from '@angular/common';
     imports: [BreadcrumbComponent, CardXlComponent, RouterLink, ReactiveFormsModule, DatePipe]
 })
 export class AssignmentRecordPageComponent implements OnInit {
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private territorieDataService = inject(TerritoryDataService);
+  private cardService = inject(CardService);
+  private router = inject(Router);
+  private spinner = inject(SpinnerService);
+  private fb = inject(FormBuilder);
+
   routerBreadcrum: any = [];
   territorioMaps: any = [];
   allCardsReceived: any = [];
@@ -26,14 +33,12 @@ export class AssignmentRecordPageComponent implements OnInit {
   formCard: FormGroup;
   territoryNumberOfLocalStorage: TerritoriesNumberData = {} as TerritoriesNumberData;
   appleCount: any;
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territorieDataService: TerritoryDataService,
-    private cardService: CardService,
-    private router: Router,
-    private spinner: SpinnerService,
-    private fb: FormBuilder,
-  ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     // get tarjetas asignadas esta semana

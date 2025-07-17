@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
@@ -19,6 +19,15 @@ import { ModalComponent as ModalComponent_1 } from '../../../../shared/component
     imports: [BreadcrumbComponent, ReactiveFormsModule, FocusInvalidInputDirective, RouterLink, ModalComponent_1]
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private fb = inject(FormBuilder);
+  private domSanitizer = inject(DomSanitizer);
+  private territorieDataService = inject(TerritoryDataService);
+  private cardService = inject(CardService);
+  private activatedRoute = inject(ActivatedRoute);
+  private spinner = inject(SpinnerService);
+  private router = inject(Router);
+
   card: any = {
     id: "",
     location: 'Maria Teresa',
@@ -44,16 +53,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   countTrueApples: number = 0;
   countFalseApples: number = 0;
   @ViewChild(ModalComponent) modalComponent: any;
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private fb: FormBuilder,
-    private domSanitizer: DomSanitizer,
-    private territorieDataService: TerritoryDataService,
-    private cardService: CardService,
-    private activatedRoute: ActivatedRoute,
-    private spinner: SpinnerService,
-    private router: Router
-    ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     this.spinner.cargarSpinner();
     this.cardSubscription = Subscription.EMPTY;
     this.formCard = this.fb.group({
