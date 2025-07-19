@@ -16,24 +16,10 @@
   @if (isAdmin || isDriver) {
     <div>
       <div class="d-flex justify-content-center">
-        <h2 class="my-2 text-center">Territorios de María Teresa por Número</h2>
+        <h2 class="my-2 text-center">Territorios de Wheelwright por Número</h2>
       </div>
       <div class="card-s-container">
-        @for (item of territoriesMT; track item) {
-          <app-card-s
-            terrNumber="{{ item.territorio }}"
-            [routerLink]="item.collection"
-            (click)="this.cardService.rollbackCard()"
-            >
-          </app-card-s>
-        }
-      </div>
-      <hr />
-      <div class="d-flex justify-content-center">
-        <h2 class="my-2 text-center">Territorios de Christophersen por Número</h2>
-      </div>
-      <div class="card-s-container">
-        @for (item of territoriesC; track item) {
+        @for (item of territoriesW; track item) {
           <app-card-s
             terrNumber="{{ item.territorio }}"
             [routerLink]="item.collection"

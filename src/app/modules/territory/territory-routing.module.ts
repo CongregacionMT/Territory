@@ -10,8 +10,7 @@ const routes: Routes = [
     path: '',
     children: [
       { path: '', component: TerritoryPageComponent},
-      { path: 'mariaTeresa', component: MapasComponent},
-      { path: 'christophersen', component: MapasComponent},
+      { path: 'wheelwright', component: MapasComponent},
       { path: 'rural', component: MapasComponent},
       { path: ':collection', component: CardTerritoryComponent},
       { path: ':collection', component: CardTerritoryComponent},

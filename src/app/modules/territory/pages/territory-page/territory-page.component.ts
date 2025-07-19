@@ -24,8 +24,7 @@ export class TerritoryPageComponent implements OnInit {
 
   routerBreadcrum: any = [];
   territorioMaps: CardButtonsData[] = [];
-  territoriesMT: TerritoryNumberData[] = [];
-  territoriesC: TerritoryNumberData[] = [];
+  territoriesW: TerritoryNumberData[] = [];
   isAdmin: boolean = false;
   isDriver: boolean = false;
 
@@ -56,11 +55,10 @@ export class TerritoryPageComponent implements OnInit {
       const storedTerritorioMaps = sessionStorage.getItem("territorioMaps");
       this.territorioMaps = storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [];
     }
-    
+
     const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
     const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
 
-    this.territoriesMT = numberTerritory.mariaTeresa;
-    this.territoriesC = numberTerritory.christophersen;
+    this.territoriesW = numberTerritory.wheelwright;
   }
 }

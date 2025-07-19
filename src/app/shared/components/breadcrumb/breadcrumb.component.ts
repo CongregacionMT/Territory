@@ -14,10 +14,10 @@ export class BreadcrumbComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    
-    this.ultimateElement = this.routerBreadcrum()[this.routerBreadcrum().length - 1].route;
-    this.routerBreadcrum().pop()
-    
+    const breadcrumArr = this.routerBreadcrum();
+    if (breadcrumArr && breadcrumArr.length > 0) {
+      this.ultimateElement = breadcrumArr[breadcrumArr.length - 1].route;
+      breadcrumArr.pop();
+    }
   }
-
 }
