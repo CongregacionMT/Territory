@@ -1,4 +1,4 @@
-import { Component, OnInit, DOCUMENT, inject } from '@angular/core';
+import { Component, OnInit, DOCUMENT, inject, signal } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
@@ -36,7 +36,7 @@ export class TerritoryAssignmentComponent implements OnInit{
   selectedValueFilter: string = '1';
   appleCount: any;
   s13JPG: any;
-  loadingData: boolean = false;
+  loadingData = signal(false);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -55,7 +55,7 @@ export class TerritoryAssignmentComponent implements OnInit{
       const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
       this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];
       this.dataListFull.length !== 0 ? this.sortByDate('1') : [];
-      this.loadingData = true;
+      this.loadingData.set(true);
     }
     // Busco el PDF original para modificarlo
     const httpOptions = {

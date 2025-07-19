@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { MessagingService } from '@core/services/messaging.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { RouterOutlet } from '@angular/router';
@@ -13,7 +13,7 @@ export class AppComponent implements OnInit{
   private spinner = inject(SpinnerService);
   private messagingService = inject(MessagingService);
 
-  isLoading$: boolean = false;
+  isLoading$ = signal(false);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -22,7 +22,7 @@ export class AppComponent implements OnInit{
 
   ngOnInit(): void{
     this.spinner.getSpinner$().subscribe(spinner => {
-      this.isLoading$ = spinner;
+      this.isLoading$.set(spinner);
     })
     this.messagingService.requestPermission()
       .then((token) => {
@@ -34,3 +34,4 @@ export class AppComponent implements OnInit{
     this.messagingService.receiveMessages();
   }
 }
+

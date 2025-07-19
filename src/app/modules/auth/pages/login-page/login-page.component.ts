@@ -1,4 +1,4 @@
-import { Component, inject, viewChild } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -23,7 +23,7 @@ export class LoginPageComponent {
   formLogin: FormGroup;
   user = "";
   password = "";
-  passwordVisible: boolean = true;
+  passwordVisible = signal(false);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -59,7 +59,7 @@ export class LoginPageComponent {
     })
   }
   togglePasswordVisibility(): void {
-    this.passwordVisible = !this.passwordVisible;
+    this.passwordVisible.set(!this.passwordVisible())
   }
   get User(){return this.formLogin.get('user');}
   get Password(){return this.formLogin.get('password');}

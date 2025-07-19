@@ -33,7 +33,7 @@
             <label for="exampleInputPassword1">Contraseña</label>
             <div class="input-group">
               <input
-                [type]="passwordVisible ? 'text' : 'password'"
+                [type]="passwordVisible()? 'text' : 'password'"
                 class="form-control bg-dark text-white me-2"
                 id="password-input"
                 placeholder="Escribe tu contraseña"
@@ -41,7 +41,7 @@
                 />
                 <div class="input-group-append">
                   <button class="btn btn-outline-secondary" type="button" (click)="togglePasswordVisibility()">
-                    <i [ngClass]="passwordVisible ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
+                    <i [ngClass]="passwordVisible()? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
                   </button>
                 </div>
               </div>
