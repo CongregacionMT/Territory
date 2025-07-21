@@ -58,13 +58,13 @@ export class TerritoryDataService {
         this.countFalseApples+=1;
       }
     });
+    card.completed+=1
+    card.creation = Timestamp.now()
     if(this.countFalseApples === 0){
       addDoc(cardRef, card);
       card.applesData.map((apple: any) => {
         apple.checked = false;
       });
-      card.completed+=1
-      card.creation = Timestamp.now()
       addDoc(cardRef, card);
       this.router.navigate(['home']);
       this.spinner.cerrarSpinner()
