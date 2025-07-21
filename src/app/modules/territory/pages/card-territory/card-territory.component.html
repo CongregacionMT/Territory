@@ -1,32 +1,32 @@
 <div class="container-fluid header pt-1">
-  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum()"></app-breadcrumb>
   <h1 class="text-center pb-4">Tarjeta del mapa del territorio</h1>
 </div>
 <div class="container">
-  @if (card.revision) {
+  @if (card().revision) {
     <h4 class="text-center text-danger">(Revisión de la tarjeta)</h4>
   }
   <div class="d-flex flex-column align-items-center my-4">
     <div class="">
       <h3>
-        Localidad:&nbsp;&nbsp;<i>{{ card.location }}</i>
+        Localidad:&nbsp;&nbsp;<i>{{ card().location }}</i>
       </h3>
     </div>
     <div class="">
       <h3>
-        Territorio:&nbsp;&nbsp;<i>N°&nbsp;{{ card.numberTerritory }}</i>
+        Territorio:&nbsp;&nbsp;<i>N°&nbsp;{{ card().numberTerritory }}</i>
       </h3>
     </div>
   </div>
   <div
     class="d-flex justify-content-center"
-    [innerHTML]="iframe"
+    [innerHTML]="iframe()"
   ></div>
   <div class="d-flex justify-content-center">
     @if(dataLoaded()){
       <form
         appFocusInvalidInput
-        [formGroup]="formCard"
+        [formGroup]="formCard()"
         (ngSubmit)="submitForm()"
         class="d-flex flex-column"
         class="my-4 form-card"
@@ -40,7 +40,7 @@
           formControlName="driver"
           />
           <!-- Error  -->
-          @if (driverError) {
+          @if (driverError()) {
             <div
               class="alert alert-danger mt-3"
               role="alert"
@@ -54,7 +54,7 @@
               <label class="fs-3 fw-bold">Manzanas completadas</label>
             </div>
             <div class="d-flex justify-content-around flex-wrap">
-              @for (apple of card.applesData; track i; let i = $index) {
+              @for (apple of card().applesData; track i; let i = $index) {
                 <div>
                   <div class="form-check form-check-inline my-2">
                     <input
@@ -99,7 +99,7 @@
                       </div>
                     </div>
                     <!-- Error  -->
-                    @if (startError) {
+                    @if (startError()) {
                       <div
                         class="alert alert-danger mt-3"
                         role="alert"
@@ -110,7 +110,7 @@
                         </div>
                       </div>
                     }
-                    @if (endError) {
+                    @if (endError()) {
                       <div
                         class="alert alert-danger mt-3"
                         role="alert"
@@ -124,7 +124,7 @@
                     <div class="d-flex justify-content-center mt-4">
                       <textarea
                         name="comments"
-                        [value]="card.comments"
+                        [value]="card().comments"
                         class="form-control"
                         id="comments"
                         cols="150"
