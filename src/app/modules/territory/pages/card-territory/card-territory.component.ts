@@ -29,7 +29,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   private spinner = inject(SpinnerService);
   private router = inject(Router);
 
-  // Signals para el estado del componente
   card = signal<any>({
     id: "",
     location: 'Wheelwright',
@@ -57,10 +56,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   countFalseApples = signal<number>(0);
   dataLoaded = signal<boolean>(false);
 
-  // ViewChild signal (ya estaba usando signal)
   readonly modalComponent = viewChild(ModalComponent);
 
-  // Computed signals para valores derivados
   isRevisionMode = computed(() => this.card().revision === true);
   hasValidDriver = computed(() => this.formCard().get('driver')?.valid ?? false);
   hasValidStart = computed(() => this.formCard().get('start')?.valid ?? false);
@@ -69,7 +66,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.card().applesData?.filter((apple: any) => apple.checked)?.length ?? 0
   );
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {
     this.spinner.cargarSpinner();
@@ -159,13 +155,9 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log("card", this.card());
-
-    // Breadcrum
     const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum.set(breadcrumData[9]);
 
-    // Carga de mapas optimizada
     const collection = this.activatedRoute.snapshot.params['collection'];
     const mapConfig = this.getMapConfig();
     const mapHtml = mapConfig[collection];
@@ -267,9 +259,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
     const currentCard = this.card();
 
-    // Comparar si estoy revisando o no
-    console.log("estoy revisando la tarjeta", currentCard);
-    console.log("link", currentCard.link);
     if(currentCard.revision === true){
       this.territorieDataService.postCardTerritorie(currentCard, currentCard.link)
       ?.then(() => {
