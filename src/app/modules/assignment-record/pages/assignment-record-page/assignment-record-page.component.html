@@ -1,7 +1,7 @@
 <div class="container">
-  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum()"></app-breadcrumb>
   <div class="card-container">
-    @for (terr of territorioMaps; track terr) {
+    @for (terr of territorioMaps(); track terr) {
       <app-card-xl
         mapSRC="{{ terr.src }}"
         mapName="{{ terr.name }}"
@@ -14,7 +14,7 @@
 
   <h1 class="text-center">Territorios entregados esta semana</h1>
   <div class="d-flex justify-content-center flex-wrap">
-    @for (card of allCardsAssigned; track card) {
+    @for (card of allCardsAssigned(); track card) {
       <div class="card-s-container">
         <div class="card" style="width: auto">
           <div class="card-body d-flex flex-column text-dark pb-0">
@@ -56,7 +56,7 @@
 
   <h1 class="text-center">Revisión de tarjetas recibidas</h1>
   <div class="d-flex justify-content-center flex-wrap">
-    @for (card of allCardsReceived; track card) {
+    @for (card of allCardsReceived(); track card) {
       <div class="card-s-container">
         <div class="card" style="width: auto">
           <div
@@ -105,7 +105,7 @@
           ></button>
         </div>
         <div class="modal-body">
-          <form [formGroup]="formCard" (ngSubmit)="postCardAssigned()">
+          <form [formGroup]="formCard()" (ngSubmit)="postCardAssigned()">
             <div class="d-flex align-items-center">
               <h4 class="text-dark">🔸Localidad:</h4>
               <select class="form-select ms-2" formControlName="location">
@@ -145,7 +145,7 @@
                 type="submit"
                 class="btn btn-primary"
                 data-bs-dismiss="modal"
-                [disabled]="formCard.invalid"
+                [disabled]="formCard().invalid"
                 >
                 Crear tarjeta
               </button>
@@ -176,32 +176,34 @@
             aria-label="Close"
           ></button>
         </div>
-        <div class="modal-body">
-          <div class="d-flex align-items-center">
-            <h4 class="text-dark">🔸Localidad:</h4>
-            <p class="text-dark fs-4 mb-2 ps-2">
-              {{ cardConfirmation.location }}
-            </p>
+        @if(cardConfirmation()){
+          <div class="modal-body">
+            <div class="d-flex align-items-center">
+              <h4 class="text-dark">🔸Localidad:</h4>
+              <p class="text-dark fs-4 mb-2 ps-2">
+                {{ cardConfirmation().location }}
+              </p>
+            </div>
+            <div class="d-flex align-items-center">
+              <h4 class="text-dark">🔸Conductor:</h4>
+              <p class="text-dark fs-4 mb-2 ps-2">
+                {{ cardConfirmation().driver }}
+              </p>
+            </div>
+            <div class="d-flex align-items-center">
+              <h4 class="text-dark">🔸Territorio:</h4>
+              <p class="text-dark fs-4 mb-2 ps-2">
+                N°{{ cardConfirmation().numberTerritory }}
+              </p>
+            </div>
+            <div class="d-flex align-items-center">
+              <h4 class="text-dark">🔸Fecha:</h4>
+              <p class="text-dark fs-4 mb-2 ps-2">
+                {{ cardConfirmation().start ? (cardConfirmation().start | date: "dd-MM-yyyy") : '-' }}
+              </p>
+            </div>
           </div>
-          <div class="d-flex align-items-center">
-            <h4 class="text-dark">🔸Conductor:</h4>
-            <p class="text-dark fs-4 mb-2 ps-2">
-              {{ cardConfirmation.driver }}
-            </p>
-          </div>
-          <div class="d-flex align-items-center">
-            <h4 class="text-dark">🔸Territorio:</h4>
-            <p class="text-dark fs-4 mb-2 ps-2">
-              N°{{ cardConfirmation.numberTerritory }}
-            </p>
-          </div>
-          <div class="d-flex align-items-center">
-            <h4 class="text-dark">🔸Fecha:</h4>
-            <p class="text-dark fs-4 mb-2 ps-2">
-              {{ cardConfirmation.start | date: "dd-MM-yyyy" }}
-            </p>
-          </div>
-        </div>
+        }
         <div class="modal-footer">
           <button
             type="button"
