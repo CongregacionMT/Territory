@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
@@ -38,7 +38,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     link: '',
     comments: '',
     creation: '',
-    applesData: [{name:'', checked: false}],
+    applesData: [], // <-- Cambia esto
     revision: false,
     revisionComplete: false
   }
@@ -53,6 +53,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   countTrueApples: number = 0;
   countFalseApples: number = 0;
   readonly modalComponent = viewChild(ModalComponent);
+  dataLoaded = signal(false);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -86,8 +87,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
         next: card => {
           this.card = card[0];
           this.countTrueApples = 0;
+          // Limpia el FormArray antes de llenarlo
+          const applesData: FormArray = this.formCard.get('applesData') as FormArray;
+          applesData.clear();
           this.card.applesData.map((apple: any) => {
-            const applesData: FormArray = this.formCard.get('applesData') as FormArray;
             applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
             if(apple.checked === true){
               this.countTrueApples+=1;
@@ -97,6 +100,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
             this.formCard.patchValue({start: this.card.start});
           }
           this.countTrueApples=0;
+          this.dataLoaded.set(true);
           this.spinner.cerrarSpinner();
         }
       })
@@ -108,46 +112,44 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum = this.routerBreadcrum[9];
     // Carga de mapas para Wheelwright
-    if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-1"){
+    if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-1"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1GOPjTgnhJgIJWBGZhvgc2eLcCnDkPS8&ehbc=2E312F" width="640" height="480" ></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-2"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-2"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=19aieXhqwTtRITjYep-bbz-eUHSiSevI&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-3"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-3"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=171gUWLdZm7IztqqimwF36j4Io86M6gY&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-4"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-4"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1kz4uJcy5eHHDJ2TEpa2qtQtr8adePVA&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-5"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-5"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1Empajc3TYA8cap0GQCfJjVQWgRe61FI&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-6"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-6"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1Syw58HcGT8bHqbblHjVxrgwiVDf7Y94&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-7"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-7"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1QeU9b0mYYzwl_JtHsXbbKyPLTLBh5rA&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-8"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-8"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=18FI1y5REupNlof33G0E_r4BjPoOYav4&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-9"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-9"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=19pecMpvGkGLA1K96X-lXgqMQpMqDXfo&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-10"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-10"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1Pd7I2FEdWn1fYYrpfU54hQTw6Fq3I-Q&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-11"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-11"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1ci-JKShrktVmKUob0Cd8C1gGIxfxZZY&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-12"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-12"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1CJoVzTewC4FJoy-xenubfUnKF567Oc8&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-13"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-13"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1HrURCAjWnd_Ja6GgY9BKalm0KsLQf24&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-14"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-14"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1VJPf3qsKrlcvZ3dYI7TxDdc7MTg-7cg&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-15"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-15"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=14UEzpZQY3EEeIUp1uYBmsfPDzoBTPUg&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-16"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-16"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1g9ON_q6_cUL-E79iV279EkGBaoTbzb0&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-17"){
+    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioW-17"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1C7zcRXsMBUHUaMHEVcUcTM4tplXiQHc&ehbc=2E312F" width="640" height="480"></iframe>')
     }
     // Carga de mapas para Rural
-    if(this.activatedRoute.snapshot.params['collection'] === "TerritorioC-1"){
+    if(this.activatedRoute.snapshot.params['collection'] === "TerritorioR"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=10pgOS5R4I6tfnimIe5AXFyvh3JLDiWA&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioC-2"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1lyGjwbGkuso-wkFednS3cTMgFqL7tLQ&ehbc=2E312F" width="640" height="480"></iframe>')
     }
   }
 
@@ -219,7 +221,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.driverError = false;
     this.startError = false;
     this.endError = false;
-
     this.spinner.cargarSpinner();
     this.fillCard();
     // Comparar si estoy revisando o no
