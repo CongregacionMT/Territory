@@ -25,7 +25,6 @@ export class HomeStatisticsPageComponent implements OnInit {
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
   appleCount = signal<any>(null);
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {}
   ngOnInit(): void {
@@ -54,7 +53,6 @@ export class HomeStatisticsPageComponent implements OnInit {
         JSON.parse(sessionStorage.getItem('numberTerritory') as string)
       );
 
-      // Inicializar el array de estadísticas una sola vez
       const initialStatisticData: any[] = [];
       let processedTerritories = 0;
       const totalTerritories = this.territoryNumberOfLocalStorage().wheelwright.length;
@@ -73,12 +71,9 @@ export class HomeStatisticsPageComponent implements OnInit {
                 card.splice(index, 1);
               }
             });
-
-            // Agregar el card al array temporal
             initialStatisticData.push(card);
             processedTerritories++;
 
-            // Cuando se hayan procesado todos los territorios, guardar una sola vez
             if (processedTerritories === totalTerritories) {
               sessionStorage.setItem(this.KEY_NAME_W, JSON.stringify(initialStatisticData));
             }
