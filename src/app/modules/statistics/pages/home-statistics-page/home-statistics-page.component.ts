@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -19,11 +19,11 @@ export class HomeStatisticsPageComponent implements OnInit {
 
   private readonly KEY_NAME_W = 'statisticDataW';
   private readonly KEY_NAME_R = 'statisticDataR';
-  routerBreadcrum: any = [];
-  CardButtonsStatistics: CardButtonsData[] = [];
-  territoryNumberOfLocalStorage: TerritoriesNumberData =
-    {} as TerritoriesNumberData;
-  appleCount: any;
+
+  routerBreadcrum = signal<any>([]);
+  CardButtonsStatistics = signal<CardButtonsData[]>([]);
+  territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
+  appleCount = signal<any>(null);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -41,76 +41,75 @@ export class HomeStatisticsPageComponent implements OnInit {
       }
       timeElapsed += 1;
     }, 300);
-    const storedTerritorioStatistics = sessionStorage.getItem(
-      'territorioStatistics'
-    );
+    const storedTerritorioStatistics = sessionStorage.getItem('territorioStatistics');
     const numberTerritory = storedTerritorioStatistics
       ? JSON.parse(storedTerritorioStatistics)
       : [];
-    this.CardButtonsStatistics = numberTerritory.territorio;
+    this.CardButtonsStatistics.set(numberTerritory.territorio);
     if (
       !sessionStorage.getItem(this.KEY_NAME_W) ||
       !sessionStorage.getItem(this.KEY_NAME_R)
     ) {
-      this.territoryNumberOfLocalStorage = JSON.parse(
-        sessionStorage.getItem('numberTerritory') as string
+      this.territoryNumberOfLocalStorage.set(
+        JSON.parse(sessionStorage.getItem('numberTerritory') as string)
       );
-      this.territoryNumberOfLocalStorage.wheelwright.map((territory) => {
+
+      // Inicializar el array de estadísticas una sola vez
+      const initialStatisticData: any[] = [];
+      let processedTerritories = 0;
+      const totalTerritories = this.territoryNumberOfLocalStorage().wheelwright.length;
+      this.territoryNumberOfLocalStorage().wheelwright.map((territory) => {
         this.territorieDataService
           .getCardTerritorie(territory.collection)
           .subscribe((card) => {
             card.map((list: any, index: any) => {
-              this.appleCount = 0;
+              this.appleCount.set(0);
               list.applesData.map((apple: any) => {
                 if (apple.checked === true) {
-                  this.appleCount += 1;
+                  this.appleCount.set(this.appleCount() + 1);
                 }
               });
-              if (this.appleCount === 0) {
+              if (this.appleCount() === 0) {
                 card.splice(index, 1);
               }
             });
-            const storeStatisticdData =
-              sessionStorage.getItem(this.KEY_NAME_W);
-            const statisticData = storeStatisticdData
-              ? JSON.parse(storeStatisticdData)
-              : [];
-            statisticData.push(card);
-            sessionStorage.setItem(
-              this.KEY_NAME_W,
-              JSON.stringify(statisticData)
-            );
+
+            // Agregar el card al array temporal
+            initialStatisticData.push(card);
+            processedTerritories++;
+
+            // Cuando se hayan procesado todos los territorios, guardar una sola vez
+            if (processedTerritories === totalTerritories) {
+              sessionStorage.setItem(this.KEY_NAME_W, JSON.stringify(initialStatisticData));
+            }
           });
       });
       this.spinner.cerrarSpinner();
+    }
+  }
+}
+  // Método para obtener las estadísticas de la predicación rural}
       // Proximamente estadisticas de la predicación rural
-      // this.territoryNumberOfLocalStorage.rural.map((territory) => {
+      // this.territoryNumberOfLocalStorage().rural.map((territory) => {
       //   this.territorieDataService
       //     .getCardTerritorie(territory.collection)
       //     .subscribe((card) => {
       //       card.map((list: any, index: any) => {
-      //         this.appleCount = 0;
+      //         this.appleCount.set(0);
       //         list.applesData.map((apple: any) => {
       //           if (apple.checked === true) {
-      //             this.appleCount += 1;
+      //             this.appleCount.set(this.appleCount() + 1);
       //           }
       //         });
-      //         if (this.appleCount === 0) {
+      //         if (this.appleCount() === 0) {
       //           card.splice(index, 1);
       //         }
       //       });
-      //       const storeStatisticdData =
-      //         sessionStorage.getItem(this.KEY_NAME_R);
+      //       const storeStatisticdData = sessionStorage.getItem(this.KEY_NAME_R);
       //       const statisticData = storeStatisticdData
       //         ? JSON.parse(storeStatisticdData)
       //         : [];
       //       statisticData.push(card);
-      //       sessionStorage.setItem(
-      //         this.KEY_NAME_R,
-      //         JSON.stringify(statisticData)
-      //       );
+      //       sessionStorage.setItem(this.KEY_NAME_R, JSON.stringify(statisticData));
       //     });
       // });
-    }
-  }
-}

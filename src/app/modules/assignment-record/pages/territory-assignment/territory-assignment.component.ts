@@ -28,35 +28,37 @@ export class TerritoryAssignmentComponent implements OnInit{
   private rutaActiva = inject(ActivatedRoute);
   private document = inject<Document>(DOCUMENT);
 
-  routerBreadcrum: any = [];
-  territoryPath: any;
-  territoriesNumber: TerritoryNumberData[] = [];
-  dataListFull: any[] = [];
-  filterDataListFull: any[] = [];
-  selectedValueFilter: string = '1';
-  appleCount: any;
-  s13JPG: any;
+  routerBreadcrum = signal<any>([]);
+  territoryPath = signal<any>(null);
+  territoriesNumber = signal<TerritoryNumberData[]>([]);
+  dataListFull = signal<any[]>([]);
+  filterDataListFull = signal<any[]>([]);
+  selectedValueFilter = signal<string>('1');
+  appleCount = signal<any>(null);
+  s13JPG = signal<any>(null);
   loadingData = signal(false);
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {
-    this.territoryPath = this.rutaActiva.snapshot.url.join('/');
-    this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
-    this.routerBreadcrum = this.routerBreadcrum[3];
+    this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));
+    const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
+    this.routerBreadcrum.set(breadcrumData[3]);
   }
 
   ngOnInit(): void {
     const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
     const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
-    this.territoriesNumber = this.territoryPath === "wheelwright" ? numberTerritory.wheelwright : numberTerritory.rural;
-    const nameLocalStorage = this.territoryPath === "wheelwright" ? "registerStatisticDataW" : "registerStatisticDataR";
+    this.territoriesNumber.set(this.territoryPath() === "wheelwright" ? numberTerritory.wheelwright : numberTerritory.rural);
+
+    const nameLocalStorage = this.territoryPath() === "wheelwright" ? "registerStatisticDataW" : "registerStatisticDataR";
     if (sessionStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
-      this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];
-      this.dataListFull.length !== 0 ? this.sortByDate('1') : [];
+      const parsedData = storedStatisticData ? JSON.parse(storedStatisticData) : [];
+      this.dataListFull.set(parsedData);
+      this.dataListFull().length !== 0 ? this.sortByDate('1') : [];
       this.loadingData.set(true);
     }
+
     // Busco el PDF original para modificarlo
     const httpOptions = {
       'responseType'  : 'arraybuffer' as 'json'
@@ -65,12 +67,13 @@ export class TerritoryAssignmentComponent implements OnInit{
     console.log("path: ", jpgPath);
 
     this.http.get(jpgPath, httpOptions).subscribe({
-      next: jpg => this.s13JPG = jpg
+      next: jpg => this.s13JPG.set(jpg)
     });
   }
+
   sortByDate(value: string){
     const valueNumber = Number(value);
-    let newArray = [...this.dataListFull];
+    let newArray = [...this.dataListFull()];
     if(valueNumber === 1){
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
@@ -100,14 +103,15 @@ export class TerritoryAssignmentComponent implements OnInit{
       })
       newArray = filteredDates;
     }
-    this.filterDataListFull = newArray;
+    this.filterDataListFull.set(newArray);
   }
+
   async downloadPDF(){
     // Cargo el PDF original con la libreria 'pdf-lib y creo una pagina vacia'
     const pdfDoc = await PDFDocument.create()
     pdfDoc.addPage()
     // Cargo la imagen del S-13
-    const jpgImageBytes = this.s13JPG;
+    const jpgImageBytes = this.s13JPG();
     const jpgImage = await pdfDoc.embedJpg(jpgImageBytes)
     const jpgDims = jpgImage.scale(0.48);
     // Cargo una fuente generica
@@ -116,7 +120,7 @@ export class TerritoryAssignmentComponent implements OnInit{
     // Recorro los datos y si hay más de 4 por cada territorio, creo una nueva pagina
     const [firstPage] = pdfDoc.getPages();
     let itemsListNumber: number[] = [];
-    this.filterDataListFull.map((dataList, index: number) => {
+    this.filterDataListFull().map((dataList, index: number) => {
       let items = 0;
       dataList.map((list: any) => {
         if(list.end){
@@ -168,7 +172,7 @@ export class TerritoryAssignmentComponent implements OnInit{
         color: rgb(0, 0, 0),
       })
       // Numeros de territorios
-      this.territoriesNumber.map((number, index) => {
+      this.territoriesNumber().map((number, index) => {
         let territorio = String(number.territorio);
         page.drawText(territorio, {
           x: 50,
@@ -181,7 +185,7 @@ export class TerritoryAssignmentComponent implements OnInit{
       });
       // Conductores y fechas
       let territoryNumberCount = 1;
-      this.filterDataListFull.map((dataList) => {
+      this.filterDataListFull().map((dataList) => {
         let items = 0;
         let inSecondPage = false;
         dataList.map((list: any) => {
@@ -291,7 +295,7 @@ export class TerritoryAssignmentComponent implements OnInit{
     let blob = new Blob([pdfBytes], {type: "application/pdf"});
     let link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    let fileName = `Registro de territorios de ${this.territoryPath}`;
+    let fileName = `Registro de territorios de ${this.territoryPath()}`;
     link.download = fileName;
     link.click();
   }

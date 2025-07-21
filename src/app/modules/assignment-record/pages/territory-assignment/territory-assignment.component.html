@@ -1,5 +1,5 @@
 <div class="container">
-  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum()"></app-breadcrumb>
   <div class="d-flex justify-content-evenly my-5 filter-class">
     <div class="d-flex align-items-center m-4">
       <label for="select-filter-register" class="text-center w-100 fs-4">Filtrar por: </label>
@@ -28,7 +28,7 @@
         >
         <thead>
           <tr>
-            @for (item of territoriesNumber; track item) {
+            @for (item of territoriesNumber(); track item) {
               <th scope="col" class="fs-5 text-center">Territorio {{item.territorio}}</th>
             }
           </tr>
@@ -36,7 +36,7 @@
 
         <tbody class="table-group-divider">
           <tr class="m-0 p-0">
-            @for (dataList of filterDataListFull; track dataList) {
+            @for (dataList of filterDataListFull(); track dataList) {
               <td>
                 @for (list of dataList; track list) {
                   <table class="table table-dark m-0">
@@ -75,7 +75,7 @@
       <h2 class="my-2 text-center">Territorios por número</h2>
     </div>
     <div class="card-s-container">
-      @for (item of territoriesNumber; track item) {
+      @for (item of territoriesNumber(); track item) {
         <app-card-s
           terrNumber="{{ item.territorio }}"
           [routerLink]="item.collection"

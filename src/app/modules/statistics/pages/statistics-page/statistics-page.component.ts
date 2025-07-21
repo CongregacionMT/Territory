@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
@@ -18,16 +18,19 @@ export class StatisticsPageComponent implements OnInit{
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
 
-  routerBreadcrum: any = [];
-  loadingData: boolean = false;
-  territoryPath: any;
-  territory: TerritoryNumberData[] = [];
-  dataListFull: any[] = [];
-  dataStadistics: any[] = [];
-  appleCount: any;
-  path: any = '';
-  order: any = 1;
-  nameTitleTerritory: string = '';
+  // Variables convertidas a signals
+  routerBreadcrum = signal<any>([]);
+  loadingData = signal<boolean>(false);
+  territoryPath = signal<any>(null);
+  territory = signal<TerritoryNumberData[]>([]);
+  dataListFull = signal<any[]>([]);
+  dataStadistics = signal<any[]>([]);
+  appleCount = signal<any>(null);
+  path = signal<string>('');
+  order = signal<number>(1);
+  nameTitleTerritory = signal<string>('');
+
+  // FormControls no necesitan ser signals ya que tienen su propia reactividad
   green: FormControl;
   blue: FormControl;
   yellow: FormControl;
@@ -36,9 +39,8 @@ export class StatisticsPageComponent implements OnInit{
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {
-    this.territoryPath = this.rutaActiva.snapshot.url.join('/');;
-    this.nameTitleTerritory = this.territoryPath === "wheelwright" ? "Wheelwright" : "Rural";
-    this.loadingData = false;
+    this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));
+    this.nameTitleTerritory.set(this.territoryPath() === "wheelwright" ? "Wheelwright" : "Rural");
     this.green = new FormControl(28);
     this.blue = new FormControl(42);
     this.yellow = new FormControl(56);
@@ -48,13 +50,14 @@ export class StatisticsPageComponent implements OnInit{
   ngOnInit(): void {
     this.getDataStatisticTerritory();
   }
+
   getDataStatisticTerritory() {
-    const nameLocalStorage = this.territoryPath === "mariaTeresa" ? "statisticDataMT" : "statisticDataCH";
+    const nameLocalStorage = this.territoryPath() === "wheelwright" ? "statisticDataW" : "statisticDataR";
     if (sessionStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
-      this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];
+      this.dataListFull.set(storedStatisticData ? JSON.parse(storedStatisticData) : []);
       this.sortTable("completed");
-      this.loadingData = true;
+      this.loadingData.set(true);
       return;
     }
   }
@@ -96,15 +99,17 @@ export class StatisticsPageComponent implements OnInit{
       return 'danger'
     }
   }
+
   sortTable(prop: string) {
-    this.path = prop;
-    this.order = this.order * (-1);
+    this.path.set(prop);
+    this.order.set(this.order() * (-1));
     return false;
   }
+
   getIcon(prop:string): string{
     var iconClass = "fa fa-sort";
-    if(this.path.indexOf(prop) != -1){
-      iconClass = this.order===-1 ? 'fa fa-sort-down' : 'fa fa-sort-up';
+    if(this.path().indexOf(prop) != -1){
+      iconClass = this.order() === -1 ? 'fa fa-sort-down' : 'fa fa-sort-up';
     }
     return iconClass;
   }
