@@ -30,7 +30,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
   card: any = {
     id: "",
-    location: 'Maria Teresa',
+    location: 'Wheelwright',
     numberTerritory: 1,
     driver: '',
     start: '',
@@ -107,7 +107,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     // Breadcrum
     this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum = this.routerBreadcrum[9];
-    // Carga de mapas para Maria Teresa
+    // Carga de mapas para Wheelwright
     if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-1"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1GOPjTgnhJgIJWBGZhvgc2eLcCnDkPS8&ehbc=2E312F" width="640" height="480" ></iframe>')
     } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-2"){
@@ -143,7 +143,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-17"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1C7zcRXsMBUHUaMHEVcUcTM4tplXiQHc&ehbc=2E312F" width="640" height="480"></iframe>')
     }
-    // Carga de mapas para Christophersen
+    // Carga de mapas para Rural
     if(this.activatedRoute.snapshot.params['collection'] === "TerritorioC-1"){
       this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=10pgOS5R4I6tfnimIe5AXFyvh3JLDiWA&ehbc=2E312F" width="640" height="480"></iframe>')
     } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioC-2"){

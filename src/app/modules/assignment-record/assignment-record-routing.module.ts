@@ -10,17 +10,11 @@ const routes: Routes = [
     children: [
       { path: '', component: AssignmentRecordPageComponent },
       {
-        path: 'mariaTeresa', component: TerritoryAssignmentComponent
+        path: 'wheelwright', component: TerritoryAssignmentComponent
       },
       {
-        path: 'mariaTeresa/:collection', component: NumberTerritoryComponent
-      },
-      {
-        path: 'christophersen', component: TerritoryAssignmentComponent
-      },
-      {
-        path: 'christophersen/:collection', component: NumberTerritoryComponent
-      },
+        path: 'wheelwright/:collection', component: NumberTerritoryComponent
+      }
     ],
   }
 ];

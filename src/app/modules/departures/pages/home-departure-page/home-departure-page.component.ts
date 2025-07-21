@@ -50,8 +50,12 @@ export class HomeDeparturePageComponent implements OnInit{
         this.groupedDepartures[groupKey].push(dep);
       });
       this.spinner.cerrarSpinner();
-      if(this.groupKeys.length <= 1){
-        if(!localStorage.getItem('tokenAdmin')){
+      if (this.groupKeys.length <= 1) {
+        if (
+          !localStorage.getItem('tokenAdmin') &&
+          !sessionStorage.getItem('redirectedToGroup0')
+        ) {
+          sessionStorage.setItem('redirectedToGroup0', 'true');
           this.router.navigate(['/salidas/grupo', '0']);
         }
       } else {

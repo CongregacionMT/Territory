@@ -37,7 +37,7 @@ export class StatisticsPageComponent implements OnInit{
   constructor(...args: unknown[]);
   constructor() {
     this.territoryPath = this.rutaActiva.snapshot.url.join('/');;
-    this.nameTitleTerritory = this.territoryPath === "mariaTeresa" ? "María Teresa" : "Christophersen";
+    this.nameTitleTerritory = this.territoryPath === "wheelwright" ? "Wheelwright" : "Rural";
     this.loadingData = false;
     this.green = new FormControl(28);
     this.blue = new FormControl(42);

@@ -1,8 +1,10 @@
 <div class="container table-responsive">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
-  <div class="d-flex justify-content-center">
-    <h1 class="mt-0 mb-3">Selecciona tu grupo</h1>
-  </div>
+  @if(groupKeys.length > 1){
+    <div class="d-flex justify-content-center">
+      <h1 class="mt-0 mb-3">Selecciona tu grupo</h1>
+    </div>
+  }
   <div class="card-container d-flex justify-content-center mb-3">
     @for (group of groupKeys; track group) {
       <app-card-xl
@@ -12,9 +14,11 @@
       ></app-card-xl>
     }
   </div>
-  <div class="d-flex justify-content-center mb-4">
-    <button class="btn btn-primary btn-list-primary btn-lg" routerLink="publicadores">No sé en qué grupo estoy 🤔</button>
-  </div>
+  @if(groupKeys.length > 1){
+    <div class="d-flex justify-content-center mb-4">
+      <button class="btn btn-primary btn-list-primary btn-lg" routerLink="publicadores">No sé en qué grupo estoy 🤔</button>
+    </div>
+  }
   <!-- Button trigger modal -->
   @if (isAdmin) {
     <div class="d-flex justify-content-center my-4">

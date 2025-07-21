@@ -86,7 +86,7 @@ export class DeparturesMockService {
                     schedule: "16:00hs",
                     driver: "Miguel",
                     territory: "N°1",
-                    point: "Christophersen"
+                    point: "Rural"
                 },
             ]
         }

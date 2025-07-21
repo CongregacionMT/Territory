@@ -49,8 +49,8 @@ export class TerritoryAssignmentComponent implements OnInit{
   ngOnInit(): void {
     const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
     const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
-    this.territoriesNumber = this.territoryPath === "mariaTeresa" ? numberTerritory.mariaTeresa : numberTerritory.christophersen;
-    const nameLocalStorage = this.territoryPath === "mariaTeresa" ? "registerStatisticDataMT" : "registerStatisticDataCH";
+    this.territoriesNumber = this.territoryPath === "wheelwright" ? numberTerritory.wheelwright : numberTerritory.rural;
+    const nameLocalStorage = this.territoryPath === "wheelwright" ? "registerStatisticDataW" : "registerStatisticDataR";
     if (sessionStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
       this.dataListFull = storedStatisticData ? JSON.parse(storedStatisticData) : [];

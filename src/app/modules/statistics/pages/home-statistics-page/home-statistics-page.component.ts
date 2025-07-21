@@ -17,8 +17,8 @@ export class HomeStatisticsPageComponent implements OnInit {
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
 
-  private readonly KEY_NAME_MT = 'statisticDataMT';
-  private readonly KEY_NAME_CH = 'statisticDataCH';
+  private readonly KEY_NAME_W = 'statisticDataW';
+  private readonly KEY_NAME_R = 'statisticDataR';
   routerBreadcrum: any = [];
   CardButtonsStatistics: CardButtonsData[] = [];
   territoryNumberOfLocalStorage: TerritoriesNumberData =
@@ -33,8 +33,8 @@ export class HomeStatisticsPageComponent implements OnInit {
     this.spinner.cargarSpinner();
     const interval = setInterval(() => {
       if (
-        sessionStorage.getItem(this.KEY_NAME_MT) &&
-        sessionStorage.getItem(this.KEY_NAME_CH)
+        sessionStorage.getItem(this.KEY_NAME_W) &&
+        sessionStorage.getItem(this.KEY_NAME_R)
       ) {
         clearInterval(interval);
         this.spinner.cerrarSpinner();
@@ -49,14 +49,13 @@ export class HomeStatisticsPageComponent implements OnInit {
       : [];
     this.CardButtonsStatistics = numberTerritory.territorio;
     if (
-      !sessionStorage.getItem('statisticDataMT') ||
-      !sessionStorage.getItem('statisticDataCH')
+      !sessionStorage.getItem(this.KEY_NAME_W) ||
+      !sessionStorage.getItem(this.KEY_NAME_R)
     ) {
       this.territoryNumberOfLocalStorage = JSON.parse(
         sessionStorage.getItem('numberTerritory') as string
       );
-
-      this.territoryNumberOfLocalStorage.mariaTeresa.map((territory) => {
+      this.territoryNumberOfLocalStorage.wheelwright.map((territory) => {
         this.territorieDataService
           .getCardTerritorie(territory.collection)
           .subscribe((card) => {
@@ -72,44 +71,46 @@ export class HomeStatisticsPageComponent implements OnInit {
               }
             });
             const storeStatisticdData =
-              sessionStorage.getItem('statisticDataMT');
+              sessionStorage.getItem(this.KEY_NAME_W);
             const statisticData = storeStatisticdData
               ? JSON.parse(storeStatisticdData)
               : [];
             statisticData.push(card);
             sessionStorage.setItem(
-              'statisticDataMT',
+              this.KEY_NAME_W,
               JSON.stringify(statisticData)
             );
           });
       });
-      this.territoryNumberOfLocalStorage.christophersen.map((territory) => {
-        this.territorieDataService
-          .getCardTerritorie(territory.collection)
-          .subscribe((card) => {
-            card.map((list: any, index: any) => {
-              this.appleCount = 0;
-              list.applesData.map((apple: any) => {
-                if (apple.checked === true) {
-                  this.appleCount += 1;
-                }
-              });
-              if (this.appleCount === 0) {
-                card.splice(index, 1);
-              }
-            });
-            const storeStatisticdData =
-              sessionStorage.getItem('statisticDataCH');
-            const statisticData = storeStatisticdData
-              ? JSON.parse(storeStatisticdData)
-              : [];
-            statisticData.push(card);
-            sessionStorage.setItem(
-              'statisticDataCH',
-              JSON.stringify(statisticData)
-            );
-          });
-      });
+      this.spinner.cerrarSpinner();
+      // Proximamente estadisticas de la predicación rural
+      // this.territoryNumberOfLocalStorage.rural.map((territory) => {
+      //   this.territorieDataService
+      //     .getCardTerritorie(territory.collection)
+      //     .subscribe((card) => {
+      //       card.map((list: any, index: any) => {
+      //         this.appleCount = 0;
+      //         list.applesData.map((apple: any) => {
+      //           if (apple.checked === true) {
+      //             this.appleCount += 1;
+      //           }
+      //         });
+      //         if (this.appleCount === 0) {
+      //           card.splice(index, 1);
+      //         }
+      //       });
+      //       const storeStatisticdData =
+      //         sessionStorage.getItem(this.KEY_NAME_R);
+      //       const statisticData = storeStatisticdData
+      //         ? JSON.parse(storeStatisticdData)
+      //         : [];
+      //       statisticData.push(card);
+      //       sessionStorage.setItem(
+      //         this.KEY_NAME_R,
+      //         JSON.stringify(statisticData)
+      //       );
+      //     });
+      // });
     }
   }
 }

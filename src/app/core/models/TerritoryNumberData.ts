@@ -4,6 +4,6 @@ export interface TerritoryNumberData {
 }
 
 export interface TerritoriesNumberData {
-  mariaTeresa: TerritoryNumberData[];
-  christophersen: TerritoryNumberData[];
+  wheelwright: TerritoryNumberData[];
+  rural: TerritoryNumberData[];
 }

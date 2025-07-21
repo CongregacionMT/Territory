@@ -40,18 +40,7 @@ export class RouterBreadcrumMockService {
           route: 'Registro de territorios',
         },
         {
-          route: 'Maria Teresa'
-        }
-      ],
-      [
-        {
-          route: 'Home',
-        },
-        {
-          route: 'Registro de territorios',
-        },
-        {
-          route: 'Christophersen'
+          route: 'Wheelwright',
         }
       ],
       [
@@ -73,21 +62,7 @@ export class RouterBreadcrumMockService {
           route: 'Registro de territorios',
         },
         {
-          route: 'Maria Teresa'
-        },
-        {
-          route: 'Territorio'
-        }
-      ],
-      [
-        {
-          route: 'Home',
-        },
-        {
-          route: 'Registro de territorios',
-        },
-        {
-          route: 'Christophersen'
+          route: 'Wheelwright'
         },
         {
           route: 'Territorio'

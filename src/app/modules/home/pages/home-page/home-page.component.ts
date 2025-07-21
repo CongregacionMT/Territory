@@ -66,6 +66,10 @@ export class HomePageComponent implements OnInit {
       });
     }
 
+    if(sessionStorage.getItem("redirectedToGroup0")){
+      sessionStorage.removeItem("redirectedToGroup0");
+    }
+
     // Mostrar boton de loguearse
 
     this.isAdmin === true && this.isDriver === false ? this.btnLogin = false :this.btnLogin = true;

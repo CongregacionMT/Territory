@@ -73,10 +73,10 @@ export class AssignmentRecordPageComponent implements OnInit {
       const storedTerritorioMaps = sessionStorage.getItem("territorioMaps");
       this.territorioMaps = storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [];
     }
-    if(!sessionStorage.getItem("registerStatisticDataMT") || !sessionStorage.getItem("registerStatisticDataCH")){
+    if(!sessionStorage.getItem("registerStatisticDataW") || !sessionStorage.getItem("registerStatisticDataR")){
       this.spinner.cargarSpinner();
       this.territoryNumberOfLocalStorage = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
-      this.territoryNumberOfLocalStorage.mariaTeresa.map((territory) => {
+      this.territoryNumberOfLocalStorage.wheelwright.map((territory) => {
         this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
         .subscribe((card) => {
           card.map((list: any, index: any) => {
@@ -90,14 +90,14 @@ export class AssignmentRecordPageComponent implements OnInit {
               card.splice(index, 1);
             }
           });
-          const storeStatisticdData = sessionStorage.getItem('registerStatisticDataMT');
+          const storeStatisticdData = sessionStorage.getItem('registerStatisticDataW');
           const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
           statisticData.push(card);
-          sessionStorage.setItem('registerStatisticDataMT', JSON.stringify(statisticData));
+          sessionStorage.setItem('registerStatisticDataW', JSON.stringify(statisticData));
           this.spinner.cerrarSpinner();
         })
       });
-      this.territoryNumberOfLocalStorage.christophersen.map((territory) => {
+      this.territoryNumberOfLocalStorage.rural.map((territory) => {
         this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
         .subscribe((card) => {
           card.map((list: any, index: any) => {
@@ -111,10 +111,10 @@ export class AssignmentRecordPageComponent implements OnInit {
               card.splice(index, 1);
             }
           });
-          const storeStatisticdData = sessionStorage.getItem('registerStatisticDataCH');
+          const storeStatisticdData = sessionStorage.getItem('registerStatisticDataR');
           const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
           statisticData.push(card);
-          sessionStorage.setItem('registerStatisticDataCH', JSON.stringify(statisticData));
+          sessionStorage.setItem('registerStatisticDataR', JSON.stringify(statisticData));
           this.spinner.cerrarSpinner();
         })
       });
