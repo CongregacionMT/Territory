@@ -97,6 +97,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
           // Limpia el FormArray antes de llenarlo
           const form = this.formCard();
+          form.patchValue({comments: this.card().comments});
           const applesData: FormArray = form.get('applesData') as FormArray;
           applesData.clear();
 

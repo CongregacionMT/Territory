@@ -38,7 +38,7 @@ export class DeparturePageComponent implements OnInit {
     this.titleGroup = this.numberGroup.number !== "0" ? `(Grupo ${this.numberGroup.number})` : "";
   }
   ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[11];
+    this.routerBreadcrum = this.routerBreadcrum[10];
     this.territoryDataService.getDepartures().subscribe({
       next: (departure: DepartureData) => {
         // Tabla de salidas

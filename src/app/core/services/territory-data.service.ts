@@ -49,32 +49,66 @@ export class TerritoryDataService {
     return collectionData(q, {idField: 'id'}) as Observable<any>;
   }
 
-  postCardTerritorie(card: any, collectionName: any){
-    card.revision = false;
+  private isCreating = false;
+
+  async postCardTerritorie(card: any, collectionName: string): Promise<void> {
+    if (this.isCreating) {
+      console.warn('Ya se está creando una tarjeta. Cancelado.');
+      return;
+    }
+
+    this.isCreating = true;
+
     const cardRef = collection(this.firestore, collectionName);
     this.countFalseApples = 0;
-    card.applesData.map((apple: any) => {
-      if(apple.checked === false){
-        this.countFalseApples+=1;
-      }
+
+    card.revision = false;
+
+    // Contar los que están en false
+    card.applesData.forEach((apple: any) => {
+      if (!apple.checked) this.countFalseApples++;
     });
-    card.completed+=1
-    card.creation = Timestamp.now()
-    if(this.countFalseApples === 0){
-      addDoc(cardRef, card);
-      card.applesData.map((apple: any) => {
-        apple.checked = false;
-      });
-      addDoc(cardRef, card);
+
+    try {
+      if (this.countFalseApples === 0) {
+        // Caso: todos los checkboxes marcados ✅
+        const completedCard = { ...card };
+        completedCard.completed += 1;
+        completedCard.creation = Timestamp.now();
+
+        await addDoc(cardRef, completedCard);
+
+        // Delay artificial para evitar que se solapen los timestamps
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        // Crear la nueva tarjeta vacía ❌
+        const resetCard = {
+          ...card,
+          completed: card.completed + 1,
+          applesData: card.applesData.map((apple: any) => ({
+            ...apple,
+            checked: false
+          })),
+          creation: Timestamp.now()
+        };
+
+        await addDoc(cardRef, resetCard);
+      } else {
+        // Caso: algunos checkboxes en false todavía
+        card.creation = Timestamp.now();
+        await addDoc(cardRef, card);
+      }
+
       this.router.navigate(['home']);
-      this.spinner.cerrarSpinner()
-      return
-    } else {
-      this.router.navigate(['home']);
-      this.spinner.cerrarSpinner()
-      return addDoc(cardRef, card);
+      this.spinner.cerrarSpinner();
+    } catch (err) {
+      console.error('Error al guardar la tarjeta:', err);
+      this.spinner.cerrarSpinner();
+    } finally {
+      this.isCreating = false;
     }
   }
+
 
   putCardTerritorie(card: any){
     const revisionRef = doc(this.firestore, "revision", card.id);
