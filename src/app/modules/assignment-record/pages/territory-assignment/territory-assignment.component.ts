@@ -106,197 +106,152 @@ export class TerritoryAssignmentComponent implements OnInit{
     this.filterDataListFull.set(newArray);
   }
 
-  async downloadPDF(){
-    // Cargo el PDF original con la libreria 'pdf-lib y creo una pagina vacia'
-    const pdfDoc = await PDFDocument.create()
-    pdfDoc.addPage()
-    // Cargo la imagen del S-13
-    const jpgImageBytes = this.s13JPG();
-    const jpgImage = await pdfDoc.embedJpg(jpgImageBytes)
-    const jpgDims = jpgImage.scale(0.48);
-    // Cargo una fuente generica
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+  async downloadPDF() {
+  const pdfDoc = await PDFDocument.create();
 
-    // Recorro los datos y si hay más de 4 por cada territorio, creo una nueva pagina
-    const [firstPage] = pdfDoc.getPages();
-    let itemsListNumber: number[] = [];
-    this.filterDataListFull().map((dataList, index: number) => {
-      let items = 0;
-      dataList.map((list: any) => {
-        if(list.end){
-          items ++;
-        }
-      });
-      itemsListNumber.push(items);
-    })
-    let maxItems = Math.max(...itemsListNumber);
-    while (maxItems > 4) {
-      pdfDoc.addPage([firstPage.getWidth(), firstPage.getHeight()]);
-      maxItems -= 4;
-    }
-    // Ancho y Alto inicial de los datos a mostrar
-    const { width, height } = firstPage.getSize()
-    let heigthTerritories = 675;
-    let heigthDrivers = 685;
-    let heigthStart = 670;
-    let heigthEnd = 670;
-    let widthDrivers = 61;
-    let widthStart = (width / 4 - 10) / 4 - 5;
-    let widthEnd = (width / 4) / 4 + 50;
+  // Cargar imagen S-13
+  const jpgImageBytes = this.s13JPG();
+  const jpgImage = await pdfDoc.embedJpg(jpgImageBytes);
+  const jpgDims = jpgImage.scale(1); // Usamos tamaño original
 
-    // Obtengo las paginas del documento
-    const pages = pdfDoc.getPages();
-    pages.map((page) => {
-      // Datos iniciales por cada iteracion
-      heigthTerritories = 675;
-      heigthDrivers = 685;
-      heigthStart = 670;
-      heigthEnd = 670;
-      widthDrivers = 61;
-      widthStart = (width / 4 - 10) / 4 - 5;
-      widthEnd = (width / 4) / 4 + 50;
-      // Dibujo el PDF
-      page.drawImage(jpgImage, {
-        x: 0,
-        y: 0,
-        width: jpgDims.width,
-        height: jpgDims.height,
-      })
-      // Dibujo el año actual
-      const dayNow = String(new Date().getFullYear());
-      page.drawText(dayNow, {
-        x: 145,
-        y: 750,
-        size: 12,
+  // Agregar página con el tamaño exacto de la imagen
+  pdfDoc.addPage([jpgDims.width, jpgDims.height]);
+
+  // Fuente
+  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+  // Preparar cantidad de páginas según asignaciones
+  const maxItems = Math.max(...this.filterDataListFull().map(dl =>
+    dl.filter((item: any) => item.end).length
+  ));
+
+  const extraPages = Math.ceil(maxItems / 4) - 1;
+  for (let i = 0; i < extraPages; i++) {
+    pdfDoc.addPage([jpgDims.width, jpgDims.height]);
+  }
+
+  const pages = pdfDoc.getPages();
+  const currentYear = new Date().getFullYear().toString();
+
+  pages.forEach((page, pageIndex) => {
+    // Dibujar fondo
+    page.drawImage(jpgImage, {
+      x: 0,
+      y: 0,
+      width: jpgDims.width,
+      height: jpgDims.height,
+    });
+
+    // Año de servicio
+    page.drawText(currentYear, {
+      x: jpgDims.width * 0.25, // Ajustalo si hace falta
+      y: jpgDims.height - 195,
+      size: 24,
+      font: helveticaFont,
+      color: rgb(0, 0, 0),
+    });
+
+    // Números de territorio
+    const startY = jpgDims.height - 345;
+    const rowHeight = 65;
+    this.territoriesNumber().forEach((territorio, index) => {
+      const y = startY - index * rowHeight;
+      page.drawText(String(territorio.territorio), {
+        x: jpgDims.width * 0.085,
+        y,
+        size: 24,
         font: helveticaFont,
         color: rgb(0, 0, 0),
-      })
-      // Numeros de territorios
-      this.territoriesNumber().map((number, index) => {
-        let territorio = String(number.territorio);
-        page.drawText(territorio, {
-          x: 50,
-          y: heigthTerritories,
-          size: 12,
+      });
+    });
+  });
+
+  // Asignaciones
+  const startY = jpgDims.height - 295;
+  const rowHeight = 65;
+  const colWidth = jpgDims.width * 0.18;
+
+  this.filterDataListFull().forEach((dataList, index) => {
+    let rowIndex = 0;
+    let colIndex = 0;
+    let pageIndex = 0;
+    let currentTerritory = 0;
+
+    dataList.forEach((item: any) => {
+      if (item.end) {
+        if (colIndex === 4) {
+          colIndex = 0;
+          rowIndex++;
+        }
+
+        if (rowIndex === 19) {
+          pageIndex++;
+          rowIndex = 0;
+        }
+
+        const page = pages[pageIndex];
+        const xDriver = jpgDims.width * 0.26 + colIndex * colWidth;
+        const xStart = xDriver - 30;
+        const xEnd = xDriver + 80;
+        const y = startY - index * rowHeight;
+
+        if (currentTerritory !== item.numberTerritory) {
+          currentTerritory = item.numberTerritory;
+          rowIndex++;
+          colIndex = 0;
+        }
+
+        const yAdjusted = y - rowIndex * rowHeight;
+
+        const driverName = item.driver;
+        const fontSize = 20;
+        const textWidth = helveticaFont.widthOfTextAtSize(driverName, fontSize);
+
+        // Centrado horizontal dentro del cuadrado
+        const centerX = xDriver + (colWidth / 2);
+        const xCentered = centerX - (textWidth / 2);
+
+        // Conductor
+        page.drawText(driverName, {
+          x: xCentered - 40,
+          y: yAdjusted + 30,
+          size: fontSize,
           font: helveticaFont,
           color: rgb(0, 0, 0),
         });
-        heigthTerritories -= 31.5;
-      });
-      // Conductores y fechas
-      let territoryNumberCount = 1;
-      this.filterDataListFull().map((dataList) => {
-        let items = 0;
-        let inSecondPage = false;
-        dataList.map((list: any) => {
-          if(list.end){
-            if(items < 4){
-              if(territoryNumberCount === list.numberTerritory){
-                widthDrivers += 109;
-                widthStart += 109;
-                widthEnd += 109;
-              } else {
-                widthDrivers = 170;
-                widthStart = 140;
-                widthEnd = 195;
-                heigthDrivers -= 31.5;
-                heigthStart -= 31.5;
-                heigthEnd -= 31.5;
-                territoryNumberCount = list.numberTerritory;
-              }
-              // CONDUCTOR
-              pages[0].drawText(list.driver, {
-                x: widthDrivers,
-                y: heigthDrivers,
-                size: 10,
-                font: helveticaFont,
-                color: rgb(0, 0, 0),
-              });
-              // FECHA DE INICIO
-              // transformo la fecha
-              let dateStart = list.start.split(" ")[0].split("-").reverse().join("-");
-              pages[0].drawText(dateStart, {
-                x: widthStart,
-                y: heigthStart,
-                size: 8,
-                font: helveticaFont,
-                color: rgb(0, 0, 0),
-              });
-              // FECHA DE CONCLUCIÓN
-              // transformo la fecha
-              let dateEnd = list.end.split(" ")[0].split("-").reverse().join("-");
-              pages[0].drawText(dateEnd, {
-                x: widthEnd -5,
-                y: heigthEnd,
-                size: 8,
-                font: helveticaFont,
-                color: rgb(0, 0, 0),
-              });
-              items ++;
-            } else {
-              if(!inSecondPage){
-                inSecondPage = true;
-                widthDrivers = 61;
-                widthStart = (width / 4 - 10) / 4 - 5;
-                widthEnd = (width / 4) / 4 + 50;
-              }
-              if(territoryNumberCount === list.numberTerritory){
-                widthDrivers += 109;
-                widthStart += 109;
-                widthEnd += 109;
-              } else {
-                widthDrivers = 170;
-                widthStart = 140;
-                widthEnd = 195;
-                heigthDrivers -= 31.5;
-                heigthStart -= 31.5;
-                heigthEnd -= 31.5;
-                territoryNumberCount = list.numberTerritory;
-              }
-              // CONDUCTOR
-              pages[1].drawText(list.driver, {
-                x: widthDrivers,
-                y: heigthDrivers,
-                size: 10,
-                font: helveticaFont,
-                color: rgb(0, 0, 0),
-              });
-              // FECHA DE INICIO
-              // transformo la fecha
-              let dateStart = list.start.split(" ")[0].split("-").reverse().join("-");
-              pages[1].drawText(dateStart, {
-                x: widthStart,
-                y: heigthStart,
-                size: 8,
-                font: helveticaFont,
-                color: rgb(0, 0, 0),
-              });
-              // FECHA DE CONCLUCIÓN
-              // transformo la fecha
-              let dateEnd = list.end.split(" ")[0].split("-").reverse().join("-");
-              pages[1].drawText(dateEnd, {
-                x: widthEnd -5,
-                y: heigthEnd,
-                size: 8,
-                font: helveticaFont,
-                color: rgb(0, 0, 0),
-              });
-              items ++;
-            }
-          }
-        })
-      });
-    })
 
-    // Guardo el PDF modificado
-    const pdfBytes = await pdfDoc.save();
+        // Fecha inicio
+        const dateStart = item.start.split(" ")[0].split("-").reverse().join("-");
+        page.drawText(dateStart, {
+          x: xStart,
+          y: yAdjusted,
+          size: 18,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
 
-    // Creo el link de descarga y descargo el PDF
-    let blob = new Blob([pdfBytes], {type: "application/pdf"});
-    let link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    let fileName = `Registro de territorios de ${this.territoryPath()}`;
-    link.download = fileName;
-    link.click();
-  }
+        // Fecha fin
+        const dateEnd = item.end.split(" ")[0].split("-").reverse().join("-");
+        page.drawText(dateEnd, {
+          x: xEnd,
+          y: yAdjusted,
+          size: 18,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+
+        colIndex++;
+      }
+    });
+  });
+
+  // Descargar PDF
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: "application/pdf" });
+  const link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.download = `Registro de territorios de ${this.territoryPath()}`;
+  link.click();
+}
+
 }
