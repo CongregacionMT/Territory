@@ -33,7 +33,7 @@
         <h2 class="card-title text-white mt-3">Carrito</h2>
       </div>
     </div>
-    <!-- Salidas -->
+    <!-- Estadísticas -->
     @if (isAdmin) {
       <div class="card" routerLink="../statistics">
         <div class="card-body d-flex flex-column align-items-center">
@@ -64,8 +64,8 @@
     @if (btnLogin) {
       <button class="btn btn-warning btn-lg" routerLink="/auth">Iniciar sesión</button>
     }
-    <button class="btn btn-primary btn-lg mx-2" (click)="activeNotification()">Notificarme</button>
     @if (btnLogin === false) {
+      <button class="btn btn-primary btn-lg mx-2" (click)="activeNotification()">Notificarme</button>
       <button class="btn btn-danger btn-lg" (click)="logout()">Cerrar sesión</button>
     }
   </div>
