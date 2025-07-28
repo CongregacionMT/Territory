@@ -27,6 +27,10 @@ const routes: Routes = [
     loadChildren: () => import('./modules/statistics/statistics.module').then(m => m.StatisticsModule), data: { scrollPositionRestoration: 'top' }
   },
   {
+    path: 'campaign',
+    loadChildren: () => import('./modules/campaign/campaign.module').then(m => m.CampaignModule), data: { scrollPositionRestoration: 'top' }
+  },
+  {
     path: 'usuarios',
     loadChildren: () => import('./modules/users/users.module').then(m => m.UsersModule)
   },

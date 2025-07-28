@@ -33,6 +33,15 @@
         <h2 class="card-title text-white mt-3">Carrito</h2>
       </div>
     </div>
+    <!-- Campaña -->
+    @if (isAdmin) {
+      <div class="card" routerLink="../campaign">
+        <div class="card-body d-flex flex-column align-items-center">
+          <img src="../../../../../assets/img/campaign.png" alt="map" style="width: 10rem;">
+          <h2 class="card-title text-white mt-3 text-center">Campaña</h2>
+        </div>
+      </div>
+    }
     <!-- Estadísticas -->
     @if (isAdmin) {
       <div class="card" routerLink="../statistics">
