@@ -34,7 +34,7 @@ export class CartPageComponent implements OnInit{
     localStorage.getItem('tokenAdmin') ? this.isAdmin = true : this.isAdmin = false;
   }
   ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[13];
+    this.routerBreadcrum = this.routerBreadcrum[11];
     this.cartDataService.getCartAssignment().subscribe({
       next: (cartArray: CartDataArray) => {
         // Tabla de asignación del carrito
