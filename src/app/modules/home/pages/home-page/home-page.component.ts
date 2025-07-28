@@ -1,10 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
-import { SwUpdate } from '@angular/service-worker';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { MessagingService } from '@core/services/messaging.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
+import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
+import { filter } from 'rxjs';
 
 @Component({
     selector: 'app-home-page',
@@ -30,13 +32,6 @@ export class HomePageComponent implements OnInit {
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {
-    if(this.swUpdate.isEnabled){
-      this.swUpdate.checkForUpdate().then(() => {
-        this.swUpdate.activateUpdate().then(() => {
-          window.location.reload();
-        });
-      })
-    }
     if(this.deferredPrompt){
       this.btnPWA = false;
     }
@@ -44,6 +39,23 @@ export class HomePageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates
+        .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
+        .subscribe(() => {
+          const snack = this._snackBar.openFromComponent(UpdateSnackbarComponent, {
+            duration: undefined,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+          });
+          snack.onAction().subscribe(() => {
+            this.swUpdate.activateUpdate().then(() => window.location.reload());
+          });
+        });
+
+      this.swUpdate.checkForUpdate(); // opcional
+    }
+
     if(localStorage.getItem("tokenAdmin")){
       this.isAdmin = true;
     } else if(localStorage.getItem("tokenConductor")){
