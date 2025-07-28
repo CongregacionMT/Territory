@@ -48,7 +48,9 @@ export class FormEditDeparturesComponent implements OnInit{
         driver: new FormControl(departure.driver),
         schedule: new FormControl(departure.schedule),
         location: new FormControl(departure.location),
-        territory: new FormControl(departure.territory),
+        territory: this.fb.array(
+          (departure.territory || []).map((t: string) => new FormControl(t))
+        ),
         point: new FormControl(departure.point),
         color: new FormControl(departure.color),
         group: new FormControl(departure.group),
@@ -181,6 +183,7 @@ export class FormEditDeparturesComponent implements OnInit{
   toggleTerritory(num: string, i: number, group: number, isChecked: boolean) {
     const control = this.getTerritoryArray(i, group);
     const current = control.value as string[];
+    console.log("control", control);
 
     if (isChecked && !current.includes(num)) {
       control.push(new FormControl(num));
