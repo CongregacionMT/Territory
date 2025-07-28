@@ -23,7 +23,7 @@
             <td>{{ departure.driver }}</td>
             <td>{{ departure.point }}</td>
             <td>
-              <div class="d-flex flex-wrap gap-2">
+              <div class="d-flex flex-nowrap gap-2">
                 @for (territory of departure.territory; track territory) {
                   <a
                     class="territory-chip text-decoration-none"
