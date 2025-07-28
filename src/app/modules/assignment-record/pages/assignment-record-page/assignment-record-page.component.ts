@@ -109,11 +109,7 @@ export class AssignmentRecordPageComponent implements OnInit {
             }
           });
           const storeStatisticdData = sessionStorage.getItem('registerStatisticDataW');
-          console.log("storeStatisticdData", storeStatisticdData);
-          console.log("card", card);
-
           const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
-          console.log("statisticData", statisticData);
           statisticData.push(card);
           sessionStorage.setItem('registerStatisticDataW', JSON.stringify(statisticData));
           this.spinner.cerrarSpinner();
