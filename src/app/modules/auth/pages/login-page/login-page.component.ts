@@ -1,4 +1,4 @@
-import { Component, inject, signal, viewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -11,7 +11,7 @@ import { NgClass } from '@angular/common';
     styleUrls: ['./login-page.component.scss'],
     imports: [ReactiveFormsModule, NgClass]
 })
-export class LoginPageComponent {
+export class LoginPageComponent implements OnInit {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private territoryDataService = inject(TerritoryDataService);
@@ -25,12 +25,19 @@ export class LoginPageComponent {
   password = "";
   passwordVisible = signal(false);
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
   constructor() {
     this.formLogin = this.fb.group({
       user: new FormControl('', [Validators.required]),
       password: new FormControl('', [Validators.required])
+    });
+  }
+
+  ngOnInit(): void {
+    this.formLogin.get('user')?.valueChanges.subscribe(value => {
+      const lower = value?.toLowerCase?.();
+      if (value !== lower) {
+        this.formLogin.get('user')?.setValue(lower, { emitEvent: false });
+      }
     });
   }
 
