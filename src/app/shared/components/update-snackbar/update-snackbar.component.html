@@ -1,29 +1,33 @@
-<div
-  class="w-full flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 p-5 sm:p-6 rounded-2xl shadow-lg border border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700 dark:text-gray-100 transition-all duration-500"
->
-  <div class="flex items-center gap-3 animate-fade-in">
-    <span class="text-2xl">🚀</span>
-    <span class="text-base sm:text-lg font-semibold">
-      ¡Hay una <span class="text-blue-600 dark:text-blue-400">nueva versión</span> disponible!
-    </span>
-  </div>
+<div class="update-snackbar position-relative border shadow rounded-3 px-4 py-3">
+  <!-- Botón de cerrar -->
+  <button
+    type="button"
+    class="btn-close btn-close-white position-absolute top-0 end-0 m-2 close-button"
+    aria-label="Cerrar"
+    (click)="cerrar()"
+  ></button>
 
-  <div class="flex items-center gap-2 sm:gap-4 animate-fade-in-up">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="actualizarAhora()"
-      class="!bg-blue-600 !text-white !px-4 !py-2 !rounded-lg !font-semibold shadow-md hover:shadow-lg hover:scale-105 active:scale-100 transition-all duration-200"
-    >
-      Actualizar ahora
-    </button>
-    <button
-      mat-icon-button
-      aria-label="Cerrar"
-      (click)="cerrar()"
-      class="text-blue-600 dark:text-blue-300 hover:text-red-500 dark:hover:text-red-400 transition-all"
-    >
-      <mat-icon>close</mat-icon>
-    </button>
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <!-- Mensaje -->
+    <div class="d-flex align-items-center gap-3">
+      <span class="fs-3">🚀</span>
+      <div>
+        <p class="mb-1 fw-bold text-white fs-6">
+          ¡Hay una nueva versión de <span class="highlight-version">Territorios Wheelwright</span> disponible!
+        </p>
+        <p class="mb-0 text-white-50 small">Actualizá para obtener las últimas mejoras.</p>
+      </div>
+    </div>
+
+    <!-- Botón actualizar centrado en móvil -->
+    <div class="d-flex justify-content-center justify-content-md-end w-100">
+      <button
+        type="button"
+        class="btn btn-success btn-sm px-3 fw-semibold update-button"
+        (click)="actualizarAhora()"
+      >
+        Actualizar ahora
+      </button>
+    </div>
   </div>
 </div>

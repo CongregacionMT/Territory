@@ -4,3 +4,50 @@
   align-items: center;
   justify-content: space-between;
 }
+.update-snackbar {
+  background: linear-gradient(135deg, #2d3541, #1f2329);
+  border-color: #3a4644;
+  color: #ffffff;
+  max-width: 100%;
+  animation: fadeInSnackbar 0.4s ease-in-out;
+
+  .highlight-version {
+    color: #34d399; // verde claro tipo "success"
+    text-shadow: 0 0 2px rgba(52, 211, 153, 0.6);
+  }
+
+  .update-button {
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0.5rem 1rem rgba(34, 197, 94, 0.3); // sombra verde
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+
+  .close-button {
+    opacity: 0.6;
+    transition: all 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+      transform: rotate(90deg);
+    }
+  }
+}
+
+@keyframes fadeInSnackbar {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
