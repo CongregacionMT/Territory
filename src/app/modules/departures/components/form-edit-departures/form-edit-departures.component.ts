@@ -24,6 +24,7 @@ export class FormEditDeparturesComponent implements OnInit{
   groupedDepartures: { [key: string]: Departure[] } = {};
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
+  territoryNumbers: string[] = Array.from({ length: 23 }, (_, i) => `N°${i + 1}`);
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -121,7 +122,7 @@ export class FormEditDeparturesComponent implements OnInit{
       date: new FormControl(''),
       driver: new FormControl(''),
       schedule: new FormControl(''),
-      territory: new FormControl(''),
+      territory: this.fb.array([]),
       point: new FormControl(''),
       color: new FormControl('secondary'),
       group: new FormControl(group),
@@ -158,6 +159,42 @@ export class FormEditDeparturesComponent implements OnInit{
     this.groupKeys.push(this.groupKeys.length);
     this.addInputForm(this.groupKeys.length - 1);
   }
+  // Obtiene el array de territorios para un día específico
+  getTerritoryArray(index: number, group: number): FormArray {
+    const groupKey = `departure${group}`;
+    const array = this.formDeparture.get(groupKey) as FormArray;
+    return array.at(index).get('territory') as FormArray;
+  }
+
+  // Devuelve lista de territorios actuales
+  getTerritories(dayGroup: AbstractControl): string[] {
+    return (dayGroup.get('territory') as FormArray)?.value || [];
+  }
+
+  // Verifica si un territorio está seleccionado
+  isTerritoryChecked(num: string, i: number, group: number): boolean {
+    const current = this.getTerritoryArray(i, group).value;
+    return current.includes(num);
+  }
+
+  // Agrega o quita un territorio
+  toggleTerritory(num: string, i: number, group: number, isChecked: boolean) {
+    const control = this.getTerritoryArray(i, group);
+    const current = control.value as string[];
+
+    if (isChecked && !current.includes(num)) {
+      control.push(new FormControl(num));
+    } else if (!isChecked) {
+      const index = current.indexOf(num);
+      if (index !== -1) control.removeAt(index);
+    }
+  }
+  handleCheckboxChange(event: Event, num: string, i: number, group: number) {
+    const input = event.target as HTMLInputElement;
+    const isChecked = input.checked;
+    this.toggleTerritory(num, i, group, isChecked);
+  }
+
   submitForm() {
     this.openSnackBar('Salidas actualizadas! 😉', 'ok');
     const departures = this.groupKeys.map(number => this.formDeparture.value?.[`departure${number}`]).flat();

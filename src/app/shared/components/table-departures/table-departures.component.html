@@ -11,7 +11,7 @@
         <th scope="col">Horario</th>
         <th scope="col">Conductor</th>
         <th scope="col" class="text-nowrap">Púnto de encuentro</th>
-        <th scope="col">Territorio</th>
+        <th scope="col">Territorios</th>
       </tr>
     </thead>
     <tbody class="table-group-divider">
@@ -22,9 +22,24 @@
             <td>{{ departure.schedule }}hs</td>
             <td>{{ departure.driver }}</td>
             <td>{{ departure.point }}</td>
-            <td [routerLink]="'../../territorios/' + departure.location + '-' + departure.territory.replace('N°', '')" class="cursor-pointer">
-              <span>{{ departure.territory }}</span>
-              <img src="https://api.iconify.design/fe:link-external.svg" alt="Link icon" class="ms-1 w-4 h-4">
+            <td>
+              <div class="d-flex flex-wrap gap-2">
+                @for (territory of departure.territory; track territory) {
+                  <a
+                    class="territory-chip text-decoration-none"
+                    [routerLink]="'../../territorios/' + departure.location + '-' + territory.replace('N°', '')"
+                  >
+                    <span>{{ territory }}</span>
+                    <img
+                      src="https://api.iconify.design/fe:link-external.svg"
+                      alt="Link icon"
+                      class="ms-1"
+                      width="14"
+                      height="14"
+                    />
+                  </a>
+                }
+              </div>
             </td>
           </tr>
         }

@@ -1,7 +1,7 @@
 export interface Departure {
   driver: string;
   location: string;
-  territory: string;
+  territory: string[];
   date: string;
   point: string;
   schedule: string;
