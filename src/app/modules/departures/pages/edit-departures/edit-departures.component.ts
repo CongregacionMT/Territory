@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { DepartureData, Departure } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -23,6 +23,7 @@ export class EditDeparturesComponent implements OnInit{
   routerBreadcrum: any = [];
   dateDeparture: any = new FormControl("");
   formDepartureData: Departure[] = {} as Departure[];
+  verticalPosition: MatSnackBarVerticalPosition = 'top';
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -46,7 +47,9 @@ export class EditDeparturesComponent implements OnInit{
     })
   }
   updateDate(){
-    this._snackBar.open('Fecha actualizada', 'Ok');
+    this._snackBar.open('Fecha actualizada', 'Ok', {
+      verticalPosition: this.verticalPosition,
+    });
     this.territoryDataService.putDate({date: this.dateDeparture.value});
   }
 }
