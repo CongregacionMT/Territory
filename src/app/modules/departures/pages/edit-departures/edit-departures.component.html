@@ -1,19 +1,27 @@
 <h2 class="text-center mt-2">Fecha para las salidas actuales</h2>
-<section>
-  <div class="input-group mb-3">
-    <span class="input-group-text">Semana</span>
-    <input
-      type="text"
-      class="form-control"
-      [formControl]="dateDeparture"
-      />
-      <button class="btn btn-primary" (click)="updateDate()">Actualizar fecha</button>
+<section class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-12">
+      <div class="input-group mb-3 flex-wrap">
+        <span class="d-none d-md-block input-group-text">Semana</span>
+        <input
+          type="text"
+          class="form-control"
+          [formControl]="dateDeparture"
+        />
+        <button class="btn btn-primary" (click)="updateDate()">Actualizar fecha</button>
+      </div>
     </div>
-  </section>
-  @if (dataLoaded) {
-    <div>
-      <app-form-edit-departures
-        [formDepartureDataInput]="formDepartureData"
-      ></app-form-edit-departures>
+  </div>
+</section>
+@if (dataLoaded) {
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-12">
+        <app-form-edit-departures
+          [formDepartureDataInput]="formDepartureData"
+        ></app-form-edit-departures>
+      </div>
     </div>
-  }
+  </div>
+}

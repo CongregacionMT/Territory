@@ -1,176 +1,194 @@
 @for (group of groupKeys.sort(); track group) {
-<div>
-  <h3 class="text-center">{{ getGroupTitle(group) }}</h3>
-  <form [formGroup]="formDeparture" class="d-flex flex-column justify-center">
-    @for (days of filterControlsByGroup(group); track days; let i = $index) {
-    <div class="input-group input-group-sm py-2 departure-input">
-      <span class="input-group-text">
-        <input
-          type="date"
-          class="form-control"
-          placeholder="Día"
-          [value]="days.get('date')?.value || ''"
-          (change)="onChangeInput($event, 'date', i, group)"
-        />
-      </span>
-      <span class="input-group-text">
-        <input
-          type="time"
-          aria-label="schedule"
-          class="form-control"
-          placeholder="Horario"
-          [value]="days.get('schedule')?.value || ''"
-          (change)="onChangeInput($event, 'schedule', i, group)"
-        />
-      </span>
-      <input
-        type="text"
-        aria-label="driver"
-        class="form-control"
-        placeholder="Conductor"
-        [value]="days.get('driver')?.value || ''"
-        (change)="onChangeInput($event, 'driver', i, group)"
-      />
-      <input
-        type="text"
-        aria-label="point"
-        class="form-control"
-        placeholder="Punto de encuentro"
-        [value]="days.get('point')?.value || ''"
-        (change)="onChangeInput($event, 'point', i, group)"
-      />
-      <div class="m-0 p-0">
-        <select
-          class="custom-btn h-100 btn btn-light"
-          [value]="days.get('location')?.value || ''"
-          (change)="onChangeInput($event, 'location', i, group)"
-        >
-          <option disabled selected>Seleccionar localidad</option>
-          <option value="TerritorioW">Wheelwright</option>
-          <option value="TerritorioR">Rural</option>
-        </select>
-      </div>
-      <div class="d-flex flex-column">
-        <button
-          type="button"
-          class="btn btn-success btn-sm form-select custom-btn h-100 me-5"
-          data-bs-toggle="modal"
-          [attr.data-bs-target]="'#territoryModal-' + i + '-' + group"
-        >
-          🗺️ Seleccionar territorios
-        </button>
-
-        <!-- Chips de territorios seleccionados -->
-        <div class="d-flex flex-wrap gap-2">
-          @for (t of getTerritories(days); track t) {
-            <span class="mt-1 badge rounded-pill bg-primary text-white px-3 py-2 shadow-sm">
-              {{ t }}
-            </span>
-          }
-        </div>
-      </div>
-
-      <!-- Modal -->
-      <div
-        class="modal fade"
-        [id]="'territoryModal-' + i + '-' + group"
-        tabindex="-1"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-          <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-primary text-white">
-              <h5 class="modal-title fw-bold">
-                📋 Seleccionar territorios
-              </h5>
-              <button
-                type="button"
-                class="btn-close btn-close-white"
-                data-bs-dismiss="modal"
-                aria-label="Cerrar"
-              ></button>
-            </div>
-
-            <div class="modal-body">
-              <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-                @for (num of territoryNumbers; track num) {
-                  <div class="col">
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        [id]="'territory_' + num + '_' + i + '_' + group"
-                        [checked]="isTerritoryChecked(num, i, group)"
-                        (change)="handleCheckboxChange($event, num, i, group)"
-                      />
-                      <label
-                        class="form-check-label ms-1"
-                        [for]="'territory_' + num + '_' + i + '_' + group"
-                      >
-                        {{ num }}
-                      </label>
+  <div class="mb-4">
+    <h3 class="text-center mb-3">{{ getGroupTitle(group) }}</h3>
+    <form [formGroup]="formDeparture" class="d-flex flex-column justify-center">
+      <div class="row g-3">
+        @for (days of filterControlsByGroup(group); track days; let i = $index) {
+          <div class="col-12">
+            <div class="card shadow-sm border-0 mb-2">
+              <div class="card-body p-3">
+                <div class="row align-items-center mb-2">
+                  <div class="col-6">
+                    <span class="fw-bold">Salida {{ i + 1 }}</span>
+                  </div>
+                  <div class="col-6 text-end">
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-sm"
+                      (click)="deleteInputForm(i, group)"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                </div>
+                <div class="row g-2">
+                  <div class="col-12 col-md-2">
+                    <input
+                      type="date"
+                      class="form-control"
+                      placeholder="Día"
+                      [value]="days.get('date')?.value || ''"
+                      (change)="onChangeInput($event, 'date', i, group)"
+                    />
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <input
+                      type="time"
+                      aria-label="schedule"
+                      class="form-control"
+                      placeholder="Horario"
+                      [value]="days.get('schedule')?.value || ''"
+                      (change)="onChangeInput($event, 'schedule', i, group)"
+                    />
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <input
+                      type="text"
+                      aria-label="driver"
+                      class="form-control"
+                      placeholder="Conductor"
+                      [value]="days.get('driver')?.value || ''"
+                      (change)="onChangeInput($event, 'driver', i, group)"
+                    />
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <input
+                      type="text"
+                      aria-label="point"
+                      class="form-control"
+                      placeholder="Punto de encuentro"
+                      [value]="days.get('point')?.value || ''"
+                      (change)="onChangeInput($event, 'point', i, group)"
+                    />
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <select
+                      class="form-control form-select"
+                      [value]="days.get('location')?.value || ''"
+                      (change)="onChangeInput($event, 'location', i, group)"
+                    >
+                      <option disabled selected>Seleccionar localidad</option>
+                      <option value="TerritorioW">Wheelwright</option>
+                      <option value="TerritorioR">Rural</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row mt-2 g-2">
+                  <div class="col-12 col-md-6">
+                    <button
+                      type="button"
+                      class="btn btn-success w-100"
+                      data-bs-toggle="modal"
+                      [attr.data-bs-target]="'#territoryModal-' + i + '-' + group"
+                    >
+                      🗺️ Seleccionar territorios
+                    </button>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                      @for (t of getTerritories(days); track t) {
+                        <span class="badge rounded-pill bg-primary text-white px-3 py-2 shadow-sm">
+                          {{ t }}
+                        </span>
+                      }
                     </div>
                   </div>
-                }
+                  <div class="col-12 col-md-6">
+                    <select
+                      class="form-select w-100"
+                      [class]="'btn btn-square btn-' + days.get('color')?.value"
+                      (change)="onChangeColor($event, i, group)"
+                    >
+                      <option [value]="'secondary'" disabled selected>
+                        Seleccionar color
+                      </option>
+                      <option value="primary">Azul</option>
+                      <option value="secondary">Gris</option>
+                      <option value="success">Verde</option>
+                      <option value="danger">Rojo</option>
+                      <option value="warning">Amarillo</option>
+                      <option value="info">Celeste</option>
+                      <option value="light">Blanco</option>
+                      <option value="dark">Negro</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Modal -->
+                <div
+                  class="modal fade"
+                  [id]="'territoryModal-' + i + '-' + group"
+                  tabindex="-1"
+                  aria-hidden="true"
+                >
+                  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                      <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title fw-bold">
+                          📋 Seleccionar territorios
+                        </h5>
+                        <button
+                          type="button"
+                          class="btn-close btn-close-white"
+                          data-bs-dismiss="modal"
+                          aria-label="Cerrar"
+                        ></button>
+                      </div>
+
+                      <div class="modal-body">
+                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                          @for (num of territoryNumbers; track num) {
+                            <div class="col">
+                              <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  [id]="'territory_' + num + '_' + i + '_' + group"
+                                  [checked]="isTerritoryChecked(num, i, group)"
+                                  (change)="handleCheckboxChange($event, num, i, group)"
+                                />
+                                <label
+                                  class="form-check-label ms-1"
+                                  [for]="'territory_' + num + '_' + i + '_' + group"
+                                >
+                                  {{ num }}
+                                </label>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="modal-footer justify-content-between">
+                        <span class="text-muted small">Podés seleccionar varios territorios</span>
+                        <button
+                          type="button"
+                          class="btn btn-success fw-semibold"
+                          data-bs-dismiss="modal"
+                        >
+                          ✅ Guardar selección
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div class="modal-footer justify-content-between">
-              <span class="text-muted small">Podés seleccionar varios territorios</span>
-              <button
-                type="button"
-                class="btn btn-success fw-semibold"
-                data-bs-dismiss="modal"
-              >
-                ✅ Guardar selección
-              </button>
-            </div>
           </div>
-        </div>
+        }
       </div>
-
-      <div class="m-0 p-0">
-        <select
-          class="form-select custom-btn h-100 me-5"
-          [class]="'btn btn-square btn-' + days.get('color')?.value"
-          (change)="onChangeColor($event, i, group)"
+      <div class="d-flex justify-content-end mt-2">
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="addInputForm(group)"
         >
-          <option [value]="'secondary'" disabled selected>
-            Seleccionar color
-          </option>
-          <option value="primary">Azul</option>
-          <option value="secondary">Gris</option>
-          <option value="success">Verde</option>
-          <option value="danger">Rojo</option>
-          <option value="warning">Amarillo</option>
-          <option value="info">Celeste</option>
-          <option value="light">Blanco</option>
-          <option value="dark">Negro</option>
-        </select>
+          Nueva salida +
+        </button>
       </div>
-      <button
-        type="button"
-        class="btn btn-danger"
-        (click)="deleteInputForm(i, group)"
-      >
-        Quitar
-      </button>
-    </div>
-    }
-    <div class="modal-footer mx-4">
-      <button
-        type="button"
-        class="btn btn-success text-center me-auto"
-        (click)="addInputForm(group)"
-      >
-        Nueva salida +
-      </button>
-    </div>
-    <hr />
-  </form>
-</div>
+      <hr />
+    </form>
+  </div>
 }
-<div class="ms-4">
+<div class="pb-3">
   <button type="submit" class="btn btn-success" (click)="addNewGroup()">
     Nuevo grupo +
   </button>

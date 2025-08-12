@@ -1,11 +1,43 @@
 .custom-btn {
   border-radius: 0 !important;
 }
-.departure-input{
+.departure-input {
   min-width: 720px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 @media (max-width: 720px) {
-  .departure-input{
-    min-width: 1080px;
+  .departure-input {
+    min-width: unset;
+    width: 100%;
+    flex-direction: column;
+    gap: 4px;
   }
+  .input-group-text,
+  .form-control,
+  .form-select,
+  .btn {
+    font-size: 0.95rem;
+    padding: 0.5rem;
+  }
+  .modal-dialog {
+    max-width: 98vw;
+    margin: 0.5rem;
+  }
+  .card-body {
+    padding: 1rem 0.5rem;
+  }
+  .card {
+    margin-bottom: 1rem;
+  }
+  .btn, .form-select, .form-control {
+    font-size: 1rem;
+    width: 100%;
+  }
+}
+
+.card {
+  border-radius: 1rem;
+  background: #f8f9fa;
 }
