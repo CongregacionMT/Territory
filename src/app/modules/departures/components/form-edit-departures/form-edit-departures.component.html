@@ -27,7 +27,7 @@
                       type="date"
                       class="form-control"
                       placeholder="Día"
-                      [value]="days.get('date')?.value || ''"
+                      [value]="days.get('date')?.value"
                       (change)="onChangeInput($event, 'date', i, group)"
                     />
                   </div>
@@ -37,7 +37,7 @@
                       aria-label="schedule"
                       class="form-control"
                       placeholder="Horario"
-                      [value]="days.get('schedule')?.value || ''"
+                      [value]="days.get('schedule')?.value"
                       (change)="onChangeInput($event, 'schedule', i, group)"
                     />
                   </div>
@@ -67,7 +67,7 @@
                       [value]="days.get('location')?.value || ''"
                       (change)="onChangeInput($event, 'location', i, group)"
                     >
-                      <option disabled selected>Seleccionar localidad</option>
+                      <option value="" selected disabled>Seleccionar localidad</option>
                       <option value="TerritorioW">Wheelwright</option>
                       <option value="TerritorioR">Rural</option>
                     </select>
