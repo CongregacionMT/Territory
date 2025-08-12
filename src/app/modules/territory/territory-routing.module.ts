@@ -12,7 +12,7 @@ const routes: Routes = [
       { path: '', component: TerritoryPageComponent},
       { path: 'wheelwright', component: MapasComponent},
       { path: 'rural', component: MapasComponent},
-      { path: ':collection', component: CardTerritoryComponent},
+      { path: 'TerritorioW-Rural', redirectTo: 'rural'},
       { path: ':collection', component: CardTerritoryComponent},
       {path: '**', redirectTo: ''},
     ],

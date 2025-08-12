@@ -24,7 +24,10 @@ export class FormEditDeparturesComponent implements OnInit{
   groupedDepartures: { [key: string]: Departure[] } = {};
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
-  territoryNumbers: string[] = Array.from({ length: 23 }, (_, i) => `N°${i + 1}`);
+  territoryNumbers: string[] = [
+    ...Array.from({ length: 23 }, (_, i) => `N°${i + 1}`),
+    'Rural'
+  ];
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
