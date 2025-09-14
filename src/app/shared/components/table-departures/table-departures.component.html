@@ -23,8 +23,15 @@
             <td>{{ departure.driver }}</td>
             <td>
               @if(departure.maps !== null) {
-                <a [href]="departure.maps" target="_blank" style="color: inherit; text-decoration: none;">
+                <a [href]="departure.maps" target="_blank" style="color: inherit; text-decoration: none;" class="d-flex align-items-center">
                   {{ departure.point }}
+                  <img
+                      src="https://api.iconify.design/fe:link-external.svg"
+                      alt="Link icon"
+                      class="ms-1"
+                      width="14"
+                      height="14"
+                    />
                 </a>
               } @else {
                 {{ departure.point }}
