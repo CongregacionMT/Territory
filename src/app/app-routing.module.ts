@@ -31,6 +31,10 @@ const routes: Routes = [
     loadChildren: () => import('./modules/campaign/campaign.module').then(m => m.CampaignModule), data: { scrollPositionRestoration: 'top' }
   },
   {
+    path: 'circuit-overseer',
+    loadChildren: () => import('./modules/circuit-overseer/circuit-overseer-routing.module').then(m => m.CircuitOverseerRoutingModule), data: { scrollPositionRestoration: 'top' }
+  },
+  {
     path: 'usuarios',
     loadChildren: () => import('./modules/users/users.module').then(m => m.UsersModule)
   },

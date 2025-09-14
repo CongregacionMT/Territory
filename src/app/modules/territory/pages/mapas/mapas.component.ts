@@ -58,6 +58,10 @@ export class MapasComponent implements OnInit {
         }
       })
       this.isAdmin = localStorage.getItem('tokenAdmin') ? true : false;
+    } else if(this.activatedRoute.snapshot.url[0].path === 'ubications-overseer'){
+      this.mapa = this.domSanitizer.bypassSecurityTrustHtml(
+        '<iframe src="https://www.google.com/maps/d/embed?mid=1JgsdBk9nOo153ANYwK7YGZ6R4J62pUQ&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
+      )
     }
   }
 

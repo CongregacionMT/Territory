@@ -11,6 +11,7 @@ const routes: Routes = [
     children: [
       { path: '', component: TerritoryPageComponent},
       { path: 'wheelwright', component: MapasComponent},
+      { path: 'ubications-overseer', component: MapasComponent},
       { path: 'rural', component: MapasComponent},
       { path: 'TerritorioW-Rural', redirectTo: 'rural'},
       { path: ':collection', component: CardTerritoryComponent},

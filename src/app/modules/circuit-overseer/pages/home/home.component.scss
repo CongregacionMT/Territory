@@ -1,0 +1,36 @@
+.card-container{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.card{
+    width: 18rem;
+    background-color: #454b4f;
+    margin: 1rem;
+}
+.auth{
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+}
+.card:hover{
+    cursor:pointer;
+    transition: all 300ms;
+    -webkit-transition: all 300ms;
+    -moz-transition: all 300ms;
+    -ms-transition: all 300ms;
+    -o-transition: all 300ms;
+    box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
+    -moz-box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
+}
+@media (max-width: 1201px) {
+  .card-container{
+      flex-wrap: wrap;
+  }
+}
+@media (max-width: 768px) {
+    .card-container{
+        align-items: center;
+        flex-direction: column;
+    }
+}
