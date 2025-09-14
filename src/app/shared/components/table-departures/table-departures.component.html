@@ -21,7 +21,15 @@
             <th scope="row">{{ getDayOfWeek(departure.date) }}</th>
             <td>{{ departure.schedule }}hs</td>
             <td>{{ departure.driver }}</td>
-            <td>{{ departure.point }}</td>
+            <td>
+              @if(departure.maps !== null) {
+                <a [href]="departure.maps" target="_blank" style="color: inherit; text-decoration: none;">
+                  {{ departure.point }}
+                </a>
+              } @else {
+                {{ departure.point }}
+              }
+            </td>
             <td>
               <div class="d-flex flex-nowrap gap-2">
                 @for (territory of departure.territory; track territory) {

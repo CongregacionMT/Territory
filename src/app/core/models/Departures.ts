@@ -3,6 +3,7 @@ export interface Departure {
   location: string;
   territory: string[];
   date: string;
+  maps: string;
   point: string;
   schedule: string;
   color: string;

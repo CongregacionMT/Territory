@@ -55,6 +55,7 @@ export class FormEditDeparturesComponent implements OnInit{
           (departure.territory || []).map((t: string) => new FormControl(t))
         ),
         point: new FormControl(departure.point),
+        maps: new FormControl(departure.maps),
         color: new FormControl(departure.color),
         group: new FormControl(departure.group),
       }));
@@ -107,6 +108,8 @@ export class FormEditDeparturesComponent implements OnInit{
           item.get('territory')?.setValue(e.target.value);
         } else if (key === 'point') {
           item.get('point')?.setValue(e.target.value);
+        } else if (key === 'maps') {
+          item.get('maps')?.setValue(e.target.value);
         } else if (key === 'color') {
           item.get('color')?.setValue(e.target.value);
         } else if (key === 'group') {
@@ -130,6 +133,7 @@ export class FormEditDeparturesComponent implements OnInit{
       location: new FormControl('TerritorioW'),
       territory: this.fb.array([]),
       point: new FormControl(''),
+      maps: new FormControl(''),
       color: new FormControl('secondary'),
       group: new FormControl(group),
     }));
@@ -157,6 +161,7 @@ export class FormEditDeparturesComponent implements OnInit{
         location: new FormControl(departure.location),
         territory: new FormControl(departure.territory),
         point: new FormControl(departure.point),
+        maps: new FormControl(departure.maps),
         color: new FormControl(departure.color),
         group: new FormControl(departure.group),
       }));

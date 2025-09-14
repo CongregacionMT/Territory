@@ -51,7 +51,7 @@
                       (change)="onChangeInput($event, 'driver', i, group)"
                     />
                   </div>
-                  <div class="col-12 col-md-4">
+                  <div class="col-12 col-md-3">
                     <input
                       type="text"
                       aria-label="point"
@@ -59,6 +59,16 @@
                       placeholder="Punto de encuentro"
                       [value]="days.get('point')?.value || ''"
                       (change)="onChangeInput($event, 'point', i, group)"
+                    />
+                  </div>
+                  <div class="col-12 col-md-1">
+                    <input
+                      type="text"
+                      aria-label="maps"
+                      class="form-control"
+                      placeholder="Link Google Maps"
+                      [value]="days.get('maps')?.value || ''"
+                      (change)="onChangeInput($event, 'maps', i, group)"
                     />
                   </div>
                   <div class="col-12 col-md-2">
