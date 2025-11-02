@@ -12,7 +12,7 @@ import { TableDeparturesComponent } from '../../../../shared/components/table-de
     selector: 'app-departure-page',
     templateUrl: './departure-page.component.html',
     styleUrls: ['./departure-page.component.scss'],
-    imports: [BreadcrumbComponent, TableDeparturesComponent]
+    imports: [BreadcrumbComponent, TableDeparturesComponent, RouterLink]
 })
 export class DeparturePageComponent implements OnInit {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
