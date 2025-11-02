@@ -203,4 +203,35 @@ export class TerritoryDataService {
   deleteUser(user: string){
     deleteDoc(doc(this.firestore, "users", user));
   }
+  // Modo Campaña
+  startNewCampaign(startCampaign: any, campaign: any){
+    // Iniciar la campaña
+    const onOffRef = doc(this.firestore, "campaigns", "on-off");
+    updateDoc(onOffRef, startCampaign);
+    // Crear la campaña
+    const collectionRef = collection(this.firestore, "campaigns");
+    addDoc(collectionRef, campaign);
+    // Limpiar todas las manzanas de todos los territorios
+    // const cardRef = collection(this.firestore, collectionName);
+    // this.getCardTerritorie(collectionName).subscribe(cards => {
+    //   // Tomar solo la primera card
+    //   const resetCard = {
+    //       ...cards[0],
+    //       applesData: cards[0].applesData.map((apple: any) => ({
+    //         ...apple,
+    //         checked: false
+    //       })),
+    //       creation: Timestamp.now()
+    //     };
+    //   addDoc(cardRef, resetCard);
+    // })
+  }
+  getCampaign(){
+    const campaignRef = collection(this.firestore, 'campaigns');
+    return collectionData(campaignRef, {idField: 'id'}) as Observable<any>;
+  }
+  updateCampaign(docId: string, cambios: any){
+    const campaignRef = doc(this.firestore, "campaigns", docId);
+    return updateDoc(campaignRef, cambios);
+  }
 }

@@ -1,1 +1,87 @@
-<p>campaign-page works!</p>
+<div class="container py-5" style="background-color: #1f2329; color: #ffffff; min-height: 100vh;">
+  <div class="text-center mb-5">
+    <h1 class="display-4 fw-bold">📣 Gestión de Campañas</h1>
+    <p class="lead" style="color: #cccccc;">Iniciá, finalizá y hacé seguimiento a las campañas de predicación</p>
+  </div>
+
+  <div class="card shadow-lg border-0 mb-4" style="background-color: #2d3541;">
+    <div class="card-body">
+      <h4 class="card-title text-white">📝 Nueva Campaña</h4>
+      <form (ngSubmit)="startCampaign()">
+        <div class="mb-3">
+          <label for="campaignName" class="form-label text-white">Nombre de la campaña</label>
+          <input id="campaignName"
+                 type="text"
+                 class="form-control bg-dark text-white border-0"
+                 [ngModel]="campaignName()"
+                 (ngModelChange)="campaignName.set($event)"
+                 name="campaignName"
+                 required>
+        </div>
+
+        <div class="mb-3">
+          <label for="campaignDescription" class="form-label text-white">Descripción</label>
+          <textarea id="campaignDescription"
+                    class="form-control bg-dark text-white border-0"
+                    rows="3"
+                    [ngModel]="campaignDescription()"
+                    (ngModelChange)="campaignDescription.set($event)"
+                    name="campaignDescription"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">🚀 Iniciar Campaña</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-lg border-0 mb-4" style="background-color: #3a4644;">
+    <div class="card-body">
+      <h4 class="card-title text-white">📊 Progreso de la Campaña</h4>
+      @if(!campaignInProgress()){
+        <p class="text-muted">No hay una campaña activa actualmente.</p>
+      } @else {
+        @for(territorio of territorios(); track territorio;){
+          <div>
+            <label class="form-label text-white">{{ territorio.nombre }}</label>
+            <div class="progress mb-3" style="height: 20px;">
+              <div
+                class="progress-bar bg-info text-white"
+                role="progressbar"
+                [style.width.%]="territorio.porcentaje"
+                aria-valuemin="0"
+                aria-valuemax="100">
+                {{ territorio.porcentaje }}%
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  @if(campaignInProgress()){
+    <div class="d-flex gap-3 mb-5">
+      <button class="btn btn-danger flex-fill" (click)="endCampaign()">🛑 Finalizar Campaña</button>
+    </div>
+  }
+
+  <div class="card shadow-lg border-0" style="background-color: #2d3541;">
+    <div class="card-body">
+      <h4 class="card-title text-white">📚 Historial de Campañas</h4>
+      @if(campaignHistory().length === 0){
+        <div class="text-muted">Todavía no hay campañas registradas.</div>
+      } @else {
+        <ul class="list-group list-group-flush mt-3">
+          @for(history of campaignHistory(); track history;){
+            <li class="list-group-item"
+                style="background-color: #3a4644; color: #ffffff;">
+              <div class="fw-bold">{{ history.nombre }}</div>
+              <small class="text-muted">{{ history.descripcion }}</small>
+              <span class="badge bg-secondary float-end">{{ history.fecha }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+</div>
