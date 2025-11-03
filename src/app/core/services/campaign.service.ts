@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, getDoc, getDocs, limit, orderBy, query, setDoc, Timestamp, updateDoc, where } from '@angular/fire/firestore';
+import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -29,7 +30,7 @@ export class CampaignService {
     });
 
     await Promise.all(
-      Array.from({ length: 23 }, (_, i) =>
+      Array.from({ length: TERRITORY_COUNT }, (_, i) =>
         this.resetTerritory(i + 1, campaignDoc.id)
       )
     );
@@ -40,7 +41,7 @@ export class CampaignService {
         total: 0,
         percent: 0,
         completedTerritories: 0,
-        totalTerritories: 23,
+        totalTerritories: TERRITORY_COUNT,
         progressHistory: [],
         lastUpdate: Timestamp.now()
       }
@@ -202,12 +203,12 @@ export class CampaignService {
     });
 
     await Promise.all(
-      Array.from({ length: 23 }, (_, i) =>
+      Array.from({ length: TERRITORY_COUNT }, (_, i) =>
         this.resetTerritoryAfterCampaign(i + 1)
       )
     );
 
-    await this.cleanupCampaignData(campaignId, 23);
+    await this.cleanupCampaignData(campaignId, TERRITORY_COUNT);
 
     localStorage.removeItem('activeCampaign');
   }
@@ -280,7 +281,7 @@ export class CampaignService {
     }));
   }
 
-  async cleanupCampaignData(campaignId: string, totalTerritories: number = 23) {
+  async cleanupCampaignData(campaignId: string, totalTerritories: number ) {
     for (let i = 1; i <= totalTerritories; i++) {
       const collectionName = `TerritorioW-${i}`;
       const colRef = collection(this.firestore, collectionName);

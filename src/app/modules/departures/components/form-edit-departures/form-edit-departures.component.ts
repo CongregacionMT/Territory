@@ -4,6 +4,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure } from '../../../../core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
+import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 
 @Component({
     selector: 'app-form-edit-departures',
@@ -25,7 +26,7 @@ export class FormEditDeparturesComponent implements OnInit{
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
   territoryNumbers: string[] = [
-    ...Array.from({ length: 23 }, (_, i) => `N°${i + 1}`),
+    ...Array.from({ length: TERRITORY_COUNT }, (_, i) => `N°${i + 1}`),
     'Rural'
   ];
 
