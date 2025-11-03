@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
 import { DataRural } from '@core/models/DataRural';
+import { CampaignService } from './campaign.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,7 @@ export class TerritoryDataService {
   private firestore = inject(Firestore);
   private router = inject(Router);
   private spinner = inject(SpinnerService);
+  private campaignService = inject(CampaignService);
 
   diferent: boolean = false;
   countFalseApples: number = 0;
@@ -58,8 +60,6 @@ export class TerritoryDataService {
     }
 
     this.isCreating = true;
-
-    const cardRef = collection(this.firestore, collectionName);
     this.countFalseApples = 0;
 
     card.revision = false;
@@ -70,15 +70,26 @@ export class TerritoryDataService {
     });
 
     try {
+      // 🔥 Verificar si hay campaña activa
+      const activeCampaign = this.campaignService.getCachedCampaign();
+
       if (this.countFalseApples === 0) {
         // Caso: todos los checkboxes marcados ✅
         const completedCard = { ...card };
         completedCard.completed += 1;
         completedCard.creation = Timestamp.now();
 
-        await addDoc(cardRef, completedCard);
+        if (activeCampaign) {
+          // Guardar con ID personalizado
+          const completedId = `Campaña-${activeCampaign.id}-${Date.now()}-completed`;
+          const completedRef = doc(this.firestore, collectionName, completedId);
+          await setDoc(completedRef, completedCard);
+        } else {
+          // Guardar con ID automático
+          await addDoc(collection(this.firestore, collectionName), completedCard);
+        }
 
-        // Delay artificial para evitar que se solapen los timestamps
+        // Delay artificial
         await new Promise(resolve => setTimeout(resolve, 10));
 
         // Crear la nueva tarjeta vacía ❌
@@ -92,11 +103,25 @@ export class TerritoryDataService {
           creation: Timestamp.now()
         };
 
-        await addDoc(cardRef, resetCard);
+        if (activeCampaign) {
+          const resetId = `Campaña-${activeCampaign.id}-${Date.now()}-reset`;
+          const resetRef = doc(this.firestore, collectionName, resetId);
+          await setDoc(resetRef, resetCard);
+        } else {
+          await addDoc(collection(this.firestore, collectionName), resetCard);
+        }
+
       } else {
         // Caso: algunos checkboxes en false todavía
         card.creation = Timestamp.now();
-        await addDoc(cardRef, card);
+
+        if (activeCampaign) {
+          const cardId = `Campaña-${activeCampaign.id}-${Date.now()}`;
+          const cardRef = doc(this.firestore, collectionName, cardId);
+          await setDoc(cardRef, card);
+        } else {
+          await addDoc(collection(this.firestore, collectionName), card);
+        }
       }
 
       this.router.navigate(['home']);
@@ -108,7 +133,6 @@ export class TerritoryDataService {
       this.isCreating = false;
     }
   }
-
 
   putCardTerritorie(card: any){
     const revisionRef = doc(this.firestore, "revision", card.id);
@@ -202,36 +226,5 @@ export class TerritoryDataService {
   }
   deleteUser(user: string){
     deleteDoc(doc(this.firestore, "users", user));
-  }
-  // Modo Campaña
-  startNewCampaign(startCampaign: any, campaign: any){
-    // Iniciar la campaña
-    const onOffRef = doc(this.firestore, "campaigns", "on-off");
-    updateDoc(onOffRef, startCampaign);
-    // Crear la campaña
-    const collectionRef = collection(this.firestore, "campaigns");
-    addDoc(collectionRef, campaign);
-    // Limpiar todas las manzanas de todos los territorios
-    // const cardRef = collection(this.firestore, collectionName);
-    // this.getCardTerritorie(collectionName).subscribe(cards => {
-    //   // Tomar solo la primera card
-    //   const resetCard = {
-    //       ...cards[0],
-    //       applesData: cards[0].applesData.map((apple: any) => ({
-    //         ...apple,
-    //         checked: false
-    //       })),
-    //       creation: Timestamp.now()
-    //     };
-    //   addDoc(cardRef, resetCard);
-    // })
-  }
-  getCampaign(){
-    const campaignRef = collection(this.firestore, 'campaigns');
-    return collectionData(campaignRef, {idField: 'id'}) as Observable<any>;
-  }
-  updateCampaign(docId: string, cambios: any){
-    const campaignRef = doc(this.firestore, "campaigns", docId);
-    return updateDoc(campaignRef, cambios);
   }
 }

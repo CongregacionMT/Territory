@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, Signal, inject, signal } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { CampaignService } from '@core/services/campaign.service';
 import { MessagingService } from '@core/services/messaging.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -19,6 +20,7 @@ export class HomePageComponent implements OnInit {
   private swUpdate = inject(SwUpdate);
   private spinner = inject(SpinnerService);
   private territorieDataService = inject(TerritoryDataService);
+  private campaignService = inject(CampaignService);
   private messagingService = inject(MessagingService);
   private _snackBar = inject(MatSnackBar);
 
@@ -26,6 +28,7 @@ export class HomePageComponent implements OnInit {
   isDriver: boolean = false;
   btnLogin: boolean = false;
   btnPWA: boolean = true;
+  campaignInProgress = signal(false);
   deferredPrompt: any;
   nameDriver: string = '';
 
@@ -38,7 +41,7 @@ export class HomePageComponent implements OnInit {
     this.nameDriver = localStorage.getItem('nombreConductor') as string;
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     if (this.swUpdate.isEnabled) {
       this.swUpdate.versionUpdates
         .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
@@ -89,6 +92,18 @@ export class HomePageComponent implements OnInit {
     this.isAdmin === false && this.isDriver === true ? this.btnLogin = false :this.btnLogin = true;
 
     this.isAdmin === false && this.isDriver === false ? this.btnLogin = true: this.btnLogin = false
+
+    this.checkCampaignExpiration();
+
+    this.spinner.cargarSpinner();
+    const activeCampaign = await this.campaignService.getActiveCampaign();
+    this.spinner.cerrarSpinner();
+    if (activeCampaign) {
+      localStorage.setItem('activeCampaign', JSON.stringify(activeCampaign));
+      this.campaignInProgress.set(true);
+    } else {
+      this.campaignInProgress.set(false);
+    }
 
     // Init PWA
     this.initPWA();
@@ -151,5 +166,17 @@ export class HomePageComponent implements OnInit {
         this._snackBar.open('Las notificaciones ya están activadas para este dispositivo 🔔', 'ok');
       }
     });
+  }
+
+  async checkCampaignExpiration() {
+    const active = await this.campaignService.getActiveCampaign();
+    if (active?.dateEnd) {
+      const end = active.dateEnd.toDate();
+      const now = new Date();
+
+      if (now >= end) {
+        await this.campaignService.endCampaign(active.id, active.stats);
+      }
+    }
   }
 }

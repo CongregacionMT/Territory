@@ -6,3 +6,46 @@
   border-color: #3a4644;
   box-shadow: 0 0 0 0.2rem rgba(58, 70, 68, 0.25);
 }
+
+.campaign-container {
+  background-color: #1f2329;
+  color: #fff;
+  min-height: 100vh;
+}
+
+.campaign-card {
+  background-color: #2d3541;
+  border-radius: 12px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.progress {
+  height: 22px;
+  border-radius: 12px;
+  overflow: hidden;
+
+  .progress-bar {
+    transition: width 0.6s ease;
+  }
+}
+
+.progress-animated .progress-bar {
+  animation: progressPulse 2s infinite;
+}
+
+@keyframes progressPulse {
+  0% { box-shadow: 0 0 5px rgba(0,255,0,0.4); }
+  50% { box-shadow: 0 0 15px rgba(0,255,0,0.7); }
+  100% { box-shadow: 0 0 5px rgba(0,255,0,0.4); }
+}
+
+.history-item {
+  background-color: #3a4644;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #4b5a58;
+  }
+}

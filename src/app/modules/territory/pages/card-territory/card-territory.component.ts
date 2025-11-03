@@ -12,6 +12,7 @@ import { ModalComponent } from '@shared/components/modal/modal.component';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
 import { ModalComponent as ModalComponent_1 } from '../../../../shared/components/modal/modal.component';
+import { CampaignService } from '@core/services/campaign.service';
 
 @Component({
     selector: 'app-card-territory',
@@ -27,6 +28,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   private cardService = inject(CardService);
   private activatedRoute = inject(ActivatedRoute);
   private spinner = inject(SpinnerService);
+  private campaignService = inject(CampaignService);
   private router = inject(Router);
 
   card = signal<any>({
@@ -272,6 +274,11 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
         console.log("todo bien");
       });
       this.territorieDataService.putCardTerritorie(currentCard);
+          // Validar campaña desde cache
+      const activeCampaign = this.campaignService.getCachedCampaign();
+      if (activeCampaign) {
+        this.campaignService.updateCampaignStats(activeCampaign.id, currentCard);
+      }
     } else {
       const updatedCard = {
         ...currentCard,
