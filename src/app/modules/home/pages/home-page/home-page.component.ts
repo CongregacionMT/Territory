@@ -93,8 +93,6 @@ export class HomePageComponent implements OnInit {
 
     this.isAdmin === false && this.isDriver === false ? this.btnLogin = true: this.btnLogin = false
 
-    this.checkCampaignExpiration();
-
     this.spinner.cargarSpinner();
     const activeCampaign = await this.campaignService.getActiveCampaign();
     this.spinner.cerrarSpinner();
@@ -166,17 +164,5 @@ export class HomePageComponent implements OnInit {
         this._snackBar.open('Las notificaciones ya están activadas para este dispositivo 🔔', 'ok');
       }
     });
-  }
-
-  async checkCampaignExpiration() {
-    const active = await this.campaignService.getActiveCampaign();
-    if (active?.dateEnd) {
-      const end = active.dateEnd.toDate();
-      const now = new Date();
-
-      if (now >= end) {
-        await this.campaignService.endCampaign(active.id, active.stats);
-      }
-    }
   }
 }

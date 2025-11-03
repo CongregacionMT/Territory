@@ -24,14 +24,14 @@ export class AppComponent implements OnInit{
     this.spinner.getSpinner$().subscribe(spinner => {
       this.isLoading$.set(spinner);
     })
-    this.messagingService.requestPermission()
-      .then((token) => {
-        console.log("Token recibido: ", token);
-      })
-      .catch((error) => {
-        console.error('Error al solicitar token: ', error);
-      })
-    this.messagingService.receiveMessages();
+    // this.messagingService.requestPermission()
+    //   .then((token) => {
+    //     console.log("Token recibido: ", token);
+    //   })
+    //   .catch((error) => {
+    //     console.error('Error al solicitar token: ', error);
+    //   })
+    // this.messagingService.receiveMessages();
   }
 }
 
