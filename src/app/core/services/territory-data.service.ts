@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc, docData, where, setDoc } from '@angular/fire/firestore';
+import { collection, collectionData, Firestore, addDoc, query, orderBy, Timestamp, doc, updateDoc, deleteDoc, docData, where, setDoc, runTransaction } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
@@ -52,89 +52,119 @@ export class TerritoryDataService {
   }
 
   private isCreating = false;
-
   async postCardTerritorie(card: any, collectionName: string): Promise<void> {
+
     if (this.isCreating) {
-      console.warn('Ya se está creando una tarjeta. Cancelado.');
+      console.warn('[postCardTerritorie] blocked: isCreating true');
       return;
     }
 
     this.isCreating = true;
     this.countFalseApples = 0;
-
     card.revision = false;
 
-    // Contar los que están en false
-    card.applesData.forEach((apple: any) => {
-      if (!apple.checked) this.countFalseApples++;
+    (card.applesData ?? []).forEach((apple: any) => {
+      if (!apple?.checked) this.countFalseApples++;
     });
 
     try {
-      // 🔥 Verificar si hay campaña activa
+
       const activeCampaign = this.campaignService.getCachedCampaign();
+      const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
 
       if (this.countFalseApples === 0) {
-        // Caso: todos los checkboxes marcados ✅
-        const completedCard = { ...card };
-        completedCard.completed += 1;
-        completedCard.creation = Timestamp.now();
-
-        if (activeCampaign) {
-          // Guardar con ID personalizado
-          const completedId = `Campaña-${activeCampaign.id}-${Date.now()}-completed`;
-          const completedRef = doc(this.firestore, collectionName, completedId);
-          await setDoc(completedRef, completedCard);
-        } else {
-          // Guardar con ID automático
-          await addDoc(collection(this.firestore, collectionName), completedCard);
+        const completedCard = { ...card, creation: Timestamp.now(), completed: (card.completed ?? 0) + 1 };
+        const completedId = `Campaña-${activeCampaign?.id}-${Date.now()}-completed`;
+        await setDoc(doc(this.firestore, collectionName, completedId), completedCard);
+        if (activeCampaign?.id) {
+          await this.incrementSalidasTx(activeCampaign.id, territorioKey);
         }
 
-        // Delay artificial
-        await new Promise(resolve => setTimeout(resolve, 10));
-
-        // Crear la nueva tarjeta vacía ❌
         const resetCard = {
           ...card,
-          completed: card.completed + 1,
-          applesData: card.applesData.map((apple: any) => ({
-            ...apple,
-            checked: false
-          })),
-          creation: Timestamp.now()
+          creation: Timestamp.now(),
+          completed: (card.completed ?? 0) + 1,
+          applesData: (card.applesData ?? []).map((a: any) => ({ ...a, checked: false }))
         };
-
-        if (activeCampaign) {
-          const resetId = `Campaña-${activeCampaign.id}-${Date.now()}-reset`;
-          const resetRef = doc(this.firestore, collectionName, resetId);
-          await setDoc(resetRef, resetCard);
-        } else {
-          await addDoc(collection(this.firestore, collectionName), resetCard);
-        }
-
+        const resetId = `Campaña-${activeCampaign?.id}-${Date.now()}-reset`;
+        await setDoc(doc(this.firestore, collectionName, resetId), resetCard);
       } else {
-        // Caso: algunos checkboxes en false todavía
-        card.creation = Timestamp.now();
+        const partialCard = { ...card, creation: Timestamp.now() };
+        const cardId = `Campaña-${activeCampaign?.id}-${Date.now()}`;
+        await setDoc(doc(this.firestore, collectionName, cardId), partialCard);
 
-        if (activeCampaign) {
-          const cardId = `Campaña-${activeCampaign.id}-${Date.now()}`;
-          const cardRef = doc(this.firestore, collectionName, cardId);
-          await setDoc(cardRef, card);
-        } else {
-          await addDoc(collection(this.firestore, collectionName), card);
+        if (activeCampaign?.id) {
+          await this.incrementSalidasTx(activeCampaign.id, territorioKey);
         }
       }
-
       this.router.navigate(['home']);
-      this.spinner.cerrarSpinner();
     } catch (err) {
-      console.error('Error al guardar la tarjeta:', err);
-      this.spinner.cerrarSpinner();
+      console.error('[postCardTerritorie] ERROR:', err);
     } finally {
+      this.spinner?.cerrarSpinner?.();
       this.isCreating = false;
     }
   }
+  private async incrementSalidasTx(campaignId: string, territorioKey: string) {
+    const ref = doc(this.firestore, 'campaigns', campaignId);
+    try {
+      await runTransaction(this.firestore, async (tx) => {
 
-  putCardTerritorie(card: any){
+        const snap = await tx.get(ref);
+        const exists = snap.exists();
+        const data = exists ? (snap.data() as any) : {};
+        const stats = data?.stats ?? {};
+        const allKeys = Object.keys(stats || {});
+        const territorio = stats[territorioKey] ?? {};
+        const current = Number(territorio?.salidas ?? 0);
+        const next = current + 1;
+
+        // Build payload carefully to avoid overwriting other territories
+        const payload = {
+          stats: {
+            [territorioKey]: {
+              ...territorio,
+              salidas: next
+            }
+          }
+        };
+        tx.update(ref, {
+          [`stats.${territorioKey}.salidas`]: next
+        });
+      });
+
+      // Read-after-write verification (outside transaction)
+      const verifySnap = await (await import('firebase/firestore')).getDoc(ref);
+      const verifyData = verifySnap.exists() ? (verifySnap.data() as any) : {};
+      const verifyStats = verifyData?.stats ?? {};
+
+      const verifyValue = Number(verifyStats?.[territorioKey]?.salidas ?? 0);
+    } catch (err: any) {
+      console.error('[incrementSalidasTx] ERROR:', err?.name, err?.code, err?.message);
+    } finally {
+      console.log('--- [incrementSalidasTx] END ---');
+    }
+  }
+  private getTerritorioKeyStrict(card: any, collectionName: string): string {
+    const sources = [
+      String(card?.territoryNumber ?? ''),
+      String(card?.territory ?? ''),
+      String(card?.name ?? ''),
+      String(card?.title ?? ''),
+      String(collectionName ?? '')
+    ];
+    for (const s of sources) {
+      const m = s.match(/(\d+)(?!.*\d)/);
+      if (m) {
+        const key = `Territorio ${m[1]}`;
+        return key;
+      }
+    }
+    console.warn('[getTerritorioKeyStrict] no number found, fallback Territorio 0; sources:', sources);
+    return 'Territorio 0';
+  }
+
+  async putCardTerritorie(card: any){
     const revisionRef = doc(this.firestore, "revision", card.id);
     card.revisionComplete = true;
     updateDoc(revisionRef, card);

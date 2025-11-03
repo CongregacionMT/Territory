@@ -234,7 +234,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.card.set(updatedCard);
   }
 
-  submitForm(): void {
+  async submitForm() {
     const form = this.formCard();
 
     // Validar formulario
@@ -269,11 +269,11 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const currentCard = this.card();
 
     if(currentCard.revision === true){
-      this.territorieDataService.postCardTerritorie(currentCard, currentCard.link)
+      await this.territorieDataService.postCardTerritorie(currentCard, currentCard.link)
       ?.then(() => {
         console.log("todo bien");
       });
-      this.territorieDataService.putCardTerritorie(currentCard);
+      await this.territorieDataService.putCardTerritorie(currentCard);
           // Validar campaña desde cache
       const activeCampaign = this.campaignService.getCachedCampaign();
       if (activeCampaign) {

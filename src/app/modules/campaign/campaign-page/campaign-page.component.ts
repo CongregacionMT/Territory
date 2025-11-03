@@ -132,7 +132,7 @@ export class CampaignPageComponent implements OnInit {
   }
 
   goToCampaignDetail(campaignId: string) {
-    this.router.navigate(['/campaigns', campaignId]);
+    this.router.navigate(['/campaign', campaignId]);
   }
 
   async confirmStartCampaign() {

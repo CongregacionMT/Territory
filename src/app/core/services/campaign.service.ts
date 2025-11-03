@@ -98,7 +98,8 @@ export class CampaignService {
           [`stats.Territorio ${territoryNumber}`]: {
             done: 0,
             total: resetApples.length,
-            percent: 0
+            percent: 0,
+            salidas: 0
           }
         });
       }
@@ -116,9 +117,11 @@ export class CampaignService {
 
     const campaignRef = doc(this.firestore, 'campaigns', campaignId);
 
-    // Actualizar stats del territorio
+    // ✅ Actualizar solo los campos, no reemplazar el objeto entero
     await updateDoc(campaignRef, {
-      [`stats.Territorio ${card.numberTerritory}`]: { done, total, percent }
+      [`stats.Territorio ${card.numberTerritory}.done`]: done,
+      [`stats.Territorio ${card.numberTerritory}.total`]: total,
+      [`stats.Territorio ${card.numberTerritory}.percent`]: percent
     });
 
     // Recalcular global
@@ -141,18 +144,17 @@ export class CampaignService {
     const globalPercent = globalTotal > 0 ? Math.round((globalDone / globalTotal) * 100) : 0;
 
     // Histórico de progreso
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
     const progressEntry = { date: today, percent: globalPercent };
 
     const existingHistory = stats.global?.progressHistory || [];
     const lastEntry = existingHistory[existingHistory.length - 1];
 
-    // Solo agregar si cambió el porcentaje o es un día nuevo
     if (!lastEntry || lastEntry.percent !== globalPercent || lastEntry.date !== today) {
       existingHistory.push(progressEntry);
     }
 
-    // Guardar en Firestore
+    // Guardar global
     await updateDoc(campaignRef, {
       'stats.global': {
         done: globalDone,
@@ -166,7 +168,6 @@ export class CampaignService {
       }
     });
   }
-
   async getCampaignStats(campaignId: string): Promise<any> {
     const campaignRef = doc(this.firestore, 'campaigns', campaignId);
     const snap = await getDoc(campaignRef);
@@ -175,6 +176,22 @@ export class CampaignService {
     }
     return {};
   }
+  async getCampaignById(id: string) {
+    const ref = doc(this.firestore, 'campaigns', id);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) return null;
+
+    const data = snap.data();
+    return {
+      id: snap.id,
+      ...data,
+      dateInit: data['dateInit']?.toDate ? data['dateInit'].toDate() : data['dateInit'],
+      dateEnd: data['dateEnd']?.toDate ? data['dateEnd'].toDate() : data['dateEnd'],
+      stats: data['stats'] || {}
+    };
+  }
+
   async endCampaign(campaignId: string, finalStats: any) {
     const campaignDocRef = doc(this.firestore, 'campaigns', campaignId);
 
