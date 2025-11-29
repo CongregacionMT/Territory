@@ -1,23 +1,32 @@
-<div class="container table-responsive">
+<div class="container py-4">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
-  <div>
-    <h2 class="text-center fw-bold text-info">
-      {{ titleGroup }}
-    </h2>
-    <h1 class="text-center">Salidas a predicar</h1>
-    <h2 class="text-center">{{ dateDeparture.value }}</h2>
+  
+  <div class="header-section text-center mb-4 mt-2">
+    @if (titleGroup) {
+      <h2 class="text-info fw-bold mb-1">{{ titleGroup }}</h2>
+    }
+    <h1 class="display-6 fw-bold mb-3">Salidas a predicar</h1>
+    <div class="date-pill">
+      <img src="https://api.iconify.design/mdi:calendar-month.svg?color=%230277bd" width="24" height="24" class="me-2" alt="Calendar" />
+      <h2 class="h5 mb-0">{{ dateDeparture.value }}</h2>
+    </div>
   </div>
+
   @if (departures$.length > 0) {
-    <div>
+    <div class="mb-5">
       <app-table-departures
         [departures]="departures$"
         [dateDeparture]="dateDeparture.value"
       ></app-table-departures>
     </div>
   }
+
   <div class="d-flex justify-content-center my-4">
-    <button class="btn btn-primary btn-list-primary" routerLink="../publicadores">
-      Lista de publicadores
+    <button class="btn btn-primary btn-lg btn-list-primary shadow-sm rounded-pill px-4" routerLink="../publicadores">
+      <div class="d-flex align-items-center gap-2">
+        <img src="https://api.iconify.design/mdi:account-group.svg?color=white" width="24" height="24" alt="Users" />
+        <span>Lista de publicadores</span>
+      </div>
     </button>
   </div>
 </div>

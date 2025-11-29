@@ -1,64 +1,73 @@
-<div style="overflow-x: auto">
-  <table
-    class="table table-dark table-hover table-striped table-bordered caption-buttom"
-    >
-    <caption class="text-white">
-      Salidas a predicar ({{dateDeparture()}})
-    </caption>
-    <thead>
-      <tr>
-        <th scope="col">Dia</th>
-        <th scope="col">Horario</th>
-        <th scope="col">Conductor</th>
-        <th scope="col" class="text-nowrap">Púnto de encuentro</th>
-        <th scope="col">Territorios</th>
-      </tr>
-    </thead>
-    <tbody class="table-group-divider">
-      @for (departure of departures(); track departure) {
-        @if (currentPath === departure.group || departure.group === 0) {
-          <tr [class]="'table-' + departure.color" >
-            <th scope="row">{{ getDayOfWeek(departure.date) }}</th>
-            <td>{{ departure.schedule }}hs</td>
-            <td>{{ departure.driver }}</td>
-            <td>
-              @if(departure.maps !== null) {
-                <a [href]="departure.maps" target="_blank" style="color: inherit; text-decoration: none;" class="d-flex align-items-center">
-                  {{ departure.point }}
-                  <img
-                      src="https://api.iconify.design/fe:link-external.svg"
-                      alt="Link icon"
-                      class="ms-1"
-                      width="14"
-                      height="14"
-                    />
+<div class="departures-grid">
+  @for (departure of departures(); track departure) {
+    @if (currentPath === departure.group || departure.group === 0) {
+      <div class="departure-card">
+        <!-- Header: Day & Time -->
+        <div class="card-header-custom" [class]="'bg-' + departure.color + '-subtle'">
+          <span class="day-badge">{{ getDayOfWeek(departure.date) }}</span>
+          <span class="time-badge">{{ departure.schedule }}hs</span>
+        </div>
+
+        <!-- Body: Details -->
+        <div class="card-body-custom">
+          
+          <!-- Driver -->
+          <div class="info-row">
+            <div class="icon-wrapper">
+              <img src="https://api.iconify.design/mdi:account-tie.svg?color=%236c757d" width="20" height="20" alt="Leader" />
+            </div>
+            <div class="content">
+              <span class="label">Conductor</span>
+              <span class="value">{{ departure.driver }}</span>
+            </div>
+          </div>
+
+          <!-- Location (Enhanced) -->
+          <div class="info-row">
+            <div class="icon-wrapper">
+              <img src="https://api.iconify.design/mdi:map-marker.svg?color=%236c757d" width="20" height="20" alt="Location" />
+            </div>
+            <div class="content">
+              <span class="label">Punto de encuentro</span>
+              <span class="value">{{ departure.point }}</span>
+              
+              @if(departure.maps) {
+                <a [href]="departure.maps" target="_blank" class="map-action-btn">
+                  <img src="https://api.iconify.design/logos:google-maps.svg" width="20" height="20" alt="Google Maps" />
+                  Ver en Mapa
                 </a>
-              } @else {
-                {{ departure.point }}
               }
-            </td>
-            <td>
-              <div class="d-flex flex-nowrap gap-2">
+            </div>
+          </div>
+
+          <!-- Territories -->
+          <div class="info-row">
+            <div class="icon-wrapper">
+              <img src="https://api.iconify.design/mdi:map-legend.svg?color=%236c757d" width="20" height="20" alt="Territories" />
+            </div>
+            <div class="content">
+              <span class="label">Territorios</span>
+              <div class="territories-container">
                 @for (territory of departure.territory; track territory) {
                   <a
-                    class="territory-chip text-decoration-none"
+                    class="territory-chip"
                     [routerLink]="'../../territorios/' + departure.location + '-' + territory.replace('N°', '')"
                   >
                     <span>{{ territory }}</span>
                     <img
-                      src="https://api.iconify.design/fe:link-external.svg"
-                      alt="Link icon"
-                      class="ms-1"
-                      width="14"
-                      height="14"
+                      src="https://api.iconify.design/fe:link-external.svg?color=%236c757d"
+                      alt="Link"
+                      width="12"
+                      height="12"
                     />
                   </a>
                 }
               </div>
-            </td>
-          </tr>
-        }
-      }
-    </tbody>
-  </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    }
+  }
 </div>

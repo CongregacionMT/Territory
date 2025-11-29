@@ -1,37 +1,195 @@
-.cursor-pointer {
-  cursor: pointer !important;
+.departures-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); /* Safer for small screens */
+  gap: 1.25rem;
+  padding: 0.5rem;
 }
+
+.departure-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); /* Softer shadow */
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header-custom {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+
+    .day-badge {
+      font-size: 1.25rem; /* Balanced size */
+      font-weight: 800;
+      color: #1a1a1a;
+      text-transform: capitalize;
+      letter-spacing: -0.3px;
+    }
+
+    .time-badge {
+      background: #212529;
+      color: #fff;
+      padding: 0.35rem 0.85rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+  }
+
+  .card-body-custom {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    flex: 1;
+  }
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  font-size: 1rem;
+  color: #343a40;
+
+  .icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* Slightly more compact */
+    height: 40px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    margin-top: -1px;
+    background-color: #f8f9fa;
+    
+    img {
+        width: 22px;
+        height: 22px;
+    }
+  }
+
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Improved readability */
+    color: #6c757d; /* Darker for better contrast/accessibility */
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+
+  .value {
+    font-size: 1.05rem; /* The "Sweet Spot" size */
+    font-weight: 600;
+    line-height: 1.4;
+    color: #212529;
+  }
+}
+
+/* Specific colorful styling for icon wrappers - Subtle backgrounds */
+.icon-car { background-color: #e7f5ff; }
+.icon-map { background-color: #fff0f6; }
+.icon-territory { background-color: #ebfbee; }
+
+/* Map Button Styling - Soft & Inviting */
+.map-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+  background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%); /* Even softer base */
+  color: #1864ab;
+  padding: 0.7rem 1.2rem; /* Larger touch target */
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  border: 1px solid #a5d8ff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(24, 100, 171, 0.15);
+    background: linear-gradient(135deg, #d0ebff 0%, #a5d8ff 100%);
+    border-color: #74c0fc;
+    color: #15558d;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.territories-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
 .territory-chip {
   display: inline-flex;
   align-items: center;
-  background-color: #f0f2f5;
-  border-radius: 999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #333;
-  border: 1px solid transparent;
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-
-  img {
-    opacity: 0.6;
-    transition: transform 0.2s ease;
-  }
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem; /* Larger touch target */
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 
   &:hover {
-    background-color: #e6f0ff;
-    border-color: #a3c9f9;
-    color: #0056b3;
+    border-color: #339af0;
+    color: #1971c2;
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+  }
 
-    img {
-      transform: translateY(-1px) scale(1.1);
-      opacity: 1;
-    }
+  svg {
+    margin-left: 0.4rem;
   }
 }
 
-table {
-  table-layout: auto !important;
-  white-space: nowrap;
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .departures-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .departure-card {
+    border-radius: 16px;
+    
+    .card-header-custom {
+        padding: 1rem 1.25rem;
+    }
+    
+    .card-body-custom {
+        padding: 1.25rem;
+    }
+  }
 }
