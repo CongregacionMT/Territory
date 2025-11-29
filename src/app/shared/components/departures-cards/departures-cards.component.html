@@ -4,8 +4,13 @@
       <div class="departure-card">
         <!-- Header: Day & Time -->
         <div class="card-header-custom" [class]="'bg-' + departure.color + '-subtle'">
-          <span class="day-badge">{{ getDayOfWeek(departure.date) }}</span>
-          <span class="time-badge">{{ departure.schedule }}hs</span>
+          <div class="header-content">
+            <span class="day-badge">{{ getDayOfWeek(departure.date) }}</span>
+            <span class="time-badge">{{ departure.schedule }}hs</span>
+          </div>
+          <button class="btn-subscribe" (click)="addToCalendar(departure)" title="Agendar salida">
+            <img src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=%236c757d" width="20" height="20" alt="Notificarme" />
+          </button>
         </div>
 
         <!-- Body: Details -->
