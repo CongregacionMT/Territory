@@ -53,12 +53,13 @@
                     class="territory-chip"
                     [routerLink]="'../../territorios/' + departure.location + '-' + territory.replace('N°', '')"
                   >
-                    <span>{{ territory }}</span>
-                    <img
-                      src="https://api.iconify.design/fe:link-external.svg?color=%236c757d"
-                      alt="Link"
-                      width="12"
-                      height="12"
+                    <span class="territory-text">{{ territory }}</span>
+                    <img 
+                      src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d" 
+                      alt="Ver" 
+                      width="16" 
+                      height="16"
+                      class="territory-icon"
                     />
                   </a>
                 }

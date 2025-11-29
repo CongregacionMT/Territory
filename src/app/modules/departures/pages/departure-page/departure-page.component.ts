@@ -6,13 +6,13 @@ import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Departure, DepartureData } from '@core/models/Departures';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { TableDeparturesComponent } from '../../../../shared/components/table-departures/table-departures.component';
+import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 
 @Component({
     selector: 'app-departure-page',
     templateUrl: './departure-page.component.html',
     styleUrls: ['./departure-page.component.scss'],
-    imports: [BreadcrumbComponent, TableDeparturesComponent, RouterLink]
+    imports: [BreadcrumbComponent, DeparturesCardsComponent, RouterLink]
 })
 export class DeparturePageComponent implements OnInit {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
@@ -41,7 +41,7 @@ export class DeparturePageComponent implements OnInit {
     this.routerBreadcrum = this.routerBreadcrum[10];
     this.territoryDataService.getDepartures().subscribe({
       next: (departure: DepartureData) => {
-        // Tabla de salidas
+        // Cards de salidas
         this.departures$ = departure.departure;
         this.departures$.sort((a, b) => {
           const dateA = new Date(a.date);

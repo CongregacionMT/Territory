@@ -14,10 +14,10 @@
 
   @if (departures$.length > 0) {
     <div class="mb-5">
-      <app-table-departures
+      <app-departures-cards
         [departures]="departures$"
         [dateDeparture]="dateDeparture.value"
-      ></app-table-departures>
+      ></app-departures-cards>
     </div>
   }
 

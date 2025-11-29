@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TableDeparturesComponent } from './table-departures.component';
+import { DeparturesCardsComponent } from './departures-cards.component';
 
-describe('TableDeparturesComponent', () => {
-  let component: TableDeparturesComponent;
-  let fixture: ComponentFixture<TableDeparturesComponent>;
+describe('DeparturesCardsComponent', () => {
+  let component: DeparturesCardsComponent;
+  let fixture: ComponentFixture<DeparturesCardsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TableDeparturesComponent]
+    imports: [DeparturesCardsComponent]
 })
     .compileComponents();
 
-    fixture = TestBed.createComponent(TableDeparturesComponent);
+    fixture = TestBed.createComponent(DeparturesCardsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

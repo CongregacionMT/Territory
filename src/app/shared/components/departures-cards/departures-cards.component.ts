@@ -3,12 +3,12 @@ import { Departure } from '@core/models/Departures';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 @Component({
-    selector: 'app-table-departures',
-    templateUrl: './table-departures.component.html',
-    styleUrls: ['./table-departures.component.scss'],
+    selector: 'app-departures-cards',
+    templateUrl: './departures-cards.component.html',
+    styleUrls: ['./departures-cards.component.scss'],
     imports: [RouterLink]
 })
-export class TableDeparturesComponent implements OnInit {
+export class DeparturesCardsComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   readonly dateDeparture = input<any>();
