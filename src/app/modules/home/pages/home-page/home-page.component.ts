@@ -8,6 +8,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
 import { filter } from 'rxjs';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-home-page',
@@ -31,6 +32,7 @@ export class HomePageComponent implements OnInit {
   campaignInProgress = signal(false);
   deferredPrompt: any;
   nameDriver: string = '';
+  congregationName: string = environment.congregationName;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);

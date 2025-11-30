@@ -10,10 +10,10 @@ const routes: Routes = [
     children: [
       { path: '', component: AssignmentRecordPageComponent },
       {
-        path: 'wheelwright', component: TerritoryAssignmentComponent
+        path: 'urbano', component: TerritoryAssignmentComponent
       },
       {
-        path: 'wheelwright/:collection', component: NumberTerritoryComponent
+        path: 'urbano/:collection', component: NumberTerritoryComponent
       }
     ],
   }

@@ -31,6 +31,9 @@
       ],
       "@shared/*": [
         "src/app/shared/*"
+      ],
+      "@environments/*": [
+        "src/environments/*"
       ]
     },
     "useDefineForClassFields": false

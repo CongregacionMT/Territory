@@ -6,6 +6,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { DatePipe } from '@angular/common';
 import { SortBy } from '@core/pipes/sort-by.pipe';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-statistics-page',
@@ -40,7 +41,7 @@ export class StatisticsPageComponent implements OnInit{
   constructor(...args: unknown[]);
   constructor() {
     this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));
-    this.nameTitleTerritory.set(this.territoryPath() === "wheelwright" ? "Wheelwright" : "Rural");
+    this.nameTitleTerritory.set(this.territoryPath() === "urbano" ? environment.congregationName : "Rural");
     this.green = new FormControl(28);
     this.blue = new FormControl(42);
     this.yellow = new FormControl(56);
@@ -52,7 +53,7 @@ export class StatisticsPageComponent implements OnInit{
   }
 
   getDataStatisticTerritory() {
-    const nameLocalStorage = this.territoryPath() === "wheelwright" ? "statisticDataW" : "statisticDataR";
+    const nameLocalStorage = this.territoryPath() === "urbano" ? "statisticDataW" : "statisticDataR";
     if (sessionStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
       this.dataListFull.set(storedStatisticData ? JSON.parse(storedStatisticData) : []);

@@ -10,7 +10,7 @@ const routes: Routes = [
     path: '',
     children: [
       { path: '', component: TerritoryPageComponent},
-      { path: 'wheelwright', component: MapasComponent},
+      { path: 'urbano', component: MapasComponent},
       { path: 'ubications-overseer', component: MapasComponent},
       { path: 'rural', component: MapasComponent},
       { path: 'TerritorioW-Rural', redirectTo: 'rural'},

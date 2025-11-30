@@ -1,43 +1,81 @@
-# Territory
+# Territory App - Guía de Configuración
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.1.3
+Este proyecto es una aplicación Angular para la gestión de territorios de congregación.
 
-## Steps to compile
+## Agregar una Nueva Congregación
 
-1 - $ git clone https://github.com/Territories-TJ/territory.git
+### 1. Configuración del Entorno
 
-2 - $ cd territory
+1.  **Duplicar Archivo de Entorno**:
+    Copia el archivo `src/environments/environment.wheelwright.ts` y renómbralo con el nombre de la nueva congregación (ej. `environment.micongregacion.ts`).
 
-3 - $ npm install
+2.  **Editar Variables**:
+    Abre el nuevo archivo y actualiza los valores:
+    ```typescript
+    export const environment = {
+      // ... config de firebase ...
+      production: true,
+      congregationName: 'Mi Congregación',
+      congregationKey: 'micongregacion', // Clave única para la BD
+      territoryPrefix: 'TerritorioMC'    // Prefijo para las colecciones (ej. TerritorioMC 1)
+    };
+    ```
 
-4 - $ ng serve
+3.  **Configuración de Mapas**:
+    Crea un archivo `src/app/core/config/maps.micongregacion.ts` (copia de `maps.wheelwright.ts`) y define las URLs de los mapas para cada territorio.
 
-5 - Go to http://localhost:4200 :D
+### 2. Configuración de Angular (`angular.json`)
 
----------------------------------
+Agrega una nueva configuración en `angular.json` bajo `architect.build.configurations`:
 
-V2
-
-POR HACER => {
-    Registro de territorios => {
-        _ Acomodar registros en grilla
-	    _ Descargar como PDF y Descargar como Excel
+```json
+"micongregacion": {
+  "fileReplacements": [
+    {
+      "replace": "src/environments/environment.ts",
+      "with": "src/environments/environment.micongregacion.ts"
+    },
+    {
+      "replace": "src/app/core/config/maps.config.ts",
+      "with": "src/app/core/config/maps.micongregacion.ts"
     }
-    Estadisticas => {
-        _ Grilla de estadisticas MT y Ch => {
-            (agregar quizas un 'popover')
-            completado, tiempo en completarse, promedio de veces asignado ,Cantidad de Manzanas, última vez asignado(color)
-        }
-        _ Territorios asignados esta semana con el nombre del conductor
-    }
-    SALIDAS => {
-        arreglar router breadcrum in salidas, group. Hay que cambiar el indice de todo el mock y moverlo un numero en adelante.
-    }
+  ],
+  // ... copia el resto de la config de wheelwright ...
 }
+```
+Recuerda agregar también la configuración en `architect.serve.configurations`.
 
+### 3. Inicialización de Base de Datos (Script)
 
+Para poblar la base de datos con los territorios iniciales, usa el script incluido.
 
+**Prerrequisitos:**
+1.  Instalar dependencias del script:
+    ```bash
+    npm install firebase-admin inquirer
+    ```
+2.  **Service Account Key**:
+    - Ve a la Consola de Firebase > Configuración del proyecto > Cuentas de servicio.
+    - Genera una nueva clave privada.
+    - Guarda el archivo JSON como `scripts/service-account.json`.
 
-- Exportar como PDF
+**Ejecutar el Script:**
+```bash
+node scripts/init-congregation.js
+```
+Sigue las instrucciones en pantalla para definir el nombre de la congregación, cantidad de territorios y manzanas.
 
-- Exportar como Excel
+### 4. Ejecutar la Aplicación
+
+Para probar la nueva congregación:
+```bash
+ng serve --configuration=micongregacion
+```
+
+## 📦 Despliegue
+
+Para construir la versión de producción:
+```bash
+ng build --configuration=micongregacion
+```
+Los archivos se generarán en `dist/territory`.

@@ -9,6 +9,7 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { RouterLink } from '@angular/router';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-territory-page',
@@ -27,6 +28,7 @@ export class TerritoryPageComponent implements OnInit {
   territoriesW: TerritoryNumberData[] = [];
   isAdmin: boolean = false;
   isDriver: boolean = false;
+  congregationName: string = environment.congregationName;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -57,8 +59,8 @@ export class TerritoryPageComponent implements OnInit {
     }
 
     const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
-    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
+    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : {};
 
-    this.territoriesW = numberTerritory.wheelwright;
+    this.territoriesW = numberTerritory[environment.congregationKey] || [];
   }
 }

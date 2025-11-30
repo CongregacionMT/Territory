@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -40,7 +41,7 @@ export class RouterBreadcrumMockService {
           route: 'Registro de territorios',
         },
         {
-          route: 'Wheelwright',
+          route: environment.congregationName,
         }
       ],
       [
@@ -62,7 +63,7 @@ export class RouterBreadcrumMockService {
           route: 'Registro de territorios',
         },
         {
-          route: 'Wheelwright'
+          route: environment.congregationName
         },
         {
           route: 'Territorio'

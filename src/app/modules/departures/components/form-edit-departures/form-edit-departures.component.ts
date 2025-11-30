@@ -5,6 +5,7 @@ import { Departure } from '../../../../core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-form-edit-departures',
@@ -29,6 +30,8 @@ export class FormEditDeparturesComponent implements OnInit{
     ...Array.from({ length: TERRITORY_COUNT }, (_, i) => `N°${i + 1}`),
     'Rural'
   ];
+  congregationName = environment.congregationName;
+  territoryPrefix = environment.territoryPrefix;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -131,7 +134,7 @@ export class FormEditDeparturesComponent implements OnInit{
       date: new FormControl(''),
       driver: new FormControl(''),
       schedule: new FormControl(''),
-      location: new FormControl('TerritorioW'),
+      location: new FormControl(this.territoryPrefix),
       territory: this.fb.array([]),
       point: new FormControl(''),
       maps: new FormControl(''),

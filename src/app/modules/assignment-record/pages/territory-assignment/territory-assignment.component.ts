@@ -12,6 +12,7 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 import { DatePipe } from '@angular/common';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-territory-assignment',
@@ -37,6 +38,7 @@ export class TerritoryAssignmentComponent implements OnInit{
   appleCount = signal<any>(null);
   s13JPG = signal<any>(null);
   loadingData = signal(false);
+  congregationKey = environment.congregationKey;
 
   constructor(...args: unknown[]);
   constructor() {
@@ -48,9 +50,10 @@ export class TerritoryAssignmentComponent implements OnInit{
   ngOnInit(): void {
     const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
     const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
-    this.territoriesNumber.set(this.territoryPath() === "wheelwright" ? numberTerritory.wheelwright : numberTerritory.rural);
+    this.territoriesNumber.set(this.territoryPath() === "urbano" ? numberTerritory[this.congregationKey] : numberTerritory.rural);
 
-    const nameLocalStorage = this.territoryPath() === "wheelwright" ? "registerStatisticDataW" : "registerStatisticDataR";
+    const storageKey = this.congregationKey === 'wheelwright' ? 'registerStatisticDataW' : `registerStatisticData${this.congregationKey}`;
+    const nameLocalStorage = this.territoryPath() === "urbano" ? storageKey : "registerStatisticDataR";
     if (sessionStorage.getItem(nameLocalStorage)) {
       const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
       const parsedData = storedStatisticData ? JSON.parse(storedStatisticData) : [];
@@ -247,7 +250,7 @@ export class TerritoryAssignmentComponent implements OnInit{
 
     // Descargar PDF
     const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
     link.download = `Registro de territorios de ${this.territoryPath()}`;

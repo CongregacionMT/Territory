@@ -6,6 +6,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { RouterLink } from '@angular/router';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-home-statistics-page',
@@ -24,6 +25,7 @@ export class HomeStatisticsPageComponent implements OnInit {
   CardButtonsStatistics = signal<CardButtonsData[]>([]);
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
   appleCount = signal<any>(null);
+  congregationKey = environment.congregationKey;
 
   constructor(...args: unknown[]);
   constructor() {}
@@ -44,6 +46,15 @@ export class HomeStatisticsPageComponent implements OnInit {
     const numberTerritory = storedTerritorioStatistics
       ? JSON.parse(storedTerritorioStatistics)
       : [];
+    
+    // Sanitize links to match new routing
+    if (numberTerritory.territorio) {
+      numberTerritory.territorio = numberTerritory.territorio.map((item: any) => ({
+        ...item,
+        link: item.link.replace('wheelwright', 'urbano')
+      }));
+    }
+
     this.CardButtonsStatistics.set(numberTerritory.territorio);
     if (
       !sessionStorage.getItem(this.KEY_NAME_W) ||
@@ -55,8 +66,9 @@ export class HomeStatisticsPageComponent implements OnInit {
 
       const initialStatisticData: any[] = [];
       let processedTerritories = 0;
-      const totalTerritories = this.territoryNumberOfLocalStorage().wheelwright.length;
-      this.territoryNumberOfLocalStorage().wheelwright.map((territory) => {
+      const territories = this.territoryNumberOfLocalStorage()[this.congregationKey] || [];
+      const totalTerritories = territories.length;
+      territories.map((territory) => {
         this.territorieDataService
           .getCardTerritorie(territory.collection)
           .subscribe((card) => {

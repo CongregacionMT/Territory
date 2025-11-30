@@ -78,7 +78,7 @@
                       (change)="onChangeInput($event, 'location', i, group)"
                     >
                       <option value="" selected disabled>Seleccionar localidad</option>
-                      <option value="TerritorioW">Wheelwright</option>
+                      <option [value]="territoryPrefix">{{ congregationName }}</option>
                       <option value="TerritorioR">Rural</option>
                     </select>
                   </div>

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatSnackBarRef } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-update-snackbar',
@@ -11,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class UpdateSnackbarComponent {
   private snackRef = inject(MatSnackBarRef<UpdateSnackbarComponent>);
+  congregationName = environment.congregationName;
 
   actualizarAhora() {
     this.snackRef.dismissWithAction();

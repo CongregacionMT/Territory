@@ -10,6 +10,7 @@ import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { DatePipe } from '@angular/common';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-assignment-record-page',
@@ -35,6 +36,8 @@ export class AssignmentRecordPageComponent implements OnInit {
   formCard = signal<FormGroup>(this.createFormCard());
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
   appleCount = signal<any>(0);
+  congregationName = environment.congregationName;
+  congregationKey = environment.congregationKey;
 
   // Computed signals (opcional, para valores derivados)
   hasCardsReceived = computed(() => this.allCardsReceived().length > 0);
@@ -89,12 +92,16 @@ export class AssignmentRecordPageComponent implements OnInit {
       this.territorioMaps.set(storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : []);
     }
 
-    if(!sessionStorage.getItem("registerStatisticDataW")){
+    const storageKey = this.congregationKey === 'wheelwright' ? 'registerStatisticDataW' : `registerStatisticData${this.congregationKey}`;
+
+    if(!sessionStorage.getItem(storageKey)){
       this.spinner.cargarSpinner();
       const territoryData = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
       this.territoryNumberOfLocalStorage.set(territoryData);
 
-      this.territoryNumberOfLocalStorage().wheelwright.map((territory) => {
+      const territories = this.territoryNumberOfLocalStorage()[this.congregationKey] || [];
+
+      territories.map((territory) => {
         this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
         .subscribe((card) => {
           card.map((list: any, index: any) => {
@@ -108,10 +115,10 @@ export class AssignmentRecordPageComponent implements OnInit {
               card.splice(index, 1);
             }
           });
-          const storeStatisticdData = sessionStorage.getItem('registerStatisticDataW');
+          const storeStatisticdData = sessionStorage.getItem(storageKey);
           const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
           statisticData.push(card);
-          sessionStorage.setItem('registerStatisticDataW', JSON.stringify(statisticData));
+          sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
           this.spinner.cerrarSpinner();
         });
       });

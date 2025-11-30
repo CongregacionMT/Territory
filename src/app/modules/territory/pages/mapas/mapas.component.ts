@@ -10,6 +10,7 @@ import { ModeModal } from '@core/models/ModeModal';
 import { needConfirmation } from '@shared/decorators/confirm-dialog.decorator';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
+import { mapConfig } from '@core/config/maps.config';
 
 @Component({
     selector: 'app-mapas',
@@ -40,15 +41,15 @@ export class MapasComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if(this.activatedRoute.snapshot.url[0].path === 'wheelwright'){
-      this.mapa = this.domSanitizer.bypassSecurityTrustHtml(
-        '<iframe src="https://www.google.com/maps/d/embed?mid=1JWlK-RxKm2QcIJAIQdboy2kXAL5yM3U&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
-      )
-    } else if(this.activatedRoute.snapshot.url[0].path === 'rural'){
+    const path = this.activatedRoute.snapshot.url[0].path;
+    const mapHtml = mapConfig.maps[path];
+    
+    if (mapHtml) {
+      this.mapa = this.domSanitizer.bypassSecurityTrustHtml(mapHtml);
+    }
+    
+    if(path === 'rural'){
       this.spinner.cargarSpinner();
-      this.mapa = this.domSanitizer.bypassSecurityTrustHtml(
-        '<iframe src="https://www.google.com/maps/d/embed?mid=1kDWrF9x3qWP5C2bt9jHyzDC4dqI0qIc&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
-      );
       this.territoriyDataService.getTerritorieRural().subscribe({
         next: (road: DataRural[]) => {
           this.dataRural = road;
@@ -57,10 +58,6 @@ export class MapasComponent implements OnInit {
         }
       })
       this.isAdmin = localStorage.getItem('tokenAdmin') ? true : false;
-    } else if(this.activatedRoute.snapshot.url[0].path === 'ubications-overseer'){
-      this.mapa = this.domSanitizer.bypassSecurityTrustHtml(
-        '<iframe src="https://www.google.com/maps/d/embed?mid=1JgsdBk9nOo153ANYwK7YGZ6R4J62pUQ&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
-      )
     }
   }
 

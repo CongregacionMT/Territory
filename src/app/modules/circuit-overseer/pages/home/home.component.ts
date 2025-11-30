@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -9,5 +10,5 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {
-
+  congregationName = environment.congregationName;
 }
