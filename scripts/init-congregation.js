@@ -25,7 +25,8 @@ async function main() {
   const db = admin.firestore();
 
   // 2. Prompt for details
-  const answers = await inquirer.prompt([
+  const prompt = inquirer.createPromptModule();
+  const answers = await prompt([
     {
       type: 'input',
       name: 'congregationKey',

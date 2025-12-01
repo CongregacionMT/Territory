@@ -35,6 +35,8 @@
     "datatables.net-bs5": "^2.3.2",
     "datatables.net-dt": "^2.3.2",
     "firebase": "^11.10.0",
+    "firebase-admin": "^13.6.0",
+    "inquirer": "^13.0.1",
     "jquery": "^3.7.1",
     "pdf-lib": "^1.17.1",
     "rxfire": "^6.1.0",
