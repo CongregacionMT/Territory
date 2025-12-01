@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Observable, forkJoin } from 'rxjs';
 
 import { Card } from '@core/models/Card';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
@@ -60,6 +61,57 @@ export class TerritoryAssignmentComponent implements OnInit{
       this.dataListFull.set(parsedData);
       this.dataListFull().length !== 0 ? this.sortByDate('1') : [];
       this.loadingData.set(true);
+    }
+
+    if(!sessionStorage.getItem(storageKey)){
+      this.spinner.cargarSpinner();
+      const territoryData = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
+      // this.territoryNumberOfLocalStorage.set(territoryData); // This signal was not defined in the original file, assuming it's not needed or I should use a local var. 
+      // Wait, looking at the original file (Step 15), territoryNumberOfLocalStorage was NOT defined in the class properties?
+      // Ah, I see it was NOT defined in Step 15's file content. 
+      // Wait, in Step 21 (AssignmentRecordPageComponent) it IS defined.
+      // In Step 15 (TerritoryAssignmentComponent), it is NOT defined.
+      // But in my proposed change (Step 39), I used `this.territoryNumberOfLocalStorage`.
+      // I should check if `territoryNumberOfLocalStorage` exists in `TerritoryAssignmentComponent`.
+      // Step 15 shows it does NOT exist.
+      // So I should use `numberTerritory` which is already retrieved at the top of ngOnInit.
+      
+      const territories = (this.territoryPath() === "urbano" ? numberTerritory[this.congregationKey] : numberTerritory.rural) || [];
+      
+      const requests = territories.map((territory: any) => 
+        this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
+      );
+
+      forkJoin(requests).subscribe((results: any) => {
+        const statisticData: any[] = [];
+
+        results.forEach((card: any[]) => {
+           // Filter logic
+           for (let i = card.length - 1; i >= 0; i--) {
+            let appleCount = 0;
+            const list = card[i];
+            if (list.applesData) {
+              list.applesData.forEach((apple: any) => {
+                if (apple.checked === true) {
+                  appleCount++;
+                }
+              });
+            }
+            if (appleCount === 0) {
+              card.splice(i, 1);
+            }
+          }
+          statisticData.push(card);
+        });
+
+        sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
+        // Update local state if needed, though the original code didn't seem to update `dataListFull` here immediately?
+        // The original code only updated `dataListFull` if `sessionStorage` existed at the start.
+        // But if we just fetched it, we should probably update it too.
+        this.dataListFull.set(statisticData);
+        this.sortByDate(this.selectedValueFilter());
+        this.spinner.cerrarSpinner();
+      });
     }
 
     // Busco el PDF original para modificarlo

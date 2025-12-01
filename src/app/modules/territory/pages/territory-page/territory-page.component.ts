@@ -49,8 +49,14 @@ export class TerritoryPageComponent implements OnInit {
       this.spinner.cargarSpinner();
       this.territorieDataService.getMaps()
       .subscribe(map => {
-        sessionStorage.setItem("territorioMaps", JSON.stringify(map[0].maps));
-        this.territorioMaps = map[0].maps;
+        const maps = map[0].maps.map((m: any) => {
+          if (m.name === 'urbano') {
+            return { ...m, name: this.congregationName };
+          }
+          return m;
+        });
+        sessionStorage.setItem("territorioMaps", JSON.stringify(maps));
+        this.territorioMaps = maps;
         this.spinner.cerrarSpinner();
       });
     } else {
