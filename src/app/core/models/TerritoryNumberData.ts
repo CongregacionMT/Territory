@@ -5,6 +5,4 @@ export interface TerritoryNumberData {
 
 export interface TerritoriesNumberData {
   [key: string]: TerritoryNumberData[];
-  wheelwright: TerritoryNumberData[];
-  rural: TerritoryNumberData[];
 }

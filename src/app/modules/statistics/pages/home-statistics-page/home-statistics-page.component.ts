@@ -7,6 +7,7 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
+import { LocalityData } from '@core/models/LocalityData';
 
 @Component({
     selector: 'app-home-statistics-page',
@@ -18,105 +19,107 @@ export class HomeStatisticsPageComponent implements OnInit {
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
 
-  private readonly KEY_NAME_W = 'statisticDataW';
-  private readonly KEY_NAME_R = 'statisticDataR';
-
   routerBreadcrum = signal<any>([]);
   CardButtonsStatistics = signal<CardButtonsData[]>([]);
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
   appleCount = signal<any>(null);
   congregationKey = environment.congregationKey;
+  localities: any[] = environment.localities || [];
 
   constructor(...args: unknown[]);
   constructor() {}
+
   ngOnInit(): void {
-    let timeElapsed = 0;
     this.spinner.cargarSpinner();
-    const interval = setInterval(() => {
-      if (
-        sessionStorage.getItem(this.KEY_NAME_W) &&
-        sessionStorage.getItem(this.KEY_NAME_R)
-      ) {
-        clearInterval(interval);
-        this.spinner.cerrarSpinner();
-      }
-      timeElapsed += 1;
-    }, 300);
+
+    // Cargar botones de estadísticas (mapas)
     const storedTerritorioStatistics = sessionStorage.getItem('territorioStatistics');
     const numberTerritory = storedTerritorioStatistics
       ? JSON.parse(storedTerritorioStatistics)
       : [];
     
-    // Sanitize links to match new routing
+    // Usar los links directos de Firebase
     if (numberTerritory.territorio) {
-      numberTerritory.territorio = numberTerritory.territorio.map((item: any) => ({
-        ...item,
-        link: item.link.replace('wheelwright', 'urbano')
-      }));
+      this.CardButtonsStatistics.set(numberTerritory.territorio);
     }
 
-    this.CardButtonsStatistics.set(numberTerritory.territorio);
-    if (
-      !sessionStorage.getItem(this.KEY_NAME_W) ||
-      !sessionStorage.getItem(this.KEY_NAME_R)
-    ) {
-      this.territoryNumberOfLocalStorage.set(
-        JSON.parse(sessionStorage.getItem('numberTerritory') as string)
-      );
+    // Cargar estadísticas para cada localidad
+    this.territoryNumberOfLocalStorage.set(
+      JSON.parse(sessionStorage.getItem('numberTerritory') as string)
+    );
 
-      const initialStatisticData: any[] = [];
-      let processedTerritories = 0;
-      const territories = this.territoryNumberOfLocalStorage()[this.congregationKey] || [];
-      const totalTerritories = territories.length;
-      territories.map((territory) => {
+    const promises: Promise<void>[] = [];
+
+    this.localities.forEach(locality => {
+      if (locality.hasNumberedTerritories) {
+        promises.push(this.loadStatisticsForLocality(locality));
+      }
+    });
+
+    Promise.all(promises).then(() => {
+      this.spinner.cerrarSpinner();
+    });
+  }
+
+  async loadStatisticsForLocality(locality: any): Promise<void> {
+    const storageKey = this.getStorageKeyForLocality(locality.key);
+    
+    if (sessionStorage.getItem(storageKey)) {
+      return; // Ya cargado
+    }
+
+    const numberTerritory = this.territoryNumberOfLocalStorage();
+    const localityTerritories = numberTerritory[locality.key] || [];
+
+    if (localityTerritories.length === 0) return;
+
+    const initialStatisticData: any[] = [];
+    
+    // Crear array de promesas para cargar datos de cada territorio
+    const territoryPromises = localityTerritories.map((territory: any) => 
+      new Promise<void>((resolve) => {
         this.territorieDataService
           .getCardTerritorie(territory.collection)
           .subscribe((card) => {
-            card.map((list: any, index: any) => {
-              this.appleCount.set(0);
-              list.applesData.map((apple: any) => {
+            // Filtrar manzanas vacías o sin check
+            card.forEach((list: any, index: number) => {
+              let count = 0;
+              list.applesData.forEach((apple: any) => {
                 if (apple.checked === true) {
-                  this.appleCount.set(this.appleCount() + 1);
+                  count++;
                 }
               });
-              if (this.appleCount() === 0) {
-                card.splice(index, 1);
+              // Nota: la lógica original borraba el elemento si count era 0
+              // pero splice en un forEach puede causar problemas de índice.
+              // Aquí mantenemos la lógica original pero con cuidado.
+              if (count === 0) {
+                 // Marcamos para borrar o filtramos después. 
+                 // Para mantener compatibilidad exacta con lógica anterior:
+                 // card.splice(index, 1); <-- esto es peligroso en forEach
               }
             });
-            initialStatisticData.push(card);
-            processedTerritories++;
+            
+            // Filtrar listas vacías de forma segura
+            const filteredCard = card.filter((list: any) => {
+              const checkedCount = list.applesData.filter((a: any) => a.checked).length;
+              return checkedCount > 0;
+            });
 
-            if (processedTerritories === totalTerritories) {
-              sessionStorage.setItem(this.KEY_NAME_W, JSON.stringify(initialStatisticData));
+            if (filteredCard.length > 0) {
+              initialStatisticData.push(filteredCard);
             }
+            resolve();
           });
-      });
-      this.spinner.cerrarSpinner();
-    }
+      })
+    );
+
+    await Promise.all(territoryPromises);
+    sessionStorage.setItem(storageKey, JSON.stringify(initialStatisticData));
+  }
+  
+  getStorageKeyForLocality(localityKey: string): string {
+    // Genera clave única para cada localidad: statisticDataMariaTeresa, statisticDataWheelwright
+    const suffix = localityKey.charAt(0).toUpperCase() + localityKey.slice(1).replace(/-/g, '');
+    return `statisticData${suffix}`;
   }
 }
-  // Método para obtener las estadísticas de la predicación rural}
-      // Proximamente estadisticas de la predicación rural
-      // this.territoryNumberOfLocalStorage().rural.map((territory) => {
-      //   this.territorieDataService
-      //     .getCardTerritorie(territory.collection)
-      //     .subscribe((card) => {
-      //       card.map((list: any, index: any) => {
-      //         this.appleCount.set(0);
-      //         list.applesData.map((apple: any) => {
-      //           if (apple.checked === true) {
-      //             this.appleCount.set(this.appleCount() + 1);
-      //           }
-      //         });
-      //         if (this.appleCount() === 0) {
-      //           card.splice(index, 1);
-      //         }
-      //       });
-      //       const storeStatisticdData = sessionStorage.getItem(this.KEY_NAME_R);
-      //       const statisticData = storeStatisticdData
-      //         ? JSON.parse(storeStatisticdData)
-      //         : [];
-      //       statisticData.push(card);
-      //       sessionStorage.setItem(this.KEY_NAME_R, JSON.stringify(statisticData));
-      //     });
-      // });

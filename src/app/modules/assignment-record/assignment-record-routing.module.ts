@@ -12,6 +12,10 @@ const routes: Routes = [
       {
         path: 'urbano', component: TerritoryAssignmentComponent
       },
+      { path: 'wheelwright', component: TerritoryAssignmentComponent},
+      { path: 'mariaTeresa', component: TerritoryAssignmentComponent},
+      { path: 'christophersen', component: TerritoryAssignmentComponent},
+      { path: 'rural', component: TerritoryAssignmentComponent},
       {
         path: 'urbano/:collection', component: NumberTerritoryComponent
       }

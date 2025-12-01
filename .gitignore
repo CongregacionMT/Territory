@@ -48,3 +48,5 @@ Thumbs.db
 .firebase
 *-debug.log
 .runtimeconfig.json
+src/app/core/config/maps.config.ts
+scripts/service-account/service-account-hughes.json

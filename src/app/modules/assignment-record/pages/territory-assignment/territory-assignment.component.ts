@@ -19,7 +19,7 @@ import { environment } from '@environments/environment';
     selector: 'app-territory-assignment',
     templateUrl: './territory-assignment.component.html',
     styleUrls: ['./territory-assignment.component.scss'],
-    imports: [BreadcrumbComponent, ReactiveFormsModule, FormsModule, CardSComponent, RouterLink, DatePipe]
+    imports: [BreadcrumbComponent, ReactiveFormsModule, FormsModule, DatePipe]
 })
 export class TerritoryAssignmentComponent implements OnInit{
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
@@ -39,6 +39,7 @@ export class TerritoryAssignmentComponent implements OnInit{
   appleCount = signal<any>(null);
   s13JPG = signal<any>(null);
   loadingData = signal(false);
+  territoryNumberOfLocalStorage = signal<any>({});
   congregationKey = environment.congregationKey;
 
   constructor(...args: unknown[]);
@@ -48,37 +49,42 @@ export class TerritoryAssignmentComponent implements OnInit{
     this.routerBreadcrum.set(breadcrumData[3]);
   }
 
+  private getTerritoryPrefix(path: string): string {
+    const locality = environment.localities.find(loc => loc.key === path);
+    return locality?.territoryPrefix || 'TerritorioMT';
+  }
+
+  private getStorageKeyByPath(path: string): string {
+    const locality = environment.localities.find(loc => loc.key === path);
+    return locality?.storageKey || 'registerStatisticDataTerritorioMT';
+  }
+
   ngOnInit(): void {
     const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
     const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
-    this.territoriesNumber.set(this.territoryPath() === "urbano" ? numberTerritory[this.congregationKey] : numberTerritory.rural);
 
-    const storageKey = this.congregationKey === 'wheelwright' ? 'registerStatisticDataW' : `registerStatisticData${this.congregationKey}`;
-    const nameLocalStorage = this.territoryPath() === "urbano" ? storageKey : "registerStatisticDataR";
-    if (sessionStorage.getItem(nameLocalStorage)) {
-      const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
+    // Determinar el storage key basado en la ruta actual
+    const currentPath = this.territoryPath();
+    const storageKey = this.getStorageKeyByPath(currentPath);
+
+    this.territoriesNumber.set(
+      numberTerritory[currentPath] || []
+    );
+
+    if (sessionStorage.getItem(storageKey)) {
+      const storedStatisticData = sessionStorage.getItem(storageKey);
       const parsedData = storedStatisticData ? JSON.parse(storedStatisticData) : [];
       this.dataListFull.set(parsedData);
       this.dataListFull().length !== 0 ? this.sortByDate('1') : [];
       this.loadingData.set(true);
     }
 
-    if(!sessionStorage.getItem(storageKey)){
+    if (!sessionStorage.getItem(storageKey)) {
       this.spinner.cargarSpinner();
       const territoryData = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
-      // this.territoryNumberOfLocalStorage.set(territoryData); // This signal was not defined in the original file, assuming it's not needed or I should use a local var. 
-      // Wait, looking at the original file (Step 15), territoryNumberOfLocalStorage was NOT defined in the class properties?
-      // Ah, I see it was NOT defined in Step 15's file content. 
-      // Wait, in Step 21 (AssignmentRecordPageComponent) it IS defined.
-      // In Step 15 (TerritoryAssignmentComponent), it is NOT defined.
-      // But in my proposed change (Step 39), I used `this.territoryNumberOfLocalStorage`.
-      // I should check if `territoryNumberOfLocalStorage` exists in `TerritoryAssignmentComponent`.
-      // Step 15 shows it does NOT exist.
-      // So I should use `numberTerritory` which is already retrieved at the top of ngOnInit.
-      
-      const territories = (this.territoryPath() === "urbano" ? numberTerritory[this.congregationKey] : numberTerritory.rural) || [];
-      
-      const requests = territories.map((territory: any) => 
+      const territories = territoryData[currentPath] || [];
+
+      const requests = territories.map((territory: any) =>
         this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
       );
 
@@ -86,8 +92,7 @@ export class TerritoryAssignmentComponent implements OnInit{
         const statisticData: any[] = [];
 
         results.forEach((card: any[]) => {
-           // Filter logic
-           for (let i = card.length - 1; i >= 0; i--) {
+          for (let i = card.length - 1; i >= 0; i--) {
             let appleCount = 0;
             const list = card[i];
             if (list.applesData) {
@@ -105,9 +110,6 @@ export class TerritoryAssignmentComponent implements OnInit{
         });
 
         sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
-        // Update local state if needed, though the original code didn't seem to update `dataListFull` here immediately?
-        // The original code only updated `dataListFull` if `sessionStorage` existed at the start.
-        // But if we just fetched it, we should probably update it too.
         this.dataListFull.set(statisticData);
         this.sortByDate(this.selectedValueFilter());
         this.spinner.cerrarSpinner();
@@ -124,6 +126,48 @@ export class TerritoryAssignmentComponent implements OnInit{
     this.http.get(jpgPath, httpOptions).subscribe({
       next: jpg => this.s13JPG.set(jpg)
     });
+
+    // Generar storage keys para TODAS las localidades dinámicamente
+    const allStorageKeys = environment.localities.map(loc => loc.storageKey);
+
+    if(!allStorageKeys.some(key => sessionStorage.getItem(key))){
+      this.spinner.cargarSpinner();
+      const territoryData = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
+      this.territoryNumberOfLocalStorage.set(territoryData);
+
+      let completedRequests = 0;
+      const totalRequests = environment.localities.length;
+
+      environment.localities.forEach(({ key, storageKey }) => {
+        const territories = this.territoryNumberOfLocalStorage()[key] || [];
+
+        territories.forEach((territory: any) => {
+          this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
+          .subscribe((card) => {
+            card.forEach((list: any, index: any) => {
+              this.appleCount.set(0);
+              list.applesData?.forEach((apple: any) => {
+                if (apple.checked === true) {
+                  this.appleCount.update(count => count + 1);
+                }
+              });
+              if (this.appleCount() === 0) {
+                card.splice(index, 1);
+              }
+            });
+            const storeStatisticdData = sessionStorage.getItem(storageKey);
+            const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
+            statisticData.push(card);
+            sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
+            completedRequests++;
+
+            if (completedRequests === totalRequests) {
+              this.spinner.cerrarSpinner();
+            }
+          });
+        });
+      });
+    }
   }
 
   sortByDate(value: string){
@@ -167,9 +211,9 @@ export class TerritoryAssignmentComponent implements OnInit{
     // Cargar imagen S-13
     const jpgImageBytes = this.s13JPG();
     const jpgImage = await pdfDoc.embedJpg(jpgImageBytes);
-    const jpgDims = jpgImage.scale(1); // Usamos tamaño original
+    const jpgDims = jpgImage.scale(1);
 
-    // Agregar página con el tamaño exacto de la imagen
+    // Agregar página inicial
     pdfDoc.addPage([jpgDims.width, jpgDims.height]);
 
     // Fuente
@@ -199,7 +243,7 @@ export class TerritoryAssignmentComponent implements OnInit{
 
       // Año de servicio
       page.drawText(currentYear, {
-        x: jpgDims.width * 0.25, // Ajustalo si hace falta
+        x: jpgDims.width * 0.25,
         y: jpgDims.height - 195,
         size: 24,
         font: helveticaFont,
@@ -234,6 +278,7 @@ export class TerritoryAssignmentComponent implements OnInit{
 
       dataList.forEach((item: any) => {
         if (item.end) {
+          // Cambiar de columna
           if (colIndex === 4) {
             colIndex = 0;
             rowIndex++;
@@ -302,10 +347,21 @@ export class TerritoryAssignmentComponent implements OnInit{
 
     // Descargar PDF
     const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `Registro de territorios de ${this.territoryPath()}`;
-    link.click();
+    const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+
+    // Obtener nombre de la localidad actual
+    const currentPath = this.territoryPath();
+    const locality = environment.localities.find(loc => loc.key === currentPath);
+    const localityName = locality?.name || 'Territorio';
+
+    // Descargar el archivo PDF
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Registro de territorios - ${localityName}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 }

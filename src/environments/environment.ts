@@ -15,7 +15,18 @@ export const environment = {
   production: false,
   congregationName: 'Wheelwright',
   congregationKey: 'wheelwright',
-  territoryPrefix: 'TerritorioW'
+  territoryPrefix: 'TerritorioW',
+
+  // Configuración de localidades
+  localities: [
+    {
+      key: 'wheelwright',
+      name: 'Wheelwright',
+      territoryPrefix: 'TerritorioW',
+      storageKey: 'registerStatisticDataTerritorioW',
+      hasNumberedTerritories: true
+    }
+  ]
 };
 
 /*

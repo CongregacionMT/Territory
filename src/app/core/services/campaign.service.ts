@@ -2,6 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, getDoc, getDocs, limit, orderBy, query, setDoc, Timestamp, updateDoc, where } from '@angular/fire/firestore';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { Observable } from 'rxjs';
+import { environment } from '@environments/environment';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 
 @Injectable({
   providedIn: 'root'
@@ -17,8 +19,37 @@ export class CampaignService {
     }
     return null;
   }
+
+  /**
+   * Obtiene todos los territorios de todas las localidades configuradas
+   */
+  getAllTerritoriesFromAllLocalities(): TerritoryNumberData[] {
+    const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
+    if (!storedNumberTerritory) return [];
+    
+    const numberTerritory = JSON.parse(storedNumberTerritory);
+    let allTerritories: TerritoryNumberData[] = [];
+
+    if (environment.localities && environment.localities.length > 0) {
+      environment.localities.forEach(locality => {
+        if (numberTerritory[locality.key]) {
+          allTerritories = [...allTerritories, ...numberTerritory[locality.key]];
+        }
+      });
+    } else {
+      // Fallback legacy
+      allTerritories = numberTerritory[environment.congregationKey] || [];
+    }
+
+    return allTerritories;
+  }
+
   async startCampaign(data: { name: string; description: string; dateEnd: any }) {
     const campaignRef = collection(this.firestore, 'campaigns');
+    
+    // Obtener TODOS los territorios de TODAS las localidades
+    const allTerritories = this.getAllTerritoriesFromAllLocalities();
+    const totalTerritories = allTerritories.length > 0 ? allTerritories.length : TERRITORY_COUNT;
 
     const campaignDoc = await addDoc(campaignRef, {
       name: data.name,
@@ -29,11 +60,21 @@ export class CampaignService {
       stats: {}
     });
 
-    await Promise.all(
-      Array.from({ length: TERRITORY_COUNT }, (_, i) =>
-        this.resetTerritory(i + 1, campaignDoc.id)
-      )
-    );
+    if (allTerritories.length > 0) {
+      // Usar la lista dinámica de territorios
+      await Promise.all(
+        allTerritories.map(territory => 
+          this.resetTerritoryByCollection(territory.collection, campaignDoc.id)
+        )
+      );
+    } else {
+      // Fallback para compatibilidad si no hay datos en sessionStorage
+      await Promise.all(
+        Array.from({ length: TERRITORY_COUNT }, (_, i) =>
+          this.resetTerritory(i + 1, campaignDoc.id)
+        )
+      );
+    }
 
     await updateDoc(campaignDoc, {
       'stats.global': {
@@ -41,7 +82,7 @@ export class CampaignService {
         total: 0,
         percent: 0,
         completedTerritories: 0,
-        totalTerritories: TERRITORY_COUNT,
+        totalTerritories: totalTerritories,
         progressHistory: [],
         lastUpdate: Timestamp.now()
       }
@@ -62,8 +103,16 @@ export class CampaignService {
     return campaignData;
   }
 
+  // Método legacy para compatibilidad
   async resetTerritory(territoryNumber: number, campaignId: string) {
-    const collectionName = `TerritorioW-${territoryNumber}`;
+    const collectionName = `${environment.territoryPrefix}-${territoryNumber}`;
+    return this.resetTerritoryByCollection(collectionName, campaignId);
+  }
+
+  /**
+   * Resetea un territorio específico por su nombre de colección
+   */
+  async resetTerritoryByCollection(collectionName: string, campaignId: string) {
     const colRef = collection(this.firestore, collectionName);
 
     // Tomar solo el último documento del territorio
@@ -94,42 +143,69 @@ export class CampaignService {
         await setDoc(newDocRef, newVersion);
 
         // 🔧 Inicializar stats con nombre unificado
+        // Extraer número para mostrar en stats (ej: TerritorioMT-5 -> 5)
+        const territoryNumber = this.extractTerritoryNumber(collectionName);
         const campaignRef = doc(this.firestore, 'campaigns', campaignId);
+        
+        // Usar collectionName como clave para evitar colisiones entre localidades con mismo número
+        // Pero mantener formato legible para UI si es posible
         await updateDoc(campaignRef, {
-          [`stats.Territorio ${territoryNumber}`]: {
+          [`stats.${collectionName}`]: {
             done: 0,
             total: resetApples.length,
             percent: 0,
-            salidas: 0
+            salidas: 0,
+            territoryNumber: territoryNumber
           }
         });
       }
     }));
+  }
+  
+  extractTerritoryNumber(collectionName: string): number {
+    const match = collectionName.match(/(\d+)$/);
+    return match ? parseInt(match[1]) : 0;
   }
 
   getCampaign(){
     const campaignRef = collection(this.firestore, 'campaigns');
     return collectionData(campaignRef, {idField: 'id'}) as Observable<any>;
   }
+  
   async updateCampaignStats(campaignId: string, card: any) {
     const total = card.applesData.length;
     const done = card.applesData.filter((a: any) => a.checked).length;
     const percent = Math.round((done / total) * 100);
 
     const campaignRef = doc(this.firestore, 'campaigns', campaignId);
+    
+    // Usar la colección completa como clave si está disponible, sino fallback
+    const statKey = card.collection || `Territorio ${card.numberTerritory}`;
 
     // ✅ Actualizar solo los campos, no reemplazar el objeto entero
-    await updateDoc(campaignRef, {
-      [`stats.Territorio ${card.numberTerritory}.done`]: done,
-      [`stats.Territorio ${card.numberTerritory}.total`]: total,
-      [`stats.Territorio ${card.numberTerritory}.percent`]: percent
-    });
+    // Intentar actualizar usando la colección primero (nuevo formato)
+    try {
+      await updateDoc(campaignRef, {
+        [`stats.${statKey}.done`]: done,
+        [`stats.${statKey}.total`]: total,
+        [`stats.${statKey}.percent`]: percent
+      });
+    } catch (e) {
+      // Fallback a formato antiguo si falla
+      await updateDoc(campaignRef, {
+        [`stats.Territorio ${card.numberTerritory}.done`]: done,
+        [`stats.Territorio ${card.numberTerritory}.total`]: total,
+        [`stats.Territorio ${card.numberTerritory}.percent`]: percent
+      });
+    }
 
     // Recalcular global
     const snap = await getDoc(campaignRef);
     const stats = snap.data()?.['stats'] || {};
+    
+    // Filtrar claves que parecen territorios (excluir 'global')
     const territorios = Object.keys(stats)
-      .filter(k => k.startsWith('Territorio '))
+      .filter(k => k !== 'global')
       .map(k => stats[k]);
 
     let globalDone = 0;
@@ -169,6 +245,7 @@ export class CampaignService {
       }
     });
   }
+  
   async getCampaignStats(campaignId: string): Promise<any> {
     const campaignRef = doc(this.firestore, 'campaigns', campaignId);
     const snap = await getDoc(campaignRef);
@@ -177,6 +254,7 @@ export class CampaignService {
     }
     return {};
   }
+  
   async getCampaignById(id: string) {
     const ref = doc(this.firestore, 'campaigns', id);
     const snap = await getDoc(ref);
@@ -202,13 +280,23 @@ export class CampaignService {
       stats: finalStats
     });
 
-    await Promise.all(
-      Array.from({ length: TERRITORY_COUNT }, (_, i) =>
-        this.resetTerritoryAfterCampaign(i + 1)
-      )
-    );
+    const allTerritories = this.getAllTerritoriesFromAllLocalities();
+    
+    if (allTerritories.length > 0) {
+      await Promise.all(
+        allTerritories.map(territory => 
+          this.resetTerritoryAfterCampaignByCollection(territory.collection)
+        )
+      );
+    } else {
+      await Promise.all(
+        Array.from({ length: TERRITORY_COUNT }, (_, i) =>
+          this.resetTerritoryAfterCampaign(i + 1)
+        )
+      );
+    }
 
-    await this.cleanupCampaignData(campaignId, TERRITORY_COUNT);
+    await this.cleanupCampaignData(campaignId);
 
     localStorage.removeItem('activeCampaign');
   }
@@ -223,8 +311,13 @@ export class CampaignService {
       return null;
     }
   }
+  
   async resetTerritoryAfterCampaign(territoryNumber: number) {
-    const collectionName = `TerritorioW-${territoryNumber}`;
+    const collectionName = `${environment.territoryPrefix}-${territoryNumber}`;
+    return this.resetTerritoryAfterCampaignByCollection(collectionName);
+  }
+
+  async resetTerritoryAfterCampaignByCollection(collectionName: string) {
     const colRef = collection(this.firestore, collectionName);
 
     // Tomar solo el último documento
@@ -256,6 +349,7 @@ export class CampaignService {
       }
     }));
   }
+  
   async getInactiveCampaigns(): Promise<any[]> {
     const q = query(
       collection(this.firestore, 'campaigns'),
@@ -281,9 +375,15 @@ export class CampaignService {
     }));
   }
 
-  async cleanupCampaignData(campaignId: string, totalTerritories: number ) {
-    for (let i = 1; i <= totalTerritories; i++) {
-      const collectionName = `TerritorioW-${i}`;
+  async cleanupCampaignData(campaignId: string) {
+    const allTerritories = this.getAllTerritoriesFromAllLocalities();
+    
+    // Si no hay territorios cargados, usar fallback
+    const collectionsToCheck = allTerritories.length > 0 
+      ? allTerritories.map(t => t.collection)
+      : Array.from({ length: TERRITORY_COUNT }, (_, i) => `${environment.territoryPrefix}-${i + 1}`);
+
+    for (const collectionName of collectionsToCheck) {
       const colRef = collection(this.firestore, collectionName);
 
       const snapshot = await getDocs(colRef);

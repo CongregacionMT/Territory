@@ -35,7 +35,15 @@ export class TerritoryDataService {
   // TARJETAS DE CONDUCTORES
   getCardTerritorie(collectionParam: string): Observable<any>{
     const cardRef = collection(this.firestore, collectionParam);
-    const q = query(cardRef, orderBy("creation", "desc"));
+    // Limitar por defecto a los últimos 1 año para evitar traer datos muy antiguos
+    const oneYearAgo = Timestamp.fromDate(
+      new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+    );
+    const q = query(
+      cardRef,
+      where('creation', '>=', oneYearAgo),
+      orderBy('creation', 'desc')
+    );
     return collectionData(q) as Observable<any>;
   }
 
@@ -146,6 +154,12 @@ export class TerritoryDataService {
     }
   }
   private getTerritorioKeyStrict(card: any, collectionName: string): string {
+    // Preferir el nombre de la colección si está disponible para evitar colisiones
+    // entre localidades que tienen los mismos números de territorio (ej: TerritorioMT-1 y TerritorioC-1)
+    if (collectionName) {
+      return collectionName;
+    }
+
     const sources = [
       String(card?.territoryNumber ?? ''),
       String(card?.territory ?? ''),

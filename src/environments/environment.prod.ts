@@ -8,5 +8,19 @@ export const environment = {
     appId: "1:208368329126:web:157824c7b22b4bc7f0ef67",
     measurementId: "G-XLQ9YJ42HL"
   },
-  production: true
+  production: true,
+  congregationName: 'Wheelwright',
+  congregationKey: 'wheelwright',
+  territoryPrefix: 'TerritorioW',
+
+  // Configuración de localidades
+  localities: [
+    {
+      key: 'wheelwright',
+      name: 'Wheelwright',
+      territoryPrefix: 'TerritorioW',
+      storageKey: 'registerStatisticDataTerritorioW',
+      hasNumberedTerritories: true
+    }
+  ]
 };

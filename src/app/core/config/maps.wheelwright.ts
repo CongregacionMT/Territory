@@ -26,7 +26,9 @@ export const mapConfig: MapConfig = {
     "TerritorioW-22": '<iframe src="https://www.google.com/maps/d/embed?mid=1M1SwUdzeqyXuYZtgmtbt7_S8Ob1lCkA&ehbc=2E312F" width="640" height="480"></iframe>',
     "TerritorioW-23": '<iframe src="https://www.google.com/maps/d/embed?mid=1YvQx6DbaYIIiUH2kTtPXtlrUfFtIYrk&ehbc=2E312F" width="640" height="480"></iframe>',
     "TerritorioR": '<iframe src="https://www.google.com/maps/d/embed?mid=10pgOS5R4I6tfnimIe5AXFyvh3JLDiWA&ehbc=2E312F" width="640" height="480"></iframe>',
-    "urbano": '<iframe src="https://www.google.com/maps/d/embed?mid=1JWlK-RxKm2QcIJAIQdboy2kXAL5yM3U&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>',
+    
+    // Mapas generales
+    "wheelwright": '<iframe src="https://www.google.com/maps/d/embed?mid=1JWlK-RxKm2QcIJAIQdboy2kXAL5yM3U&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>',
     "rural": '<iframe src="https://www.google.com/maps/d/embed?mid=1kDWrF9x3qWP5C2bt9jHyzDC4dqI0qIc&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>',
     "ubications-overseer": '<iframe src="https://www.google.com/maps/d/embed?mid=1JgsdBk9nOo153ANYwK7YGZ6R4J62pUQ&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>'
   }

@@ -8,8 +8,7 @@ const routes: Routes = [
     path: '',
     children: [
       { path: '', component: HomeStatisticsPageComponent},
-      { path: 'urbano', component: StatisticsPageComponent},
-      { path: 'rural', component: StatisticsPageComponent},
+      { path: ':locality', component: StatisticsPageComponent},
       {path: '**', redirectTo: ''},
     ],
   }

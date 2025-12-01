@@ -70,8 +70,12 @@ export class HomePageComponent implements OnInit {
     if(!sessionStorage.getItem("numberTerritory")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getNumberTerritory()
-      .subscribe(number => {
-        sessionStorage.setItem("numberTerritory", JSON.stringify(number[0]));
+      .subscribe(numbers => {
+        // Merge all documents into a single object
+        const mergedData = numbers.reduce((acc: any, curr: any) => {
+          return { ...acc, ...curr };
+        }, {});
+        sessionStorage.setItem("numberTerritory", JSON.stringify(mergedData));
       });
     }
 

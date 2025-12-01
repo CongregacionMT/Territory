@@ -11,5 +11,23 @@ export const environment = {
   production: true,
   congregationName: 'Wheelwright',
   congregationKey: 'wheelwright',
-  territoryPrefix: 'TerritorioW'
+  territoryPrefix: 'TerritorioW',
+
+  // Configuración de localidades (single-locality congregation)
+  localities: [
+    {
+      key: 'wheelwright',
+      name: 'Wheelwright',
+      territoryPrefix: 'TerritorioW',
+      storageKey: 'registerStatisticDataTerritorioW',
+      hasNumberedTerritories: true
+    },
+    {
+      key: 'rural',
+      name: 'Rural',
+      territoryPrefix: 'TerritorioR',
+      storageKey: 'registerStatisticDataTerritorioR',
+      hasNumberedTerritories: false
+    }
+  ]
 };

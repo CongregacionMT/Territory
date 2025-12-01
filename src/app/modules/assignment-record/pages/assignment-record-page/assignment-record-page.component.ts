@@ -38,6 +38,8 @@ export class AssignmentRecordPageComponent implements OnInit {
   appleCount = signal<any>(0);
   congregationName = environment.congregationName;
   congregationKey = environment.congregationKey;
+  localitiesKeys = signal(environment.localities || []) ;
+  storageKey = signal("");
 
   // Computed signals (opcional, para valores derivados)
   hasCardsReceived = computed(() => this.allCardsReceived().length > 0);
@@ -98,58 +100,46 @@ export class AssignmentRecordPageComponent implements OnInit {
       this.territorioMaps.set(storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : []);
     }
 
-    const storageKey = this.congregationKey === 'wheelwright' ? 'registerStatisticDataW' : `registerStatisticData${this.congregationKey}`;
+    // Generar storage keys dinámicamente desde environment
+    const allStorageKeys = environment.localities.map(loc => loc.storageKey);
 
-    if(!sessionStorage.getItem(storageKey)){
+    if(!allStorageKeys.some(key => sessionStorage.getItem(key))){
       this.spinner.cargarSpinner();
       const territoryData = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
       this.territoryNumberOfLocalStorage.set(territoryData);
 
-      const territories = this.territoryNumberOfLocalStorage()[this.congregationKey] || [];
+      let completedRequests = 0;
+      const totalRequests = environment.localities.length;
 
-      territories.map((territory) => {
-        this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
-        .subscribe((card) => {
-          card.map((list: any, index: any) => {
-            this.appleCount.set(0);
-            list.applesData.map((apple: any) => {
-              if (apple.checked === true) {
-                this.appleCount.update(count => count + 1);
+      environment.localities.forEach(({ key, storageKey }) => {
+        const territories = this.territoryNumberOfLocalStorage()[key] || [];
+
+        territories.forEach((territory: any) => {
+          this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
+          .subscribe((card) => {
+            card.forEach((list: any, index: any) => {
+              this.appleCount.set(0);
+              list.applesData?.forEach((apple: any) => {
+                if (apple.checked === true) {
+                  this.appleCount.update(count => count + 1);
+                }
+              });
+              if (this.appleCount() === 0) {
+                card.splice(index, 1);
               }
             });
-            if (this.appleCount() === 0) {
-              card.splice(index, 1);
+            const storeStatisticdData = sessionStorage.getItem(storageKey);
+            const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
+            statisticData.push(card);
+            sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
+            completedRequests++;
+
+            if (completedRequests === totalRequests) {
+              this.spinner.cerrarSpinner();
             }
           });
-          const storeStatisticdData = sessionStorage.getItem(storageKey);
-          const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
-          statisticData.push(card);
-          sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
-          this.spinner.cerrarSpinner();
         });
       });
-
-      // this.territoryNumberOfLocalStorage().rural.map((territory) => {
-      //   this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
-      //   .subscribe((card) => {
-      //     card.map((list: any, index: any) => {
-      //       this.appleCount.set(0);
-      //       list.applesData.map((apple: any) => {
-      //         if (apple.checked === true) {
-      //           this.appleCount.update(count => count + 1);
-      //         }
-      //       });
-      //       if (this.appleCount() === 0) {
-      //         card.splice(index, 1);
-      //       }
-      //     });
-      //     const storeStatisticdData = sessionStorage.getItem('registerStatisticDataR');
-      //     const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
-      //     statisticData.push(card);
-      //     sessionStorage.setItem('registerStatisticDataR', JSON.stringify(statisticData));
-      //     this.spinner.cerrarSpinner();
-      //   });
-      // });
     }
   }
 

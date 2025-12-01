@@ -18,11 +18,26 @@ Este proyecto es una aplicación Angular para la gestión de territorios de cong
       congregationName: 'Mi Congregación',
       congregationKey: 'micongregacion', // Clave única para la BD
       territoryPrefix: 'TerritorioMC'    // Prefijo para las colecciones (ej. TerritorioMC 1)
+      localities: [
+        {
+          key: 'micongregacion',
+          name: 'Mi Congregación',
+          territoryPrefix: 'TerritorioMC',
+          storageKey: 'registerStatisticDataTerritorioMC',
+          hasNumberedTerritories: true
+        }
+      ]
     };
     ```
 
 3.  **Configuración de Mapas**:
     Crea un archivo `src/app/core/config/maps.micongregacion.ts` (copia de `maps.wheelwright.ts`) y define las URLs de los mapas para cada territorio.
+
+    Modificar el archivo `src\app\modules\territory\territory-routing.module.ts` y agregar la nueva ruta
+
+    ```json
+      { path: 'nombre de la congre', component: MapasComponent},
+    ```
 
 ### 2. Configuración de Angular (`angular.json`)
 
@@ -58,6 +73,53 @@ Para poblar la base de datos con los territorios iniciales, usa el script inclui
     - Ve a la Consola de Firebase > Configuración del proyecto > Cuentas de servicio.
     - Genera una nueva clave privada.
     - Guarda el archivo JSON como `scripts/service-account.json`.
+
+3. **Datos Manuales**:
+    - Agregar la colección 'MapsTerritory' y un documento nuevo:
+    ```json
+    maps: [
+      {
+        link: "link",
+        name: "name location",
+        src: "src"
+      },
+      {
+        link: "link",
+        name: "name location",
+        src: "src"
+      },
+      {
+        link: "link",
+        name: "name location",
+        src: "src"
+      }
+    ]
+    ```
+    - Agregar la colección 'Statistics' y un documento nuevo:
+    ```json
+    territorio: [
+      {
+        link: "link",
+        name: "name location",
+        src: "src"
+      },
+      {
+        link: "link",
+        name: "name location",
+        src: "src"
+      },
+      {
+        link: "link",
+        name: "name location",
+        src: "src"
+      }
+    ]
+    ```
+    - Agregar la colección 'users' y un documento con tu nombre como id del documento:
+    ```json
+    password: "password",
+    role: "admin"
+    ```
 
 **Ejecutar el Script:**
 ```bash

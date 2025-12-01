@@ -10,11 +10,21 @@ const routes: Routes = [
     path: '',
     children: [
       { path: '', component: TerritoryPageComponent},
-      { path: 'urbano', component: MapasComponent},
-      { path: 'ubications-overseer', component: MapasComponent},
+
+      { path: 'wheelwright', component: MapasComponent},
+      { path: 'mariaTeresa', component: MapasComponent},
+      { path: 'christophersen', component: MapasComponent},
       { path: 'rural', component: MapasComponent},
+
+      // Otras rutas generales
+      { path: 'ubications-overseer', component: MapasComponent},
+
+      // Redirect legacy (mantener por compatibilidad temporal)
       { path: 'TerritorioW-Rural', redirectTo: 'rural'},
+
+      // Ruta dinámica para territorios (DEBE IR AL FINAL)
       { path: ':collection', component: CardTerritoryComponent},
+
       {path: '**', redirectTo: ''},
     ],
   }

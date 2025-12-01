@@ -40,8 +40,15 @@ export class StatisticsPageComponent implements OnInit{
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {
-    this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));
-    this.nameTitleTerritory.set(this.territoryPath() === "urbano" ? environment.congregationName : "Rural");
+    // Obtener el parámetro de la URL (ej: 'mariaTeresa', 'christophersen', 'rural')
+    this.territoryPath.set(this.rutaActiva.snapshot.paramMap.get('locality') || '');
+    
+    // Buscar el nombre bonito en la configuración si existe
+    const localityConfig = environment.localities?.find(l => l.key === this.territoryPath());
+    const title = localityConfig ? localityConfig.name : this.capitalize(this.territoryPath());
+    
+    this.nameTitleTerritory.set(title);
+    
     this.green = new FormControl(28);
     this.blue = new FormControl(42);
     this.yellow = new FormControl(56);
@@ -49,18 +56,57 @@ export class StatisticsPageComponent implements OnInit{
   }
 
   ngOnInit(): void {
+    // Suscribirse a cambios en los parámetros por si se navega entre localidades
+    this.rutaActiva.paramMap.subscribe(params => {
+      const locality = params.get('locality');
+      if (locality && locality !== this.territoryPath()) {
+        this.territoryPath.set(locality);
+        const localityConfig = environment.localities?.find(l => l.key === locality);
+        this.nameTitleTerritory.set(localityConfig ? localityConfig.name : this.capitalize(locality));
+        this.getDataStatisticTerritory();
+      }
+    });
+
     this.getDataStatisticTerritory();
   }
 
   getDataStatisticTerritory() {
-    const nameLocalStorage = this.territoryPath() === "urbano" ? "statisticDataW" : "statisticDataR";
-    if (sessionStorage.getItem(nameLocalStorage)) {
-      const storedStatisticData = sessionStorage.getItem(nameLocalStorage);
+    const path = this.territoryPath();
+    if (!path) return;
+
+    // Generar key consistente con HomeStatisticsPageComponent
+    // ej: mariaTeresa -> statisticDataMariaTeresa
+    const suffix = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
+    const nameLocalStorage = `statisticData${suffix}`;
+
+    // Fallback para legacy 'urbano'
+    let storageKey = nameLocalStorage;
+    
+    if (path === 'urbano') {
+       if (environment.congregationKey === 'wheelwright') {
+           storageKey = 'statisticDataW';
+       } else {
+           // Si es otra congregación (ej: Maria Teresa) y la URL dice 'urbano',
+           // asumimos que se refiere a la localidad principal (la primera en la lista)
+           const mainLocality = environment.localities?.[0];
+           if (mainLocality) {
+               const suffix = mainLocality.key.charAt(0).toUpperCase() + mainLocality.key.slice(1).replace(/-/g, '');
+               storageKey = `statisticData${suffix}`;
+           }
+       }
+    }
+
+    if (sessionStorage.getItem(storageKey)) {
+      const storedStatisticData = sessionStorage.getItem(storageKey);
       this.dataListFull.set(storedStatisticData ? JSON.parse(storedStatisticData) : []);
       this.sortTable("completed");
       this.loadingData.set(true);
       return;
     }
+  }
+
+  capitalize(s: string): string {
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
   }
 
   paintRow(dataList: any){

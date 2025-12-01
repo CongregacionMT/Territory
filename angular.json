@@ -105,6 +105,31 @@
                 }
               ],
               "outputHashing": "all"
+            },
+            "maria-teresa": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.maria-teresa.ts"
+                },
+                {
+                  "replace": "src/app/core/config/maps.config.ts",
+                  "with": "src/app/core/config/maps.maria-teresa.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "6kb"
+                }
+              ],
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production"
@@ -120,6 +145,9 @@
             },
             "wheelwright": {
               "buildTarget": "territory:build:wheelwright"
+            },
+            "maria-teresa": {
+              "buildTarget": "territory:build:maria-teresa"
             }
           },
           "defaultConfiguration": "development"
