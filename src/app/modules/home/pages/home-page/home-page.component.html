@@ -27,12 +27,14 @@
       </div>
     </div>
     <!-- Carrito -->
-    <div class="card" routerLink="../carrito">
-      <div class="card-body d-flex flex-column align-items-center">
-        <img src="../../../../../assets/img/carrito.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title text-white mt-3">Carrito</h2>
+    @if (isAdmin || hasCartData) {
+      <div class="card" routerLink="../carrito">
+        <div class="card-body d-flex flex-column align-items-center">
+          <img src="../../../../../assets/img/carrito.png" alt="map" style="width: 10rem;">
+          <h2 class="card-title text-white mt-3">Carrito</h2>
+        </div>
       </div>
-    </div>
+    }
     <!-- Campaña -->
     @if (isAdmin) {
       <div class="card" routerLink="../campaign">

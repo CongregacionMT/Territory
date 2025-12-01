@@ -43,17 +43,25 @@ export class FormEditCartComponent implements OnInit {
 
   initializeForm(): void {
     this.cartFormArray.clear();
-    this.formCartDataInput().forEach((cart: CartData) => {
-      this.cartFormArray.push(this.createCartGroup(cart));
-    });
+    if (this.formCartDataInput().length === 0) {
+      this.addInputForm();
+    } else {
+      this.formCartDataInput().forEach((cart: CartData) => {
+        this.cartFormArray.push(this.createCartGroup(cart));
+      });
+    }
   }
 
   initializeLocationsForm(): void {
     this.locationsFormArray.clear();
-    this.formLocationsDataInput().forEach((location: CartLocation) => {
-      this.locations.push(location);
-      this.locationsFormArray.push(this.createLocationGroup(location));
-    });
+    if (this.formLocationsDataInput().length === 0) {
+      this.addLocationForm();
+    } else {
+      this.formLocationsDataInput().forEach((location: CartLocation) => {
+        this.locations.push(location);
+        this.locationsFormArray.push(this.createLocationGroup(location));
+      });
+    }
   }
 
   createCartGroup(cart: CartData): FormGroup {

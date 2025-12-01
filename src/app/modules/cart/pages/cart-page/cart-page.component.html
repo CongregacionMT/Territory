@@ -12,6 +12,17 @@
         [cartData]="cartData$"
       ></app-table-cart-assignment>
     </div>
+  } @else {
+    <div class="d-flex flex-column align-items-center my-5">
+      <h3 class="text-center text-muted">No hay arreglos del carrito en este momento.</h3>
+      <button
+        type="button"
+        class="btn btn-primary btn-lg mt-3"
+        routerLink="editar"
+      >
+        Crear arreglos
+      </button>
+    </div>
   }
   <!-- Edición del carrito -->
   @if (isAdmin) {

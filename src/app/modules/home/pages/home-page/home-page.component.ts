@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { CampaignService } from '@core/services/campaign.service';
 import { MessagingService } from '@core/services/messaging.service';
+import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
@@ -23,10 +24,12 @@ export class HomePageComponent implements OnInit {
   private territorieDataService = inject(TerritoryDataService);
   private campaignService = inject(CampaignService);
   private messagingService = inject(MessagingService);
+  private cartDataService = inject(CartDataService);
   private _snackBar = inject(MatSnackBar);
 
   isAdmin: boolean = false;
   isDriver: boolean = false;
+  hasCartData: boolean = false;
   btnLogin: boolean = false;
   btnPWA: boolean = true;
   campaignInProgress = signal(false);
@@ -111,6 +114,14 @@ export class HomePageComponent implements OnInit {
 
     // Init PWA
     this.initPWA();
+
+    this.cartDataService.getCartAssignment().subscribe({
+      next: (cartArray) => {
+        if (cartArray.cart.length > 0) {
+          this.hasCartData = true;
+        }
+      }
+    });
 
     this.spinner.cerrarSpinner();
   }
