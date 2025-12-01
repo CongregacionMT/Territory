@@ -204,6 +204,14 @@ export class TerritoryDataService {
     const groupRef = collection(this.firestore, 'Groups');
     return collectionData(groupRef, {idField: 'id'}) as Observable<any>;
   }
+  setGroup(groupId: string, data: any) {
+    const groupDoc = doc(this.firestore, 'Groups', groupId);
+    return setDoc(groupDoc, data);
+  }
+  deleteGroup(groupId: string) {
+    const groupDoc = doc(this.firestore, 'Groups', groupId);
+    return deleteDoc(groupDoc);
+  }
 
   // SALIDAS
   getDepartures(){

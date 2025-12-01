@@ -1,0 +1,109 @@
+<div class="container">
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestionar Publicadores</h2>
+    <button class="btn btn-primary" (click)="addGroup()">
+      <i class="bi bi-plus-circle"></i> Agregar Grupo
+    </button>
+  </div>
+
+  <div class="groups-container">
+    @for (group of groups; track group.id) {
+      <div class="group-card card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">{{ group.id }}</h4>
+          <button 
+            class="btn btn-danger btn-sm" 
+            (click)="deleteGroup(group.id)"
+            [disabled]="group.publishers.length > 0">
+            <i class="bi bi-trash"></i> Eliminar
+          </button>
+        </div>
+        
+        <div class="card-body">
+          <!-- Add Publisher Form -->
+          <div class="input-group mb-3">
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Nombre del publicador"
+              [(ngModel)]="newPublisherName[group.id]"
+              (keyup.enter)="addPublisher(group.id)">
+            <button 
+              class="btn btn-success" 
+              (click)="addPublisher(group.id)">
+              <i class="bi bi-plus"></i> Agregar
+            </button>
+          </div>
+
+          <!-- Publishers List with Drag & Drop -->
+          <div 
+            cdkDropList
+            [id]="group.id"
+            [cdkDropListData]="group.publishers"
+            [cdkDropListConnectedTo]="getConnectedLists()"
+            (cdkDropListDropped)="onDrop($event, group.id)"
+            class="publishers-list">
+            
+            @if (group.publishers.length === 0) {
+              <div class="text-muted text-center py-3">
+                No hay publicadores en este grupo
+              </div>
+            }
+            
+            @for (publisher of group.publishers; track $index) {
+              <div 
+                class="publisher-item card mb-2"
+                cdkDrag
+                [ngClass]="{
+                  'border-success': publisher.assignment === 'Superintendente',
+                  'border-primary': publisher.assignment === 'Auxiliar'
+                }">
+                <div class="card-body p-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-grip-vertical drag-handle" cdkDragHandle></i>
+                    
+                    <div class="flex-grow-1">
+                      <strong>{{ publisher.name }}</strong>
+                      @if (publisher.assignment) {
+                        <span class="badge ms-2"
+                          [ngClass]="{
+                            'bg-success': publisher.assignment === 'Superintendente',
+                            'bg-primary': publisher.assignment === 'Auxiliar'
+                          }">
+                          {{ publisher.assignment }}
+                        </span>
+                      }
+                    </div>
+
+                    <select 
+                      class="form-select form-select-sm w-auto"
+                      [value]="publisher.assignment || ''"
+                      (change)="updateAssignment(group.id, $index, $any($event.target).value)">
+                      <option value="">Sin asignación</option>
+                      <option value="Superintendente">Superintendente</option>
+                      <option value="Auxiliar">Auxiliar</option>
+                    </select>
+
+                    <button 
+                      class="btn btn-danger btn-sm"
+                      (click)="removePublisher(group.id, $index)">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (groups.length === 0) {
+      <div class="alert alert-info text-center">
+        No hay grupos creados. Haz clic en "Agregar Grupo" para comenzar.
+      </div>
+    }
+  </div>
+</div>
