@@ -50,3 +50,4 @@ Thumbs.db
 .runtimeconfig.json
 src/app/core/config/maps.config.ts
 scripts/service-account/service-account-hughes.json
+scripts/service-account.json
