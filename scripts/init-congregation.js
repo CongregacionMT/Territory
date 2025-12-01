@@ -54,6 +54,20 @@ async function main() {
   ]);
 
   const { congregationKey, territoryPrefix, numTerritories, defaultApples } = answers;
+  // Prompt for number of apples (manzanas) for each territory individually
+  const applesPerTerritory = []; // array storing apple count per territory
+  for (let i = 1; i <= numTerritories; i++) {
+    const { apples } = await prompt([
+      {
+        type: 'number',
+        name: 'apples',
+        message: `Enter number of blocks (manzanas) for territory ${i}:`,
+        default: defaultApples,
+        validate: input => input > 0 ? true : 'Must be greater than 0',
+      },
+    ]);
+    applesPerTerritory.push(apples);
+  }
 
   console.log(`\n📦 Initializing ${numTerritories} territories for '${congregationKey}'...`);
 
@@ -96,7 +110,7 @@ async function main() {
     const existingDocs = await collectionRef.limit(1).get();
 
     if (existingDocs.empty) {
-      const applesData = Array.from({ length: defaultApples }, () => ({ name: '', checked: false }));
+      const applesData = Array.from({ length: applesPerTerritory[i - 1] }, () => ({ name: '', checked: false }));
       
       const initialCard = {
         location: congregationKey, // or Name?
@@ -114,24 +128,25 @@ async function main() {
 
       // Create a document. ID can be auto-generated or timestamp based like in the app.
       // The app uses `Campaña-${activeCampaign?.id}-${Date.now()}`.
-      // We'll use a generic ID.
-      await collectionRef.add(initialCard);
-      process.stdout.write('.');
-    } else {
-      process.stdout.write('s'); // skip
+// We'll use a generic ID.
+await collectionRef.add(initialCard);
     }
   }
 
-  // Update the NumberTerritory document with the new list
-  await docRef.update({
-    [congregationKey]: territoryList
-  });
+  // Ensure admin user exists in 'users' collection
+  const usersRef = db.collection('users');
+  await usersRef.doc('admin').set({
+    user: 'admin',
+    password: 'admin2026',
+    rol: 'admin'
+  }, { merge: true });
 
   console.log('\n\n✅ Done!');
   console.log(`   - Added/Updated '${congregationKey}' in NumberTerritory.`);
   console.log(`   - Created/Checked ${numTerritories} territory collections.`);
 }
 
+// Execute main
 main().catch(error => {
   console.error('Error:', error);
   process.exit(1);
