@@ -81,17 +81,17 @@ Para poblar la base de datos con los territorios iniciales, usa el script inclui
       {
         link: "link",
         name: "name location",
-        src: "src"
+        src: "https://i.postimg.cc/5XbRCwC8/mt.png"
       },
       {
         link: "link",
         name: "name location",
-        src: "src"
+        src: "https://i.postimg.cc/KRXVZXcq/christ.png"
       },
       {
         link: "link",
         name: "name location",
-        src: "src"
+        src: "https://i.postimg.cc/bsQ5r6sz/rural.png"
       }
     ]
     ```
@@ -101,17 +101,17 @@ Para poblar la base de datos con los territorios iniciales, usa el script inclui
       {
         link: "link",
         name: "name location",
-        src: "src"
+        src: "../../../assets/img/group.png"
       },
       {
         link: "link",
         name: "name location",
-        src: "src"
+        src: "../../../assets/img/group.png"
       },
       {
         link: "link",
         name: "name location",
-        src: "src"
+        src: "../../../assets/img/group.png"
       }
     ]
     ```
