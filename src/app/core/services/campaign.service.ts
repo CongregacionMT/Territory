@@ -394,7 +394,7 @@ export class CampaignService {
 
       if (deletes.length > 0) {
         await Promise.all(deletes);
-        console.log(`🗑️ Eliminados ${deletes.length} docs de ${collectionName}`);
+        // console.log(`🗑️ Eliminados ${deletes.length} docs de ${collectionName}`);
       }
     }
   }

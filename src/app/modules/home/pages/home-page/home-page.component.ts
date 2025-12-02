@@ -137,17 +137,14 @@ export class HomePageComponent implements OnInit {
 
     // For Android
     if(window.matchMedia('(display-mode: standalone)').matches){
-      console.log("app instalada");
       this.btnPWA = false;
     }
     window.addEventListener('appinstalled', (e) => {
-      console.log("La app está instalada", e);
       this.btnPWA = false;
     });
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
-      console.log("evento de instalación");
     });
   }
 
@@ -155,10 +152,8 @@ export class HomePageComponent implements OnInit {
     this.deferredPrompt.prompt();
     this.deferredPrompt.userChoise.then((choiceResult: any) => {
       if(choiceResult.outcome === 'accepted'){
-        console.log("User accepted to install app");
         this.btnPWA = false;
       } else {
-        console.log("User canceled to install app");
         this.btnPWA = true;
       }
       this.deferredPrompt = null;

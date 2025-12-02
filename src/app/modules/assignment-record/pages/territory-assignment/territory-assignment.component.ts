@@ -1,7 +1,6 @@
 import { Component, OnInit, DOCUMENT, inject, signal } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import { HttpClient } from '@angular/common/http';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
@@ -14,6 +13,7 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 import { DatePipe } from '@angular/common';
 import { environment } from '@environments/environment';
+import { PdfService } from '@core/services/pdf.service';
 
 @Component({
     selector: 'app-territory-assignment',
@@ -29,6 +29,7 @@ export class TerritoryAssignmentComponent implements OnInit{
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
   private document = inject<Document>(DOCUMENT);
+  private pdfService = inject(PdfService);
 
   routerBreadcrum = signal<any>([]);
   territoryPath = signal<any>(null);
@@ -121,7 +122,7 @@ export class TerritoryAssignmentComponent implements OnInit{
       'responseType'  : 'arraybuffer' as 'json'
     };
     const jpgPath = this.document.location.origin + '/assets/documents/S-13_S_image.jpg';
-    console.log("path: ", jpgPath);
+    // console.log("path: ", jpgPath);
 
     this.http.get(jpgPath, httpOptions).subscribe({
       next: jpg => this.s13JPG.set(jpg)
@@ -206,162 +207,13 @@ export class TerritoryAssignmentComponent implements OnInit{
   }
 
   async downloadPDF() {
-    const pdfDoc = await PDFDocument.create();
+    if (!this.s13JPG()) return;
 
-    // Cargar imagen S-13
-    const jpgImageBytes = this.s13JPG();
-    const jpgImage = await pdfDoc.embedJpg(jpgImageBytes);
-    const jpgDims = jpgImage.scale(1);
-
-    // Agregar página inicial
-    pdfDoc.addPage([jpgDims.width, jpgDims.height]);
-
-    // Fuente
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-    // Preparar cantidad de páginas según asignaciones
-    const maxItems = Math.max(...this.filterDataListFull().map(dl =>
-      dl.filter((item: any) => item.end).length
-    ));
-
-    const extraPages = Math.ceil(maxItems / 4) - 1;
-    for (let i = 0; i < extraPages; i++) {
-      pdfDoc.addPage([jpgDims.width, jpgDims.height]);
-    }
-
-    const pages = pdfDoc.getPages();
-    const currentYear = new Date().getFullYear().toString();
-
-    pages.forEach((page, pageIndex) => {
-      // Dibujar fondo
-      page.drawImage(jpgImage, {
-        x: 0,
-        y: 0,
-        width: jpgDims.width,
-        height: jpgDims.height,
-      });
-
-      // Año de servicio
-      page.drawText(currentYear, {
-        x: jpgDims.width * 0.25,
-        y: jpgDims.height - 195,
-        size: 24,
-        font: helveticaFont,
-        color: rgb(0, 0, 0),
-      });
-
-      // Números de territorio
-      const startY = jpgDims.height - 345;
-      const rowHeight = 65;
-      this.territoriesNumber().forEach((territorio, index) => {
-        const y = startY - index * rowHeight;
-        page.drawText(String(territorio.territorio), {
-          x: jpgDims.width * 0.085,
-          y,
-          size: 24,
-          font: helveticaFont,
-          color: rgb(0, 0, 0),
-        });
-      });
-    });
-
-    // Asignaciones
-    const startY = jpgDims.height - 295;
-    const rowHeight = 65;
-    const colWidth = jpgDims.width * 0.18;
-
-    this.filterDataListFull().forEach((dataList, index) => {
-      let rowIndex = 0;
-      let colIndex = 0;
-      let pageIndex = 0;
-      let currentTerritory = 0;
-
-      dataList.forEach((item: any) => {
-        if (item.end) {
-          // Cambiar de columna
-          if (colIndex === 4) {
-            colIndex = 0;
-            rowIndex++;
-          }
-
-          if (rowIndex === 19) {
-            pageIndex++;
-            rowIndex = 0;
-          }
-
-          const page = pages[pageIndex];
-          const xDriver = jpgDims.width * 0.26 + colIndex * colWidth;
-          const xStart = xDriver - 30;
-          const xEnd = xDriver + 80;
-          const y = startY - index * rowHeight;
-
-          if (currentTerritory !== item.numberTerritory) {
-            currentTerritory = item.numberTerritory;
-            rowIndex++;
-            colIndex = 0;
-          }
-
-          const yAdjusted = y - rowIndex * rowHeight;
-
-          const driverName = item.driver;
-          const fontSize = 20;
-          const textWidth = helveticaFont.widthOfTextAtSize(driverName, fontSize);
-
-          // Centrado horizontal dentro del cuadrado
-          const centerX = xDriver + (colWidth / 2);
-          const xCentered = centerX - (textWidth / 2);
-
-          // Conductor
-          page.drawText(driverName, {
-            x: xCentered - 40,
-            y: yAdjusted + 30,
-            size: fontSize,
-            font: helveticaFont,
-            color: rgb(0, 0, 0),
-          });
-
-          // Fecha inicio
-          const dateStart = item.start.split(" ")[0].split("-").reverse().join("-");
-          page.drawText(dateStart, {
-            x: xStart,
-            y: yAdjusted,
-            size: 18,
-            font: helveticaFont,
-            color: rgb(0, 0, 0),
-          });
-
-          // Fecha fin
-          const dateEnd = item.end.split(" ")[0].split("-").reverse().join("-");
-          page.drawText(dateEnd, {
-            x: xEnd,
-            y: yAdjusted,
-            size: 18,
-            font: helveticaFont,
-            color: rgb(0, 0, 0),
-          });
-
-          colIndex++;
-        }
-      });
-    });
-
-    // Descargar PDF
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-
-    // Obtener nombre de la localidad actual
-    const currentPath = this.territoryPath();
-    const locality = environment.localities.find(loc => loc.key === currentPath);
-    const localityName = locality?.name || 'Territorio';
-
-    // Descargar el archivo PDF
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Registro de territorios - ${localityName}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    await this.pdfService.generateTerritoryAssignmentPDF(
+      this.s13JPG(),
+      this.territoriesNumber(),
+      this.filterDataListFull(),
+      this.territoryPath()
+    );
   }
 }

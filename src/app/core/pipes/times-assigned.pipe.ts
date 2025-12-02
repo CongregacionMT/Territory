@@ -21,7 +21,7 @@ export class TimesAssigned implements PipeTransform {
         }
       });
       // Calculo de fechas
-      console.log("fecha: ", this.dataFilter);
+      // console.log("fecha: ", this.dataFilter);
       
     }
     

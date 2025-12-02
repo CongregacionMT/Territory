@@ -59,7 +59,7 @@ export class LoginPageComponent implements OnInit {
         this.router.navigate(['home']);
         this.spinner.cerrarSpinner();
       } else {
-        console.log("ERROR: ", this.formLogin.value);
+        // Error handling
         messageError.style.display = 'block';
         this.spinner.cerrarSpinner();
       }

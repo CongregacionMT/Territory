@@ -16,7 +16,7 @@ export class MessagingService {
   receiveMessages(): void {
     const messaging = getMessaging();
     onMessage(messaging, (payload) => {
-      console.log('Mensaje recibido:', payload);
+      // console.log('Mensaje recibido:', payload);
       // Aquí puedes manejar la recepción de las notificaciones push y realizar las acciones correspondientes en tu aplicación
     });
   }

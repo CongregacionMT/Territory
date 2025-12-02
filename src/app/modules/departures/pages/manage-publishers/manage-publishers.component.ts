@@ -52,8 +52,6 @@ export class ManagePublishersComponent implements OnInit {
     this.spinner.cargarSpinner();
     this.territoryDataService.getGroupList().subscribe({
       next: (data: any) => {
-        console.log('Raw data from Firestore:', data);
-        
         // Firestore returns an array of documents with id field
         if (Array.isArray(data)) {
           this.groups = data.map(group => ({
@@ -61,7 +59,6 @@ export class ManagePublishersComponent implements OnInit {
             publishers: Array.isArray(group.publishers) ? group.publishers : []
           }));
         } else {
-          console.warn('Data is not an array:', data);
           this.groups = [];
         }
         
@@ -72,11 +69,9 @@ export class ManagePublishersComponent implements OnInit {
           return numA - numB;
         });
         
-        console.log('Processed groups:', this.groups);
         this.spinner.cerrarSpinner();
       },
       error: (err) => {
-        console.error('Error loading groups:', err);
         this.groups = [];
         this.spinner.cerrarSpinner();
       }

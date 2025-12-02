@@ -22,7 +22,6 @@ export class DeparturesCardsComponent implements OnInit {
   ngOnInit(): void {
     let pathURL = this.route.snapshot.url.pop()?.path || 0;
     this.currentPath = Number(pathURL);
-    console.log("data entrante:", this.currentPath);
   }
   getDayOfWeek(dateString: string): string {
     const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];

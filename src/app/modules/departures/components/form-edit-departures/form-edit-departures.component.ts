@@ -197,7 +197,6 @@ export class FormEditDeparturesComponent implements OnInit{
   toggleTerritory(num: string, i: number, group: number, isChecked: boolean) {
     const control = this.getTerritoryArray(i, group);
     const current = control.value as string[];
-    console.log("control", control);
 
     if (isChecked && !current.includes(num)) {
       control.push(new FormControl(num));

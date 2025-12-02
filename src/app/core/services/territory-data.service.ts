@@ -15,8 +15,7 @@ export class TerritoryDataService {
   private spinner = inject(SpinnerService);
   private campaignService = inject(CampaignService);
 
-  diferent: boolean = false;
-  countFalseApples: number = 0;
+
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -63,16 +62,15 @@ export class TerritoryDataService {
   async postCardTerritorie(card: any, collectionName: string): Promise<void> {
 
     if (this.isCreating) {
-      console.warn('[postCardTerritorie] blocked: isCreating true');
       return;
     }
 
     this.isCreating = true;
-    this.countFalseApples = 0;
+    let countFalseApples = 0;
     card.revision = false;
 
     (card.applesData ?? []).forEach((apple: any) => {
-      if (!apple?.checked) this.countFalseApples++;
+      if (!apple?.checked) countFalseApples++;
     });
 
     try {
@@ -80,7 +78,7 @@ export class TerritoryDataService {
       const activeCampaign = this.campaignService.getCachedCampaign();
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
 
-      if (this.countFalseApples === 0) {
+      if (countFalseApples === 0) {
         const completedCard = { ...card, creation: Timestamp.now(), completed: (card.completed ?? 0) + 1 };
         const completedId = `Campaña-${activeCampaign?.id}-${Date.now()}-completed`;
         await setDoc(doc(this.firestore, collectionName, completedId), completedCard);
@@ -107,7 +105,7 @@ export class TerritoryDataService {
       }
       this.router.navigate(['home']);
     } catch (err) {
-      console.error('[postCardTerritorie] ERROR:', err);
+      // Error handling
     } finally {
       this.spinner?.cerrarSpinner?.();
       this.isCreating = false;
@@ -148,9 +146,9 @@ export class TerritoryDataService {
 
       const verifyValue = Number(verifyStats?.[territorioKey]?.salidas ?? 0);
     } catch (err: any) {
-      console.error('[incrementSalidasTx] ERROR:', err?.name, err?.code, err?.message);
+      // Error handling
     } finally {
-      console.log('--- [incrementSalidasTx] END ---');
+      // End transaction
     }
   }
   private getTerritorioKeyStrict(card: any, collectionName: string): string {
@@ -174,7 +172,6 @@ export class TerritoryDataService {
         return key;
       }
     }
-    console.warn('[getTerritorioKeyStrict] no number found, fallback Territorio 0; sources:', sources);
     return 'Territorio 0';
   }
 
