@@ -21,7 +21,7 @@
             <h4>🔸Localidad: {{ card.location }}</h4>
             <h4>🔸Conductor: {{ card.driver }}</h4>
             <h4>🔸Territorio: N° {{ card.territory }}</h4>
-            <h4>🔸Fecha: {{ card.date | date:"dd-MM-yyyy" }}</h4>
+            <h4>🔸Fecha: {{ card.creation | date:"dd-MM-yyyy" }}</h4>
           </div>
           <button
             class="btn btn-danger m-2"
@@ -181,25 +181,25 @@
             <div class="d-flex align-items-center">
               <h4 class="text-dark">🔸Localidad:</h4>
               <p class="text-dark fs-4 mb-2 ps-2">
-                {{ cardConfirmation().location }}
+                {{ cardConfirmation()?.location }}
               </p>
             </div>
             <div class="d-flex align-items-center">
               <h4 class="text-dark">🔸Conductor:</h4>
               <p class="text-dark fs-4 mb-2 ps-2">
-                {{ cardConfirmation().driver }}
+                {{ cardConfirmation()?.driver }}
               </p>
             </div>
             <div class="d-flex align-items-center">
               <h4 class="text-dark">🔸Territorio:</h4>
               <p class="text-dark fs-4 mb-2 ps-2">
-                N°{{ cardConfirmation().numberTerritory }}
+                N°{{ cardConfirmation()?.numberTerritory }}
               </p>
             </div>
             <div class="d-flex align-items-center">
               <h4 class="text-dark">🔸Fecha:</h4>
               <p class="text-dark fs-4 mb-2 ps-2">
-                {{ cardConfirmation().start ? (cardConfirmation().start | date: "dd-MM-yyyy") : '-' }}
+                {{ cardConfirmation()?.start ? (cardConfirmation()?.start | date: "dd-MM-yyyy") : '-' }}
               </p>
             </div>
           </div>

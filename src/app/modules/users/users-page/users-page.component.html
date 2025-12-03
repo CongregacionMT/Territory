@@ -18,7 +18,7 @@
                 <h5 class="my-0">Rol:</h5>
                 <p class="mx-2 fs-5 s-5 my-0">{{user.rol}}</p>
               </div>
-              @if (user.rol !== 'admin' && user.tokens.length) {
+              @if (user.rol !== 'admin' && user.tokens?.length) {
                 <div class="mb-2">
                   <h5 class="my-0">Token notification: </h5>
                   <div class="bg-info bg-gradient rounded p-2" style="cursor: pointer" (click)="alertSnack()" (click)="copyToClipboard(user.tokens)">

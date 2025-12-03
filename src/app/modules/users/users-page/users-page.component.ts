@@ -5,12 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { needConfirmation } from '@shared/decorators/confirm-dialog.decorator';
 
-interface User {
-  user: string;
-  password: string;
-  rol: string;
-  tokens: string[];
-}
+import { User } from '@core/models/User';
 
 @Component({
     selector: 'app-users-page',
@@ -31,9 +26,6 @@ export class UsersPageComponent {
   users: User[] = [];
 
   formUser: FormGroup;
-  user = null;
-  password = null;
-  rol = 'conductor';
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);

@@ -32,7 +32,7 @@
           <div class="card-s-container">
             @for (item of locality.territories; track item) {
               <app-card-s
-                terrNumber="{{ item.territorio }}"
+                [terrNumber]="item"
                 [routerLink]="item.collection"
                 (click)="this.cardService.rollbackCard()"
               >

@@ -14,7 +14,7 @@ export class CardService {
   constructor(...args: unknown[]);
   constructor() { 
     this.dataCard = {
-      id: 0,
+      id: "0",
       location: '',
       numberTerritory: 0,
       iframe: '',

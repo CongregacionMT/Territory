@@ -56,7 +56,7 @@ export class CampaignPageComponent implements OnInit {
     const campaigns = await this.campaignService.getInactiveCampaigns();
     this.campaignHistory.set(
       campaigns.map(c => ({
-        id: c.id,
+        id: c.id!,
         nombre: c.name,
         descripcion: c.description,
         fecha: c.dateEnd
