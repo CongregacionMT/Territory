@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { doc, docData, Firestore, updateDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
+import { CartDataArray, LocationsData } from '@core/models/Cart';
 
 @Injectable({
   providedIn: 'root'
@@ -15,23 +16,23 @@ export class CartDataService {
 
   constructor() { }
 
-  getCartAssignment(): Observable<any> {
+  getCartAssignment(): Observable<CartDataArray> {
     const cartRef = doc(this.firestore, "Cart", `docCart`);
-    return docData(cartRef).pipe(take(1)); // Ensure the observable completes
+    return (docData(cartRef) as Observable<CartDataArray>).pipe(take(1)); // Ensure the observable completes
   }
 
-  putCartAssignment(cart: any): Promise<void> {
+  putCartAssignment(cart: CartDataArray): Promise<void> {
     const cartRef = doc(this.firestore, "Cart", `docCart`);
-    return updateDoc(cartRef, cart);
+    return updateDoc(cartRef, { ...cart });
   }
 
-  getLocations(): Observable<any> {
+  getLocations(): Observable<LocationsData> {
     const locationRef = doc(this.firestore, "Cart", `locations`);
-    return docData(locationRef).pipe(take(1));
+    return (docData(locationRef) as Observable<LocationsData>).pipe(take(1));
   }
 
-  putLocations(location: any): Promise<void> {
+  putLocations(location: LocationsData): Promise<void> {
     const cartRef = doc(this.firestore, "Cart", `locations`);
-    return updateDoc(cartRef, location);
+    return updateDoc(cartRef, { ...location });
   }
 }

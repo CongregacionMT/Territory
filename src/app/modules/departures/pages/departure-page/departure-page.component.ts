@@ -4,7 +4,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Departure, DepartureData } from '@core/models/Departures';
+import { DateDeparture, Departure, DepartureData } from '@core/models/Departures';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 
@@ -49,7 +49,7 @@ export class DeparturePageComponent implements OnInit {
           return dateA.getTime() - dateB.getTime();
         });
         this.territoryDataService.getDateDepartures().subscribe({
-          next: (date) => {
+          next: (date: DateDeparture) => {
             this.dateDeparture.setValue(date.date);
             this.spinner.cerrarSpinner();
           }

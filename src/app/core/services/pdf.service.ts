@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { environment } from '@environments/environment';
+import { Card } from '@core/models/Card';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class PdfService {
   async generateTerritoryAssignmentPDF(
     s13JPG: ArrayBuffer,
     territoriesNumber: TerritoryNumberData[],
-    filterDataListFull: any[],
+    filterDataListFull: Card[][],
     territoryPath: string
   ): Promise<void> {
     const pdfDoc = await PDFDocument.create();

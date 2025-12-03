@@ -13,3 +13,7 @@ export interface Departure {
 export interface DepartureData {
   departure: Departure[];
 }
+
+export interface DateDeparture {
+  date: string;
+}

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { Card } from '@core/models/Card';
+import { Card, CardApplesData } from '@core/models/Card';
 import { CardService } from '@core/services/card.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -11,6 +11,8 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { DatePipe } from '@angular/common';
 import { environment } from '@environments/environment';
+import { CardButtonsData } from '@core/models/CardButtonsData';
+import { BreadcrumbItem } from '@core/models/Breadcrumb';
 
 @Component({
     selector: 'app-assignment-record-page',
@@ -28,14 +30,14 @@ export class AssignmentRecordPageComponent implements OnInit {
   private cdRef = inject(ChangeDetectorRef);
 
   // Signals para el estado del componente
-  routerBreadcrum = signal<any[]>([]);
-  territorioMaps = signal<any[]>([]);
-  allCardsReceived = signal<any[]>([]);
-  allCardsAssigned = signal<any[]>([]);
-  cardConfirmation = signal<any>(null);
+  routerBreadcrum = signal<BreadcrumbItem[]>([]);
+  territorioMaps = signal<CardButtonsData[]>([]);
+  allCardsReceived = signal<Card[]>([]);
+  allCardsAssigned = signal<Card[]>([]);
+  cardConfirmation = signal<Card | null>(null);
   formCard = signal<FormGroup>(this.createFormCard());
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
-  appleCount = signal<any>(0);
+  appleCount = signal<number>(0);
   congregationName = environment.congregationName;
   congregationKey = environment.congregationKey;
   localitiesKeys = signal(environment.localities || []) ;
@@ -49,10 +51,7 @@ export class AssignmentRecordPageComponent implements OnInit {
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
     this.spinner.cargarSpinner();
-    this.routerBreadcrum.set(routerBreadcrumMockService.getBreadcrum());
 
     // get tarjetas asignadas esta semana
     this.territorieDataService.getCardAssigned().subscribe(card => {
@@ -77,15 +76,14 @@ export class AssignmentRecordPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Actualizar el signal con el valor del índice 2
-    const breadcrumData = this.routerBreadcrum();
+    const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum.set(breadcrumData[2]);
 
     if(!sessionStorage.getItem("territorioMaps")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getMaps()
       .subscribe(map => {
-        const maps = map[0].maps.map((m: any) => {
+        const maps = map[0].maps.map((m: CardButtonsData) => {
           if (m.name === 'urbano') {
             return { ...m, name: this.congregationName };
           }
@@ -117,9 +115,9 @@ export class AssignmentRecordPageComponent implements OnInit {
         territories.forEach((territory: any) => {
           this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
           .subscribe((card) => {
-            card.forEach((list: any, index: any) => {
+            card.forEach((list: Card, index: number) => {
               this.appleCount.set(0);
-              list.applesData?.forEach((apple: any) => {
+              list.applesData?.forEach((apple: CardApplesData) => {
                 if (apple.checked === true) {
                   this.appleCount.update(count => count + 1);
                 }
@@ -149,7 +147,7 @@ export class AssignmentRecordPageComponent implements OnInit {
     this.formCard().reset();
   }
 
-  deleteCardAssigned(card: any){
+  deleteCardAssigned(card: Card){
     this.territorieDataService.deleteCardAssigned(card);
   }
 
@@ -158,12 +156,15 @@ export class AssignmentRecordPageComponent implements OnInit {
     this.cardService.goRevisionCard(card);
   }
 
-  cardConfirmationDelete(card: any){
+  cardConfirmationDelete(card: Card){
     this.cardConfirmation.set(card);
     this.cdRef.detectChanges(); // Fuerza la actualización
   }
 
   cardDelete(){
-    this.territorieDataService.deleteCardTerritorie(this.cardConfirmation());
+    const card = this.cardConfirmation();
+    if (card) {
+      this.territorieDataService.deleteCardTerritorie(card);
+    }
   }
 }

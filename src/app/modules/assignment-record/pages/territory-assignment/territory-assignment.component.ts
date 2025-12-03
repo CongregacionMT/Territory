@@ -7,13 +7,16 @@ import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, forkJoin } from 'rxjs';
 
-import { Card } from '@core/models/Card';
+
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 import { DatePipe } from '@angular/common';
 import { environment } from '@environments/environment';
 import { PdfService } from '@core/services/pdf.service';
+
+import { Card, CardApplesData } from '@core/models/Card';
+import { BreadcrumbItem } from '@core/models/Breadcrumb';
 
 @Component({
     selector: 'app-territory-assignment',
@@ -31,14 +34,14 @@ export class TerritoryAssignmentComponent implements OnInit{
   private document = inject<Document>(DOCUMENT);
   private pdfService = inject(PdfService);
 
-  routerBreadcrum = signal<any>([]);
-  territoryPath = signal<any>(null);
+  routerBreadcrum = signal<BreadcrumbItem[]>([]);
+  territoryPath = signal<string>("");
   territoriesNumber = signal<TerritoryNumberData[]>([]);
-  dataListFull = signal<any[]>([]);
-  filterDataListFull = signal<any[]>([]);
+  dataListFull = signal<Card[][]>([]);
+  filterDataListFull = signal<Card[][]>([]);
   selectedValueFilter = signal<string>('1');
-  appleCount = signal<any>(null);
-  s13JPG = signal<any>(null);
+  appleCount = signal<number>(0);
+  s13JPG = signal<ArrayBuffer | null>(null);
   loadingData = signal(false);
   territoryNumberOfLocalStorage = signal<any>({});
   congregationKey = environment.congregationKey;
@@ -92,12 +95,12 @@ export class TerritoryAssignmentComponent implements OnInit{
       forkJoin(requests).subscribe((results: any) => {
         const statisticData: any[] = [];
 
-        results.forEach((card: any[]) => {
+        results.forEach((card: Card[]) => {
           for (let i = card.length - 1; i >= 0; i--) {
             let appleCount = 0;
             const list = card[i];
             if (list.applesData) {
-              list.applesData.forEach((apple: any) => {
+              list.applesData.forEach((apple: CardApplesData) => {
                 if (apple.checked === true) {
                   appleCount++;
                 }
@@ -119,7 +122,7 @@ export class TerritoryAssignmentComponent implements OnInit{
 
     // Busco el PDF original para modificarlo
     const httpOptions = {
-      'responseType'  : 'arraybuffer' as 'json'
+      responseType: 'arraybuffer' as 'arraybuffer'
     };
     const jpgPath = this.document.location.origin + '/assets/documents/S-13_S_image.jpg';
     // console.log("path: ", jpgPath);
@@ -145,9 +148,9 @@ export class TerritoryAssignmentComponent implements OnInit{
         territories.forEach((territory: any) => {
           this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
           .subscribe((card) => {
-            card.forEach((list: any, index: any) => {
+            card.forEach((list: Card, index: number) => {
               this.appleCount.set(0);
-              list.applesData?.forEach((apple: any) => {
+              list.applesData?.forEach((apple: CardApplesData) => {
                 if (apple.checked === true) {
                   this.appleCount.update(count => count + 1);
                 }
@@ -210,7 +213,7 @@ export class TerritoryAssignmentComponent implements OnInit{
     if (!this.s13JPG()) return;
 
     await this.pdfService.generateTerritoryAssignmentPDF(
-      this.s13JPG(),
+      this.s13JPG()!,
       this.territoriesNumber(),
       this.filterDataListFull(),
       this.territoryPath()

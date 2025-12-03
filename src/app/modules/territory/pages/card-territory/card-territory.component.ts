@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject, signal, viewChild, computed } fro
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
@@ -15,6 +15,9 @@ import { ModalComponent as ModalComponent_1 } from '../../../../shared/component
 import { CampaignService } from '@core/services/campaign.service';
 import { mapConfig } from '@core/config/maps.config';
 import { environment } from '@environments/environment';
+
+import { Card, CardApplesData } from '@core/models/Card';
+import { BreadcrumbItem } from '@core/models/Breadcrumb';
 
 @Component({
     selector: 'app-card-territory',
@@ -33,10 +36,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   private campaignService = inject(CampaignService);
   private router = inject(Router);
 
-  card = signal<any>({
+  card = signal<Card>({
     id: "",
     location: environment.congregationName,
-    numberTerritory: 1,
+    territoryNumber: 1,
     driver: '',
     start: '',
     end: '',
@@ -48,9 +51,9 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     revisionComplete: false
   });
 
-  iframe = signal<any>(null);
+  iframe = signal<SafeHtml | null>(null);
   path = signal<string>("");
-  routerBreadcrum = signal<any[]>([]);
+  routerBreadcrum = signal<BreadcrumbItem[]>([]);
   formCard = signal<FormGroup>(this.createFormCard());
   driverError = signal<boolean>(false);
   startError = signal<boolean>(false);
@@ -67,7 +70,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   hasValidStart = computed(() => this.formCard().get('start')?.valid ?? false);
   totalApples = computed(() => this.card().applesData?.length ?? 0);
   checkedApples = computed(() =>
-    this.card().applesData?.filter((apple: any) => apple.checked)?.length ?? 0
+    this.card().applesData?.filter((apple: CardApplesData) => apple.checked)?.length ?? 0
   );
 
   constructor(...args: unknown[]);
@@ -85,7 +88,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       form.patchValue({end: this.card().end});
       form.patchValue({comments: this.card().comments});
 
-      this.card().applesData.map((apple: any) => {
+      this.card().applesData.map((apple: CardApplesData) => {
         const applesData: FormArray = form.get('applesData') as FormArray;
         applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
       });
@@ -105,7 +108,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
           const applesData: FormArray = form.get('applesData') as FormArray;
           applesData.clear();
 
-          this.card().applesData.map((apple: any) => {
+          this.card().applesData.map((apple: CardApplesData) => {
             applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
             if(apple.checked === true){
               this.countTrueApples.update(count => count + 1);
@@ -241,7 +244,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const currentCard = this.card();
 
     if(currentCard.revision === true){
-      await this.territorieDataService.postCardTerritorie(currentCard, currentCard.link)
+      await this.territorieDataService.postCardTerritorie(currentCard, currentCard.link ?? '')
       ?.then(() => {
         console.log("todo bien");
       });

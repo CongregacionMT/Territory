@@ -95,25 +95,28 @@ export class FormEditCartComponent implements OnInit {
     return this.formLocations.get('locations') as FormArray;
   }
 
-  onChangeInput(e: any, key: string, indexChange: number) {
+  onChangeInput(e: Event, key: string, indexChange: number) {
+    const input = e.target as HTMLInputElement | HTMLSelectElement;
     const control = this.cartFormArray.at(indexChange);
     if (key === 'location') {
-      const selectedLocation = this.locations.find(location => location.name === e.target.value);
+      const selectedLocation = this.locations.find(location => location.name === input.value);
       if (selectedLocation) {
         control.get(key)?.setValue(selectedLocation);
       }
     } else {
-      control.get(key)?.setValue(e.target.value);
+      control.get(key)?.setValue(input.value);
     }
   }
 
-  onChangeLocationInput(e: any, key: string, indexChange: number) {
+  onChangeLocationInput(e: Event, key: string, indexChange: number) {
+    const input = e.target as HTMLInputElement;
     const control = this.locationsFormArray.at(indexChange);
-    control.get(key)?.setValue(e.target.value);
+    control.get(key)?.setValue(input.value);
   }
 
-  onChangeColor(event: any, index: number) {
-    const selectedValue = event.target.value;
+  onChangeColor(event: Event, index: number) {
+    const input = event.target as HTMLInputElement | HTMLSelectElement;
+    const selectedValue = input.value;
     this.cartFormArray.at(index).get('color')?.setValue(selectedValue);
   }
 

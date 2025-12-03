@@ -1,6 +1,6 @@
 import { Component, OnInit, LOCALE_ID, inject, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DataRural } from '@core/models/DataRural';
 import { TerritoryDataService } from '../../../../core/services/territory-data.service';
 import { FormBuilder } from '@angular/forms';
@@ -28,7 +28,7 @@ export class MapasComponent implements OnInit {
   private spinner = inject(SpinnerService);
 
   isAdmin: boolean = false;
-  mapa: any;
+  mapa: SafeHtml | undefined;
   class: string = 'map-responsive';
   showRural: boolean = false;
   dataRural: DataRural[] = [];

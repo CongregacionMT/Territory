@@ -1,6 +1,8 @@
 import { Component, OnInit, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { BreadcrumbItem } from '@core/models/Breadcrumb';
+
 @Component({
     selector: 'app-breadcrumb',
     templateUrl: './breadcrumb.component.html',
@@ -8,7 +10,7 @@ import { RouterLink } from '@angular/router';
     imports: [RouterLink]
 })
 export class BreadcrumbComponent implements OnInit {
-  readonly routerBreadcrum = input<any>();
+  readonly routerBreadcrum = input<BreadcrumbItem[]>();
   returnBack: string = "../";
   ultimateElement: string = "";
   constructor() {}

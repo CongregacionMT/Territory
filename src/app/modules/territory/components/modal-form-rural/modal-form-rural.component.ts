@@ -17,7 +17,7 @@ export class ModalFormRuralComponent implements OnInit {
   modalElement: any;
   stateModal: 'open' | 'close' = 'close';
   title: string = 'Crear camino'
-  editionForm: any;
+  editionForm: DataRural | undefined;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);

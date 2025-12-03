@@ -4,6 +4,8 @@ import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { Campaign, CampaignStats } from '@core/models/Campaign';
+import { Card } from '@core/models/Card';
 
 @Injectable({
   providedIn: 'root'
@@ -11,11 +13,11 @@ import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 export class CampaignService {
   private firestore = inject(Firestore);
 
-  async getActiveCampaign(): Promise<any | null> {
+  async getActiveCampaign(): Promise<Campaign | null> {
     const q = query(collection(this.firestore, 'campaigns'), where('active', '==', true));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
-      return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+      return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Campaign;
     }
     return null;
   }
@@ -167,20 +169,21 @@ export class CampaignService {
     return match ? parseInt(match[1]) : 0;
   }
 
-  getCampaign(){
+  getCampaign(): Observable<Campaign[]>{
     const campaignRef = collection(this.firestore, 'campaigns');
-    return collectionData(campaignRef, {idField: 'id'}) as Observable<any>;
+    return collectionData(campaignRef, {idField: 'id'}) as Observable<Campaign[]>;
   }
   
-  async updateCampaignStats(campaignId: string, card: any) {
+  async updateCampaignStats(campaignId: string, card: Card) {
+    if (!card.applesData) return;
     const total = card.applesData.length;
-    const done = card.applesData.filter((a: any) => a.checked).length;
+    const done = card.applesData.filter((a) => a.checked).length;
     const percent = Math.round((done / total) * 100);
 
     const campaignRef = doc(this.firestore, 'campaigns', campaignId);
     
     // Usar la colección completa como clave si está disponible, sino fallback
-    const statKey = card.collection || `Territorio ${card.numberTerritory}`;
+    const statKey = card.territory || `Territorio ${card.territoryNumber}`;
 
     // ✅ Actualizar solo los campos, no reemplazar el objeto entero
     // Intentar actualizar usando la colección primero (nuevo formato)
@@ -193,9 +196,9 @@ export class CampaignService {
     } catch (e) {
       // Fallback a formato antiguo si falla
       await updateDoc(campaignRef, {
-        [`stats.Territorio ${card.numberTerritory}.done`]: done,
-        [`stats.Territorio ${card.numberTerritory}.total`]: total,
-        [`stats.Territorio ${card.numberTerritory}.percent`]: percent
+        [`stats.Territorio ${card.territoryNumber}.done`]: done,
+        [`stats.Territorio ${card.territoryNumber}.total`]: total,
+        [`stats.Territorio ${card.territoryNumber}.percent`]: percent
       });
     }
 
@@ -350,7 +353,7 @@ export class CampaignService {
     }));
   }
   
-  async getInactiveCampaigns(): Promise<any[]> {
+  async getInactiveCampaigns(): Promise<Campaign[]> {
     const q = query(
       collection(this.firestore, 'campaigns'),
       where('active', '==', false),
@@ -360,10 +363,10 @@ export class CampaignService {
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    } as Campaign));
   }
 
-  async getAllCampaigns(): Promise<any[]> {
+  async getAllCampaigns(): Promise<Campaign[]> {
     const q = query(
       collection(this.firestore, 'campaigns'),
       orderBy('dateInit', 'desc')
@@ -372,7 +375,7 @@ export class CampaignService {
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    } as Campaign));
   }
 
   async cleanupCampaignData(campaignId: string) {

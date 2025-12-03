@@ -9,6 +9,9 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 import { DataTablesModule } from 'angular-datatables';
 import { DatePipe } from '@angular/common';
 
+import { Card, CardApplesData } from '@core/models/Card';
+import { BreadcrumbItem } from '@core/models/Breadcrumb';
+
 @Component({
     selector: 'app-number-territory',
     templateUrl: './number-territory.component.html',
@@ -22,13 +25,13 @@ export class NumberTerritoryComponent implements OnInit {
   private router = inject(Router);
   private spinner = inject(SpinnerService);
 
-  routerBreadcrum: any = [];
-  path: any;
-  dataList: any[] = [];
+  routerBreadcrum: BreadcrumbItem[] = [];
+  path: string = "";
+  dataList: Card[] = [];
   dtTrigger: Subject<any> = new Subject<any>();
   dtOptions: Config = {};
   numberTerritory: number = 0;
-  appleCount: any;
+  appleCount: number = 0;
   cardSubscription: Subscription;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
@@ -38,8 +41,8 @@ export class NumberTerritoryComponent implements OnInit {
 
       this.spinner.cargarSpinner();
       this.cardSubscription = Subscription.EMPTY;
-      this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-      this.routerBreadcrum = this.routerBreadcrum[6];
+      const breadcrumbs = routerBreadcrumMockService.getBreadcrum();
+      this.routerBreadcrum = breadcrumbs[6];
     }
 
   ngOnInit(): void {
@@ -60,11 +63,11 @@ export class NumberTerritoryComponent implements OnInit {
     this.territorieDataService.getCardTerritorie(this.path).subscribe({
       next: card => {
         this.dataList = card;
-        this.numberTerritory = card[0].numberTerritory
+        this.numberTerritory = card[0].territoryNumber ?? 0;
         this.dtTrigger.next("");
-        this.dataList.map((list: any, index: any) => {
+        this.dataList.map((list: Card, index: number) => {
           this.appleCount = 0;
-          list.applesData.map((apple: any) => {
+          list.applesData.map((apple: CardApplesData) => {
             if(apple.checked === true){
               this.appleCount+=1
             }
@@ -75,8 +78,10 @@ export class NumberTerritoryComponent implements OnInit {
         })
         this.spinner.cerrarSpinner();
         this.dataList.map((list) => {
-          let date = new Date(list.creation.seconds * 1000);
-          list.creation = date.getDate()+"-"+(date.getMonth()+1)+"-"+date.getFullYear();
+          if (list.creation && typeof list.creation === 'object' && 'seconds' in list.creation) {
+             let date = new Date(list.creation.seconds * 1000);
+             list.creation = date.getDate()+"-"+(date.getMonth()+1)+"-"+date.getFullYear();
+          }
         });
       }
     });

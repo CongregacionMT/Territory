@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { NgClass } from '@angular/common';
+import { User } from '@core/models/User';
 
 @Component({
     selector: 'app-login-page',
@@ -47,7 +48,7 @@ export class LoginPageComponent implements OnInit {
     this.territoryDataService.loginUser(
       this.formLogin.value.user,
       this.formLogin.value.password
-    ).subscribe((user: any[]) => {
+    ).subscribe((user: User[]) => {
       if(user.length !== 0){
         if(user[0].rol === "admin"){
           localStorage.setItem("tokenAdmin", "lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa");

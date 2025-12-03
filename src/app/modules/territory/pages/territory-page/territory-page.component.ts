@@ -6,6 +6,7 @@ import { CardButtonsData } from '@core/models/CardButtonsData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { LocalityData } from '@core/models/LocalityData';
+import { MapData } from '@core/models/MapData';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { RouterLink } from '@angular/router';
@@ -56,11 +57,13 @@ export class TerritoryPageComponent implements OnInit {
     if(!sessionStorage.getItem("territorioMaps")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getMaps()
-      .subscribe(map => {
+      .subscribe((map: MapData[]) => {
         // Los mapas vienen de Firebase con el link correcto (mariaTeresa, christophersen, etc.)
-        const maps = map[0].maps;
-        sessionStorage.setItem("territorioMaps", JSON.stringify(maps));
-        this.territorioMaps = maps;
+        if (map.length > 0) {
+            const maps = map[0].maps;
+            sessionStorage.setItem("territorioMaps", JSON.stringify(maps));
+            this.territorioMaps = maps;
+        }
         this.spinner.cerrarSpinner();
       });
     } else {

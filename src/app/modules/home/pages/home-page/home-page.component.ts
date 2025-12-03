@@ -8,6 +8,8 @@ import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { StatisticsButton } from '@core/models/StatisticsButton';
 import { filter } from 'rxjs';
 import { environment } from '@environments/environment';
 
@@ -73,7 +75,7 @@ export class HomePageComponent implements OnInit {
     if(!sessionStorage.getItem("numberTerritory")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getNumberTerritory()
-      .subscribe(numbers => {
+      .subscribe((numbers: TerritoryNumberData[]) => {
         // Merge all documents into a single object
         const mergedData = numbers.reduce((acc: any, curr: any) => {
           return { ...acc, ...curr };
@@ -85,8 +87,10 @@ export class HomePageComponent implements OnInit {
     if(!sessionStorage.getItem("territorioStatistics")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getStatisticsButtons()
-      .subscribe(number => {
-        sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
+      .subscribe((number: StatisticsButton[]) => {
+        if (number.length > 0) {
+            sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
+        }
       });
     }
 

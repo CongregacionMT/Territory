@@ -11,7 +11,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 export class DeparturesCardsComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
-  readonly dateDeparture = input<any>();
+  readonly dateDeparture = input<string>();
   readonly departures = input<Departure[]>([] as Departure[]);
   currentPath: number = 0;
 

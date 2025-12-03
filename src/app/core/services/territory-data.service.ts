@@ -5,6 +5,13 @@ import { Observable } from 'rxjs';
 import { SpinnerService } from './spinner.service';
 import { DataRural } from '@core/models/DataRural';
 import { CampaignService } from './campaign.service';
+import { MapData } from '@core/models/MapData';
+import { Card } from '@core/models/Card';
+import { Group } from '@core/models/Group';
+import { StatisticsButton } from '@core/models/StatisticsButton';
+import { User } from '@core/models/User';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { DateDeparture, DepartureData } from '@core/models/Departures';
 
 @Injectable({
   providedIn: 'root'
@@ -22,17 +29,17 @@ export class TerritoryDataService {
   constructor() { }
 
   // MAPAS
-  getMaps(){
+  getMaps(): Observable<MapData[]>{
     const mapRef = collection(this.firestore, 'MapsTerritory');
-    return collectionData(mapRef) as Observable<any>;
+    return collectionData(mapRef) as Observable<MapData[]>;
   }
   // NUMERO DE TERRITORIOS
-  getNumberTerritory(){
+  getNumberTerritory(): Observable<TerritoryNumberData[]>{
     const numberRef = collection(this.firestore, 'NumberTerritory');
-    return collectionData(numberRef) as Observable<any>;
+    return collectionData(numberRef) as Observable<TerritoryNumberData[]>;
   }
   // TARJETAS DE CONDUCTORES
-  getCardTerritorie(collectionParam: string): Observable<any>{
+  getCardTerritorie(collectionParam: string): Observable<Card[]>{
     const cardRef = collection(this.firestore, collectionParam);
     // Limitar por defecto a los últimos 1 año para evitar traer datos muy antiguos
     const oneYearAgo = Timestamp.fromDate(
@@ -43,23 +50,23 @@ export class TerritoryDataService {
       where('creation', '>=', oneYearAgo),
       orderBy('creation', 'desc')
     );
-    return collectionData(q) as Observable<any>;
+    return collectionData(q) as Observable<Card[]>;
   }
 
-  async sendRevisionCardTerritorie(card: any){
+  async sendRevisionCardTerritorie(card: Card){
     const cardRef = collection(this.firestore, "revision");
-    await addDoc(cardRef, card);
+    await addDoc(cardRef, { ...card });
   }
 
   // TARJETAS PARA REVISIÓN
-  getRevisionCardTerritorie(): Observable<any>{
+  getRevisionCardTerritorie(): Observable<Card[]>{
     const cardRef = collection(this.firestore, "revision");
     const q = query(cardRef, orderBy("creation", "desc"));
-    return collectionData(q, {idField: 'id'}) as Observable<any>;
+    return collectionData(q, {idField: 'id'}) as Observable<Card[]>;
   }
 
   private isCreating = false;
-  async postCardTerritorie(card: any, collectionName: string): Promise<void> {
+  async postCardTerritorie(card: Card, collectionName: string): Promise<void> {
 
     if (this.isCreating) {
       return;
@@ -69,7 +76,7 @@ export class TerritoryDataService {
     let countFalseApples = 0;
     card.revision = false;
 
-    (card.applesData ?? []).forEach((apple: any) => {
+    (card.applesData ?? []).forEach((apple) => {
       if (!apple?.checked) countFalseApples++;
     });
 
@@ -90,7 +97,7 @@ export class TerritoryDataService {
           ...card,
           creation: Timestamp.now(),
           completed: (card.completed ?? 0) + 1,
-          applesData: (card.applesData ?? []).map((a: any) => ({ ...a, checked: false }))
+          applesData: (card.applesData ?? []).map((a) => ({ ...a, checked: false }))
         };
         const resetId = `Campaña-${activeCampaign?.id}-${Date.now()}-reset`;
         await setDoc(doc(this.firestore, collectionName, resetId), resetCard);
@@ -151,7 +158,7 @@ export class TerritoryDataService {
       // End transaction
     }
   }
-  private getTerritorioKeyStrict(card: any, collectionName: string): string {
+  private getTerritorioKeyStrict(card: Card, collectionName: string): string {
     // Preferir el nombre de la colección si está disponible para evitar colisiones
     // entre localidades que tienen los mismos números de territorio (ej: TerritorioMT-1 y TerritorioC-1)
     if (collectionName) {
@@ -175,31 +182,34 @@ export class TerritoryDataService {
     return 'Territorio 0';
   }
 
-  async putCardTerritorie(card: any){
+  async putCardTerritorie(card: Card){
+    if (!card.id) return;
     const revisionRef = doc(this.firestore, "revision", card.id);
     card.revisionComplete = true;
-    updateDoc(revisionRef, card);
+    updateDoc(revisionRef, { ...card });
   }
 
-  deleteCardTerritorie(card: any){
+  deleteCardTerritorie(card: Card){
+    if (!card.id) return;
     deleteDoc(doc(this.firestore, "revision", card.id));
   }
   // TARJETAS ASIGNADAS DURANTE LA SEMANA
-  getCardAssigned(){
+  getCardAssigned(): Observable<Card[]>{
     const cardRef = collection(this.firestore, "Assigned");
-    return collectionData(cardRef, {idField: 'id'}) as Observable<any>;
+    return collectionData(cardRef, {idField: 'id'}) as Observable<Card[]>;
   }
-  postCardAssigned(card: any){
+  postCardAssigned(card: Card){
     const cardRef = collection(this.firestore, "Assigned");
-    return addDoc(cardRef, card);
+    return addDoc(cardRef, { ...card });
   }
-  deleteCardAssigned(card: any){
+  deleteCardAssigned(card: Card){
+    if (!card.id) return;
     deleteDoc(doc(this.firestore, "Assigned", card.id));
   }
   // GRUPOS
-  getGroupList(){
+  getGroupList(): Observable<Group[]>{
     const groupRef = collection(this.firestore, 'Groups');
-    return collectionData(groupRef, {idField: 'id'}) as Observable<any>;
+    return collectionData(groupRef, {idField: 'id'}) as Observable<Group[]>;
   }
   setGroup(groupId: string, data: any) {
     const groupDoc = doc(this.firestore, 'Groups', groupId);
@@ -211,27 +221,27 @@ export class TerritoryDataService {
   }
 
   // SALIDAS
-  getDepartures(){
+  getDepartures(): Observable<DepartureData>{
     const departuresRef = doc(this.firestore, "Departures", `docDeparture`);
-    return docData(departuresRef) as Observable<any>;
+    return docData(departuresRef) as Observable<DepartureData>;
   }
-  getDateDepartures(){
+  getDateDepartures(): Observable<DateDeparture>{
     const dateDeparturesRef = doc(this.firestore, "Departures", "dateDeparture");
-    return docData(dateDeparturesRef) as Observable<any>;
+    return docData(dateDeparturesRef) as Observable<DateDeparture>;
   }
-  putDepartures(departures: any){
+  putDepartures(departures: DepartureData){
     const departuresRef = doc(this.firestore, "Departures", `docDeparture`);
-    updateDoc(departuresRef, departures);
+    updateDoc(departuresRef, { ...departures });
   }
-  putDate(date: any){
+  putDate(date: DateDeparture){
     const departuresRef = doc(this.firestore, "Departures", `dateDeparture`);
-    updateDoc(departuresRef, date);
+    updateDoc(departuresRef, { ...date });
   }
 
   // RURAL
-  getTerritorieRural(){
+  getTerritorieRural(): Observable<DataRural[]>{
     const collectionRef = collection(this.firestore, "TerritorioRural");
-    return collectionData(collectionRef, {idField: 'id'}) as Observable<any>;
+    return collectionData(collectionRef, {idField: 'id'}) as Observable<DataRural[]>;
   }
   postNewRoad(road: DataRural){
     const cardRef = collection(this.firestore, "TerritorioRural");
@@ -245,35 +255,36 @@ export class TerritoryDataService {
     deleteDoc(doc(this.firestore, "TerritorioRural", docId));
   }
   // ESTADÍSTICAS
-  getStatisticsButtons(){
+  getStatisticsButtons(): Observable<StatisticsButton[]>{
     const mapRef = collection(this.firestore, 'Statistics');
-    return collectionData(mapRef) as Observable<any>;
+    return collectionData(mapRef) as Observable<StatisticsButton[]>;
   }
   // REGISTER
-  getCardTerritorieRegisterTable(collectionParam: string): Observable<any>{
+  getCardTerritorieRegisterTable(collectionParam: string): Observable<Card[]>{
     const cardRef = collection(this.firestore, collectionParam);
     const q = query(cardRef, orderBy("creation", "asc"));
-    return collectionData(q) as Observable<any>;
+    return collectionData(q) as Observable<Card[]>;
   }
   // USERS
-  getUsers(){
+  getUsers(): Observable<User[]>{
     const cardRef = collection(this.firestore, 'users');
-    return collectionData(cardRef) as Observable<any>;
+    return collectionData(cardRef) as Observable<User[]>;
   }
-  postUser(user: any){
+  postUser(user: User){
     setDoc(doc(this.firestore, "users", user.user), user);
   }
-  loginUser(user: string, password: string){
+  loginUser(user: string, password: string): Observable<User[]>{
     const userRef = collection(this.firestore, 'users');
     const q = query(userRef, where("user", "==", user), where("password", "==", password));
-    return collectionData(q) as Observable<any>;
+    return collectionData(q) as Observable<User[]>;
   }
-  updateUser(user: string, dataUser: any){
+  updateUser(user: string, dataUser: User){
     const userRef = doc(this.firestore, "users", user);
-    updateDoc(userRef, dataUser);
-    return docData(userRef) as Observable<any>;
+    updateDoc(userRef, { ...dataUser });
+    return docData(userRef) as Observable<User>;
   }
   deleteUser(user: string){
     deleteDoc(doc(this.firestore, "users", user));
   }
 }
+

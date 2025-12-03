@@ -7,16 +7,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { BreadcrumbComponent } from '@shared/components/breadcrumb/breadcrumb.component';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-
-interface Publisher {
-  name: string;
-  assignment?: 'Superintendente' | 'Auxiliar' | '';
-}
-
-interface Group {
-  id: string;
-  publishers: Publisher[];
-}
+import { Group, Publisher } from '@core/models/Group';
 
 @Component({
   selector: 'app-manage-publishers',
@@ -51,7 +42,7 @@ export class ManagePublishersComponent implements OnInit {
   loadGroups(): void {
     this.spinner.cargarSpinner();
     this.territoryDataService.getGroupList().subscribe({
-      next: (data: any) => {
+      next: (data: Group[]) => {
         // Firestore returns an array of documents with id field
         if (Array.isArray(data)) {
           this.groups = data.map(group => ({

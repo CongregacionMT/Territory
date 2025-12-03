@@ -24,10 +24,10 @@ export class DialogService {
   }
 
 
-  openDialog<T>(data : any,component: ComponentType<T>) : Observable<boolean>{
+  openDialog<T, D = any, R = boolean>(data: D, component: ComponentType<T>): Observable<R | undefined> {
 
     return this.matDialog.open(component,{
-      data : data,
+      data: data,
       disableClose: true,
     }).afterClosed();
 
