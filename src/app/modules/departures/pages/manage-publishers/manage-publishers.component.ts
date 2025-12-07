@@ -114,19 +114,21 @@ export class ManagePublishersComponent implements OnInit {
   }
 
   onDrop(event: CdkDragDrop<Publisher[]>, targetGroupId: string): void {
-    const targetGroup = this.groups.find(g => g.id === targetGroupId);
-    if (!targetGroup) return;
-
     if (event.previousContainer === event.container) {
       // Reorder within same group
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-      this.saveGroup(targetGroup);
+      // Only save if the order actually changed
+      if (event.previousIndex !== event.currentIndex) {
+        const targetGroup = this.groups.find(g => g.id === targetGroupId);
+        if (targetGroup) this.saveGroup(targetGroup);
+      }
     } else {
       // Move between groups
       const sourceGroupId = event.previousContainer.id;
       const sourceGroup = this.groups.find(g => g.id === sourceGroupId);
+      const targetGroup = this.groups.find(g => g.id === targetGroupId);
       
-      if (sourceGroup) {
+      if (sourceGroup && targetGroup) {
         transferArrayItem(
           event.previousContainer.data,
           event.container.data,
@@ -149,9 +151,5 @@ export class ManagePublishersComponent implements OnInit {
 
   saveGroup(group: Group): void {
     this.territoryDataService.setGroup(group.id, { publishers: group.publishers });
-  }
-
-  getConnectedLists(): string[] {
-    return this.groups.map(g => g.id);
   }
 }
