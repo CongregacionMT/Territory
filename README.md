@@ -136,8 +136,21 @@ ng serve --configuration=micongregacion
 
 ## 📦 Despliegue
 
-Para construir la versión de producción:
-```bash
-ng build --configuration=micongregacion
-```
-Los archivos se generarán en `dist/territory`.
+Cada congregación tiene su propio proyecto de Firebase y configuración. Para simplificar el proceso, se utiliza un script automatizado.
+
+### Pasos para desplegar:
+
+1. Ejecuta el script de despliegue:
+   ```bash
+   node scripts/deploy.js
+   ```
+
+2. **Selecciona la congregación**: El script te mostrará una lista de las congregaciones configuradas (basado en los archivos `src/environments/environment.*.ts`).
+
+3. **Confirmación**: El script leerá automáticamente el `projectId` de firebase del archivo de entorno seleccionado y te pedirá confirmación antes de proceder.
+
+4. **Proceso Automático**:
+   - Compilará la aplicación usando la configuración de Angular correcta (`ng build --configuration=...`).
+   - Desplegará los archivos al proyecto de Firebase correspondiente (`firebase deploy --project ...`).
+
+> **Nota**: Asegúrate de estar logueado en firebase (`firebase login`) y tener permisos sobre los proyectos destino.

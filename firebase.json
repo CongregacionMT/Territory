@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "site": "territorios-wheelwright",
     "public": "dist/territory/browser",
     "ignore": [
       "firebase.json",
