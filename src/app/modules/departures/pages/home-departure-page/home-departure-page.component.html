@@ -21,21 +21,23 @@
   }
   <!-- Button trigger modal -->
   @if (isAdmin) {
-    <div class="d-flex justify-content-center my-4 gap-3">
+    <div class="d-flex justify-content-center my-4">
       <button
         type="button"
-        class="btn btn-primary btn-list-primary btn-lg"
+        class="btn btn-primary btn-list-primary btn-lg mw-100"
         routerLink="editar"
         >
         Editar salidas
       </button>
+    </div>
+    <div class="d-flex justify-content-center my-4">
       <button
         type="button"
         class="btn btn-success btn-list-primary btn-lg"
         routerLink="gestion-publicadores"
         >
         Gestionar Publicadores
-      </button>
+    </button>
     </div>
   }
 </div>
