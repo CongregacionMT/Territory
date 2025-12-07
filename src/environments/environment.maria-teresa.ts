@@ -5,7 +5,8 @@ export const environment = {
     projectId: "territorios-422c2",
     storageBucket: "territorios-422c2.appspot.com",
     messagingSenderId: "1086542552314",
-    appId: "1:1086542552314:web:a5afc53afaa2f305ebfd43"
+    appId: "1:1086542552314:web:a5afc53afaa2f305ebfd43",
+    hostingSite: 'territorios-congregacionmt'
   },
   production: true,
   congregationName: 'Maria Teresa',

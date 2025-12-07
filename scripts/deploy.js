@@ -19,8 +19,13 @@ function loadEnvironmentConfig(congregationFileName) {
   const projectIdMatch = content.match(/projectId:\s*['"]([^'"]+)['"]/);
   const projectId = projectIdMatch ? projectIdMatch[1] : null;
 
+  // Extraer hostingSite opcional
+  const hostingSiteMatch = content.match(/hostingSite:\s*['"]([^'"]+)['"]/);
+  const hostingSite = hostingSiteMatch ? hostingSiteMatch[1] : null;
+
   return {
-    projectId
+    projectId,
+    hostingSite
   };
 }
 
@@ -89,17 +94,49 @@ async function main() {
   }
 
   try {
-    // 4. Build de Angular
+     // 4. Configurar firebase.json dinámicamente
+    console.log('\n📝 Actualizando configuración de firebase.json...');
+    const firebaseJsonPath = path.join(__dirname, '..', 'firebase.json');
+    let firebaseJson;
+    
+    try {
+      firebaseJson = JSON.parse(fs.readFileSync(firebaseJsonPath, 'utf8'));
+    } catch (e) {
+      console.error('❌ Error leyendo firebase.json:', e);
+      process.exit(1);
+    }
+
+    // Validar estructura simple de hosting
+    if (Array.isArray(firebaseJson.hosting)) {
+      console.error('❌ Error: El script espera un objeto simple en "hosting", pero encontró un array.');
+      process.exit(1);
+    }
+
+    if (config.hostingSite) {
+      console.log(`   Estableciendo "site": "${config.hostingSite}"`);
+      firebaseJson.hosting.site = config.hostingSite;
+    } else {
+      console.log('   Usando sitio por defecto del proyecto ("site" eliminado)');
+      delete firebaseJson.hosting.site;
+    }
+
+    fs.writeFileSync(firebaseJsonPath, JSON.stringify(firebaseJson, null, 2));
+
+    // 5. Build de Angular
     console.log('\n🔨 Construyendo la aplicación (Angular Build)...');
     console.log(`> ng build --configuration=${selectedCongregation}`);
     
     execSync(`npx ng build --configuration=${selectedCongregation}`, { stdio: 'inherit' });
     
-    // 5. Deploy a Firebase
+    // 6. Deploy a Firebase
     console.log('\n🔥 Desplegando a Firebase Hosting...');
-    console.log(`> firebase deploy --project ${config.projectId}`);
     
-    execSync(`npx firebase deploy --project ${config.projectId}`, { stdio: 'inherit' });
+    // Ya no necesitamos flags especiales porque el target está en firebase.json
+    const deployCmd = `npx firebase deploy --project ${config.projectId}`;
+
+    console.log(`> ${deployCmd}`);
+    
+    execSync(deployCmd, { stdio: 'inherit' });
 
     console.log('\n✅ ¡Despliegue completado con éxito!');
 
