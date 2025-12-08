@@ -6,6 +6,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 
 @Component({
     selector: 'app-form-edit-departures',
@@ -26,12 +27,10 @@ export class FormEditDeparturesComponent implements OnInit{
   groupedDepartures: { [key: string]: Departure[] } = {};
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
-  territoryNumbers: string[] = [
-    ...Array.from({ length: TERRITORY_COUNT }, (_, i) => `N°${i + 1}`),
-    'Rural'
-  ];
   congregationName = environment.congregationName;
   territoryPrefix = environment.territoryPrefix;
+  localities = environment.localities;
+  territoryOptionsMap: { [key: string]: string[] } = {};
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -41,6 +40,7 @@ export class FormEditDeparturesComponent implements OnInit{
     });
   }
   ngOnInit(): void {
+    this.loadTerritoryData();
     this.departureFormArray.clear()
     this.formDepartureDataInput().forEach((departure: Departure) => {
       const groupKey = departure.group;
@@ -64,6 +64,66 @@ export class FormEditDeparturesComponent implements OnInit{
         group: new FormControl(departure.group),
       }));
     });
+  }
+  loadTerritoryData() {
+    const stored = sessionStorage.getItem('numberTerritory');
+    if (stored) {
+      this.processTerritoryData(JSON.parse(stored));
+    } else {
+      this.territoryDataService.getNumberTerritory().subscribe((numbers: TerritoryNumberData[]) => {
+        const mergedData = numbers.reduce((acc: any, curr: any) => {
+          return { ...acc, ...curr };
+        }, {});
+        sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
+        this.processTerritoryData(mergedData);
+      });
+    }
+  }
+
+  processTerritoryData(data: any) {
+    this.localities.forEach(loc => {
+      if (loc.hasNumberedTerritories) {
+        // data[loc.key] is an array of TerritoryNumberData objects or numbers
+        const rawData = data[loc.key] || [];
+        
+        // Extract territory numbers, handling both object and number formats
+        const numbers = rawData.map((item: any) => {
+          // If it's an object with 'territorio' property, extract it
+          if (typeof item === 'object' && item !== null && 'territorio' in item) {
+            return item.territorio;
+          }
+          // Otherwise assume it's already a number
+          return item;
+        }).filter((n: any) => typeof n === 'number' || !isNaN(Number(n)));
+        
+        // Sort numerically
+        const sorted = numbers.sort((a: number, b: number) => Number(a) - Number(b));
+        this.territoryOptionsMap[loc.territoryPrefix] = sorted.map((n: number) => `N°${n}`);
+      } else {
+        // For Rural or others without numbered territories
+        this.territoryOptionsMap[loc.territoryPrefix] = ['Rural'];
+      }
+    });
+
+    // Fallback if current environment prefix not mapped
+    if (!this.territoryOptionsMap[this.territoryPrefix] && (!data || Object.keys(data).length === 0)) {
+       this.territoryOptionsMap[this.territoryPrefix] = Array.from({ length: TERRITORY_COUNT }, (_, i) => `N°${i + 1}`);
+    }
+    // Also ensure 'Rural' option is available if key 'rural' exists in localities
+    // (Already handled by loop if configured in env, but checking just in case)
+  }
+
+  getTerritoryList(locationPrefix: string): string[] {
+    if (!locationPrefix || locationPrefix === 'Seleccionar localidad') return [];
+    // If exact match found
+    if (this.territoryOptionsMap[locationPrefix]) return this.territoryOptionsMap[locationPrefix];
+    
+    // Fallback: search by checking against all prefixes if logic is complex, 
+    // but here we just return empty or default.
+    // If 'Rural' (TerritorioR) was not in localities for some reason, we might miss it.
+    if (locationPrefix === 'TerritorioR') return ['Rural'];
+
+    return [];
   }
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -108,6 +168,10 @@ export class FormEditDeparturesComponent implements OnInit{
           item.get('schedule')?.setValue(e.target.value);
         } else if (key === 'location') {
           item.get('location')?.setValue(e.target.value);
+          const territoryArray = item.get('territory') as FormArray;
+          if (territoryArray) {
+             territoryArray.clear();
+          }
         } else if (key === 'territory') {
           item.get('territory')?.setValue(e.target.value);
         } else if (key === 'point') {

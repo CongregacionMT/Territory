@@ -77,9 +77,10 @@
                       [value]="days.get('location')?.value || ''"
                       (change)="onChangeInput($event, 'location', i, group)"
                     >
-                      <option value="" selected disabled>Seleccionar localidad</option>
-                      <option [value]="territoryPrefix">{{ congregationName }}</option>
-                      <option value="TerritorioR">Rural</option>
+                      <option value="Seleccionar localidad" selected disabled>Seleccionar localidad</option>
+                      @for (loc of localities; track loc.key) {
+                        <option [value]="loc.territoryPrefix">{{ loc.name }}</option>
+                      }
                     </select>
                   </div>
                 </div>
@@ -145,7 +146,7 @@
 
                       <div class="modal-body">
                         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-                          @for (num of territoryNumbers; track num) {
+                          @for (num of getTerritoryList(days.get('location')?.value); track num) {
                             <div class="col">
                               <div class="form-check">
                                 <input
