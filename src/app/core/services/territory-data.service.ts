@@ -84,13 +84,20 @@ export class TerritoryDataService {
 
       const activeCampaign = this.campaignService.getCachedCampaign();
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
+      const isInCampaignMode = activeCampaign?.id != null;
 
       if (countFalseApples === 0) {
         const completedCard = { ...card, creation: Timestamp.now(), completed: (card.completed ?? 0) + 1 };
-        const completedId = `Campaña-${activeCampaign?.id}-${Date.now()}-completed`;
-        await setDoc(doc(this.firestore, collectionName, completedId), completedCard);
-        if (activeCampaign?.id) {
+        
+        // ✅ Solo usar ID personalizado si estamos en modo campaña
+        if (isInCampaignMode) {
+          const completedId = `Campaña-${activeCampaign.id}-${Date.now()}-completed`;
+          await setDoc(doc(this.firestore, collectionName, completedId), completedCard);
           await this.incrementSalidasTx(activeCampaign.id, territorioKey);
+        } else {
+          // Usar ID auto-generado de Firebase
+          const cardRef = collection(this.firestore, collectionName);
+          await addDoc(cardRef, completedCard);
         }
 
         const resetCard = {
@@ -99,15 +106,28 @@ export class TerritoryDataService {
           completed: (card.completed ?? 0) + 1,
           applesData: (card.applesData ?? []).map((a) => ({ ...a, checked: false }))
         };
-        const resetId = `Campaña-${activeCampaign?.id}-${Date.now()}-reset`;
-        await setDoc(doc(this.firestore, collectionName, resetId), resetCard);
+        
+        // ✅ Solo usar ID personalizado si estamos en modo campaña
+        if (isInCampaignMode) {
+          const resetId = `Campaña-${activeCampaign.id}-${Date.now()}-reset`;
+          await setDoc(doc(this.firestore, collectionName, resetId), resetCard);
+        } else {
+          // Usar ID auto-generado de Firebase
+          const cardRef = collection(this.firestore, collectionName);
+          await addDoc(cardRef, resetCard);
+        }
       } else {
         const partialCard = { ...card, creation: Timestamp.now() };
-        const cardId = `Campaña-${activeCampaign?.id}-${Date.now()}`;
-        await setDoc(doc(this.firestore, collectionName, cardId), partialCard);
-
-        if (activeCampaign?.id) {
+        
+        // ✅ Solo usar ID personalizado si estamos en modo campaña
+        if (isInCampaignMode) {
+          const cardId = `Campaña-${activeCampaign.id}-${Date.now()}`;
+          await setDoc(doc(this.firestore, collectionName, cardId), partialCard);
           await this.incrementSalidasTx(activeCampaign.id, territorioKey);
+        } else {
+          // Usar ID auto-generado de Firebase
+          const cardRef = collection(this.firestore, collectionName);
+          await addDoc(cardRef, partialCard);
         }
       }
       this.router.navigate(['home']);
