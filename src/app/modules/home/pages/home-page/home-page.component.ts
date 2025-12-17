@@ -33,7 +33,8 @@ export class HomePageComponent implements OnInit {
   isDriver: boolean = false;
   hasCartData: boolean = false;
   btnLogin: boolean = false;
-  btnPWA: boolean = true;
+  btnPWA: boolean = false;
+  isIos: boolean = false;
   campaignInProgress = signal(false);
   deferredPrompt: any;
   nameDriver: string = '';
@@ -137,28 +138,57 @@ export class HomePageComponent implements OnInit {
 
   // PWA
 
-  initPWA(){
+  initPWA() {
+    // Detect iOS
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    this.isIos = /iphone|ipad|ipod/.test(userAgent);
 
-    // For Android
-    if(window.matchMedia('(display-mode: standalone)').matches){
+    // Check if standalone (installed)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         ((window.navigator as any).standalone === true);
+
+    if (isStandalone) {
       this.btnPWA = false;
+    } else {
+      // If not installed...
+      if (this.isIos) {
+        // On iOS, we can always show the button because there's no beforeinstallprompt to wait for.
+        // But we check strictly if it's NOT standalone.
+        this.btnPWA = true;
+      }
+      // For Android/Desktop, we wait for the event, so btnPWA remains false until the event fires.
     }
+
     window.addEventListener('appinstalled', (e) => {
       this.btnPWA = false;
+      this.deferredPrompt = null;
     });
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
+      this.btnPWA = true;
     });
   }
 
-  installPWA(){
+  installPWA() {
+    if (this.isIos) {
+      this._snackBar.open('Para instalar en iOS: Presiona "Compartir" y de las opciones elige "Agregar a Inicio" 📲', 'Ok', {
+        duration: 8000,
+        verticalPosition: 'bottom',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
+    if (!this.deferredPrompt) {
+      return;
+    }
+
     this.deferredPrompt.prompt();
-    this.deferredPrompt.userChoise.then((choiceResult: any) => {
-      if(choiceResult.outcome === 'accepted'){
+    this.deferredPrompt.userChoice.then((choiceResult: any) => {
+      if (choiceResult.outcome === 'accepted') {
         this.btnPWA = false;
-      } else {
-        this.btnPWA = true;
       }
       this.deferredPrompt = null;
     });
