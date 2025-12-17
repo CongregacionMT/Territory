@@ -1,23 +1,30 @@
 import { SafeHtml } from "@angular/platform-browser";
 
-interface CardapplesData {
+export interface CardApplesData {
     name?: string;
     checked?: boolean;
 }
 
 export class Card {
-    id?: number;
+    id?: string;
     location?: string;
-    numberTerritory?: number;
     iframe?: SafeHtml;
     driver?: string;
     start?: string;
     end?: string;
     comments?: string;
     link?: string;
-    applesData: CardapplesData[];
+    applesData: CardApplesData[];
     revision?: boolean;
     revisionComplete?: boolean;
+    numberTerritory?: number;
+    completed?: number;
+    territory?: string;
+    name?: string;
+    title?: string;
+    territoryNumber?: number;
+    creation?: any; // Timestamp or string
+    
     constructor(){
         this.applesData = [{name:'', checked: false}]
     }

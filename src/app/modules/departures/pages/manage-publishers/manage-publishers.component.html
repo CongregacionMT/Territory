@@ -1,0 +1,134 @@
+<div class="container-fluid container-xl p-3 p-md-5">
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 pb-3 border-bottom gap-3">
+    <h2 class="fw-bold m-0 h3 h2-md">Gestionar Publicadores</h2>
+    <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2 w-100 w-md-auto py-2 px-3 fw-semibold shadow-sm" (click)="addGroup()">
+      <i class="fas fa-plus"></i> Agregar Grupo
+    </button>
+  </div>
+
+  <div class="row g-4" cdkDropListGroup>
+    @for (group of groups; track group.id) {
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border rounded-3 group-card">
+          <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+            <h4 class="h5 m-0 fw-bold text-truncate pe-2">{{ group.id }}</h4>
+            <button 
+              class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center" 
+              style="width: 32px; height: 32px;"
+              (click)="deleteGroup(group.id)"
+              [disabled]="group.publishers.length > 0"
+              title="Eliminar grupo">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+          
+          <div class="card-body p-3">
+            <!-- Add Publisher Form -->
+            <div class="input-group mb-3">
+              <input 
+                type="text" 
+                class="form-control" 
+                placeholder="Nombre del publicador"
+                [(ngModel)]="newPublisherName[group.id]"
+                (keyup.enter)="addPublisher(group.id)">
+              <button 
+                class="btn btn-success" 
+                (click)="addPublisher(group.id)">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+
+            <!-- Publishers List with Drag & Drop -->
+            <div 
+              cdkDropList
+              [id]="group.id"
+              [cdkDropListData]="group.publishers"
+              (cdkDropListDropped)="onDrop($event, group.id)"
+              class="d-flex flex-column gap-2 publishers-list p-2 rounded bg-light border border-dashed"
+              style="min-height: 100px;">
+              
+              @if (group.publishers.length === 0) {
+                <div class="text-center py-4 text-muted small user-select-none">
+                  Arrastra publicadores aquí o agrega uno nuevo
+                </div>
+              }
+              
+              @for (publisher of group.publishers; track publisher) {
+                <div 
+                  class="card border shadow-sm publisher-item"
+                  [ngClass]="{
+                    'border-start-success': publisher.assignment === 'Superintendente',
+                    'border-start-primary': publisher.assignment === 'Auxiliar'
+                  }"
+                  cdkDrag>
+                  
+                  <div class="card-body p-2 d-flex align-items-center gap-2">
+                    <i class="fas fa-grip-vertical text-muted drag-handle flex-shrink-0" style="cursor: grab; padding: 0.25rem;"></i>
+                    
+                    <div class="flex-grow-1 min-w-0">
+                      <span class="d-block fw-semibold text-truncate" title="{{ publisher.name }}">{{ publisher.name }}</span>
+                      @if (publisher.assignment) {
+                        <div class="mt-1">
+                          <span class="badge rounded-pill text-uppercase" 
+                            [ngClass]="{
+                              'bg-success-subtle text-success': publisher.assignment === 'Superintendente',
+                              'bg-primary-subtle text-primary': publisher.assignment === 'Auxiliar'
+                            }" style="font-size: 0.7rem;">
+                            {{ publisher.assignment }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-auto">
+                      <select 
+                        class="form-select form-select-sm py-1 ps-2 pe-5"
+                        style="width: auto; max-width: 110px; font-size: 0.8rem;"
+                        [value]="publisher.assignment || ''"
+                        (change)="updateAssignment(group.id, $index, $any($event.target).value)"
+                        (mousedown)="$event.stopPropagation()"
+                        (touchstart)="$event.stopPropagation()">
+                        <option value="">Role</option>
+                        <option value="Superintendente">Sup.</option>
+                        <option value="Auxiliar">Aux.</option>
+                      </select>
+
+                      <button 
+                        class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center p-0"
+                        style="width: 28px; height: 28px;"
+                        (click)="removePublisher(group.id, $index)"
+                        (mousedown)="$event.stopPropagation()"
+                        (touchstart)="$event.stopPropagation()"
+                        title="Eliminar publicador">
+                        <i class="fas fa-times" style="font-size: 0.8rem;"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Custom Drag Preview -->
+                  <div *cdkDragPreview class="card border shadow bg-white p-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="fas fa-grip-vertical text-primary"></i>
+                      <span class="fw-bold">{{ publisher.name }}</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (groups.length === 0) {
+      <div class="col-12 text-center py-5">
+        <div class="empty-state p-5 rounded-3 border border-2 border-dashed bg-white d-inline-block">
+          <i class="fas fa-users text-muted mb-3" style="font-size: 3rem;"></i>
+          <p class="h5 text-secondary m-0">No hay grupos creados. Comienza agregando un nuevo grupo.</p>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -4,6 +4,5 @@ export interface TerritoryNumberData {
 }
 
 export interface TerritoriesNumberData {
-  mariaTeresa: TerritoryNumberData[];
-  christophersen: TerritoryNumberData[];
+  [key: string]: TerritoryNumberData[];
 }

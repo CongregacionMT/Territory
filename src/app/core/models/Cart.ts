@@ -15,3 +15,7 @@ export interface CartDataArray {
   cart: CartData[];
 }
 
+export interface LocationsData {
+  locations: CartLocation[];
+}
+

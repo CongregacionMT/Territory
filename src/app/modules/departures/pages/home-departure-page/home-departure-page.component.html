@@ -1,27 +1,43 @@
 <div class="container table-responsive">
-    <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+  @if(groupKeys.length > 1){
     <div class="d-flex justify-content-center">
       <h1 class="mt-0 mb-3">Selecciona tu grupo</h1>
     </div>
-    <div class="card-container d-flex justify-content-center mb-3">
+  }
+  <div class="card-container d-flex justify-content-center mb-3">
+    @for (group of groupKeys; track group) {
       <app-card-xl
-        *ngFor="let group of groupKeys"
         [mapName]="group.name"
         [mapSRC]="group.src"
         [routerLink]="group.link"
       ></app-card-xl>
-    </div>
+    }
+  </div>
+  @if(groupKeys.length > 1){
     <div class="d-flex justify-content-center mb-4">
       <button class="btn btn-primary btn-list-primary btn-lg" routerLink="publicadores">No sé en qué grupo estoy 🤔</button>
     </div>
-    <!-- Button trigger modal -->
-    <div class="d-flex justify-content-center my-4" *ngIf="isAdmin">
+  }
+  <!-- Button trigger modal -->
+  @if (isAdmin) {
+    <div class="d-flex justify-content-center my-4">
       <button
         type="button"
-        class="btn btn-primary btn-list-primary btn-lg"
+        class="btn btn-primary btn-list-primary btn-lg mw-100"
         routerLink="editar"
-      >
+        >
         Editar salidas
       </button>
     </div>
+    <div class="d-flex justify-content-center my-4">
+      <button
+        type="button"
+        class="btn btn-success btn-list-primary btn-lg"
+        routerLink="gestion-publicadores"
+        >
+        Gestionar Publicadores
+    </button>
+    </div>
+  }
 </div>

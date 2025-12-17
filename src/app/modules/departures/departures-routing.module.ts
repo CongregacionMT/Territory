@@ -4,6 +4,7 @@ import { HomeDeparturePageComponent } from './pages/home-departure-page/home-dep
 import { DeparturePageComponent } from './pages/departure-page/departure-page.component';
 import { TablePublishersPageComponent } from './pages/table-publishers-page/table-publishers-page.component';
 import { EditDeparturesComponent } from './pages/edit-departures/edit-departures.component';
+import { ManagePublishersComponent } from './pages/manage-publishers/manage-publishers.component';
 
 const routes: Routes = [
   {
@@ -11,6 +12,7 @@ const routes: Routes = [
     children: [
       { path: '', component: HomeDeparturePageComponent },
       { path: 'editar', component: EditDeparturesComponent },
+      { path: 'gestion-publicadores', component: ManagePublishersComponent },
       { path: 'grupo/:number', component: DeparturePageComponent },
       { path: 'publicadores', component: TablePublishersPageComponent },
       { path: '**', redirectTo: '' },

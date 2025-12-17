@@ -1,0 +1,69 @@
+<div class="container py-5 campaign-detail">
+  <div class="text-center mb-5">
+    <h1 class="display-4 fw-bold">{{ campaign()?.name }}</h1>
+    <p class="lead">{{ campaign()?.description }}</p>
+    <p class="text-info">
+      📅 {{ campaign()?.dateInit | date:'longDate' }} – {{ campaign()?.dateEnd | date:'longDate' }}
+    </p>
+  </div>
+
+  <!-- Progreso Global -->
+  @if (campaign()?.stats?.global) {
+    <div class="card shadow-lg border-0 mb-4">
+      <div class="card-body">
+        <h4 class="card-title">🌍 Progreso Global</h4>
+        <div class="progress progress-animated" style="height: 30px;">
+          <div class="progress-bar bg-success"
+               [style.width.%]="campaign().stats.global.percent">
+            {{ campaign().stats.global.percent }}%
+          </div>
+        </div>
+        <p class="mt-2 text-muted">
+          Territorios completados:
+          {{ campaign().stats.global.completedTerritories }}/{{ campaign().stats.global.totalTerritories }}
+        </p>
+      </div>
+    </div>
+  }
+
+  <!-- Métricas globales -->
+  <div class="row text-center mb-4">
+    <div class="col-md-6 mb-3 mb-md-0">
+      <div class="card shadow-sm border-0 stat-card">
+        <div class="card-body">
+          <h5 class="card-title">🗺️ Territorios Completados</h5>
+          <p class="display-6 fw-bold text-success">{{ territoriosCompletados }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 stat-card">
+        <div class="card-body">
+          <h5 class="card-title">🚶‍♂️ Salidas Realizadas</h5>
+          <p class="display-6 fw-bold text-info">{{ salidasTotales }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Progreso por territorios -->
+  <div class="row">
+    @for (territorio of territorios(); track territorio.nombre) {
+      <div class="col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="card-title">{{ territorio.nombre }}</h6>
+            <div class="progress progress-animated mb-2" style="height: 20px;">
+              <div class="progress-bar bg-info"
+                   [style.width.%]="territorio.porcentaje">
+                {{ territorio.porcentaje }}%
+              </div>
+            </div>
+            <small class="text-muted">🚶 {{ territorio.salidas }} salidas</small>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

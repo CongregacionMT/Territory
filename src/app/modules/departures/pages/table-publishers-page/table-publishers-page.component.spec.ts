@@ -8,8 +8,8 @@ describe('TablePublishersPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TablePublishersPageComponent ]
-    })
+    imports: [TablePublishersPageComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(TablePublishersPageComponent);

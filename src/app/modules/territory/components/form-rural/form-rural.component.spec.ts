@@ -8,8 +8,8 @@ describe('FormRuralComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ FormRuralComponent ]
-    })
+    imports: [FormRuralComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(FormRuralComponent);

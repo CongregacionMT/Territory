@@ -1,23 +1,27 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, inject, input } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DataRural } from '@core/models/DataRural';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 
 @Component({
-  selector: 'app-form-rural',
-  templateUrl: './form-rural.component.html',
-  styleUrls: ['./form-rural.component.scss']
+    selector: 'app-form-rural',
+    templateUrl: './form-rural.component.html',
+    styleUrls: ['./form-rural.component.scss'],
+    imports: [ReactiveFormsModule]
 })
 export class FormRuralComponent implements OnInit {
+  private spinner = inject(SpinnerService);
+  private territorieDataService = inject(TerritoryDataService);
+  private fb = inject(FormBuilder);
+
 
   formRoad: FormGroup;
-  @Input() editionForm: DataRural | undefined;
-  constructor(
-    private spinner: SpinnerService,
-    private territorieDataService: TerritoryDataService,
-    private fb: FormBuilder
-  ) {
+  readonly editionForm = input<DataRural>();
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     this.formRoad = this.fb.group({
       title: new FormControl("", [Validators.required]),
       distance: new FormControl("", [Validators.required]),
@@ -28,12 +32,13 @@ export class FormRuralComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if(this.editionForm !== undefined){
-      this.formRoad.patchValue({title: this.editionForm.title});
-      this.formRoad.patchValue({distance: this.editionForm.distance});
-      this.formRoad.patchValue({vehicle: this.editionForm.vehicle});
-      this.formRoad.patchValue({time: this.editionForm.time});
-      this.formRoad.patchValue({lastDate: this.editionForm.lastDate});
+    const editionForm = this.editionForm();
+    if(editionForm !== undefined){
+      this.formRoad.patchValue({title: editionForm.title});
+      this.formRoad.patchValue({distance: editionForm.distance});
+      this.formRoad.patchValue({vehicle: editionForm.vehicle});
+      this.formRoad.patchValue({time: editionForm.time});
+      this.formRoad.patchValue({lastDate: editionForm.lastDate});
     } else {
       this.formRoad.reset();
     }

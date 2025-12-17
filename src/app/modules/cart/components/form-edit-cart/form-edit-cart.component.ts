@@ -1,28 +1,32 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, inject, input } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { CartData, CartLocation } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 
 @Component({
-  selector: 'app-form-edit-cart',
-  templateUrl: './form-edit-cart.component.html',
-  styleUrls: ['./form-edit-cart.component.scss'],
+    selector: 'app-form-edit-cart',
+    templateUrl: './form-edit-cart.component.html',
+    styleUrls: ['./form-edit-cart.component.scss'],
+    imports: [ReactiveFormsModule]
 })
 export class FormEditCartComponent implements OnInit {
+  private cartDataService = inject(CartDataService);
+  private fb = inject(FormBuilder);
+  private _snackBar = inject(MatSnackBar);
+
   formCart: FormGroup;
   formLocations: FormGroup;
   locations: CartLocation[] = [];
   selectedColor: string = 'primary';
   verticalPosition: MatSnackBarVerticalPosition = 'top';
-  @Input() formCartDataInput: CartData[] = [] as CartData[];
-  @Input() formLocationsDataInput: CartLocation[] = [] as CartLocation[];
+  readonly formCartDataInput = input<CartData[]>([] as CartData[]);
+  readonly formLocationsDataInput = input<CartLocation[]>([] as CartLocation[]);
 
-  constructor(
-    private cartDataService: CartDataService,
-    private fb: FormBuilder,
-    private _snackBar: MatSnackBar
-  ) {
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+
+  constructor() {
     this.formCart = this.fb.group({
       cart: this.fb.array([]),
     });
@@ -39,17 +43,25 @@ export class FormEditCartComponent implements OnInit {
 
   initializeForm(): void {
     this.cartFormArray.clear();
-    this.formCartDataInput.forEach((cart: CartData) => {
-      this.cartFormArray.push(this.createCartGroup(cart));
-    });
+    if (this.formCartDataInput().length === 0) {
+      this.addInputForm();
+    } else {
+      this.formCartDataInput().forEach((cart: CartData) => {
+        this.cartFormArray.push(this.createCartGroup(cart));
+      });
+    }
   }
 
   initializeLocationsForm(): void {
     this.locationsFormArray.clear();
-    this.formLocationsDataInput.forEach((location: CartLocation) => {
-      this.locations.push(location);
-      this.locationsFormArray.push(this.createLocationGroup(location));
-    });
+    if (this.formLocationsDataInput().length === 0) {
+      this.addLocationForm();
+    } else {
+      this.formLocationsDataInput().forEach((location: CartLocation) => {
+        this.locations.push(location);
+        this.locationsFormArray.push(this.createLocationGroup(location));
+      });
+    }
   }
 
   createCartGroup(cart: CartData): FormGroup {
@@ -83,25 +95,28 @@ export class FormEditCartComponent implements OnInit {
     return this.formLocations.get('locations') as FormArray;
   }
 
-  onChangeInput(e: any, key: string, indexChange: number) {
+  onChangeInput(e: Event, key: string, indexChange: number) {
+    const input = e.target as HTMLInputElement | HTMLSelectElement;
     const control = this.cartFormArray.at(indexChange);
     if (key === 'location') {
-      const selectedLocation = this.locations.find(location => location.name === e.target.value);
+      const selectedLocation = this.locations.find(location => location.name === input.value);
       if (selectedLocation) {
         control.get(key)?.setValue(selectedLocation);
       }
     } else {
-      control.get(key)?.setValue(e.target.value);
+      control.get(key)?.setValue(input.value);
     }
   }
 
-  onChangeLocationInput(e: any, key: string, indexChange: number) {
+  onChangeLocationInput(e: Event, key: string, indexChange: number) {
+    const input = e.target as HTMLInputElement;
     const control = this.locationsFormArray.at(indexChange);
-    control.get(key)?.setValue(e.target.value);
+    control.get(key)?.setValue(input.value);
   }
 
-  onChangeColor(event: any, index: number) {
-    const selectedValue = event.target.value;
+  onChangeColor(event: Event, index: number) {
+    const input = event.target as HTMLInputElement | HTMLSelectElement;
+    const selectedValue = input.value;
     this.cartFormArray.at(index).get('color')?.setValue(selectedValue);
   }
 

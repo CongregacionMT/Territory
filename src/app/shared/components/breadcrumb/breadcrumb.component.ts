@@ -1,21 +1,25 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+import { BreadcrumbItem } from '@core/models/Breadcrumb';
 
 @Component({
-  selector: 'app-breadcrumb',
-  templateUrl: './breadcrumb.component.html',
-  styleUrls: ['./breadcrumb.component.scss']
+    selector: 'app-breadcrumb',
+    templateUrl: './breadcrumb.component.html',
+    styleUrls: ['./breadcrumb.component.scss'],
+    imports: [RouterLink]
 })
 export class BreadcrumbComponent implements OnInit {
-  @Input() routerBreadcrum: any;
+  readonly routerBreadcrum = input<BreadcrumbItem[]>();
   returnBack: string = "../";
   ultimateElement: string = "";
   constructor() {}
 
   ngOnInit(): void {
-    
-    this.ultimateElement = this.routerBreadcrum[this.routerBreadcrum.length - 1].route;
-    this.routerBreadcrum.pop()
-    
+    const breadcrumArr = this.routerBreadcrum();
+    if (breadcrumArr && breadcrumArr.length > 0) {
+      this.ultimateElement = breadcrumArr[breadcrumArr.length - 1].route;
+      breadcrumArr.pop();
+    }
   }
-
 }

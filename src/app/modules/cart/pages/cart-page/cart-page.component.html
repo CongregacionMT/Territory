@@ -6,25 +6,40 @@
       <p>Recordá siempre repasar las Pautas para la predicación pública 📋✨</p>
     </h5>
   </div>
-  <div *ngIf="cartData$.length > 0">
-    <app-table-cart-assignment
-      [cartData]="cartData$"
-    ></app-table-cart-assignment>
-  </div>
+  @if (cartData$.length > 0) {
+    <div>
+      <app-table-cart-assignment
+        [cartData]="cartData$"
+      ></app-table-cart-assignment>
+    </div>
+  } @else {
+    <div class="d-flex flex-column align-items-center my-5">
+      <h3 class="text-center text-muted">No hay arreglos del carrito en este momento.</h3>
+      <button
+        type="button"
+        class="btn btn-primary btn-lg mt-3"
+        routerLink="editar"
+      >
+        Crear arreglos
+      </button>
+    </div>
+  }
   <!-- Edición del carrito -->
-  <div class="d-flex justify-content-center my-4" *ngIf="isAdmin">
-    <button
-      type="button"
-      class="btn btn-primary btn-list-primary btn-lg"
-      routerLink="editar"
-    >
-      Editar asignaciones
-    </button>
-  </div>
+  @if (isAdmin) {
+    <div class="d-flex justify-content-center my-4">
+      <button
+        type="button"
+        class="btn btn-primary btn-list-primary btn-lg"
+        routerLink="editar"
+        >
+        Editar asignaciones
+      </button>
+    </div>
+  }
   <!-- Mapa con ubicaciones -->
-  <h1 class="text-center">Ubicaciones aprobadas</h1>
+  <!-- <h1 class="text-center">Ubicaciones aprobadas</h1>
   <div class="map-responsive">
     <iframe src="https://www.google.com/maps/d/embed?mid=18bUhpoL7BvyObAYi3AhADHFQ6AONHMs&ehbc=2E312F&noprof=1" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>
     <iframe src="https://www.google.com/maps/d/embed?mid=1HGl4WD5Is6ntObB3G-o1GPBE6Il9-Xw&ehbc=2E312F" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>
-  </div>
+  </div> -->
 </div>

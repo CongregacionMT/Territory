@@ -7,11 +7,16 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class DialogService {
+  private dialog = inject(MatDialog);
+
 
   matDialog = inject(MatDialog);
 
   private static instance : DialogService | null= null;
-  constructor(private dialog: MatDialog) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     DialogService.instance = this;
   }
   public static getInstance(){
@@ -19,10 +24,10 @@ export class DialogService {
   }
 
 
-  openDialog<T>(data : any,component: ComponentType<T>) : Observable<boolean>{
+  openDialog<T, D = any, R = boolean>(data: D, component: ComponentType<T>): Observable<R | undefined> {
 
     return this.matDialog.open(component,{
-      data : data,
+      data: data,
       disableClose: true,
     }).afterClosed();
 

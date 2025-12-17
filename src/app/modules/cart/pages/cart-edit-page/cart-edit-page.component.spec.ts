@@ -8,8 +8,8 @@ describe('CartEditPageComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [CartEditPageComponent]
-    });
+    imports: [CartEditPageComponent]
+});
     fixture = TestBed.createComponent(CartEditPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

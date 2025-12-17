@@ -4,15 +4,29 @@
 
 export const environment = {
   firebase: {
-    projectId: 'territorios-422c2',
-    appId: '1:1086542552314:web:a5afc53afaa2f305ebfd43',
-    storageBucket: 'territorios-422c2.appspot.com',
-    locationId: 'us-central',
-    apiKey: 'AIzaSyBI1BYUtYjEeEWiFfpR_IwGFip4R54dbVk',
-    authDomain: 'territorios-422c2.firebaseapp.com',
-    messagingSenderId: '1086542552314',
+    apiKey: "AIzaSyBdRptzrCwkDB1WvWNU1x-Pn22l48kslEs",
+    authDomain: "territorios---wheelwright.firebaseapp.com",
+    projectId: "territorios---wheelwright",
+    storageBucket: "territorios---wheelwright.firebasestorage.app",
+    messagingSenderId: "208368329126",
+    appId: "1:208368329126:web:157824c7b22b4bc7f0ef67",
+    measurementId: "G-XLQ9YJ42HL"
   },
-  production: false
+  production: false,
+  congregationName: 'Wheelwright',
+  congregationKey: 'wheelwright',
+  territoryPrefix: 'TerritorioW',
+
+  // Configuración de localidades
+  localities: [
+    {
+      key: 'wheelwright',
+      name: 'Wheelwright',
+      territoryPrefix: 'TerritorioW',
+      storageKey: 'registerStatisticDataTerritorioW',
+      hasNumberedTerritories: true
+    }
+  ]
 };
 
 /*

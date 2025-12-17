@@ -1,0 +1,33 @@
+<div class="update-snackbar position-relative border shadow rounded-3 px-4 py-3">
+  <!-- Botón de cerrar -->
+  <button
+    type="button"
+    class="btn-close btn-close-white position-absolute top-0 end-0 m-2 close-button"
+    aria-label="Cerrar"
+    (click)="cerrar()"
+  ></button>
+
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <!-- Mensaje -->
+    <div class="d-flex align-items-center gap-3">
+      <span class="fs-3">🚀</span>
+      <div>
+        <p class="mb-1 fw-bold text-white fs-6">
+          ¡Hay una nueva versión de <span class="highlight-version">Territorios {{ congregationName }}</span> disponible!
+        </p>
+        <p class="mb-0 text-white-50 small">Actualizá para obtener las últimas mejoras.</p>
+      </div>
+    </div>
+
+    <!-- Botón actualizar centrado en móvil -->
+    <div class="d-flex justify-content-center justify-content-md-end w-100">
+      <button
+        type="button"
+        class="btn btn-success btn-sm px-3 fw-semibold update-button"
+        (click)="actualizarAhora()"
+      >
+        Actualizar ahora
+      </button>
+    </div>
+  </div>
+</div>

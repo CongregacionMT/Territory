@@ -1,166 +1,183 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, inject, signal, viewChild, computed } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import { DomSanitizer } from '@angular/platform-browser';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
 import { ModalComponent } from '@shared/components/modal/modal.component';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
+import { ModalComponent as ModalComponent_1 } from '../../../../shared/components/modal/modal.component';
+import { CampaignService } from '@core/services/campaign.service';
+import { mapConfig } from '@core/config/maps.config';
+import { environment } from '@environments/environment';
+
+import { Card, CardApplesData } from '@core/models/Card';
+import { BreadcrumbItem } from '@core/models/Breadcrumb';
+
 @Component({
-  selector: 'app-card-territory',
-  templateUrl: './card-territory.component.html',
-  styleUrls: ['./card-territory.component.scss'],
+    selector: 'app-card-territory',
+    templateUrl: './card-territory.component.html',
+    styleUrls: ['./card-territory.component.scss'],
+    imports: [BreadcrumbComponent, ReactiveFormsModule, FocusInvalidInputDirective, RouterLink, ModalComponent_1]
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
-  card: any = {
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private fb = inject(FormBuilder);
+  private domSanitizer = inject(DomSanitizer);
+  private territorieDataService = inject(TerritoryDataService);
+  private cardService = inject(CardService);
+  private activatedRoute = inject(ActivatedRoute);
+  private spinner = inject(SpinnerService);
+  private campaignService = inject(CampaignService);
+  private router = inject(Router);
+
+  card = signal<Card>({
     id: "",
-    location: 'Maria Teresa',
-    numberTerritory: 1,
+    location: environment.congregationName,
+    territoryNumber: 1,
     driver: '',
     start: '',
     end: '',
     link: '',
     comments: '',
     creation: '',
-    applesData: [{name:'', checked: false}],
+    applesData: [],
     revision: false,
     revisionComplete: false
-  }
-  iframe: any;
-  path: string = "";
-  routerBreadcrum: any = [];
-  formCard: FormGroup;
-  driverError: boolean = false;
-  startError: boolean = false;
-  endError: boolean = false;
-  cardSubscription: Subscription;
-  countTrueApples: number = 0;
-  countFalseApples: number = 0;
-  @ViewChild(ModalComponent) modalComponent: any;
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private fb: FormBuilder,
-    private domSanitizer: DomSanitizer,
-    private territorieDataService: TerritoryDataService,
-    private cardService: CardService,
-    private activatedRoute: ActivatedRoute,
-    private spinner: SpinnerService,
-    private router: Router
-    ) {
+  });
+
+  iframe = signal<SafeHtml | null>(null);
+  path = signal<string>("");
+  routerBreadcrum = signal<BreadcrumbItem[]>([]);
+  formCard = signal<FormGroup>(this.createFormCard());
+  driverError = signal<boolean>(false);
+  startError = signal<boolean>(false);
+  endError = signal<boolean>(false);
+  cardSubscription = signal<Subscription>(Subscription.EMPTY);
+  countTrueApples = signal<number>(0);
+  countFalseApples = signal<number>(0);
+  dataLoaded = signal<boolean>(false);
+
+  readonly modalComponent = viewChild(ModalComponent);
+
+  isRevisionMode = computed(() => this.card().revision === true);
+  hasValidDriver = computed(() => this.formCard().get('driver')?.valid ?? false);
+  hasValidStart = computed(() => this.formCard().get('start')?.valid ?? false);
+  totalApples = computed(() => this.card().applesData?.length ?? 0);
+  checkedApples = computed(() =>
+    this.card().applesData?.filter((apple: CardApplesData) => apple.checked)?.length ?? 0
+  );
+
+  constructor(...args: unknown[]);
+  constructor() {
     this.spinner.cargarSpinner();
-    this.cardSubscription = Subscription.EMPTY;
-    this.formCard = this.fb.group({
-      driver: [this.card.driver, Validators.required],
-      applesData: this.fb.array([]),
-      start: [this.card.start, Validators.required],
-      end: [this.card.end],
-      comments: [this.card.comments]
-    })
+
     // VALIDAR SI ESTOY REVISANDO O NO LA CARD
     if(this.cardService.dataCard.revision === true){
       // CARGO LOS DATOS DESDE EL SERVICIO PARA REVISAR LA CARD
-      this.card = this.cardService.dataCard;
-      this.formCard.patchValue({driver: this.card.driver});
-      this.formCard.patchValue({start: this.card.start});
-      this.formCard.patchValue({end: this.card.end});
-      this.formCard.patchValue({comments: this.card.comments});
-      this.card.applesData.map((apple: any) => {
-        const applesData: FormArray = this.formCard.get('applesData') as FormArray;
+      this.card.set(this.cardService.dataCard);
+
+      const form = this.formCard();
+      form.patchValue({driver: this.card().driver});
+      form.patchValue({start: this.card().start});
+      form.patchValue({end: this.card().end});
+      form.patchValue({comments: this.card().comments});
+
+      this.card().applesData.map((apple: CardApplesData) => {
+        const applesData: FormArray = form.get('applesData') as FormArray;
         applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
       });
-      this.spinner.cerrarSpinner()
+      this.dataLoaded.set(true);
+      this.spinner.cerrarSpinner();
     } else {
       // SI NO ESTOY REVISANDO LA CARD, ENTONCES MUESTRO LA ULTIMA TARJETA.
-      this.path = this.activatedRoute.snapshot.params['collection'];
-      this.cardSubscription = this.territorieDataService.getCardTerritorie(this.path).subscribe({
+      this.path.set(this.activatedRoute.snapshot.params['collection']);
+      const subscription = this.territorieDataService.getCardTerritorie(this.path()).subscribe({
         next: card => {
-          this.card = card[0];
-          this.countTrueApples = 0;
-          this.card.applesData.map((apple: any) => {
-            const applesData: FormArray = this.formCard.get('applesData') as FormArray;
+          this.card.set(card[0]);
+          this.countTrueApples.set(0);
+
+          // Limpia el FormArray antes de llenarlo
+          const form = this.formCard();
+          form.patchValue({comments: this.card().comments});
+          const applesData: FormArray = form.get('applesData') as FormArray;
+          applesData.clear();
+
+          this.card().applesData.map((apple: CardApplesData) => {
             applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
             if(apple.checked === true){
-              this.countTrueApples+=1;
+              this.countTrueApples.update(count => count + 1);
             }
           });
-          if(this.countTrueApples !== 0){
-            this.formCard.patchValue({start: this.card.start});
+
+          if(this.countTrueApples() !== 0){
+            form.patchValue({start: this.card().start});
           }
-          this.countTrueApples=0;
+
+          this.countTrueApples.set(0);
+          this.dataLoaded.set(true);
           this.spinner.cerrarSpinner();
         }
-      })
+      });
+      this.cardSubscription.set(subscription);
     }
+  }
+
+  private createFormCard(): FormGroup {
+    const cardData = this.card();
+    return this.fb.group({
+      driver: [cardData.driver, Validators.required],
+      applesData: this.fb.array([]),
+      start: [cardData.start, Validators.required],
+      end: [cardData.end],
+      comments: [cardData.comments]
+    });
   }
 
   ngOnInit(): void {
-    // Breadcrum
-    this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
-    this.routerBreadcrum = this.routerBreadcrum[9];
-    // Carga de mapas para Maria Teresa
-    if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-1"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1GOPjTgnhJgIJWBGZhvgc2eLcCnDkPS8&ehbc=2E312F" width="640" height="480" ></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-2"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=19aieXhqwTtRITjYep-bbz-eUHSiSevI&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-3"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=171gUWLdZm7IztqqimwF36j4Io86M6gY&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-4"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1kz4uJcy5eHHDJ2TEpa2qtQtr8adePVA&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-5"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1Empajc3TYA8cap0GQCfJjVQWgRe61FI&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-6"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1Syw58HcGT8bHqbblHjVxrgwiVDf7Y94&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-7"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1QeU9b0mYYzwl_JtHsXbbKyPLTLBh5rA&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-8"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=18FI1y5REupNlof33G0E_r4BjPoOYav4&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-9"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=19pecMpvGkGLA1K96X-lXgqMQpMqDXfo&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-10"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1Pd7I2FEdWn1fYYrpfU54hQTw6Fq3I-Q&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-11"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1ci-JKShrktVmKUob0Cd8C1gGIxfxZZY&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-12"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1CJoVzTewC4FJoy-xenubfUnKF567Oc8&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-13"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1HrURCAjWnd_Ja6GgY9BKalm0KsLQf24&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-14"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1VJPf3qsKrlcvZ3dYI7TxDdc7MTg-7cg&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-15"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=14UEzpZQY3EEeIUp1uYBmsfPDzoBTPUg&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-16"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1g9ON_q6_cUL-E79iV279EkGBaoTbzb0&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioMT-17"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1C7zcRXsMBUHUaMHEVcUcTM4tplXiQHc&ehbc=2E312F" width="640" height="480"></iframe>')
-    }
-    // Carga de mapas para Christophersen
-    if(this.activatedRoute.snapshot.params['collection'] === "TerritorioC-1"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=10pgOS5R4I6tfnimIe5AXFyvh3JLDiWA&ehbc=2E312F" width="640" height="480"></iframe>')
-    } else if(this.activatedRoute.snapshot.params['collection'] === "TerritorioC-2"){
-      this.iframe = this.domSanitizer.bypassSecurityTrustHtml('<iframe src="https://www.google.com/maps/d/embed?mid=1lyGjwbGkuso-wkFednS3cTMgFqL7tLQ&ehbc=2E312F" width="640" height="480"></iframe>')
+    const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
+    this.routerBreadcrum.set(breadcrumData[9]);
+
+    const collection = this.activatedRoute.snapshot.params['collection'];
+    const mapHtml = mapConfig.maps[collection];
+
+    if (mapHtml) {
+      this.iframe.set(this.domSanitizer.bypassSecurityTrustHtml(mapHtml));
     }
   }
 
-  onCheckboxChange(e:any){
-    const applesData: FormArray = this.formCard.get('applesData') as FormArray;
+  onCheckboxChange(e: any): void {
+    const form = this.formCard();
+    const applesData: FormArray = form.get('applesData') as FormArray;
     applesData.controls.forEach((item: any) => {
       if(item.value.name === e.target.value){
         item.value.checked = e.target.checked;
       }
-    })
+    });
   }
+
   // Gets creados para poder validar los datos ingresados
-  get driver(){return this.formCard.get('driver');}
-  get start(){return this.formCard.get('start');}
-
-  openModal(){
-    this.modalComponent.openModal();
+  get driver() {
+    return this.formCard().get('driver');
   }
 
-  verifyUniqueCheck(arr: any[]){
+  get start() {
+    return this.formCard().get('start');
+  }
+
+  openModal(): void {
+    const modal = this.modalComponent();
+    if (modal) {
+      modal.openModal();
+    }
+  }
+
+  verifyUniqueCheck(arr: any[]): any[] {
     const checkbox = new Set();
     const result = [];
 
@@ -174,65 +191,92 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     return result;
   }
 
-  fillCard(){
-    const uniqueCheck = this.verifyUniqueCheck(this.formCard.value.applesData);
+  fillCard(): void {
+    const form = this.formCard();
+    const uniqueCheck = this.verifyUniqueCheck(form.value.applesData);
+
     // Rellenar card con los datos ingresados
-    this.card.driver = this.formCard.value.driver;
-    this.card.start = this.formCard.value.start;
-    this.card.end = this.formCard.value.end;
-    this.card.comments = this.formCard.value.comments;
-    this.card.applesData = uniqueCheck;
+    const currentCard = this.card();
+    const updatedCard = {
+      ...currentCard,
+      driver: form.value.driver,
+      start: form.value.start,
+      end: form.value.end,
+      comments: form.value.comments,
+      applesData: uniqueCheck
+    };
+
+    this.card.set(updatedCard);
   }
 
-  submitForm(){
+  async submitForm() {
+    const form = this.formCard();
+
     // Validar formulario
-    if(this.formCard.controls?.['driver'].invalid){
-      this.driverError = this.formCard.controls?.['driver'].invalid;
+    if(form.controls?.['driver'].invalid){
+      this.driverError.set(form.controls?.['driver'].invalid);
       return;
     }
-    if(this.formCard.controls?.['start'].invalid){
-      this.startError = this.formCard.controls?.['start'].invalid;
+    if(form.controls?.['start'].invalid){
+      this.startError.set(form.controls?.['start'].invalid);
       return;
     }
-    if(this.formCard.controls?.['end'].value === ""){
-      this.formCard.value.applesData.map((apple: any) => {
+    if(form.controls?.['end'].value === ""){
+      this.countFalseApples.set(0);
+      form.value.applesData.map((apple: any) => {
         if(apple.checked === false){
-          this.countFalseApples+=1;
+          this.countFalseApples.update(count => count + 1);
         }
       });
-      if(this.countFalseApples === 0){
-        this.endError = true;
+      if(this.countFalseApples() === 0){
+        this.endError.set(true);
         return;
       }
-      this.countFalseApples=0;
+      this.countFalseApples.set(0);
     }
-    this.driverError = false;
-    this.startError = false;
-    this.endError = false;
 
+    this.driverError.set(false);
+    this.startError.set(false);
+    this.endError.set(false);
     this.spinner.cargarSpinner();
     this.fillCard();
-    // Comparar si estoy revisando o no
-    if(this.card.revision === true){
-      this.territorieDataService.postCardTerritorie(this.card, this.card.link)
+
+    const currentCard = this.card();
+
+    if(currentCard.revision === true){
+      await this.territorieDataService.postCardTerritorie(currentCard, currentCard.link ?? '')
       ?.then(() => {
         console.log("todo bien");
-      })
-      this.territorieDataService.putCardTerritorie(this.card);
+      });
+      await this.territorieDataService.putCardTerritorie(currentCard);
+          // Validar campaña desde cache
+      const activeCampaign = this.campaignService.getCachedCampaign();
+      if (activeCampaign) {
+        this.campaignService.updateCampaignStats(activeCampaign.id, currentCard);
+      }
     } else {
-      this.card.creation = Timestamp.now();
-      this.territorieDataService.sendRevisionCardTerritorie(this.card)
+      const updatedCard = {
+        ...currentCard,
+        creation: Timestamp.now()
+      };
+      this.card.set(updatedCard);
+
+      this.territorieDataService.sendRevisionCardTerritorie(updatedCard)
       ?.then(() => {
         this.spinner.cerrarSpinner();
         this.openModal();
-      })
+      });
     }
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.cardService.rollbackCard();
-    this.card.revision = false;
+
+    const currentCard = this.card();
+    const updatedCard = { ...currentCard, revision: false };
+    this.card.set(updatedCard);
+
     this.cardService.dataCard.revision = false;
-    this.cardSubscription.unsubscribe();
+    this.cardSubscription().unsubscribe();
   }
 }

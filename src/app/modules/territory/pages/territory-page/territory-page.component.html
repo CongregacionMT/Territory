@@ -1,42 +1,46 @@
 <div class="container">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+
   <div class="d-flex justify-content-center">
-    <h1 class="mt-0 mb-3">Selecciona un mapa</h1>
+    <h1 class="mt-0 mb-3">Selecciona una localidad</h1>
   </div>
+
+  <!-- Botones de localidades (vienen de Firebase con los links correctos) -->
   <div class="card-container">
-    <app-card-xl
-      *ngFor="let terr of territorioMaps"
-      mapSRC="{{ terr.src }}"
-      mapName="{{ terr.name }}"
-      [routerLink]="terr.link"
-    ></app-card-xl>
+    @for (terr of territorioMaps; track terr) {
+      <app-card-xl
+        mapSRC="{{ terr.src }}"
+        mapName="{{ terr.name }}"
+        [routerLink]="terr.link"
+      ></app-card-xl>
+    }
   </div>
+
   <hr />
-  <div *ngIf="isAdmin || isDriver">
-    <div class="d-flex justify-content-center">
-      <h2 class="my-2 text-center">Territorios de María Teresa por Número</h2>
+
+  <!-- Territorios agrupados por localidad -->
+  @if (isAdmin || isDriver) {
+    <div>
+      @for (locality of localitiesWithTerritories; track locality.key) {
+        <div class="mb-4">
+          <div class="d-flex justify-content-center">
+            <h2 class="my-2 text-center">
+              Territorios de {{ locality.name }} por Número
+            </h2>
+          </div>
+
+          <div class="card-s-container">
+            @for (item of locality.territories; track item) {
+              <app-card-s
+                [terrNumber]="item"
+                [routerLink]="item.collection"
+                (click)="this.cardService.rollbackCard()"
+              >
+              </app-card-s>
+            }
+          </div>
+        </div>
+      }
     </div>
-    <div class="card-s-container">
-      <app-card-s
-        *ngFor="let item of territoriesMT"
-        terrNumber="{{ item.territorio }}"
-        [routerLink]="item.collection"
-        (click)="this.cardService.rollbackCard()"
-      >
-      </app-card-s>
-    </div>
-    <hr />
-    <div class="d-flex justify-content-center">
-      <h2 class="my-2 text-center">Territorios de Christophersen por Número</h2>
-    </div>
-    <div class="card-s-container">
-      <app-card-s
-        *ngFor="let item of territoriesC"
-        terrNumber="{{ item.territorio }}"
-        [routerLink]="item.collection"
-        (click)="this.cardService.rollbackCard()"
-      >
-      </app-card-s>
-    </div>
-  </div>
+  }
 </div>

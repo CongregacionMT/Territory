@@ -1,7 +1,6 @@
 {
   "hosting": {
-    "site": "territorios-congregacionmt",
-    "public": "dist/territory",
+    "public": "dist/territory/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -15,6 +14,8 @@
     ]
   },
   "firestore": {
+    "database": "(default)",
+    "location": "nam5",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   }

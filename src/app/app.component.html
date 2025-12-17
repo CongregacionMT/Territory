@@ -1,6 +1,8 @@
-<div class="spinner" *ngIf="isLoading$">
+@if (isLoading$()) {
+  <div class="spinner">
     <div class="spinner-content">
-        <span class="loader"></span>
+      <span class="loader"></span>
     </div>
-</div>
+  </div>
+}
 <router-outlet></router-outlet>

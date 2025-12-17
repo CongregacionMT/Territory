@@ -1,0 +1,52 @@
+// Variables
+$primary: #6366f1;
+$success: #10b981;
+
+// Custom Border Utilities for Publisher Items
+.border-start-success {
+  border-left: 4px solid $success !important;
+}
+
+.border-start-primary {
+  border-left: 4px solid $primary !important;
+}
+
+// Drag & Drop specific styles
+.cdk-drag-preview {
+  box-sizing: border-box;
+  width: 100%; // Ensure preview has width
+  max-width: 300px; // Cap width for preview
+  z-index: 1000;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.publishers-list.cdk-drop-list-dragging .publisher-item:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// Transitions & Polish
+.group-card {
+  transition: box-shadow 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+  }
+}
+
+.drag-handle {
+  cursor: grab;
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.min-w-0 {
+  min-width: 0; // Helper for flex-child truncation
+}

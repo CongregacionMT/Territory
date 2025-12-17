@@ -1,0 +1,146 @@
+<div class="container py-5 campaign-container">
+  <div class="text-center mb-5">
+    <h1 class="display-4 fw-bold">📣 Gestión de Campañas</h1>
+    <p class="lead text-muted">Iniciá, finalizá y hacé seguimiento a las campañas de predicación</p>
+  </div>
+
+  @if(daysLeft > 0){
+    <div class="alert alert-info text-center mb-4 shadow-sm">
+      ⏳ Quedan <strong>{{ daysLeft }}</strong> días para finalizar la campaña
+    </div>
+  }
+
+  <!-- Nueva campaña -->
+  @if(!campaignInProgress()){
+    <div class="card shadow-lg border-0 mb-4 campaign-card">
+      <div class="card-body">
+        <h4 class="text-white">📝 Nueva Campaña</h4>
+        <form (ngSubmit)="startCampaign()" class="needs-validation">
+          <div class="mb-3">
+            <label for="campaignName" class="form-label text-white">Nombre de la campaña</label>
+            <input id="campaignName"
+                  type="text"
+                  class="form-control"
+                  [ngModel]="campaignName()"
+                  (ngModelChange)="onNameChange($event)"
+                  name="campaignName"
+                  required
+                  minlength="3">
+            @if(nameInvalid()){
+              <div class="text-danger mt-2">
+                Por favor, escriba un nombre válido (mínimo 3 caracteres).
+              </div>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label for="campaignDescription" class="form-label text-white">Descripción</label>
+            <textarea id="campaignDescription" class="form-control" rows="3"
+                      [ngModel]="campaignDescription()" (ngModelChange)="campaignDescription.set($event)"
+                      name="campaignDescription"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="campaignEnd" class="form-label text-white">Fecha de finalización</label>
+            <input id="campaignEnd"
+                  type="date"
+                  class="form-control"
+                  [ngModel]="campaignEnd()"
+                  (ngModelChange)="onDateChange($event)"
+                  name="campaignEnd"
+                  required>
+            @if(dateInvalid()){
+              <div class="text-danger mt-2">
+                Seleccione una fecha de finalización.
+              </div>
+            }
+          </div>
+
+          <!-- Botón de iniciar campaña -->
+          <button type="button" class="btn btn-success w-100 btn-lg" data-bs-toggle="modal" data-bs-target="#confirmStartModal">
+            🚀 Iniciar Campaña
+          </button>
+
+          <!-- Modal de confirmación -->
+          <div class="modal fade" id="confirmStartModal" tabindex="-1" aria-labelledby="confirmStartModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                  <h5 class="modal-title" id="confirmStartModalLabel">⚠️ Confirmar inicio de campaña</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                  Iniciar una nueva campaña reiniciará todas las manzanas de todos los territorios.
+                  <strong>Esta acción no tiene retorno.</strong>
+                  ¿Está seguro de que desea continuar?
+                </div>
+                <div class="modal-footer border-0">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="button" class="btn btn-danger" (click)="confirmStartCampaign()" data-bs-dismiss="modal">Sí, iniciar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Progreso campaña -->
+  @if(campaignInProgress()){
+    <div class="card shadow-lg border-0 mb-4 campaign-card">
+      <div class="card-body">
+        <h4 class="card-title text-white">📊 Progreso de la Campaña</h4>
+
+        @if(statsGlobal){
+          <div class="mb-4">
+            <h5 class="text-white">Progreso Global</h5>
+            <div class="progress progress-animated">
+              <div class="progress-bar bg-success"
+                   [style.width.%]="statsGlobal.percent"
+                   role="progressbar">
+                {{ statsGlobal.percent }}%
+              </div>
+            </div>
+          </div>
+        }
+
+        @for(territorio of territorios() | orderTerritories; track territorio;){
+          <div class="mb-3">
+            <label class="form-label text-white">{{ territorio.nombre }}</label>
+            <div class="progress">
+              <div class="progress-bar bg-info text-white"
+                   role="progressbar"
+                   [style.width.%]="territorio.porcentaje">
+                {{ territorio.porcentaje }}%
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 mb-5">
+      <button class="btn btn-danger flex-fill btn-lg" (click)="endCampaign()">Finalizar Campaña</button>
+    </div>
+  }
+
+  <!-- Historial -->
+  @if(campaignHistory().length > 0){
+    <div class="card shadow-lg border-0 campaign-card">
+      <div class="card-body">
+        <h4 class="card-title text-white">📚 Historial de Campañas</h4>
+        <ul class="list-group list-group-flush mt-3">
+          @for(history of campaignHistory(); track history;){
+            <li class="list-group-item list-group-item-action history-item"
+                (click)="goToCampaignDetail(history.id)">
+              <div class="text-white">{{ history.nombre }}</div>
+              <small class="text-white">{{ history.fecha }}</small>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  }
+</div>

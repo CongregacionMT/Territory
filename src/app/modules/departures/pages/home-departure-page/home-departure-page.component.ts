@@ -1,26 +1,34 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure, DepartureData } from '@core/models/Departures';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 
 @Component({
-  selector: 'app-home-departure-page',
-  templateUrl: './home-departure-page.component.html',
-  styleUrls: ['./home-departure-page.component.scss']
+    selector: 'app-home-departure-page',
+    templateUrl: './home-departure-page.component.html',
+    styleUrls: ['./home-departure-page.component.scss'],
+    imports: [BreadcrumbComponent, CardXlComponent, RouterLink]
 })
 export class HomeDeparturePageComponent implements OnInit{
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private territoryDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+  private router = inject(Router);
+
   isAdmin: boolean = false;
   routerBreadcrum: any = [];
   groupedDepartures: { [key: string]: Departure[] } = {};
   groupKeys: any[] = [];
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private territoryDataService: TerritoryDataService,
-    private spinner: SpinnerService,
-    private router: Router,
-  ) {
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     localStorage.getItem('tokenAdmin') ? this.isAdmin = true : this.isAdmin = false;
   }
@@ -42,8 +50,12 @@ export class HomeDeparturePageComponent implements OnInit{
         this.groupedDepartures[groupKey].push(dep);
       });
       this.spinner.cerrarSpinner();
-      if(this.groupKeys.length <= 1){
-        if(!localStorage.getItem('tokenAdmin')){
+      if (this.groupKeys.length <= 1) {
+        if (
+          !localStorage.getItem('tokenAdmin') &&
+          !sessionStorage.getItem('redirectedToGroup0')
+        ) {
+          sessionStorage.setItem('redirectedToGroup0', 'true');
           this.router.navigate(['/salidas/grupo', '0']);
         }
       } else {

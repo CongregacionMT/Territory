@@ -1,39 +1,73 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Signal, inject, signal } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
-import { SwUpdate } from '@angular/service-worker';
+import { Router, RouterLink } from '@angular/router';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { CampaignService } from '@core/services/campaign.service';
 import { MessagingService } from '@core/services/messaging.service';
+import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
+import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { StatisticsButton } from '@core/models/StatisticsButton';
+import { filter } from 'rxjs';
+import { environment } from '@environments/environment';
 
 @Component({
-  selector: 'app-home-page',
-  templateUrl: './home-page.component.html',
-  styleUrls: ['./home-page.component.scss']
+    selector: 'app-home-page',
+    templateUrl: './home-page.component.html',
+    styleUrls: ['./home-page.component.scss'],
+    imports: [RouterLink]
 })
 export class HomePageComponent implements OnInit {
+  private router = inject(Router);
+  private swUpdate = inject(SwUpdate);
+  private spinner = inject(SpinnerService);
+  private territorieDataService = inject(TerritoryDataService);
+  private campaignService = inject(CampaignService);
+  private messagingService = inject(MessagingService);
+  private cartDataService = inject(CartDataService);
+  private _snackBar = inject(MatSnackBar);
 
   isAdmin: boolean = false;
   isDriver: boolean = false;
+  hasCartData: boolean = false;
   btnLogin: boolean = false;
+  // Start visible (unless standalone checked below) so users can always see it
   btnPWA: boolean = true;
+  isIos: boolean = false;
+  campaignInProgress = signal(false);
   deferredPrompt: any;
   nameDriver: string = '';
-  constructor(private router: Router, private swUpdate: SwUpdate, private spinner: SpinnerService, private territorieDataService: TerritoryDataService, private messagingService:MessagingService, private _snackBar: MatSnackBar,) {
-    if(this.swUpdate.available){
-      this.swUpdate.available.subscribe(() => {
-        if(confirm('Existe una nueva versión de la aplicación. ¿Deseas instalarla?')){
-          window.location.reload();
-        }
-      })
-    }
+  congregationName: string = environment.congregationName;
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor() {
     if(this.deferredPrompt){
       this.btnPWA = false;
     }
     this.nameDriver = localStorage.getItem('nombreConductor') as string;
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates
+        .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
+        .subscribe(() => {
+          const snack = this._snackBar.openFromComponent(UpdateSnackbarComponent, {
+            duration: undefined,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+          });
+          snack.onAction().subscribe(() => {
+            this.swUpdate.activateUpdate().then(() => window.location.reload());
+          });
+        });
+
+      this.swUpdate.checkForUpdate(); // opcional
+    }
+
     if(localStorage.getItem("tokenAdmin")){
       this.isAdmin = true;
     } else if(localStorage.getItem("tokenConductor")){
@@ -43,17 +77,27 @@ export class HomePageComponent implements OnInit {
     if(!sessionStorage.getItem("numberTerritory")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getNumberTerritory()
-      .subscribe(number => {
-        sessionStorage.setItem("numberTerritory", JSON.stringify(number[0]));
+      .subscribe((numbers: TerritoryNumberData[]) => {
+        // Merge all documents into a single object
+        const mergedData = numbers.reduce((acc: any, curr: any) => {
+          return { ...acc, ...curr };
+        }, {});
+        sessionStorage.setItem("numberTerritory", JSON.stringify(mergedData));
       });
     }
 
     if(!sessionStorage.getItem("territorioStatistics")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getStatisticsButtons()
-      .subscribe(number => {
-        sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
+      .subscribe((number: StatisticsButton[]) => {
+        if (number.length > 0) {
+            sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
+        }
       });
+    }
+
+    if(sessionStorage.getItem("redirectedToGroup0")){
+      sessionStorage.removeItem("redirectedToGroup0");
     }
 
     // Mostrar boton de loguearse
@@ -64,8 +108,26 @@ export class HomePageComponent implements OnInit {
 
     this.isAdmin === false && this.isDriver === false ? this.btnLogin = true: this.btnLogin = false
 
+    this.spinner.cargarSpinner();
+    const activeCampaign = await this.campaignService.getActiveCampaign();
+    this.spinner.cerrarSpinner();
+    if (activeCampaign) {
+      localStorage.setItem('activeCampaign', JSON.stringify(activeCampaign));
+      this.campaignInProgress.set(true);
+    } else {
+      this.campaignInProgress.set(false);
+    }
+
     // Init PWA
     this.initPWA();
+
+    this.cartDataService.getCartAssignment().subscribe({
+      next: (cartArray) => {
+        if (cartArray.cart.length > 0) {
+          this.hasCartData = true;
+        }
+      }
+    });
 
     this.spinner.cerrarSpinner();
   }
@@ -77,33 +139,65 @@ export class HomePageComponent implements OnInit {
 
   // PWA
 
-  initPWA(){
+  initPWA() {
+    // Detect iOS
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    this.isIos = /iphone|ipad|ipod/.test(userAgent);
 
-    // For Android
-    if(window.matchMedia('(display-mode: standalone)').matches){
-      console.log("app instalada");
+    // Check if standalone (installed)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         ((window.navigator as any).standalone === true);
+
+    if (isStandalone) {
       this.btnPWA = false;
+    } else {
+      // If not standalone, we show the button by default (set to true above)
+      // We don't force it to false for Android anymore, just wait for the event to arguably "enable" the native prompt
+      // but keep the button visible so we can give feedback if clicked early.
+      this.btnPWA = true;
     }
+
     window.addEventListener('appinstalled', (e) => {
-      console.log("La app está instalada", e);
       this.btnPWA = false;
+      this.deferredPrompt = null;
     });
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
-      console.log("evento de instalación");
+      this.btnPWA = true;
     });
   }
 
-  installPWA(){
+  installPWA() {
+    if (this.isIos) {
+      this._snackBar.open('Para instalar en iOS: Presiona "Compartir" y de las opciones elige "Agregar a Inicio" 📲', 'Ok', {
+        duration: 8000,
+        verticalPosition: 'bottom',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
+    if (!this.deferredPrompt) {
+      // If no deferred prompt (e.g. desktop, mismatched criteria, or already dismissed),
+      // show generic instructions.
+      this._snackBar.open(
+        'Para instalar la app: busca la opción "Instalar aplicación" o "Añadir a pantalla de inicio" en el menú de tu navegador  browser (⋮).', 
+        'Ok', 
+        {
+          duration: 8000,
+          verticalPosition: 'bottom',
+          horizontalPosition: 'center'
+        }
+      );
+      return;
+    }
+
     this.deferredPrompt.prompt();
-    this.deferredPrompt.userChoise.then((choiceResult: any) => {
-      if(choiceResult.outcome === 'accepted'){
-        console.log("User accepted to install app");
+    this.deferredPrompt.userChoice.then((choiceResult: any) => {
+      if (choiceResult.outcome === 'accepted') {
         this.btnPWA = false;
-      } else {
-        console.log("User canceled to install app");
-        this.btnPWA = true;
       }
       this.deferredPrompt = null;
     });

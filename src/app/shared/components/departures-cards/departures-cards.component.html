@@ -1,0 +1,79 @@
+<div class="departures-grid">
+  @for (departure of departures(); track departure) {
+    @if (currentPath === departure.group || departure.group === 0) {
+      <div class="departure-card">
+        <!-- Header: Day & Time -->
+        <div class="card-header-custom" [class]="'bg-' + departure.color + '-subtle'">
+          <div class="header-content">
+            <span class="day-badge">{{ getDayOfWeek(departure.date) }}</span>
+            <span class="time-badge">{{ departure.schedule }}hs</span>
+          </div>
+          <button class="btn-subscribe" (click)="addToCalendar(departure)" title="Agendar salida">
+            <img src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=%236c757d" width="20" height="20" alt="Notificarme" />
+          </button>
+        </div>
+
+        <!-- Body: Details -->
+        <div class="card-body-custom">
+          
+          <!-- Driver -->
+          <div class="info-row">
+            <div class="icon-wrapper">
+              <img src="https://api.iconify.design/mdi:account-tie.svg?color=%236c757d" width="20" height="20" alt="Leader" />
+            </div>
+            <div class="content">
+              <span class="label">Conductor</span>
+              <span class="value">{{ departure.driver }}</span>
+            </div>
+          </div>
+
+          <!-- Location (Enhanced) -->
+          <div class="info-row">
+            <div class="icon-wrapper">
+              <img src="https://api.iconify.design/mdi:map-marker.svg?color=%236c757d" width="20" height="20" alt="Location" />
+            </div>
+            <div class="content">
+              <span class="label">Punto de encuentro</span>
+              <span class="value">{{ departure.point }}</span>
+              
+              @if(departure.maps) {
+                <a [href]="departure.maps" target="_blank" class="map-action-btn">
+                  <img src="https://api.iconify.design/logos:google-maps.svg" width="20" height="20" alt="Google Maps" />
+                  Ver en Mapa
+                </a>
+              }
+            </div>
+          </div>
+
+          <!-- Territories -->
+          <div class="info-row">
+            <div class="icon-wrapper">
+              <img src="https://api.iconify.design/mdi:map-legend.svg?color=%236c757d" width="20" height="20" alt="Territories" />
+            </div>
+            <div class="content">
+              <span class="label">Territorios</span>
+              <div class="territories-container">
+                @for (territory of departure.territory; track territory) {
+                  <a
+                    class="territory-chip"
+                    [routerLink]="'../../territorios/' + departure.location + '-' + territory.replace('N°', '')"
+                  >
+                    <span class="territory-text">{{ territory }}</span>
+                    <img 
+                      src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d" 
+                      alt="Ver" 
+                      width="16" 
+                      height="16"
+                      class="territory-icon"
+                    />
+                  </a>
+                }
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    }
+  }
+</div>

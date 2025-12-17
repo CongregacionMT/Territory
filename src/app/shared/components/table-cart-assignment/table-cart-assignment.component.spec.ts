@@ -8,8 +8,8 @@ describe('TableCartAssignmentComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [TableCartAssignmentComponent]
-    });
+    imports: [TableCartAssignmentComponent]
+});
     fixture = TestBed.createComponent(TableCartAssignmentComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

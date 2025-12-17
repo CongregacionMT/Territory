@@ -1,31 +1,40 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { CartData, CartDataArray } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { TableCartAssignmentComponent } from '../../../../shared/components/table-cart-assignment/table-cart-assignment.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-cart-page',
-  templateUrl: './cart-page.component.html',
-  styleUrls: ['./cart-page.component.scss']
+    selector: 'app-cart-page',
+    templateUrl: './cart-page.component.html',
+    styleUrls: ['./cart-page.component.scss'],
+    imports: [BreadcrumbComponent, TableCartAssignmentComponent, RouterLink]
 })
 export class CartPageComponent implements OnInit{
+  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+  private cartDataService = inject(CartDataService);
+  private fb = inject(FormBuilder);
+  private spinner = inject(SpinnerService);
+
   isAdmin: boolean = false;
   routerBreadcrum: any = [];
   cartData$: CartData[] = [];
-  constructor(
-    private routerBreadcrumMockService: RouterBreadcrumMockService,
-    private cartDataService: CartDataService,
-    private fb: FormBuilder,
-    private spinner: SpinnerService,
-  ){
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor(){
+    const routerBreadcrumMockService = this.routerBreadcrumMockService;
+
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     localStorage.getItem('tokenAdmin') ? this.isAdmin = true : this.isAdmin = false;
   }
   ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[13];
+    this.routerBreadcrum = this.routerBreadcrum[11];
     this.cartDataService.getCartAssignment().subscribe({
       next: (cartArray: CartDataArray) => {
         // Tabla de asignación del carrito

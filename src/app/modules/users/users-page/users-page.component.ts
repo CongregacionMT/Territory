@@ -1,39 +1,35 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { TerritoryDataService } from '../../../core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { needConfirmation } from '@shared/decorators/confirm-dialog.decorator';
 
-interface User {
-  user: string;
-  password: string;
-  rol: string;
-  tokens: string[];
-}
+import { User } from '@core/models/User';
 
 @Component({
-  selector: 'app-users-page',
-  templateUrl: './users-page.component.html',
-  styleUrls: ['./users-page.component.scss']
+    selector: 'app-users-page',
+    templateUrl: './users-page.component.html',
+    styleUrls: ['./users-page.component.scss'],
+    imports: [ReactiveFormsModule]
 })
 
 export class UsersPageComponent {
+  private territoryDataService = inject(TerritoryDataService);
+  private spinner = inject(SpinnerService);
+  private fb = inject(FormBuilder);
+  private _snackBar = inject(MatSnackBar);
 
-  @ViewChild('errorMessage', {static: false}) errorMessage: any;
+
+  readonly errorMessage = viewChild<any>('errorMessage');
 
   users: User[] = [];
 
   formUser: FormGroup;
-  user = null;
-  password = null;
-  rol = 'conductor';
-  constructor(
-    private territoryDataService: TerritoryDataService,
-    private spinner: SpinnerService,
-    private fb: FormBuilder,
-    private _snackBar: MatSnackBar,
-  ){
+
+  /** Inserted by Angular inject() migration for backwards compatibility */
+  constructor(...args: unknown[]);
+  constructor(){
     this.spinner.cargarSpinner();
     this.formUser = this.fb.group({
       user: new FormControl(null, [Validators.required]),
@@ -58,7 +54,7 @@ export class UsersPageComponent {
     this._snackBar.open('📝 Copiado al portapapeles!', 'ok');
   }
   createUser(){
-    const messageError = this.errorMessage.nativeElement;
+    const messageError = this.errorMessage().nativeElement;
     if(this.formUser.controls?.['user'].invalid || this.formUser.controls?.['password'].invalid){
       messageError.style.display = 'block';
     } else {

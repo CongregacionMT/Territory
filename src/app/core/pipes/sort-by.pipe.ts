@@ -2,7 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({ name: 'sortBy' })
 export class SortBy implements PipeTransform {
-  transform(array: Array<any>, args: string, order: number): Array<any> {
+  transform<T>(array: Array<T>, args: string, order: number): Array<T> {
     let newArray = [...array];
 
     newArray.sort((a: any, b: any) => {
@@ -12,7 +12,7 @@ export class SortBy implements PipeTransform {
         return dateA.getTime() - dateB.getTime();
       }
 
-      return this.compareValues(a[0][args], b[0][args]);
+      return this.compareValues(a[0] ? a[0][args] : a[args], b[0] ? b[0][args] : b[args]);
     });
 
     if (order !== 1) {
