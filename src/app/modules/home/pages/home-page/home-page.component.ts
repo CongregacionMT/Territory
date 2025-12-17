@@ -33,7 +33,8 @@ export class HomePageComponent implements OnInit {
   isDriver: boolean = false;
   hasCartData: boolean = false;
   btnLogin: boolean = false;
-  btnPWA: boolean = false;
+  // Start visible (unless standalone checked below) so users can always see it
+  btnPWA: boolean = true;
   isIos: boolean = false;
   campaignInProgress = signal(false);
   deferredPrompt: any;
@@ -150,13 +151,10 @@ export class HomePageComponent implements OnInit {
     if (isStandalone) {
       this.btnPWA = false;
     } else {
-      // If not installed...
-      if (this.isIos) {
-        // On iOS, we can always show the button because there's no beforeinstallprompt to wait for.
-        // But we check strictly if it's NOT standalone.
-        this.btnPWA = true;
-      }
-      // For Android/Desktop, we wait for the event, so btnPWA remains false until the event fires.
+      // If not standalone, we show the button by default (set to true above)
+      // We don't force it to false for Android anymore, just wait for the event to arguably "enable" the native prompt
+      // but keep the button visible so we can give feedback if clicked early.
+      this.btnPWA = true;
     }
 
     window.addEventListener('appinstalled', (e) => {
@@ -182,6 +180,17 @@ export class HomePageComponent implements OnInit {
     }
 
     if (!this.deferredPrompt) {
+      // If no deferred prompt (e.g. desktop, mismatched criteria, or already dismissed),
+      // show generic instructions.
+      this._snackBar.open(
+        'Para instalar la app: busca la opción "Instalar aplicación" o "Añadir a pantalla de inicio" en el menú de tu navegador  browser (⋮).', 
+        'Ok', 
+        {
+          duration: 8000,
+          verticalPosition: 'bottom',
+          horizontalPosition: 'center'
+        }
+      );
       return;
     }
 
