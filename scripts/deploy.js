@@ -6,6 +6,9 @@ const { execSync } = require('child_process');
 /**
  * Lee y parsea un archivo de configuración environment para obtener el projectId
  */
+
+// ejecutar script: node scripts/deploy.js
+
 function loadEnvironmentConfig(congregationFileName) {
   const envPath = path.join(__dirname, '..', 'src', 'environments', `environment.${congregationFileName}.ts`);
   
