@@ -6,12 +6,14 @@
     "start": "ng serve --host 0.0.0.0",
     "wheelwright": "ng serve --configuration=wheelwright",
     "maria-teresa": "ng serve --configuration=maria-teresa",
+    "hughes": "ng serve --configuration=hughes",
     "build": "ng build",
     "build:stats": "ng build --stats-json",
     "analyze": "npm run build:stats && webpack-bundle-analyzer dist/territory/stats.json",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "deploy": "node scripts/deploy.js"
   },
   "private": true,
   "dependencies": {
@@ -38,7 +40,7 @@
     "datatables.net-dt": "^2.3.2",
     "firebase": "^11.10.0",
     "firebase-admin": "^13.6.0",
-    "inquirer": "^13.0.1",
+    "inquirer": "^8.2.6",
     "jquery": "^3.7.1",
     "pdf-lib": "^1.17.1",
     "rxfire": "^6.1.0",

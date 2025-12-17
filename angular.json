@@ -130,6 +130,31 @@
                 }
               ],
               "outputHashing": "all"
+            },
+            "hughes": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.hughes.ts"
+                },
+                {
+                  "replace": "src/app/core/config/maps.config.ts",
+                  "with": "src/app/core/config/maps.hughes.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "6kb"
+                }
+              ],
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production"
@@ -148,6 +173,9 @@
             },
             "maria-teresa": {
               "buildTarget": "territory:build:maria-teresa"
+            },
+            "hughes": {
+              "buildTarget": "territory:build:hughes"
             }
           },
           "defaultConfiguration": "development"

@@ -14,6 +14,9 @@ const routes: Routes = [
       { path: 'wheelwright', component: MapasComponent},
       { path: 'mariaTeresa', component: MapasComponent},
       { path: 'christophersen', component: MapasComponent},
+      { path: 'hughes', component: MapasComponent},
+      { path: 'labordeboy', component: MapasComponent},
+      { path: 'villa-estela', component: MapasComponent},
       { path: 'rural', component: MapasComponent},
 
       // Otras rutas generales
