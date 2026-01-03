@@ -31,8 +31,9 @@ export class DeparturesCardsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    let pathURL = this.route.snapshot.url.pop()?.path || 0;
-    this.currentPath = Number(pathURL);
+    const lastPath = this.route.snapshot.url[this.route.snapshot.url.length - 1]?.path;
+    const parsedPath = Number(lastPath);
+    this.currentPath = !isNaN(parsedPath) ? parsedPath : 0;
   }
 
   private scrollToToday(): boolean {
