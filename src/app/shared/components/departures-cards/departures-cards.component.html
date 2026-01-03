@@ -1,7 +1,13 @@
 <div class="departures-grid">
   @for (departure of departures(); track departure) {
     @if (currentPath === departure.group || departure.group === 0) {
-      <div class="departure-card">
+      <div class="departure-card" [class.is-today]="isToday(departure.date)">
+        @if (isToday(departure.date)) {
+          <div class="today-premium-badge">
+            <img src="https://api.iconify.design/mdi:star-circle.svg?color=white" width="16" height="16" alt="Star" />
+            <span>HOY</span>
+          </div>
+        }
         <!-- Header: Day & Time -->
         <div class="card-header-custom" [class]="'bg-' + departure.color + '-subtle'">
           <div class="header-content">

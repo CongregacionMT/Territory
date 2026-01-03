@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input } from '@angular/core';
+import { Component, OnInit, inject, input, effect } from '@angular/core';
 import { Departure } from '@core/models/Departures';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -14,20 +14,48 @@ export class DeparturesCardsComponent implements OnInit {
   readonly dateDeparture = input<string>();
   readonly departures = input<Departure[]>([] as Departure[]);
   currentPath: number = 0;
+  private hasScrolled: boolean = false;
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() { }
+  constructor() {
+    effect(() => {
+      const deps = this.departures();
+      if (deps.length > 0 && !this.hasScrolled) {
+        // Scroll to today's departure after a short delay to ensure rendering
+        setTimeout(() => {
+          if (this.scrollToToday()) {
+            this.hasScrolled = true;
+          }
+        }, 600);
+      }
+    });
+  }
 
   ngOnInit(): void {
     let pathURL = this.route.snapshot.url.pop()?.path || 0;
     this.currentPath = Number(pathURL);
   }
+
+  private scrollToToday(): boolean {
+    const todayElement = document.querySelector('.departure-card.is-today');
+    if (todayElement) {
+      todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return true;
+    }
+    return false;
+  }
   getDayOfWeek(dateString: string): string {
-    const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    const date = new Date(dateString);
+    const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const date = new Date(dateString + 'T00:00:00'); // Add time to avoid timezone shifts
     const dayOfWeekIndex = date.getDay();
     return daysOfWeek[dayOfWeekIndex];
+  }
+
+  isToday(dateString: string): boolean {
+    const today = new Date();
+    const [year, month, day] = dateString.split('-').map(Number);
+    return today.getFullYear() === year &&
+           today.getMonth() === (month - 1) &&
+           today.getDate() === day;
   }
 
   addToCalendar(departure: Departure): void {
