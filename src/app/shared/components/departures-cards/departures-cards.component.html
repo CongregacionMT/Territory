@@ -1,50 +1,66 @@
-<div class="departures-grid">
-  @for (departure of departures(); track departure) {
+<div class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-5 p-2">
+  @for (departure of departures(); track departure; let i = $index) {
     @if (currentPath === departure.group || departure.group === 0) {
-      <div class="departure-card" [class.is-today]="isToday(departure.date)">
+      <div 
+        class="departure-card relative bg-white rounded-[20px] shadow-sm flex flex-col border border-black/5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl opacity-0 animate-fadeInUp"
+        [class.is-today]="isToday(departure.date)"
+        [style.animation-delay]="(i * 0.1) + 's'"
+      >
         @if (isToday(departure.date)) {
-          <div class="today-premium-badge">
+          <div class="absolute -top-3 left-[15px] bg-[#0277bd] text-white px-3 py-1 rounded-md text-[0.7rem] font-bold z-20 tracking-wider shadow-lg border border-white/10 flex items-center gap-1 scale-100 transition-transform">
             <img src="https://api.iconify.design/mdi:star-circle.svg?color=white" width="16" height="16" alt="Star" />
             <span>HOY</span>
           </div>
         }
+        
         <!-- Header: Day & Time -->
-        <div class="card-header-custom" [class]="'bg-' + departure.color + '-subtle'">
-          <div class="header-content">
-            <span class="day-badge">{{ getDayOfWeek(departure.date) }}</span>
-            <span class="time-badge">{{ departure.schedule }}hs</span>
+        <div 
+          class="px-6 py-4 flex justify-between items-center border-b border-black/5 rounded-t-[20px]" 
+          [class]="isToday(departure.date) ? 'bg-[#e1f5fe]' : 'bg-' + departure.color + '-subtle'"
+        >
+          <div class="flex items-center gap-4">
+            <span class="text-xl font-extrabold text-[#1a1a1a] capitalize tracking-tight" [class.text-[#01579b]]="isToday(departure.date)">
+              {{ getDayOfWeek(departure.date) }}
+            </span>
+            <span class="bg-[#212529] text-white px-3 py-1.5 rounded-xl font-bold text-base shadow-md flex items-center gap-1.5" [class.bg-[#0277bd]]="isToday(departure.date)">
+              {{ departure.schedule }}hs
+            </span>
           </div>
-          <button class="btn-subscribe" (click)="addToCalendar(departure)" title="Agendar salida">
+          <button 
+            class="bg-white/60 border border-black/10 rounded-full w-10 h-10 flex items-center justify-center cursor-pointer transition-all hover:bg-white hover:scale-110 active:scale-95 shadow-sm"
+            (click)="addToCalendar(departure)" 
+            title="Agendar salida"
+          >
             <img src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=%236c757d" width="20" height="20" alt="Notificarme" />
           </button>
         </div>
 
         <!-- Body: Details -->
-        <div class="card-body-custom">
+        <div class="p-6 flex flex-col gap-5 flex-1">
           
           <!-- Driver -->
-          <div class="info-row">
-            <div class="icon-wrapper">
+          <div class="flex items-start gap-4">
+            <div class="flex items-center justify-center w-10 h-10 rounded-xl flex-none" [class]="isToday(departure.date) ? 'bg-[#e7f5ff] border border-blue-100' : 'bg-gray-50'">
               <img src="https://api.iconify.design/mdi:account-tie.svg?color=%236c757d" width="20" height="20" alt="Leader" />
             </div>
-            <div class="content">
-              <span class="label">Conductor</span>
-              <span class="value">{{ departure.driver }}</span>
+            <div class="flex-1 flex flex-col">
+              <span class="text-[0.75rem] uppercase tracking-widest text-gray-500 font-bold mb-1">Conductor</span>
+              <span class="text-[1.05rem] font-semibold leading-tight text-gray-900">{{ departure.driver }}</span>
             </div>
           </div>
 
-          <!-- Location (Enhanced) -->
-          <div class="info-row">
-            <div class="icon-wrapper">
+          <!-- Location -->
+          <div class="flex items-start gap-4">
+            <div class="flex items-center justify-center w-10 h-10 rounded-xl flex-none" [class]="isToday(departure.date) ? 'bg-[#e7f5ff] border border-blue-100' : 'bg-gray-50'">
               <img src="https://api.iconify.design/mdi:map-marker.svg?color=%236c757d" width="20" height="20" alt="Location" />
             </div>
-            <div class="content">
-              <span class="label">Punto de encuentro</span>
-              <span class="value">{{ departure.point }}</span>
+            <div class="flex-1 flex flex-col">
+              <span class="text-[0.75rem] uppercase tracking-widest text-gray-500 font-bold mb-1">Punto de encuentro</span>
+              <span class="text-[1.05rem] font-semibold leading-tight text-gray-900">{{ departure.point }}</span>
               
               @if(departure.maps) {
-                <a [href]="departure.maps" target="_blank" class="map-action-btn">
-                  <img src="https://api.iconify.design/logos:google-maps.svg" width="20" height="20" alt="Google Maps" />
+                <a [href]="departure.maps" target="_blank" class="inline-flex items-center gap-2 mt-3 bg-gradient-to-br from-blue-50 to-blue-100 text-[#1864ab] px-4 py-2.5 rounded-xl no-underline font-semibold text-[0.9rem] transition-all border border-blue-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 w-fit">
+                  <img src="https://api.iconify.design/logos:google-maps.svg" width="18" height="18" alt="Google Maps" />
                   Ver en Mapa
                 </a>
               }
@@ -52,26 +68,20 @@
           </div>
 
           <!-- Territories -->
-          <div class="info-row">
-            <div class="icon-wrapper">
+          <div class="flex items-start gap-4">
+            <div class="flex items-center justify-center w-10 h-10 rounded-xl flex-none" [class]="isToday(departure.date) ? 'bg-[#e7f5ff] border border-blue-100' : 'bg-gray-50'">
               <img src="https://api.iconify.design/mdi:map-legend.svg?color=%236c757d" width="20" height="20" alt="Territories" />
             </div>
-            <div class="content">
-              <span class="label">Territorios</span>
-              <div class="territories-container">
+            <div class="flex-1 flex flex-col">
+              <span class="text-[0.75rem] uppercase tracking-widest text-gray-500 font-bold mb-1">Territorios</span>
+              <div class="flex flex-wrap gap-2 mt-1.5">
                 @for (territory of departure.territory; track territory) {
                   <a
-                    class="territory-chip"
+                    class="inline-flex items-center justify-between gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[0.85rem] font-semibold text-gray-700 no-underline transition-all hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 hover:-translate-y-0.5 min-w-fit"
                     [routerLink]="'../../territorios/' + departure.location + '-' + territory.replace('N°', '')"
                   >
-                    <span class="territory-text">{{ territory }}</span>
-                    <img 
-                      src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d" 
-                      alt="Ver" 
-                      width="16" 
-                      height="16"
-                      class="territory-icon"
-                    />
+                    <span>{{ territory }}</span>
+                    <img src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d" alt="Ver" width="14" height="14" />
                   </a>
                 }
               </div>
