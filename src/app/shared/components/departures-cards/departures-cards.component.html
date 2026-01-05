@@ -70,7 +70,7 @@
                 @for (territory of departure.territory; track territory) {
                   <a
                     class="territory-item"
-                    [routerLink]="'../../territorios/' + departure.location + '-' + territory.replace('N°', '')"
+                    [routerLink]="'../../../territorios/' + departure.location + '-' + territory.replace('N°', '')"
                   >
                     <span>{{ territory }}</span>
                     <img src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d" width="12" height="12" />
