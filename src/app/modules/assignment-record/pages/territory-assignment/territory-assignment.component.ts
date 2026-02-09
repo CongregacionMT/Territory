@@ -67,109 +67,93 @@ export class TerritoryAssignmentComponent implements OnInit{
     const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
     const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
 
-    // Determinar el storage key basado en la ruta actual
     const currentPath = this.territoryPath();
     const storageKey = this.getStorageKeyByPath(currentPath);
 
-    this.territoriesNumber.set(
-      numberTerritory[currentPath] || []
-    );
+    this.territoriesNumber.set(numberTerritory[currentPath] || []);
 
-    if (sessionStorage.getItem(storageKey)) {
-      const storedStatisticData = sessionStorage.getItem(storageKey);
-      const parsedData = storedStatisticData ? JSON.parse(storedStatisticData) : [];
+    const storedStatisticData = sessionStorage.getItem(storageKey);
+    if (storedStatisticData) {
+      const parsedData = JSON.parse(storedStatisticData);
       this.dataListFull.set(parsedData);
-      this.dataListFull().length !== 0 ? this.sortByDate('1') : [];
+      if (parsedData.length !== 0) {
+        this.sortByDate('1');
+      }
       this.loadingData.set(true);
+    } else {
+      this.fetchDataForLocality(currentPath, storageKey, true);
     }
 
-    if (!sessionStorage.getItem(storageKey)) {
-      this.spinner.cargarSpinner();
-      const territoryData = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
-      const territories = territoryData[currentPath] || [];
+    this.loadPDFImage();
+    this.preCacheOtherLocalitiesIfNeeded();
+  }
 
-      const requests = territories.map((territory: any) =>
-        this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
-      );
-
-      forkJoin(requests).subscribe((results: any) => {
-        const statisticData: any[] = [];
-
-        results.forEach((card: Card[]) => {
-          for (let i = card.length - 1; i >= 0; i--) {
-            let appleCount = 0;
-            const list = card[i];
-            if (list.applesData) {
-              list.applesData.forEach((apple: CardApplesData) => {
-                if (apple.checked === true) {
-                  appleCount++;
-                }
-              });
-            }
-            if (appleCount === 0) {
-              card.splice(i, 1);
-            }
-          }
-          statisticData.push(card);
-        });
-
-        sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
-        this.dataListFull.set(statisticData);
-        this.sortByDate(this.selectedValueFilter());
-        this.spinner.cerrarSpinner();
-      });
-    }
-
-    // Busco el PDF original para modificarlo
+  private loadPDFImage(): void {
     const httpOptions = {
       responseType: 'arraybuffer' as 'arraybuffer'
     };
     const jpgPath = this.document.location.origin + '/assets/documents/S-13_S_image.jpg';
-    // console.log("path: ", jpgPath);
 
     this.http.get(jpgPath, httpOptions).subscribe({
       next: jpg => this.s13JPG.set(jpg)
     });
+  }
 
-    // Generar storage keys para TODAS las localidades dinámicamente
+  private fetchDataForLocality(path: string, storageKey: string, updateState: boolean): void {
+    if (updateState) {
+      this.spinner.cargarSpinner();
+    }
+
+    const storedNumberTerritory = sessionStorage.getItem("numberTerritory");
+    if (!storedNumberTerritory) return;
+
+    const territoryData = JSON.parse(storedNumberTerritory);
+    const territories = territoryData[path] || [];
+
+    const requests = territories.map((territory: any) =>
+      this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
+    );
+
+    if (requests.length === 0) {
+      if (updateState) {
+        this.spinner.cerrarSpinner();
+      }
+      return;
+    }
+
+    forkJoin(requests).subscribe((results: any) => {
+      const filteredResults = results.map((cardList: Card[]) => {
+        return cardList.filter(card => {
+          let checkedAppleCount = 0;
+          if (card.applesData) {
+            checkedAppleCount = card.applesData.filter(apple => apple.checked).length;
+          }
+          return checkedAppleCount > 0;
+        });
+      });
+
+      sessionStorage.setItem(storageKey, JSON.stringify(filteredResults));
+
+      if (updateState) {
+        this.dataListFull.set(filteredResults);
+        this.sortByDate(this.selectedValueFilter());
+        this.spinner.cerrarSpinner();
+        this.loadingData.set(true);
+      }
+    });
+  }
+
+  private preCacheOtherLocalitiesIfNeeded(): void {
     const allStorageKeys = environment.localities.map(loc => loc.storageKey);
 
-    if(!allStorageKeys.some(key => sessionStorage.getItem(key))){
-      this.spinner.cargarSpinner();
-      const territoryData = JSON.parse(sessionStorage.getItem('numberTerritory') as string);
-      this.territoryNumberOfLocalStorage.set(territoryData);
-
-      let completedRequests = 0;
-      const totalRequests = environment.localities.length;
-
+    // Si ya hay algo en el storage para alguna localidad, asumimos que el proceso ya ocurrió o está ocurriendo.
+    // Solo pre-cacheamos si el storage está completamente vacío.
+    if (allStorageKeys.every(key => !sessionStorage.getItem(key))) {
       environment.localities.forEach(({ key, storageKey }) => {
-        const territories = this.territoryNumberOfLocalStorage()[key] || [];
-
-        territories.forEach((territory: any) => {
-          this.territorieDataService.getCardTerritorieRegisterTable(territory.collection)
-          .subscribe((card) => {
-            card.forEach((list: Card, index: number) => {
-              this.appleCount.set(0);
-              list.applesData?.forEach((apple: CardApplesData) => {
-                if (apple.checked === true) {
-                  this.appleCount.update(count => count + 1);
-                }
-              });
-              if (this.appleCount() === 0) {
-                card.splice(index, 1);
-              }
-            });
-            const storeStatisticdData = sessionStorage.getItem(storageKey);
-            const statisticData = storeStatisticdData ? JSON.parse(storeStatisticdData) : [];
-            statisticData.push(card);
-            sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
-            completedRequests++;
-
-            if (completedRequests === totalRequests) {
-              this.spinner.cerrarSpinner();
-            }
-          });
-        });
+        // No volver a pedir la que ya pedimos en ngOnInit
+        if (key !== this.territoryPath()) {
+          this.fetchDataForLocality(key, storageKey, false);
+        }
       });
     }
   }
