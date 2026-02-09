@@ -27,9 +27,18 @@ export class StatisticsPageComponent implements OnInit{
   dataListFull = signal<any[]>([]);
   dataStadistics = signal<any[]>([]);
   appleCount = signal<any>(null);
-  path = signal<string>('');
+  path = signal<string>('end'); // Default sort by end date
   order = signal<number>(1);
   nameTitleTerritory = signal<string>('');
+  
+  // New signals for filtering and summary
+  timeRange = signal<number>(12); // months
+  summaryStats = signal({
+    totalTerritories: 0,
+    completedInPeriod: 0,
+    totalApples: 0,
+    percentCompleted: 0
+  });
 
   // FormControls no necesitan ser signals ya que tienen su propia reactividad
   green: FormControl;
@@ -70,39 +79,90 @@ export class StatisticsPageComponent implements OnInit{
     this.getDataStatisticTerritory();
   }
 
-  getDataStatisticTerritory() {
+  async setTimeRange(months: number) {
+    this.timeRange.set(months);
+    await this.getDataStatisticTerritory(true);
+  }
+
+  async getDataStatisticTerritory(forceRefresh = false) {
     const path = this.territoryPath();
     if (!path) return;
 
-    // Generar key consistente con HomeStatisticsPageComponent
-    // ej: mariaTeresa -> statisticDataMariaTeresa
     const suffix = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
-    const nameLocalStorage = `statisticData${suffix}`;
+    const storageKey = `statisticData${suffix}_${this.timeRange()}`;
 
-    // Fallback para legacy 'urbano'
-    let storageKey = nameLocalStorage;
-    
-    if (path === 'urbano') {
-       if (environment.congregationKey === 'wheelwright') {
-           storageKey = 'statisticDataW';
-       } else {
-           // Si es otra congregación (ej: Maria Teresa) y la URL dice 'urbano',
-           // asumimos que se refiere a la localidad principal (la primera en la lista)
-           const mainLocality = environment.localities?.[0];
-           if (mainLocality) {
-               const suffix = mainLocality.key.charAt(0).toUpperCase() + mainLocality.key.slice(1).replace(/-/g, '');
-               storageKey = `statisticData${suffix}`;
-           }
-       }
-    }
-
-    if (sessionStorage.getItem(storageKey)) {
+    if (!forceRefresh && sessionStorage.getItem(storageKey)) {
       const storedStatisticData = sessionStorage.getItem(storageKey);
       this.dataListFull.set(storedStatisticData ? JSON.parse(storedStatisticData) : []);
-      this.sortTable("completed");
+      this.calculateSummary();
       this.loadingData.set(true);
       return;
     }
+
+    // If not in storage or force refresh, fetch from service
+    this.loadingData.set(false);
+    this.spinner.cargarSpinner();
+
+    // Need to get territories for this locality first
+    const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
+    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : {};
+    const localityTerritories = numberTerritory[path] || [];
+
+    if (localityTerritories.length === 0) {
+      this.spinner.cerrarSpinner();
+      this.loadingData.set(true);
+      return;
+    }
+
+    const fetchedData: any[] = [];
+    const promises = localityTerritories.map((t: any) => 
+      new Promise<void>((resolve) => {
+        this.territorieDataService.getCardTerritorie(t.collection, this.timeRange())
+          .subscribe(cards => {
+            const filteredCards = cards.filter((list: any) => {
+              const checkedCount = list.applesData.filter((a: any) => a.checked).length;
+              return checkedCount > 0;
+            });
+            if (filteredCards.length > 0) {
+              fetchedData.push(filteredCards);
+            }
+            resolve();
+          });
+      })
+    );
+
+    await Promise.all(promises);
+    this.dataListFull.set(fetchedData);
+    sessionStorage.setItem(storageKey, JSON.stringify(fetchedData));
+    this.calculateSummary();
+    this.spinner.cerrarSpinner();
+    this.loadingData.set(true);
+  }
+
+  calculateSummary() {
+    const data = this.dataListFull();
+    const totalTerritories = data.length;
+    let totalApples = 0;
+    
+    data.forEach(territoryLists => {
+      if (territoryLists.length > 0) {
+        totalApples += territoryLists[0].applesData?.length || 0;
+      }
+    });
+
+    // Percent completed can be estimated as territories that have activity in the period
+    // relative to the total number of territories available in that locality
+    const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
+    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : {};
+    const localityTerritories = numberTerritory[this.territoryPath()] || [];
+    const totalAvailable = localityTerritories.length || totalTerritories;
+
+    this.summaryStats.set({
+      totalTerritories,
+      completedInPeriod: totalTerritories, // In this context, everything in dataListFull had activity
+      totalApples,
+      percentCompleted: Math.round((totalTerritories / totalAvailable) * 100)
+    });
   }
 
   capitalize(s: string): string {
@@ -111,53 +171,35 @@ export class StatisticsPageComponent implements OnInit{
 
   paintRow(dataList: any){
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const dateToday = new Date(`${year}-${month}-${day}`);
-    const dateCard = new Date(dataList[0]?.end !== ""
-    ? dataList[0]?.end
-    : dataList[1]?.end !== ""
-    ? dataList[1]?.end
-    : dataList[2]?.end !== ""
-    ? dataList[2]?.end
-    : dataList[3]?.end !== ""
-    ? dataList[3]?.end
-    : dataList[4]?.end !== ""
-    ? dataList[4]?.end
-    : dataList[5]?.end);
+    const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const lastEnd = dataList[0]?.end || dataList[1]?.end || dataList[2]?.end || 
+                    dataList[3]?.end || dataList[4]?.end || dataList[5]?.end;
+    
+    if (!lastEnd) return 'danger';
 
+    const dateCard = new Date(lastEnd);
     const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
     const days = Math.floor(difference / (1000 * 60 * 60 * 24));
 
-    if(days < this.green.value){
-      // Menos de 28 dias
-      return 'success'
-    } else if(days < this.blue.value){
-      // Menos de 42 dias
-      return 'primary'
-    } else if(days < this.yellow.value){
-      // Menos de 56
-      return 'warning'
-    }  else if(days < this.red.value){
-      // Más de 56 días
-      return 'danger'
-    } else {
-      return 'danger'
-    }
+    if(days < this.green.value) return 'success';
+    if(days < this.blue.value) return 'primary';
+    if(days < this.yellow.value) return 'warning';
+    return 'danger';
   }
 
   sortTable(prop: string) {
-    this.path.set(prop);
-    this.order.set(this.order() * (-1));
+    if (this.path() === prop) {
+      this.order.set(this.order() * (-1));
+    } else {
+      this.path.set(prop);
+      this.order.set(1);
+    }
     return false;
   }
 
   getIcon(prop:string): string{
-    var iconClass = "fa fa-sort";
-    if(this.path().indexOf(prop) != -1){
-      iconClass = this.order() === -1 ? 'fa fa-sort-down' : 'fa fa-sort-up';
-    }
-    return iconClass;
+    if(this.path() !== prop) return "fa fa-sort opacity-50";
+    return this.order() === -1 ? 'fa fa-sort-down text-primary' : 'fa fa-sort-up text-primary';
   }
 }

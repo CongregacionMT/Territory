@@ -39,15 +39,15 @@ export class TerritoryDataService {
     return collectionData(numberRef) as Observable<TerritoryNumberData[]>;
   }
   // TARJETAS DE CONDUCTORES
-  getCardTerritorie(collectionParam: string): Observable<Card[]>{
+  getCardTerritorie(collectionParam: string, months: number = 12): Observable<Card[]>{
     const cardRef = collection(this.firestore, collectionParam);
-    // Limitar por defecto a los últimos 1 año para evitar traer datos muy antiguos
-    const oneYearAgo = Timestamp.fromDate(
-      new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+    // Limitar por defecto a los últimos X meses para evitar traer datos muy antiguos
+    const fromDate = Timestamp.fromDate(
+      new Date(new Date().setMonth(new Date().getMonth() - months))
     );
     const q = query(
       cardRef,
-      where('creation', '>=', oneYearAgo),
+      where('creation', '>=', fromDate),
       orderBy('creation', 'desc')
     );
     return collectionData(q) as Observable<Card[]>;
