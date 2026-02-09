@@ -1,0 +1,101 @@
+<app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+
+<div class="container py-4">
+  <h2 class="text-center mb-4">Estadísticas de Salidas</h2>
+
+  <div class="row g-4">
+    <!-- Participación de Conductores -->
+    <div class="col-12 col-md-6">
+      <div class="card shadow border-0 h-100">
+        <div class="card-header bg-primary text-white py-3">
+          <h5 class="card-title mb-0">🏆 Participación de Conductores</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Conductor</th>
+                  <th class="text-center">Total Salidas</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (stat of driverStats; track stat.name) {
+                  <tr>
+                    <td>{{ stat.name }}</td>
+                    <td class="text-center">
+                      <span class="badge rounded-pill bg-info text-dark">{{ stat.count }}</span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="2" class="text-center text-muted">No hay datos suficientes</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puntos de Encuentro -->
+    <div class="col-12 col-md-6">
+      <div class="card shadow border-0 h-100">
+        <div class="card-header bg-success text-white py-3">
+          <h5 class="card-title mb-0">📍 Últimas Visitas a Puntos de Encuentro</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Punto</th>
+                  <th class="text-center">Última Vez</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (point of pointStats; track point.name) {
+                  <tr>
+                    <td>{{ point.name }}</td>
+                    <td class="text-center">
+                      <span class="text-muted small">{{ getFormattedDate(point.lastDate) }}</span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="2" class="text-center text-muted">No hay datos suficientes</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial Resumido -->
+    <div class="col-12">
+      <div class="card shadow border-0">
+        <div class="card-header bg-dark text-white py-3">
+          <h5 class="card-title mb-0">📅 Historial de Semanas</h5>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            @for (week of weeklyDepartures; track week.weekId) {
+              <div class="list-group-item d-flex justify-content-center align-items-center py-3">
+                <div class="text-center">
+                  <h6 class="mb-0">Semana del {{ getFormattedDate(week.weekId) }}</h6>
+                  <small class="text-muted">{{ week.departure.length }} salidas programadas</small>
+                </div>
+              </div>
+            } @empty {
+              <p class="text-center text-muted my-3">Aún no se han guardado semanas en el historial</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input } from '@angular/core';
+import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure } from '../../../../core/models/Departures';
@@ -7,6 +7,8 @@ import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snac
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { User } from '@core/models/User';
+import { WeeklyDeparture } from '../../../../core/models/Departures';
 
 @Component({
     selector: 'app-form-edit-departures',
@@ -27,10 +29,13 @@ export class FormEditDeparturesComponent implements OnInit{
   groupedDepartures: { [key: string]: Departure[] } = {};
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
+  readonly dateDepartureInput = input<string>('');
+  drivers = signal<User[]>([]);
   congregationName = environment.congregationName;
   territoryPrefix = environment.territoryPrefix;
   localities = environment.localities;
   territoryOptionsMap: { [key: string]: string[] } = {};
+  isSaved: boolean = false;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -41,6 +46,7 @@ export class FormEditDeparturesComponent implements OnInit{
   }
   ngOnInit(): void {
     this.loadTerritoryData();
+    this.loadDrivers();
     this.departureFormArray.clear()
     this.formDepartureDataInput().forEach((departure: Departure) => {
       const groupKey = departure.group;
@@ -109,8 +115,12 @@ export class FormEditDeparturesComponent implements OnInit{
     if (!this.territoryOptionsMap[this.territoryPrefix] && (!data || Object.keys(data).length === 0)) {
        this.territoryOptionsMap[this.territoryPrefix] = Array.from({ length: TERRITORY_COUNT }, (_, i) => `N°${i + 1}`);
     }
-    // Also ensure 'Rural' option is available if key 'rural' exists in localities
-    // (Already handled by loop if configured in env, but checking just in case)
+  }
+
+  loadDrivers() {
+    this.territoryDataService.getUsers().subscribe(users => {
+      this.drivers.set(users.sort((a, b) => a.user.localeCompare(b.user)));
+    });
   }
 
   getTerritoryList(locationPrefix: string): string[] {
@@ -185,14 +195,17 @@ export class FormEditDeparturesComponent implements OnInit{
         }
       }
     });
+    this.isSaved = false;
   }
   onChangeColor(event: any, index: number, group: number) {
+    this.isSaved = false;
     this.numberGroup = group;
     const departureControl = this.departureFormArray.controls[index];
     const selectedValue = event.target.value;
     departureControl.get('color')?.setValue(selectedValue);
   }
   addInputForm(group: number){
+    this.isSaved = false;
     this.numberGroup = group;
     this.departureFormArray.push(this.fb.group({
       date: new FormControl(''),
@@ -207,6 +220,7 @@ export class FormEditDeparturesComponent implements OnInit{
     }));
   }
   deleteInputForm(index: number, group: number){
+    this.isSaved = false;
     this.numberGroup = group;
     this.departureFormArray.removeAt(index);
     if(this.departureFormArray.length === 0){
@@ -220,6 +234,7 @@ export class FormEditDeparturesComponent implements OnInit{
     }
   }
   rollbackInputForm(){
+    this.isSaved = false;
     this.departureFormArray.clear();
     this.formDepartureDataInput().map((departure: any, index: number) => {
       this.departureFormArray.push(this.fb.group({
@@ -236,6 +251,7 @@ export class FormEditDeparturesComponent implements OnInit{
     });
   }
   addNewGroup(){
+    this.isSaved = false;
     this.groupKeys.push(this.groupKeys.length);
     this.addInputForm(this.groupKeys.length - 1);
   }
@@ -270,14 +286,33 @@ export class FormEditDeparturesComponent implements OnInit{
     }
   }
   handleCheckboxChange(event: Event, num: string, i: number, group: number) {
+    this.isSaved = false;
     const input = event.target as HTMLInputElement;
     const isChecked = input.checked;
     this.toggleTerritory(num, i, group, isChecked);
   }
 
+  isDirty(): boolean {
+    return this.formDeparture.dirty;
+  }
+
   submitForm() {
+    this.isSaved = true;
     this.openSnackBar('Salidas actualizadas! 😉', 'ok');
     const departures = this.groupKeys.map(number => this.formDeparture.value?.[`departure${number}`]).flat();
+    
+    // Guardar en el documento actual (docDeparture) para compatibilidad
     this.territoryDataService.putDepartures({ departure: departures });
+
+    // Guardar en el historial
+    const weekId = this.dateDepartureInput();
+    if (weekId) {
+      const weeklyDeparture: WeeklyDeparture = {
+        departure: departures,
+        weekId: weekId,
+        createdAt: new Date()
+      };
+      this.territoryDataService.postWeeklyDeparture(weeklyDeparture);
+    }
   }
 }

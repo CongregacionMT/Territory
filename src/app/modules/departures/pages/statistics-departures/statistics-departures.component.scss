@@ -1,0 +1,30 @@
+.card {
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: transform 0.2s;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.card-header {
+  border-bottom: 0;
+}
+
+.table {
+  margin-bottom: 0;
+  
+  th {
+    border-top: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--bs-gray-600);
+  }
+}
+
+.badge {
+  font-weight: 500;
+}

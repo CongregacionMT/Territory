@@ -11,7 +11,7 @@ import { Group } from '@core/models/Group';
 import { StatisticsButton } from '@core/models/StatisticsButton';
 import { User } from '@core/models/User';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import { DateDeparture, DepartureData } from '@core/models/Departures';
+import { DateDeparture, DepartureData, WeeklyDeparture } from '@core/models/Departures';
 
 @Injectable({
   providedIn: 'root'
@@ -256,6 +256,20 @@ export class TerritoryDataService {
   putDate(date: DateDeparture){
     const departuresRef = doc(this.firestore, "Departures", `dateDeparture`);
     updateDoc(departuresRef, { ...date });
+  }
+
+  // HISTORIAL DE SALIDAS
+  getWeeklyDepartures(): Observable<WeeklyDeparture[]>{
+    const departuresRef = collection(this.firestore, "WeeklyDepartures");
+    const q = query(departuresRef, orderBy("weekId", "desc"));
+    return collectionData(q, {idField: 'id'}) as Observable<WeeklyDeparture[]>;
+  }
+
+  async postWeeklyDeparture(weeklyDeparture: WeeklyDeparture){
+    const departuresRef = collection(this.firestore, "WeeklyDepartures");
+    // Usamos weekId como ID del documento para que sea único por semana y sea fácil de actualizar si se vuelve a guardar
+    const docRef = doc(departuresRef, weeklyDeparture.weekId);
+    await setDoc(docRef, { ...weeklyDeparture, createdAt: Timestamp.now() });
   }
 
   // RURAL

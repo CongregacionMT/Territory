@@ -5,16 +5,18 @@ import { DeparturePageComponent } from './pages/departure-page/departure-page.co
 import { TablePublishersPageComponent } from './pages/table-publishers-page/table-publishers-page.component';
 import { EditDeparturesComponent } from './pages/edit-departures/edit-departures.component';
 import { ManagePublishersComponent } from './pages/manage-publishers/manage-publishers.component';
+import { unsavedChangesGuard } from '@core/guards/unsaved-changes.guard';
 
 const routes: Routes = [
   {
     path: '',
     children: [
       { path: '', component: HomeDeparturePageComponent },
-      { path: 'editar', component: EditDeparturesComponent },
+      { path: 'editar', component: EditDeparturesComponent, canDeactivate: [unsavedChangesGuard] },
       { path: 'gestion-publicadores', component: ManagePublishersComponent },
       { path: 'grupo/:number', component: DeparturePageComponent },
       { path: 'publicadores', component: TablePublishersPageComponent },
+      { path: 'estadisticas', loadComponent: () => import('./pages/statistics-departures/statistics-departures.component').then(m => m.StatisticsDeparturesComponent) },
       { path: '**', redirectTo: '' },
     ],
   },

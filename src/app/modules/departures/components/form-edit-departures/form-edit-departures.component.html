@@ -42,14 +42,17 @@
                     />
                   </div>
                   <div class="col-12 col-md-2">
-                    <input
-                      type="text"
+                    <select
                       aria-label="driver"
-                      class="form-control"
-                      placeholder="Conductor"
+                      class="form-control form-select"
                       [value]="days.get('driver')?.value || ''"
                       (change)="onChangeInput($event, 'driver', i, group)"
-                    />
+                    >
+                      <option value="" disabled selected>Conductor</option>
+                      @for (driver of drivers(); track driver.user) {
+                        <option [value]="driver.user">{{ driver.user }}</option>
+                      }
+                    </select>
                   </div>
                   <div class="col-12 col-md-3">
                     <input

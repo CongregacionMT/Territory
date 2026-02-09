@@ -416,7 +416,14 @@ async function initializeFirebase(config, localitiesData) {
     console.log('   ⊙ Cart (locations) ya existe');
   }
 
-  // 7. Crear usuario admin
+  // 7. Crear colección WeeklyDepartures (vacía como plantilla)
+  const weeklyRef = db.collection('WeeklyDepartures');
+  const weeklyDocs = await weeklyRef.limit(1).get();
+  if (weeklyDocs.empty) {
+    console.log('   ℹ Colección WeeklyDepartures habilitada (se poblará al guardar salidas)');
+  }
+
+  // 8. Crear usuario admin
   const usersRef = db.collection('users');
   await usersRef.doc('admin').set({
     user: 'admin',
