@@ -1,4 +1,11 @@
-import { enableProdMode, importProvidersFrom, provideEnvironmentInitializer, inject, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import {
+  enableProdMode,
+  importProvidersFrom,
+  provideEnvironmentInitializer,
+  inject,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+} from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { initializeDialogService } from './app/app.module';
 import { environment } from './environments/environment';
@@ -12,6 +19,11 @@ import { AppRoutingModule } from './app/app-routing.module';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { AppComponent } from './app/app.component';
+import localeEs from '@angular/common/locales/es';
+import { registerLocaleData } from '@angular/common';
+import { LOCALE_ID } from '@angular/core';
+
+registerLocaleData(localeEs, 'es');
 
 if (environment.production) {
   enableProdMode();
@@ -20,36 +32,41 @@ if (environment.production) {
 initializeApp(environment.firebase);
 
 bootstrapApplication(AppComponent, {
-    providers: [
-        provideZonelessChangeDetection(),
-        provideBrowserGlobalErrorListeners(),
-        importProvidersFrom(BrowserModule, AppRoutingModule, ServiceWorkerModule.register('ngsw-worker.js', {
-            enabled: environment.production,
-            // Register the ServiceWorker as soon as the application is stable
-            // or after 30 seconds (whichever comes first).
-            registrationStrategy: 'registerWhenStable:30000'
-        })),
-        provideFirebaseApp(() => initializeApp(environment.firebase)),
-        provideMessaging(() => getMessaging(getApp())),
-        provideFirestore(() => getFirestore()),
-        importProvidersFrom(MatDialogModule),
-        {
-            provide: provideEnvironmentInitializer(initializeDialogService),
-            useFactory: initializeDialogService,
-            deps: [MatDialog],
-            multi: true
-        },
-        provideAnimations()
-    ]
-})
-  .catch(err => console.error(err));
+  providers: [
+    provideZonelessChangeDetection(),
+    provideBrowserGlobalErrorListeners(),
+    importProvidersFrom(
+      BrowserModule,
+      AppRoutingModule,
+      ServiceWorkerModule.register('ngsw-worker.js', {
+        enabled: environment.production,
+        // Register the ServiceWorker as soon as the application is stable
+        // or after 30 seconds (whichever comes first).
+        registrationStrategy: 'registerWhenStable:30000',
+      }),
+    ),
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideMessaging(() => getMessaging(getApp())),
+    provideFirestore(() => getFirestore()),
+    importProvidersFrom(MatDialogModule),
+    {
+      provide: provideEnvironmentInitializer(initializeDialogService),
+      useFactory: initializeDialogService,
+      deps: [MatDialog],
+      multi: true,
+    },
+    provideAnimations(),
+    { provide: LOCALE_ID, useValue: 'es' },
+  ],
+}).catch((err) => console.error(err));
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./firebase-messaging-sw.js')
-      .then((registration) => {
-        console.log('Service Worker registrado correctamentes:', registration);
-      })
-      .catch((error) => {
-        console.error('Error al registrar el Service Workers:', error);
-      });
-  }
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('./firebase-messaging-sw.js')
+    .then((registration) => {
+      console.log('Service Worker registrado correctamentes:', registration);
+    })
+    .catch((error) => {
+      console.error('Error al registrar el Service Workers:', error);
+    });
+}
