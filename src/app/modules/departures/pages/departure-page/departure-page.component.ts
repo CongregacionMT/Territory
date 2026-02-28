@@ -4,17 +4,27 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
+import {
+  DateDeparture,
+  Departure,
+  DepartureData,
+  WeeklyDeparture,
+} from '@core/models/Departures';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { FormsModule } from '@angular/forms';
 import { formatWeekRange, getWeekId } from '@shared/utils/date-utils';
 
 @Component({
-    selector: 'app-departure-page',
-    templateUrl: './departure-page.component.html',
-    styleUrls: ['./departure-page.component.scss'],
-    imports: [BreadcrumbComponent, DeparturesCardsComponent, RouterLink, FormsModule]
+  selector: 'app-departure-page',
+  templateUrl: './departure-page.component.html',
+  styleUrls: ['./departure-page.component.scss'],
+  imports: [
+    BreadcrumbComponent,
+    DeparturesCardsComponent,
+    RouterLink,
+    FormsModule,
+  ],
 })
 export class DeparturePageComponent implements OnInit {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
@@ -24,31 +34,38 @@ export class DeparturePageComponent implements OnInit {
   private rutaActiva = inject(ActivatedRoute);
 
   routerBreadcrum: any = [];
-  numberGroup: any = "0";
-  titleGroup: string = "";
-  dateDeparture: any = new FormControl("");
+  numberGroup: any = '0';
+  titleGroup: string = '';
+  dateDeparture: any = new FormControl('');
   departures$: Departure[] = [];
   weeklyHistory: WeeklyDeparture[] = [];
   selectedWeek: string = 'actual';
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
-  constructor(){
+  constructor() {
     const routerBreadcrumMockService = this.routerBreadcrumMockService;
 
     this.spinner.cargarSpinner();
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
     this.numberGroup = this.rutaActiva.snapshot.params;
-    this.titleGroup = this.numberGroup.number !== "0" ? `(Grupo ${this.numberGroup.number})` : "";
+    this.titleGroup =
+      this.numberGroup.number !== '0'
+        ? `(Grupo ${this.numberGroup.number})`
+        : '';
   }
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[10];
-    this.territoryDataService.getWeeklyDepartures().subscribe(history => {
-      this.weeklyHistory = history;
-      
+    this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
+      this.weeklyHistory = history.sort((a, b) =>
+        a.weekId.localeCompare(b.weekId),
+      );
+
       // Intentar encontrar la semana actual del calendario en el historial
       const currentWeekId = getWeekId(new Date());
-      const currentWeekInHistory = this.weeklyHistory.find(w => w.weekId === currentWeekId);
+      const currentWeekInHistory = this.weeklyHistory.find(
+        (w) => w.weekId === currentWeekId,
+      );
 
       if (currentWeekInHistory) {
         this.selectedWeek = currentWeekInHistory.id || '';
@@ -66,9 +83,9 @@ export class DeparturePageComponent implements OnInit {
               next: (date: DateDeparture) => {
                 this.dateDeparture.setValue(date.date);
                 this.spinner.cerrarSpinner();
-              }
+              },
             });
-          }
+          },
         });
       }
     });
@@ -85,16 +102,18 @@ export class DeparturePageComponent implements OnInit {
   onWeekChange() {
     this.spinner.cargarSpinner();
     if (this.selectedWeek === 'actual') {
-      this.territoryDataService.getDepartures().subscribe(departure => {
+      this.territoryDataService.getDepartures().subscribe((departure) => {
         this.departures$ = departure.departure;
         this.sortDepartures();
-        this.territoryDataService.getDateDepartures().subscribe(date => {
+        this.territoryDataService.getDateDepartures().subscribe((date) => {
           this.dateDeparture.setValue(date.date);
           this.spinner.cerrarSpinner();
         });
       });
     } else {
-      const historyRecord = this.weeklyHistory.find(w => w.id === this.selectedWeek);
+      const historyRecord = this.weeklyHistory.find(
+        (w) => w.id === this.selectedWeek,
+      );
       if (historyRecord) {
         this.departures$ = historyRecord.departure;
         this.sortDepartures();

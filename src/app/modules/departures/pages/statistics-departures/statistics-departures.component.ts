@@ -12,7 +12,7 @@ import { formatWeekRange } from '@shared/utils/date-utils';
   standalone: true,
   imports: [CommonModule, BreadcrumbComponent],
   templateUrl: './statistics-departures.component.html',
-  styleUrls: ['./statistics-departures.component.scss']
+  styleUrls: ['./statistics-departures.component.scss'],
 })
 export class StatisticsDeparturesComponent implements OnInit {
   private territoryDataService = inject(TerritoryDataService);
@@ -21,22 +21,23 @@ export class StatisticsDeparturesComponent implements OnInit {
 
   weeklyDepartures: WeeklyDeparture[] = [];
   routerBreadcrum: any = [];
-  
+
   // Estadísticas procesadas
-  driverStats: { name: string, count: number }[] = [];
-  pointStats: { name: string, lastDate: string }[] = [];
+  driverStats: { name: string; count: number }[] = [];
+  pointStats: { name: string; lastDate: string }[] = [];
 
   ngOnInit(): void {
+    console.log('Cargando StatisticsDeparturesComponent...');
     this.spinner.cargarSpinner();
-    this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum()[10]; // Ajustar según conveniencia
-    
+    this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum()[13]; // Home > Salidas > Estadísticas
+
     this.territoryDataService.getWeeklyDepartures().subscribe({
       next: (data) => {
         this.weeklyDepartures = data;
         this.processStats();
         this.spinner.cerrarSpinner();
       },
-      error: () => this.spinner.cerrarSpinner()
+      error: () => this.spinner.cerrarSpinner(),
     });
   }
 
@@ -44,8 +45,8 @@ export class StatisticsDeparturesComponent implements OnInit {
     const driverCounts: { [key: string]: number } = {};
     const pointsMap: { [key: string]: string } = {};
 
-    this.weeklyDepartures.forEach(week => {
-      week.departure.forEach(dep => {
+    this.weeklyDepartures.forEach((week) => {
+      week.departure.forEach((dep) => {
         if (dep.driver) {
           driverCounts[dep.driver] = (driverCounts[dep.driver] || 0) + 1;
         }
@@ -59,11 +60,11 @@ export class StatisticsDeparturesComponent implements OnInit {
     });
 
     this.driverStats = Object.keys(driverCounts)
-      .map(name => ({ name, count: driverCounts[name] }))
+      .map((name) => ({ name, count: driverCounts[name] }))
       .sort((a, b) => b.count - a.count);
 
     this.pointStats = Object.keys(pointsMap)
-      .map(name => ({ name, lastDate: pointsMap[name] }))
+      .map((name) => ({ name, lastDate: pointsMap[name] }))
       .sort((a, b) => b.lastDate.localeCompare(a.lastDate));
   }
 

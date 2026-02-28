@@ -1,15 +1,37 @@
-<h2 class="text-center mt-2">Fecha para las salidas actuales</h2>
 <section class="container">
   <div class="row justify-content-center">
     <div class="col-12 col-md-12">
-      <div class="input-group mb-3 flex-wrap">
-        <span class="d-none d-md-block input-group-text">Semana</span>
-        <input
-          type="date"
-          class="form-control"
-          [formControl]="dateDeparture"
-        />
-        <button class="btn btn-primary" (click)="updateDate()">Actualizar fecha</button>
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center mb-3">
+            <i class="far fa-calendar-alt fs-4 me-2 text-primary"></i>
+            <h5 class="mb-0 text-secondary">Seleccionar Semana de Salidas</h5>
+          </div>
+
+          <div class="input-group mb-3">
+            <span class="input-group-text bg-white border-end-0">
+              <span class="d-none d-md-inline">Semana del Lunes</span>
+            </span>
+            <input
+              type="date"
+              class="form-control border-start-0 ps-0"
+              [formControl]="dateDeparture"
+            />
+            <button class="btn btn-primary px-4" (click)="updateDate()">
+              Actualizar
+            </button>
+          </div>
+
+          @if (selectedWeekRange) {
+            <div
+              class="alert alert-info py-2 px-3 mb-0 border-0 d-flex align-items-center"
+              style="background-color: #e3f2fd; color: #0d47a1"
+            >
+              <span class="fw-bold me-2">Semana seleccionada:</span>
+              <span class="text-uppercase small">{{ selectedWeekRange }}</span>
+            </div>
+          }
+        </div>
       </div>
     </div>
   </div>
