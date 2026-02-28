@@ -286,15 +286,29 @@ Ve a Firebase Console y actualiza:
 }
 ```
 
-### 3. Probar la aplicación
+### 3. Actualizar ruta en: 
+
+`territory-routing.module.ts`
+
+```typescript
+{ path: 'congregation', component: MapasComponent},
+```
+
+`assignment-record-routing.module.ts`
+
+```typescript
+{ path: 'congregation', component: TerritoryAssignmentComponent},
+```
+
+### 4. Probar la aplicación
 
 ```bash
-ng serve --configuration=[congregacion]
+npm run [localidad]
 ```
 
 Ejemplo:
 ```bash
-ng serve --configuration=maria-teresa
+npm run maria-teresa
 ```
 
 ---
