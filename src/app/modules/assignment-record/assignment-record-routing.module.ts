@@ -16,6 +16,7 @@ const routes: Routes = [
       { path: 'hughes', component: TerritoryAssignmentComponent},
       { path: 'labordeboy', component: TerritoryAssignmentComponent},
       { path: 'villa-estela', component: TerritoryAssignmentComponent},
+      { path: 'arias', component: TerritoryAssignmentComponent},
       { path: 'mariaTeresa', component: TerritoryAssignmentComponent},
       { path: 'christophersen', component: TerritoryAssignmentComponent},
       { path: 'rural', component: TerritoryAssignmentComponent},
