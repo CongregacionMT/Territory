@@ -1,5 +1,21 @@
-import { Component, OnDestroy, OnInit, inject, signal, viewChild, computed } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+  signal,
+  viewChild,
+  computed,
+} from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
+import {
+  FormBuilder,
+  FormGroup,
+  FormArray,
+  FormControl,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -20,10 +36,17 @@ import { Card, CardApplesData } from '@core/models/Card';
 import { BreadcrumbItem } from '@core/models/Breadcrumb';
 
 @Component({
-    selector: 'app-card-territory',
-    templateUrl: './card-territory.component.html',
-    styleUrls: ['./card-territory.component.scss'],
-    imports: [BreadcrumbComponent, ReactiveFormsModule, FocusInvalidInputDirective, RouterLink, ModalComponent_1]
+  selector: 'app-card-territory',
+  templateUrl: './card-territory.component.html',
+  styleUrls: ['./card-territory.component.scss'],
+  imports: [
+    BreadcrumbComponent,
+    ReactiveFormsModule,
+    FocusInvalidInputDirective,
+    RouterLink,
+    ModalComponent_1,
+    TitleCasePipe,
+  ],
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
@@ -37,7 +60,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   card = signal<Card>({
-    id: "",
+    id: '',
     location: environment.congregationName,
     territoryNumber: 1,
     driver: '',
@@ -48,11 +71,11 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     creation: '',
     applesData: [],
     revision: false,
-    revisionComplete: false
+    revisionComplete: false,
   });
 
   iframe = signal<SafeHtml | null>(null);
-  path = signal<string>("");
+  path = signal<string>('');
   routerBreadcrum = signal<BreadcrumbItem[]>([]);
   formCard = signal<FormGroup>(this.createFormCard());
   driverError = signal<boolean>(false);
@@ -66,11 +89,15 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   readonly modalComponent = viewChild(ModalComponent);
 
   isRevisionMode = computed(() => this.card().revision === true);
-  hasValidDriver = computed(() => this.formCard().get('driver')?.valid ?? false);
+  hasValidDriver = computed(
+    () => this.formCard().get('driver')?.valid ?? false,
+  );
   hasValidStart = computed(() => this.formCard().get('start')?.valid ?? false);
   totalApples = computed(() => this.card().applesData?.length ?? 0);
-  checkedApples = computed(() =>
-    this.card().applesData?.filter((apple: CardApplesData) => apple.checked)?.length ?? 0
+  checkedApples = computed(
+    () =>
+      this.card().applesData?.filter((apple: CardApplesData) => apple.checked)
+        ?.length ?? 0,
   );
 
   constructor(...args: unknown[]);
@@ -78,52 +105,58 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.spinner.cargarSpinner();
 
     // VALIDAR SI ESTOY REVISANDO O NO LA CARD
-    if(this.cardService.dataCard.revision === true){
+    if (this.cardService.dataCard.revision === true) {
       // CARGO LOS DATOS DESDE EL SERVICIO PARA REVISAR LA CARD
       this.card.set(this.cardService.dataCard);
 
       const form = this.formCard();
-      form.patchValue({driver: this.card().driver});
-      form.patchValue({start: this.card().start});
-      form.patchValue({end: this.card().end});
-      form.patchValue({comments: this.card().comments});
+      form.patchValue({ driver: this.card().driver });
+      form.patchValue({ start: this.card().start });
+      form.patchValue({ end: this.card().end });
+      form.patchValue({ comments: this.card().comments });
 
       this.card().applesData.map((apple: CardApplesData) => {
         const applesData: FormArray = form.get('applesData') as FormArray;
-        applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
+        applesData.push(
+          new FormControl({ name: apple.name, checked: apple.checked }),
+        );
       });
       this.dataLoaded.set(true);
       this.spinner.cerrarSpinner();
     } else {
       // SI NO ESTOY REVISANDO LA CARD, ENTONCES MUESTRO LA ULTIMA TARJETA.
       this.path.set(this.activatedRoute.snapshot.params['collection']);
-      const subscription = this.territorieDataService.getCardTerritorie(this.path()).subscribe({
-        next: card => {
-          this.card.set(card[0]);
-          this.countTrueApples.set(0);
+      const subscription = this.territorieDataService
+        .getCardTerritorie(this.path())
+        .subscribe({
+          next: (card) => {
+            this.card.set(card[0]);
+            this.countTrueApples.set(0);
 
-          // Limpia el FormArray antes de llenarlo
-          const form = this.formCard();
-          form.patchValue({comments: this.card().comments});
-          const applesData: FormArray = form.get('applesData') as FormArray;
-          applesData.clear();
+            // Limpia el FormArray antes de llenarlo
+            const form = this.formCard();
+            form.patchValue({ comments: this.card().comments });
+            const applesData: FormArray = form.get('applesData') as FormArray;
+            applesData.clear();
 
-          this.card().applesData.map((apple: CardApplesData) => {
-            applesData.push(new FormControl({name: apple.name, checked: apple.checked}));
-            if(apple.checked === true){
-              this.countTrueApples.update(count => count + 1);
+            this.card().applesData.map((apple: CardApplesData) => {
+              applesData.push(
+                new FormControl({ name: apple.name, checked: apple.checked }),
+              );
+              if (apple.checked === true) {
+                this.countTrueApples.update((count) => count + 1);
+              }
+            });
+
+            if (this.countTrueApples() !== 0) {
+              form.patchValue({ start: this.card().start });
             }
-          });
 
-          if(this.countTrueApples() !== 0){
-            form.patchValue({start: this.card().start});
-          }
-
-          this.countTrueApples.set(0);
-          this.dataLoaded.set(true);
-          this.spinner.cerrarSpinner();
-        }
-      });
+            this.countTrueApples.set(0);
+            this.dataLoaded.set(true);
+            this.spinner.cerrarSpinner();
+          },
+        });
       this.cardSubscription.set(subscription);
     }
   }
@@ -135,7 +168,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       applesData: this.fb.array([]),
       start: [cardData.start, Validators.required],
       end: [cardData.end],
-      comments: [cardData.comments]
+      comments: [cardData.comments],
     });
   }
 
@@ -155,7 +188,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const form = this.formCard();
     const applesData: FormArray = form.get('applesData') as FormArray;
     applesData.controls.forEach((item: any) => {
-      if(item.value.name === e.target.value){
+      if (item.value.name === e.target.value) {
         item.value.checked = e.target.checked;
       }
     });
@@ -203,7 +236,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       start: form.value.start,
       end: form.value.end,
       comments: form.value.comments,
-      applesData: uniqueCheck
+      applesData: uniqueCheck,
     };
 
     this.card.set(updatedCard);
@@ -213,22 +246,22 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const form = this.formCard();
 
     // Validar formulario
-    if(form.controls?.['driver'].invalid){
+    if (form.controls?.['driver'].invalid) {
       this.driverError.set(form.controls?.['driver'].invalid);
       return;
     }
-    if(form.controls?.['start'].invalid){
+    if (form.controls?.['start'].invalid) {
       this.startError.set(form.controls?.['start'].invalid);
       return;
     }
-    if(form.controls?.['end'].value === ""){
+    if (form.controls?.['end'].value === '') {
       this.countFalseApples.set(0);
       form.value.applesData.map((apple: any) => {
-        if(apple.checked === false){
-          this.countFalseApples.update(count => count + 1);
+        if (apple.checked === false) {
+          this.countFalseApples.update((count) => count + 1);
         }
       });
-      if(this.countFalseApples() === 0){
+      if (this.countFalseApples() === 0) {
         this.endError.set(true);
         return;
       }
@@ -243,29 +276,34 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
     const currentCard = this.card();
 
-    if(currentCard.revision === true){
-      await this.territorieDataService.postCardTerritorie(currentCard, currentCard.link ?? '')
-      ?.then(() => {
-        console.log("todo bien");
-      });
+    if (currentCard.revision === true) {
+      await this.territorieDataService
+        .postCardTerritorie(currentCard, currentCard.link ?? '')
+        ?.then(() => {
+          console.log('todo bien');
+        });
       await this.territorieDataService.putCardTerritorie(currentCard);
-          // Validar campaña desde cache
+      // Validar campaña desde cache
       const activeCampaign = this.campaignService.getCachedCampaign();
       if (activeCampaign) {
-        this.campaignService.updateCampaignStats(activeCampaign.id, currentCard);
+        this.campaignService.updateCampaignStats(
+          activeCampaign.id,
+          currentCard,
+        );
       }
     } else {
       const updatedCard = {
         ...currentCard,
-        creation: Timestamp.now()
+        creation: Timestamp.now(),
       };
       this.card.set(updatedCard);
 
-      this.territorieDataService.sendRevisionCardTerritorie(updatedCard)
-      ?.then(() => {
-        this.spinner.cerrarSpinner();
-        this.openModal();
-      });
+      this.territorieDataService
+        .sendRevisionCardTerritorie(updatedCard)
+        ?.then(() => {
+          this.spinner.cerrarSpinner();
+          this.openModal();
+        });
     }
   }
 

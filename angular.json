@@ -155,6 +155,31 @@
                 }
               ],
               "outputHashing": "all"
+            },
+            "arias": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.arias.ts"
+                },
+                {
+                  "replace": "src/app/core/config/maps.config.ts",
+                  "with": "src/app/core/config/maps.arias.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "6kb"
+                }
+              ],
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production"
@@ -176,6 +201,9 @@
             },
             "hughes": {
               "buildTarget": "territory:build:hughes"
+            },
+            "arias": {
+              "buildTarget": "territory:build:arias"
             }
           },
           "defaultConfiguration": "development"

@@ -4,9 +4,21 @@ Este proyecto es una aplicación para la gestión de territorios de congregació
 
 ## 🚀 Configuración de Nueva Congregación
 
+### 📋 Prerrequisitos Críticos
+
+Antes de comenzar, es **obligatorio** realizar estos pasos, de lo contrario la configuración fallará:
+
+1.  **Firebase Login**: Asegúrate de estar logueado con la cuenta de Google que tiene acceso al proyecto de Firebase de la congregación.
+    ```bash
+    firebase login
+    ```
+2.  **Habilitar Firestore API**: Debes habilitar la API de Cloud Firestore para tu proyecto en la consola de Google Cloud:
+    👉 [console.cloud.google.com](https://console.cloud.google.com)
+    _(Busca "Cloud Firestore API" y haz clic en "Habilitar")_
+
 ### Método Automatizado (Recomendado)
 
-Usa el script automatizado que configura todo:
+Una vez cumplidos los prerrequisitos, usa el script automatizado:
 
 ```bash
 # 1. Valida que todo esté listo
@@ -17,6 +29,7 @@ node scripts/setup-congregation.js
 ```
 
 **El script automáticamente:**
+
 - ✅ Crea archivos de entorno (`environment.*.ts`)
 - ✅ Crea archivos de configuración de mapas (`maps.*.ts`)
 - ✅ Actualiza `angular.json` con las nuevas configuraciones
@@ -34,6 +47,7 @@ node scripts/setup-congregation.js
 **📖 Documentación completa**: Ver [`scripts/README-SETUP.md`](scripts/README-SETUP.md)
 
 **Después de ejecutar el script:**
+
 1. Actualiza los iframes de mapas en `src/app/core/config/maps.*.ts`
 2. Configura las imágenes en Firebase Console (MapsTerritory y Statistics)
 3. Prueba la aplicación: `ng serve --configuration=[congregacionKey]`
@@ -54,6 +68,7 @@ Si prefieres configurar manualmente o necesitas personalización adicional:
 
 2.  **Editar Variables**:
     Abre el nuevo archivo y actualiza los valores:
+
     ```typescript
     export const environment = {
       firebase: {
@@ -63,18 +78,18 @@ Si prefieres configurar manualmente o necesitas personalización adicional:
         // ... resto de la configuración de Firebase
       },
       production: true,
-      congregationName: 'Mi Congregación',
-      congregationKey: 'micongregacion',
-      territoryPrefix: 'TerritorioMC',
+      congregationName: "Mi Congregación",
+      congregationKey: "micongregacion",
+      territoryPrefix: "TerritorioMC",
       localities: [
         {
-          key: 'micongregacion',
-          name: 'Mi Congregación',
-          territoryPrefix: 'TerritorioMC',
-          storageKey: 'registerStatisticDataTerritorioMC',
-          hasNumberedTerritories: true
-        }
-      ]
+          key: "micongregacion",
+          name: "Mi Congregación",
+          territoryPrefix: "TerritorioMC",
+          storageKey: "registerStatisticDataTerritorioMC",
+          hasNumberedTerritories: true,
+        },
+      ],
     };
     ```
 
@@ -82,13 +97,15 @@ Si prefieres configurar manualmente o necesitas personalización adicional:
     Crea un archivo `src/app/core/config/maps.micongregacion.ts` (copia de `maps.wheelwright.ts`) y define las URLs de los mapas para cada territorio.
 
 4.  **Actualizar Rutas**:
-    
+
     Modificar `src/app/modules/territory/territory-routing.module.ts`:
+
     ```typescript
     { path: 'micongregacion', component: MapasComponent},
     ```
 
     Modificar `src/app/modules/assignment-record/assignment-record-routing.module.ts`:
+
     ```typescript
     { path: 'micongregacion', component: TerritoryAssignmentComponent},
     ```
@@ -126,6 +143,7 @@ Agrega una nueva configuración en `angular.json` bajo `architect.build.configur
 ```
 
 Recuerda agregar también la configuración en `architect.serve.configurations`:
+
 ```json
 "micongregacion": {
   "buildTarget": "territory:build:micongregacion"
@@ -135,6 +153,7 @@ Recuerda agregar también la configuración en `architect.serve.configurations`:
 #### 3. Inicialización de Base de Datos
 
 Usa el script de inicialización:
+
 ```bash
 node scripts/init-congregation.js
 ```
@@ -146,11 +165,13 @@ node scripts/init-congregation.js
 ## 🧪 Ejecutar la Aplicación
 
 Para probar una congregación específica:
+
 ```bash
 ng serve --configuration=[congregacionKey]
 ```
 
 Ejemplos:
+
 ```bash
 ng serve --configuration=wheelwright
 ng serve --configuration=hughes
@@ -166,6 +187,7 @@ Cada congregación tiene su propio proyecto de Firebase y configuración.
 ### Pasos para desplegar:
 
 1. Ejecuta el script de despliegue:
+
    ```bash
    node scripts/deploy.js
    ```
