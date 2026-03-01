@@ -37,7 +37,7 @@ import { BreadcrumbItem } from '@core/models/Breadcrumb';
     RouterLink,
     ReactiveFormsModule,
     DatePipe,
-    TitleCasePipe
+    TitleCasePipe,
   ],
 })
 export class AssignmentRecordPageComponent implements OnInit {
@@ -147,51 +147,8 @@ export class AssignmentRecordPageComponent implements OnInit {
     }
 
     // Generar storage keys dinámicamente desde environment
-    const allStorageKeys = environment.localities.map((loc) => loc.storageKey);
-
-    if (!allStorageKeys.some((key) => sessionStorage.getItem(key))) {
-      this.spinner.cargarSpinner();
-      const territoryData = JSON.parse(
-        sessionStorage.getItem('numberTerritory') as string,
-      );
-      this.territoryNumberOfLocalStorage.set(territoryData);
-
-      let completedRequests = 0;
-      const totalRequests = environment.localities.length;
-
-      environment.localities.forEach(({ key, storageKey }) => {
-        const territories = this.territoryNumberOfLocalStorage()[key] || [];
-
-        territories.forEach((territory: any) => {
-          this.territorieDataService
-            .getCardTerritorieRegisterTable(territory.collection)
-            .subscribe((card) => {
-              card.forEach((list: Card, index: number) => {
-                this.appleCount.set(0);
-                list.applesData?.forEach((apple: CardApplesData) => {
-                  if (apple.checked === true) {
-                    this.appleCount.update((count) => count + 1);
-                  }
-                });
-                if (this.appleCount() === 0) {
-                  card.splice(index, 1);
-                }
-              });
-              const storeStatisticdData = sessionStorage.getItem(storageKey);
-              const statisticData = storeStatisticdData
-                ? JSON.parse(storeStatisticdData)
-                : [];
-              statisticData.push(card);
-              sessionStorage.setItem(storageKey, JSON.stringify(statisticData));
-              completedRequests++;
-
-              if (completedRequests === totalRequests) {
-                this.spinner.cerrarSpinner();
-              }
-            });
-        });
-      });
-    }
+    // Nota: El pre-cacheo se ha movido a los componentes específicos de cada localidad
+    // para evitar colisiones y asegurar el orden correcto de los datos.
   }
 
   // Territorios personales pedidos
