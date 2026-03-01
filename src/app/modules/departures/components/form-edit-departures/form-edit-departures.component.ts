@@ -1,4 +1,11 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  input,
+  signal,
+  effect,
+} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -53,12 +60,37 @@ export class FormEditDeparturesComponent implements OnInit {
     this.formDeparture = this.fb.group({
       departure0: new FormArray([]),
     });
+
+    // Efecto para reaccionar a cambios en los inputs y recargar el formulario
+    effect(() => {
+      const departures = this.formDepartureDataInput();
+      this.initForm(departures);
+    });
   }
   ngOnInit(): void {
     this.loadTerritoryData();
     this.loadDrivers();
-    this.departureFormArray.clear();
-    this.formDepartureDataInput().forEach((departure: Departure) => {
+  }
+
+  initForm(departures: Departure[]) {
+    this.isSaved = false;
+    this.groupKeys = [];
+    this.groupedDepartures = {};
+
+    // Limpiar todos los FormArrays existentes
+    Object.keys(this.formDeparture.controls).forEach((key) => {
+      if (key.startsWith('departure')) {
+        (this.formDeparture.get(key) as FormArray).clear();
+      }
+    });
+
+    if (!departures || departures.length === 0) {
+      // Si no hay datos, inicializamos con un grupo vacío por defecto
+      this.groupKeys = [0];
+      return;
+    }
+
+    departures.forEach((departure: Departure) => {
       const groupKey = departure.group;
       if (!this.groupedDepartures[groupKey]) {
         this.groupKeys.push(groupKey);
@@ -67,7 +99,7 @@ export class FormEditDeparturesComponent implements OnInit {
       this.groupedDepartures[groupKey].push(departure);
       this.numberGroup = departure.group;
 
-      // Normalizar location: si es una key de localidad (ej: 'arias'), convertir a prefijo (ej: 'TerritorioA')
+      // Normalizar location
       const locality = this.localities.find(
         (l) => l.key === departure.location,
       );
@@ -91,6 +123,9 @@ export class FormEditDeparturesComponent implements OnInit {
         }),
       );
     });
+
+    // Asegurar que groupKeys esté ordenado y no tenga duplicados
+    this.groupKeys = [...new Set(this.groupKeys)].sort((a, b) => a - b);
   }
   loadTerritoryData() {
     const stored = sessionStorage.getItem('numberTerritory');

@@ -8,18 +8,55 @@
             <h5 class="mb-0 text-secondary">Seleccionar Semana de Salidas</h5>
           </div>
 
-          <div class="input-group mb-3">
-            <span class="input-group-text bg-white border-end-0">
-              <span class="d-none d-md-inline">Semana del Lunes</span>
-            </span>
-            <input
-              type="date"
-              class="form-control border-start-0 ps-0"
-              [formControl]="dateDeparture"
-            />
-            <button class="btn btn-primary px-4" (click)="updateDate()">
-              Actualizar
-            </button>
+          <div class="row mb-3 align-items-center">
+            <div class="col-12 col-md-4">
+              <label class="form-label text-muted small mb-1">
+                <i class="fas fa-history me-1"></i> Historial de Salidas
+              </label>
+              <div class="d-flex gap-2">
+                <select
+                  class="form-select border-primary-subtle"
+                  [(ngModel)]="selectedHistoryWeek"
+                  (change)="onWeekSelect()"
+                >
+                  <option value="" disabled selected>
+                    Seleccionar historial...
+                  </option>
+                  @for (week of weeklyHistory; track week.id) {
+                    <option [value]="week.id">
+                      Semana del {{ getFormattedHistoryDate(week.weekId) }}
+                    </option>
+                  }
+                </select>
+                <button
+                  class="btn btn-outline-danger"
+                  [disabled]="!selectedHistoryWeek"
+                  (click)="deleteWeek()"
+                  title="Eliminar semana seleccionada"
+                >
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-12 col-md-8 mt-3 mt-md-0">
+              <label class="form-label text-muted small mb-1">
+                <i class="far fa-calendar-alt me-1"></i> O seleccionar otra
+                semana
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                  <span class="d-none d-md-inline">Semana del Lunes</span>
+                </span>
+                <input
+                  type="date"
+                  class="form-control border-start-0 ps-0"
+                  [formControl]="dateDeparture"
+                />
+                <button class="btn btn-primary px-4" (click)="updateDate()">
+                  Actualizar
+                </button>
+              </div>
+            </div>
           </div>
 
           @if (selectedWeekRange) {
