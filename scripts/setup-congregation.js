@@ -390,7 +390,7 @@ async function initializeFirebase(config, localitiesData) {
       departure: [
         {
           driver: "",
-          location: localitiesData[0]?.locality.key || "",
+          location: localitiesData[0]?.locality.territoryPrefix || "",
           territory: [],
           date: new Date().toISOString().split("T")[0],
           maps: "",
@@ -468,10 +468,12 @@ async function initializeFirebase(config, localitiesData) {
   }
 
   // 7. Crear colección WeeklyDepartures (vacía como plantilla)
-  const weeklyRef = db.collection('WeeklyDepartures');
+  const weeklyRef = db.collection("WeeklyDepartures");
   const weeklyDocs = await weeklyRef.limit(1).get();
   if (weeklyDocs.empty) {
-    console.log('   ℹ Colección WeeklyDepartures habilitada (se poblará al guardar salidas)');
+    console.log(
+      "   ℹ Colección WeeklyDepartures habilitada (se poblará al guardar salidas)",
+    );
   }
 
   // 8. Crear usuario admin

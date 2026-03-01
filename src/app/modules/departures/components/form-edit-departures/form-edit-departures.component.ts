@@ -66,12 +66,21 @@ export class FormEditDeparturesComponent implements OnInit {
       }
       this.groupedDepartures[groupKey].push(departure);
       this.numberGroup = departure.group;
+
+      // Normalizar location: si es una key de localidad (ej: 'arias'), convertir a prefijo (ej: 'TerritorioA')
+      const locality = this.localities.find(
+        (l) => l.key === departure.location,
+      );
+      const normalizedLocation = locality
+        ? locality.territoryPrefix
+        : departure.location;
+
       this.departureFormArray.push(
         this.fb.group({
           date: new FormControl(departure.date),
           driver: new FormControl(departure.driver),
           schedule: new FormControl(departure.schedule),
-          location: new FormControl(departure.location),
+          location: new FormControl(normalizedLocation),
           territory: this.fb.array(
             (departure.territory || []).map((t: string) => new FormControl(t)),
           ),
