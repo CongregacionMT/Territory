@@ -12,7 +12,10 @@ export class SortBy implements PipeTransform {
         return dateA.getTime() - dateB.getTime();
       }
 
-      return this.compareValues(a[0] ? a[0][args] : a[args], b[0] ? b[0][args] : b[args]);
+      return this.compareValues(
+        a[0] ? a[0][args] : a[args],
+        b[0] ? b[0][args] : b[args],
+      );
     });
 
     if (order !== 1) {
@@ -28,7 +31,7 @@ export class SortBy implements PipeTransform {
 
     if (dates.includes(property)) {
       for (let i = 0; i < 6; i++) {
-        if (item[i]?.[property] !== '') {
+        if (item[i] && item[i][property] && item[i][property] !== '') {
           value = item[i][property];
           break;
         }
