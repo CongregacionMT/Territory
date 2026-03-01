@@ -3,24 +3,38 @@ import { DialogService } from '@core/services/dialog.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 const defaultConfirmData = {
-    title: "Confirmation",
-    message: "Are you sure you want to perform this action?"
-}
+  title: 'Confirmation',
+  message: 'Are you sure you want to perform this action?',
+};
 
-export function needConfirmation ( confirmData : ConfirmDialogData = defaultConfirmData) {
+export function needConfirmation(
+  confirmData: ConfirmDialogData = defaultConfirmData,
+) {
+  return function (
+    target: Object,
+    propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) {
+    const originalMethod = descriptor.value;
 
-  return function (target: Object, propertyKey: string, descriptor: PropertyDescriptor) {
-      const originalMethod = descriptor.value;
+    descriptor.value = function (...args: any) {
+      const service = DialogService.getInstance();
+      if (!service) {
+        console.error(
+          'DialogService no ha sido inicializado. Asegúrate de inyectarlo en el arranque de la aplicación.',
+        );
+        return originalMethod.apply(this, args);
+      }
 
-      descriptor.value = async function (...args: any) {
-          DialogService.getInstance()?.openDialog(confirmData,ConfirmDialogComponent).subscribe((validation) => {
-              if (validation){
-                  originalMethod.apply(this, args);
-              }
-            });
-      };
+      service
+        .openDialog(confirmData, ConfirmDialogComponent)
+        .subscribe((validation) => {
+          if (validation) {
+            originalMethod.apply(this, args);
+          }
+        });
+    };
 
-      return descriptor;
+    return descriptor;
   };
-
 }

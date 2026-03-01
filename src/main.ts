@@ -49,12 +49,7 @@ bootstrapApplication(AppComponent, {
     provideMessaging(() => getMessaging(getApp())),
     provideFirestore(() => getFirestore()),
     importProvidersFrom(MatDialogModule),
-    {
-      provide: provideEnvironmentInitializer(initializeDialogService),
-      useFactory: initializeDialogService,
-      deps: [MatDialog],
-      multi: true,
-    },
+    provideEnvironmentInitializer(() => initializeDialogService()),
     provideAnimations(),
     { provide: LOCALE_ID, useValue: 'es' },
   ],
