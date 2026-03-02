@@ -24,6 +24,7 @@ import { CanComponentDeactivate } from '@core/guards/unsaved-changes.guard';
 import { WeeklyDeparture } from '@core/models/Departures';
 import { formatWeekRange, getWeekId } from '@shared/utils/date-utils';
 import { FormsModule } from '@angular/forms';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-edit-departures',
@@ -48,6 +49,8 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   isSaved: boolean = false;
   weeklyHistory: WeeklyDeparture[] = [];
   selectedHistoryWeek: string = '';
+  currentMondayStr: string = '';
+  private lastLoadId: number = 0;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -58,6 +61,11 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[11];
+
+    // Calcular el lunes de la semana actual para el badge y el botón "Volver a hoy"
+    const todayMonday = this.getMonday(new Date());
+    this.currentMondayStr = todayMonday.toISOString().split('T')[0];
+
     // Escuchar cambios en la fecha (esto manejará la carga de datos)
     this.dateDeparture.valueChanges.subscribe((value: string) => {
       this.isSaved = false;
@@ -90,28 +98,25 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     // Cargar historial
     this.loadHistory();
 
-    // Obtener la fecha actual configurada y arrancar la primera carga
-    this.territoryDataService.getDateDepartures().subscribe({
-      next: (res) => {
-        const dateStr = res?.date;
-        const initialDate =
-          dateStr && !isNaN(new Date(dateStr + 'T00:00:00').getTime())
-            ? dateStr
-            : new Date().toISOString().split('T')[0];
-
-        const dateObj = new Date(initialDate + 'T00:00:00');
-        const monday = this.getMonday(dateObj);
-
-        if (!isNaN(monday.getTime())) {
-          const mondayStr = monday.toISOString().split('T')[0];
+    // Cargar la semana inicial: siempre se usa la semana actual como punto de partida
+    this.territoryDataService
+      .getDateDepartures()
+      .pipe(take(1))
+      .subscribe({
+        next: (res) => {
+          // Siempre arrancamos en la semana actual, ignorando la fecha guardada en Firestore
+          const mondayStr = this.currentMondayStr;
           this.dateDeparture.setValue(mondayStr);
-          this.selectedWeekRange = this.formatWeekRange(monday);
-          // Al llamar a setValue() arriba, se dispara valueChanges y carga los datos
-        }
-
-        this.dateDeparture.markAsPristine();
-      },
-    });
+          this.selectedWeekRange = this.formatWeekRange(todayMonday);
+          this.dateDeparture.markAsPristine();
+        },
+        error: () => {
+          // Si no hay datos, cargar igualmente con la semana actual
+          this.dateDeparture.setValue(this.currentMondayStr);
+          this.selectedWeekRange = this.formatWeekRange(todayMonday);
+          this.dateDeparture.markAsPristine();
+        },
+      });
   }
 
   loadHistory() {
@@ -167,50 +172,69 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   loadDepartureData(weekId: string) {
+    const loadId = ++this.lastLoadId;
     this.spinner.cargarSpinner();
-    this.territoryDataService.getWeeklyDeparture(weekId).subscribe({
-      next: (weeklyData) => {
-        if (
-          weeklyData &&
-          weeklyData.departure &&
-          weeklyData.departure.length > 0
-        ) {
-          this.formDepartureData = weeklyData.departure;
-          this.dataLoaded = true;
-          this.spinner.cerrarSpinner();
-        } else {
-          // Si no existe historial para esta semana, cargamos las salidas master (docDeparture)
-          // Esto sirve como base/plantilla para nuevas semanas
-          this.territoryDataService.getDepartures().subscribe({
-            next: (masterData) => {
-              this.formDepartureData = masterData?.departure || [];
-              this.dataLoaded = true;
-              this.spinner.cerrarSpinner();
-            },
-            error: () => {
-              this.formDepartureData = [];
-              this.dataLoaded = true;
-              this.spinner.cerrarSpinner();
-            },
-          });
-        }
-      },
-      error: () => {
-        // En caso de error, intentar también cargar el master por si acaso
-        this.territoryDataService.getDepartures().subscribe({
-          next: (masterData) => {
-            this.formDepartureData = masterData?.departure || [];
+    this.dataLoaded = false;
+    this.formDepartureData = [];
+
+    // take(1): lectura única — evita que las actualizaciones en tiempo real de Firestore
+    // reinicien el formulario mientras el usuario está editando
+    this.territoryDataService
+      .getWeeklyDeparture(weekId)
+      .pipe(take(1))
+      .subscribe({
+        next: (weeklyData) => {
+          if (loadId !== this.lastLoadId) return;
+
+          if (
+            weeklyData &&
+            weeklyData.departure &&
+            weeklyData.departure.length > 0
+          ) {
+            this.formDepartureData = weeklyData.departure;
             this.dataLoaded = true;
             this.spinner.cerrarSpinner();
-          },
-          error: () => {
-            this.formDepartureData = [];
-            this.dataLoaded = true;
-            this.spinner.cerrarSpinner();
-          },
-        });
-      },
-    });
+          } else {
+            this.territoryDataService
+              .getDepartures()
+              .pipe(take(1))
+              .subscribe({
+                next: (masterData) => {
+                  if (loadId !== this.lastLoadId) return;
+                  this.formDepartureData = masterData?.departure || [];
+                  this.dataLoaded = true;
+                  this.spinner.cerrarSpinner();
+                },
+                error: () => {
+                  if (loadId !== this.lastLoadId) return;
+                  this.formDepartureData = [];
+                  this.dataLoaded = true;
+                  this.spinner.cerrarSpinner();
+                },
+              });
+          }
+        },
+        error: () => {
+          if (loadId !== this.lastLoadId) return;
+          this.territoryDataService
+            .getDepartures()
+            .pipe(take(1))
+            .subscribe({
+              next: (masterData) => {
+                if (loadId !== this.lastLoadId) return;
+                this.formDepartureData = masterData?.departure || [];
+                this.dataLoaded = true;
+                this.spinner.cerrarSpinner();
+              },
+              error: () => {
+                if (loadId !== this.lastLoadId) return;
+                this.formDepartureData = [];
+                this.dataLoaded = true;
+                this.spinner.cerrarSpinner();
+              },
+            });
+        },
+      });
   }
 
   onWeekSelect() {
@@ -228,16 +252,22 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   getFormattedHistoryDate(weekId: string): string {
     return formatWeekRange(weekId);
   }
-  updateDate() {
-    this._snackBar.open(`Semana actualizada: ${this.selectedWeekRange}`, 'Ok', {
-      verticalPosition: this.verticalPosition,
-    });
+  saveAll() {
+    if (!this.dateDeparture.value) return;
+
+    // 1. Guardar la semana activa
     this.territoryDataService.putDate({ date: this.dateDeparture.value });
     this.dateDeparture.markAsPristine();
     this.isSaved = true;
-    // Si se actualiza la fecha, marcamos el formulario como guardado
+
+    // 2. Guardar el formulario de salidas (componente hijo)
     if (this.formEditComponent) {
-      this.formEditComponent.isSaved = true;
+      this.formEditComponent.submitForm();
+    } else {
+      this._snackBar.open(`Semana guardada: ${this.selectedWeekRange}`, 'Ok', {
+        verticalPosition: this.verticalPosition,
+        duration: 3000,
+      });
     }
   }
 
@@ -269,6 +299,36 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     if ((isChildDirty || isMainDirty) && (!this.isSaved || !childSaved)) {
       $event.returnValue = 'Tienes cambios sin guardar.';
     }
+  }
+
+  /** Retorna true si la semana mostrada es la semana actual */
+  isCurrentWeek(): boolean {
+    if (!this.currentMondayStr || !this.dateDeparture.value) return false;
+    return this.dateDeparture.value === this.currentMondayStr;
+  }
+
+  /** Salta al lunes de la semana actual */
+  goToCurrentWeek() {
+    if (!this.canDeactivate()) return;
+    this.dateDeparture.setValue(this.currentMondayStr);
+  }
+
+  /** Navega a la semana anterior */
+  prevWeek() {
+    if (!this.canDeactivate()) return;
+    if (!this.dateDeparture.value) return;
+    const current = new Date(this.dateDeparture.value + 'T00:00:00');
+    current.setDate(current.getDate() - 7);
+    this.dateDeparture.setValue(current.toISOString().split('T')[0]);
+  }
+
+  /** Navega a la semana siguiente */
+  nextWeek() {
+    if (!this.canDeactivate()) return;
+    if (!this.dateDeparture.value) return;
+    const current = new Date(this.dateDeparture.value + 'T00:00:00');
+    current.setDate(current.getDate() + 7);
+    this.dateDeparture.setValue(current.toISOString().split('T')[0]);
   }
 
   private getMonday(d: Date): Date {

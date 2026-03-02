@@ -3,7 +3,11 @@
     <h3 class="text-center mb-3">{{ getGroupTitle(group) }}</h3>
     <form [formGroup]="formDeparture" class="d-flex flex-column justify-center">
       <div class="row g-3">
-        @for (days of filterControlsByGroup(group); track days; let i = $index) {
+        @for (
+          days of filterControlsByGroup(group);
+          track days;
+          let i = $index
+        ) {
           <div class="col-12">
             <div class="card shadow-sm border-0 mb-2">
               <div class="card-body p-3">
@@ -45,12 +49,22 @@
                     <select
                       aria-label="driver"
                       class="form-control form-select"
-                      [value]="days.get('driver')?.value || ''"
                       (change)="onChangeInput($event, 'driver', i, group)"
                     >
-                      <option value="" disabled selected>Conductor</option>
+                      <option
+                        value=""
+                        [selected]="!days.get('driver')?.value"
+                        disabled
+                      >
+                        Conductor
+                      </option>
                       @for (driver of drivers(); track driver.user) {
-                        <option [value]="driver.user">{{ driver.user }}</option>
+                        <option
+                          [value]="driver.user"
+                          [selected]="driver.user === days.get('driver')?.value"
+                        >
+                          {{ driver.user }}
+                        </option>
                       }
                     </select>
                   </div>
@@ -80,9 +94,13 @@
                       [value]="days.get('location')?.value || ''"
                       (change)="onChangeInput($event, 'location', i, group)"
                     >
-                      <option value="Seleccionar localidad" selected disabled>Seleccionar localidad</option>
+                      <option value="Seleccionar localidad" selected disabled>
+                        Seleccionar localidad
+                      </option>
                       @for (loc of localities; track loc.key) {
-                        <option [value]="loc.territoryPrefix">{{ loc.name }}</option>
+                        <option [value]="loc.territoryPrefix">
+                          {{ loc.name }}
+                        </option>
                       }
                     </select>
                   </div>
@@ -93,13 +111,17 @@
                       type="button"
                       class="btn btn-success w-100"
                       data-bs-toggle="modal"
-                      [attr.data-bs-target]="'#territoryModal-' + i + '-' + group"
+                      [attr.data-bs-target]="
+                        '#territoryModal-' + i + '-' + group
+                      "
                     >
                       🗺️ Seleccionar territorios
                     </button>
                     <div class="d-flex flex-wrap gap-2 mt-2">
                       @for (t of getTerritories(days); track t) {
-                        <span class="badge rounded-pill bg-primary text-white px-3 py-2 shadow-sm">
+                        <span
+                          class="badge rounded-pill bg-primary text-white px-3 py-2 shadow-sm"
+                        >
                           {{ t }}
                         </span>
                       }
@@ -107,21 +129,71 @@
                   </div>
                   <div class="col-12 col-md-6">
                     <select
-                      class="form-select w-100"
-                      [class]="'btn btn-square btn-' + days.get('color')?.value"
+                      class="form-select w-100 color-select"
+                      [style.border-left]="
+                        '5px solid var(--bs-' +
+                        (days.get('color')?.value || 'secondary') +
+                        ')'
+                      "
                       (change)="onChangeColor($event, i, group)"
                     >
-                      <option [value]="'secondary'" disabled selected>
-                        Seleccionar color
+                      <option
+                        value="secondary"
+                        [selected]="
+                          !days.get('color')?.value ||
+                          days.get('color')?.value === 'secondary'
+                        "
+                      >
+                        Gris (predeterminado)
                       </option>
-                      <option value="primary">Azul</option>
-                      <option value="secondary">Gris</option>
-                      <option value="success">Verde</option>
-                      <option value="danger">Rojo</option>
-                      <option value="warning">Amarillo</option>
-                      <option value="info">Celeste</option>
-                      <option value="light">Blanco</option>
-                      <option value="dark">Negro</option>
+                      <option
+                        value="primary"
+                        [selected]="days.get('color')?.value === 'primary'"
+                      >
+                        Azul
+                      </option>
+                      <option
+                        value="secondary"
+                        [selected]="days.get('color')?.value === 'secondary'"
+                      >
+                        Gris
+                      </option>
+                      <option
+                        value="success"
+                        [selected]="days.get('color')?.value === 'success'"
+                      >
+                        Verde
+                      </option>
+                      <option
+                        value="danger"
+                        [selected]="days.get('color')?.value === 'danger'"
+                      >
+                        Rojo
+                      </option>
+                      <option
+                        value="warning"
+                        [selected]="days.get('color')?.value === 'warning'"
+                      >
+                        Amarillo
+                      </option>
+                      <option
+                        value="info"
+                        [selected]="days.get('color')?.value === 'info'"
+                      >
+                        Celeste
+                      </option>
+                      <option
+                        value="light"
+                        [selected]="days.get('color')?.value === 'light'"
+                      >
+                        Blanco
+                      </option>
+                      <option
+                        value="dark"
+                        [selected]="days.get('color')?.value === 'dark'"
+                      >
+                        Negro
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -133,7 +205,9 @@
                   tabindex="-1"
                   aria-hidden="true"
                 >
-                  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                  <div
+                    class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg"
+                  >
                     <div class="modal-content border-0 shadow-lg rounded-4">
                       <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title fw-bold">
@@ -148,20 +222,33 @@
                       </div>
 
                       <div class="modal-body">
-                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-                          @for (num of getTerritoryList(days.get('location')?.value); track num) {
+                        <div
+                          class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"
+                        >
+                          @for (
+                            num of getTerritoryList(
+                              days.get("location")?.value
+                            );
+                            track num
+                          ) {
                             <div class="col">
                               <div class="form-check">
                                 <input
                                   class="form-check-input"
                                   type="checkbox"
-                                  [id]="'territory_' + num + '_' + i + '_' + group"
+                                  [id]="
+                                    'territory_' + num + '_' + i + '_' + group
+                                  "
                                   [checked]="isTerritoryChecked(num, i, group)"
-                                  (change)="handleCheckboxChange($event, num, i, group)"
+                                  (change)="
+                                    handleCheckboxChange($event, num, i, group)
+                                  "
                                 />
                                 <label
                                   class="form-check-label ms-1"
-                                  [for]="'territory_' + num + '_' + i + '_' + group"
+                                  [for]="
+                                    'territory_' + num + '_' + i + '_' + group
+                                  "
                                 >
                                   {{ num }}
                                 </label>
@@ -172,7 +259,9 @@
                       </div>
 
                       <div class="modal-footer justify-content-between">
-                        <span class="text-muted small">Podés seleccionar varios territorios</span>
+                        <span class="text-muted small"
+                          >Podés seleccionar varios territorios</span
+                        >
                         <button
                           type="button"
                           class="btn btn-success fw-semibold"
@@ -203,12 +292,11 @@
   </div>
 }
 <div class="pb-3">
-  <button type="submit" class="btn btn-success" (click)="addNewGroup()">
-    Nuevo grupo +
-  </button>
-</div>
-<div class="d-flex justify-content-center pb-3">
-  <button type="submit" class="btn btn-primary" (click)="submitForm()">
-    Guardar salidas
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    (click)="addNewGroup()"
+  >
+    <i class="fas fa-plus me-1"></i> Nuevo grupo
   </button>
 </div>

@@ -26,6 +26,7 @@ import { environment } from '@environments/environment';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { User } from '@core/models/User';
 import { WeeklyDeparture } from '../../../../core/models/Departures';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-form-edit-departures',
@@ -90,14 +91,40 @@ export class FormEditDeparturesComponent implements OnInit {
       return;
     }
 
-    departures.forEach((departure: Departure) => {
-      const groupKey = departure.group;
+    const targetMondayStr = this.dateDepartureInput();
+    const targetMonday = new Date(targetMondayStr + 'T00:00:00');
+    const targetSunday = new Date(targetMonday);
+    targetSunday.setDate(targetMonday.getDate() + 6);
+
+    // Filtrar: Solo salidas que pertenezcan a la semana seleccionada
+    const filteredDepartures = departures.filter((departure: Departure) => {
+      if (!departure.date) return true; // Permitir si no tiene fecha definida aún
+      const d = new Date(departure.date + 'T00:00:00');
+      if (isNaN(d.getTime())) return true;
+      return d >= targetMonday && d <= targetSunday;
+    });
+
+    if (filteredDepartures.length === 0) {
+      this.groupKeys = [0];
+      return;
+    }
+
+    filteredDepartures.forEach((departure: Departure) => {
+      const rawGroup = Number(departure.group);
+      const groupKey = isNaN(rawGroup) ? 0 : rawGroup;
+
       if (!this.groupedDepartures[groupKey]) {
         this.groupKeys.push(groupKey);
         this.groupedDepartures[groupKey] = [];
       }
       this.groupedDepartures[groupKey].push(departure);
-      this.numberGroup = departure.group;
+
+      const groupArrayKey = `departure${groupKey}`;
+      let groupArray = this.formDeparture.get(groupArrayKey) as FormArray;
+      if (!groupArray) {
+        groupArray = this.fb.array([]);
+        this.formDeparture.setControl(groupArrayKey, groupArray);
+      }
 
       // Normalizar location
       const locality = this.localities.find(
@@ -105,21 +132,21 @@ export class FormEditDeparturesComponent implements OnInit {
       );
       const normalizedLocation = locality
         ? locality.territoryPrefix
-        : departure.location;
+        : departure.location || 'Seleccionar localidad';
 
-      this.departureFormArray.push(
+      groupArray.push(
         this.fb.group({
-          date: new FormControl(departure.date),
-          driver: new FormControl(departure.driver),
-          schedule: new FormControl(departure.schedule),
+          date: new FormControl(departure.date || targetMondayStr),
+          driver: new FormControl(departure.driver || ''),
+          schedule: new FormControl(departure.schedule || ''),
           location: new FormControl(normalizedLocation),
           territory: this.fb.array(
             (departure.territory || []).map((t: string) => new FormControl(t)),
           ),
-          point: new FormControl(departure.point),
-          maps: new FormControl(departure.maps),
-          color: new FormControl(departure.color),
-          group: new FormControl(departure.group),
+          point: new FormControl(departure.point || ''),
+          maps: new FormControl(departure.maps || ''),
+          color: new FormControl(departure.color || 'secondary'),
+          group: new FormControl(groupKey),
         }),
       );
     });
@@ -143,17 +170,12 @@ export class FormEditDeparturesComponent implements OnInit {
         });
     }
   }
-
   processTerritoryData(data: any) {
     this.localities.forEach((loc) => {
       if (loc.hasNumberedTerritories) {
-        // data[loc.key] is an array of TerritoryNumberData objects or numbers
         const rawData = data[loc.key] || [];
-
-        // Extract territory numbers, handling both object and number formats
         const numbers = rawData
           .map((item: any) => {
-            // If it's an object with 'territorio' property, extract it
             if (
               typeof item === 'object' &&
               item !== null &&
@@ -161,24 +183,20 @@ export class FormEditDeparturesComponent implements OnInit {
             ) {
               return item.territorio;
             }
-            // Otherwise assume it's already a number
             return item;
           })
           .filter((n: any) => typeof n === 'number' || !isNaN(Number(n)));
 
-        // Sort numerically
         const sorted = numbers.sort(
           (a: number, b: number) => Number(a) - Number(b),
         );
         const options = sorted.map((n: number) => `N°${n}`);
 
-        // Mapeamos por prefijo (nuevo estándar) y por key (retrocompatibilidad)
         this.territoryOptionsMap[loc.territoryPrefix] = options;
         if (loc.key) {
           this.territoryOptionsMap[loc.key] = options;
         }
       } else {
-        // For Rural or others without numbered territories
         const options = ['Rural'];
         this.territoryOptionsMap[loc.territoryPrefix] = options;
         if (loc.key) {
@@ -187,7 +205,6 @@ export class FormEditDeparturesComponent implements OnInit {
       }
     });
 
-    // Fallback if current environment prefix not mapped
     if (
       !this.territoryOptionsMap[this.territoryPrefix] &&
       (!data || Object.keys(data).length === 0)
@@ -196,6 +213,11 @@ export class FormEditDeparturesComponent implements OnInit {
         { length: TERRITORY_COUNT },
         (_, i) => `N°${i + 1}`,
       );
+    }
+
+    const departures = this.formDepartureDataInput();
+    if (departures.length > 0) {
+      this.initForm(departures);
     }
   }
 
@@ -233,72 +255,56 @@ export class FormEditDeparturesComponent implements OnInit {
     return this.formDeparture.get(departureGroupKey) as FormArray;
   }
   filterControlsByGroup(group: number) {
-    this.numberGroup = group;
-    const departureGroupKey = `departure${this.numberGroup}`;
-    let departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
-    let result = departureFormArrayItem.controls.filter((control) => {
-      return control.get('group')?.value === group;
-    });
-    return result;
-  }
-  getGroupTitle(group: number | 'generales'): string {
-    if (group === 0) {
-      return 'Salidas Generales';
-    } else {
-      return 'Grupo ' + group;
-    }
-  }
-  onChangeInput(e: any, key: any, indexChange: any, group: number) {
     const departureGroupKey = `departure${group}`;
     const departureFormArrayItem = this.formDeparture.get(
       departureGroupKey,
     ) as FormArray;
-    const controls = departureFormArrayItem.controls;
-    this.numberGroup = group;
-    controls.forEach((item: AbstractControl<any, any>, index: number) => {
-      if (index === indexChange) {
-        if (key === 'date') {
-          item.get('date')?.setValue(e.target.value);
-        } else if (key === 'driver') {
-          item.get('driver')?.setValue(e.target.value);
-        } else if (key === 'schedule') {
-          item.get('schedule')?.setValue(e.target.value);
-        } else if (key === 'location') {
-          item.get('location')?.setValue(e.target.value);
-          const territoryArray = item.get('territory') as FormArray;
-          if (territoryArray) {
-            territoryArray.clear();
-          }
-        } else if (key === 'territory') {
-          item.get('territory')?.setValue(e.target.value);
-        } else if (key === 'point') {
-          item.get('point')?.setValue(e.target.value);
-        } else if (key === 'maps') {
-          item.get('maps')?.setValue(e.target.value);
-        } else if (key === 'color') {
-          item.get('color')?.setValue(e.target.value);
-        } else if (key === 'group') {
-          item.get('group')?.setValue(e.target.value);
+    return departureFormArrayItem?.controls || [];
+  }
+  getGroupTitle(group: number | 'generales'): string {
+    // Tratar 0, NaN y valores inválidos como "Salidas Generales"
+    const num = Number(group);
+    if (num === 0 || isNaN(num)) {
+      return 'Salidas Generales';
+    }
+    return 'Grupo ' + group;
+  }
+  onChangeInput(e: any, key: string, index: number, group: number) {
+    const departureGroupKey = `departure${group}`;
+    const departureFormArrayItem = this.formDeparture.get(
+      departureGroupKey,
+    ) as FormArray;
+    const control = departureFormArrayItem.at(index);
+
+    if (control) {
+      if (key === 'location') {
+        const territoryArray = control.get('territory') as FormArray;
+        if (territoryArray) {
+          territoryArray.clear();
         }
       }
-    });
+      control.get(key)?.setValue(e.target.value);
+    }
     this.isSaved = false;
   }
   onChangeColor(event: any, index: number, group: number) {
     this.isSaved = false;
-    this.numberGroup = group;
-    const departureControl = this.departureFormArray.controls[index];
-    const selectedValue = event.target.value;
-    departureControl.get('color')?.setValue(selectedValue);
+    const departureGroupKey = `departure${group}`;
+    const departureFormArrayItem = this.formDeparture.get(
+      departureGroupKey,
+    ) as FormArray;
+    const control = departureFormArrayItem.at(index);
+    if (control) {
+      control.get('color')?.setValue(event.target.value);
+    }
   }
   addInputForm(group: number) {
     this.isSaved = false;
     this.numberGroup = group;
+    const defaultDate = this.dateDepartureInput();
     this.departureFormArray.push(
       this.fb.group({
-        date: new FormControl(''),
+        date: new FormControl(defaultDate),
         driver: new FormControl(''),
         schedule: new FormControl(''),
         location: new FormControl(this.territoryPrefix),
@@ -314,27 +320,50 @@ export class FormEditDeparturesComponent implements OnInit {
     this.isSaved = false;
     this.numberGroup = group;
     this.departureFormArray.removeAt(index);
+    // Si el grupo queda vacío, eliminarlo de groupKeys (sin renumerar)
     if (this.departureFormArray.length === 0) {
-      const indexToRemove = this.groupKeys.indexOf(this.numberGroup);
-      if (indexToRemove !== -1) {
-        this.groupKeys.splice(indexToRemove, 1);
-        for (let i = indexToRemove; i < this.groupKeys.length; i++) {
-          this.groupKeys[i] = this.groupKeys[i] - 1;
-        }
-      }
+      this.groupKeys = this.groupKeys.filter((k) => k !== group);
     }
   }
   rollbackInputForm() {
     this.isSaved = false;
-    this.departureFormArray.clear();
-    this.formDepartureDataInput().map((departure: any, index: number) => {
-      this.departureFormArray.push(
+    this.groupKeys = [];
+    this.groupedDepartures = {};
+
+    // Limpiar todos los FormArrays existentes
+    Object.keys(this.formDeparture.controls).forEach((key) => {
+      if (key.startsWith('departure')) {
+        (this.formDeparture.get(key) as FormArray).clear();
+      }
+    });
+
+    const departures = this.formDepartureDataInput();
+    departures.forEach((departure: any) => {
+      const groupKey = Number(departure.group) || 0;
+
+      if (!this.groupedDepartures[groupKey]) {
+        this.groupKeys.push(groupKey);
+        this.groupedDepartures[groupKey] = [];
+      }
+
+      const departureGroupKey = `departure${groupKey}`;
+      if (!this.formDeparture.get(departureGroupKey)) {
+        this.formDeparture.setControl(departureGroupKey, this.fb.array([]));
+      }
+
+      const departureFormArrayItem = this.formDeparture.get(
+        departureGroupKey,
+      ) as FormArray;
+
+      departureFormArrayItem.push(
         this.fb.group({
-          date: new FormControl(departure.day),
+          date: new FormControl(departure.date || departure.day),
           driver: new FormControl(departure.driver),
           schedule: new FormControl(departure.schedule),
           location: new FormControl(departure.location),
-          territory: new FormControl(departure.territory),
+          territory: this.fb.array(
+            (departure.territory || []).map((t: string) => new FormControl(t)),
+          ),
           point: new FormControl(departure.point),
           maps: new FormControl(departure.maps),
           color: new FormControl(departure.color),
@@ -342,6 +371,8 @@ export class FormEditDeparturesComponent implements OnInit {
         }),
       );
     });
+
+    this.groupKeys = [...new Set(this.groupKeys)].sort((a, b) => a - b);
   }
   addNewGroup() {
     this.isSaved = false;
@@ -391,23 +422,40 @@ export class FormEditDeparturesComponent implements OnInit {
 
   submitForm() {
     this.isSaved = true;
-    this.openSnackBar('Salidas actualizadas! 😉', 'ok');
-    const departures = this.groupKeys
+
+    const targetMondayStr = this.dateDepartureInput();
+    const targetMonday = new Date(targetMondayStr + 'T00:00:00');
+    const targetSunday = new Date(targetMonday);
+    targetSunday.setDate(targetMonday.getDate() + 6);
+
+    const formDepartures = this.groupKeys
       .map((number) => this.formDeparture.value?.[`departure${number}`])
       .flat();
 
-    // Guardar en el documento actual (docDeparture) para compatibilidad
-    this.territoryDataService.putDepartures({ departure: departures });
+    // Guardar SOLO en WeeklyDepartures/{weekId} — no tocar docDeparture.
+    // docDeparture es solo la plantilla/template; mezclar fechas allí causa datos fantasma.
+    // Filtramos solo las salidas que realmente pertenecen a esta semana.
+    const weeklyOnly = formDepartures.filter((d: Departure) => {
+      if (!d.date) return true;
+      const date = new Date(d.date + 'T00:00:00');
+      return date >= targetMonday && date <= targetSunday;
+    });
 
-    // Guardar en el historial
-    const weekId = this.dateDepartureInput();
-    if (weekId) {
+    if (targetMondayStr) {
       const weeklyDeparture: WeeklyDeparture = {
-        departure: departures,
-        weekId: weekId,
+        departure: weeklyOnly,
+        weekId: targetMondayStr,
         createdAt: new Date(),
       };
       this.territoryDataService.postWeeklyDeparture(weeklyDeparture);
     }
+
+    this._snackBar.open('✅ Semana y salidas guardadas correctamente', 'Ok', {
+      verticalPosition: this.verticalPosition,
+      duration: 3000,
+    });
+
+    // Re-inicializar el formulario para aplicar filtros visuales
+    this.initForm(formDepartures);
   }
 }

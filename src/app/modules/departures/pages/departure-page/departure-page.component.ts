@@ -4,12 +4,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import {
-  DateDeparture,
-  Departure,
-  DepartureData,
-  WeeklyDeparture,
-} from '@core/models/Departures';
+import { Departure, WeeklyDeparture } from '@core/models/Departures';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { FormsModule } from '@angular/forms';
@@ -71,18 +66,31 @@ export class DeparturePageComponent implements OnInit {
 
   loadCurrentWeek() {
     this.selectedWeek = 'actual';
-    this.territoryDataService.getDepartures().subscribe({
-      next: (departure: DepartureData) => {
-        this.departures$ = departure.departure;
+
+    // Calcular el lunes de la semana actual
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(today.setDate(diff));
+    const currentWeekId = monday.toISOString().split('T')[0];
+
+    this.dateDeparture.setValue(currentWeekId);
+
+    this.territoryDataService.getWeeklyDeparture(currentWeekId).subscribe({
+      next: (weeklyData: any) => {
+        if (weeklyData?.departure?.length > 0) {
+          this.departures$ = weeklyData.departure;
+        } else {
+          // Si no hay datos para esta semana todavía, mostrar lista vacía
+          this.departures$ = [];
+        }
         this.sortDepartures();
-        this.territoryDataService.getDateDepartures().subscribe({
-          next: (date: DateDeparture) => {
-            this.dateDeparture.setValue(date.date);
-            this.spinner.cerrarSpinner();
-          },
-        });
+        this.spinner.cerrarSpinner();
       },
-      error: () => this.spinner.cerrarSpinner(),
+      error: () => {
+        this.departures$ = [];
+        this.spinner.cerrarSpinner();
+      },
     });
   }
 
@@ -97,14 +105,7 @@ export class DeparturePageComponent implements OnInit {
   onWeekChange() {
     this.spinner.cargarSpinner();
     if (this.selectedWeek === 'actual') {
-      this.territoryDataService.getDepartures().subscribe((departure) => {
-        this.departures$ = departure.departure;
-        this.sortDepartures();
-        this.territoryDataService.getDateDepartures().subscribe((date) => {
-          this.dateDeparture.setValue(date.date);
-          this.spinner.cerrarSpinner();
-        });
-      });
+      this.loadCurrentWeek();
     } else {
       const historyRecord = this.weeklyHistory.find(
         (w) => w.id === this.selectedWeek,

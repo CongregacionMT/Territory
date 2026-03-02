@@ -1,86 +1,152 @@
-<section class="container">
+<!-- ===== HEADER DE SEMANA DE SALIDAS ===== -->
+<section class="container departure-header-section mt-4">
   <div class="row justify-content-center">
-    <div class="col-12 col-md-12">
-      <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center mb-3">
-            <i class="far fa-calendar-alt fs-4 me-2 text-primary"></i>
-            <h5 class="mb-0 text-secondary">Seleccionar Semana de Salidas</h5>
+    <div class="col-12">
+      <div class="departure-header-card card border-0 shadow-sm mb-4">
+        <div class="card-body p-0">
+          <!-- Banda superior coloreada -->
+          <div class="departure-header-band">
+            <div class="d-flex align-items-center gap-2">
+              <i class="far fa-calendar-alt fs-5"></i>
+              <span class="fw-semibold">Salidas de la Congregación</span>
+            </div>
+            @if (isCurrentWeek()) {
+              <span
+                class="badge bg-white text-primary fw-semibold px-3 py-2 rounded-pill shadow-sm"
+              >
+                <i class="fas fa-star me-1"></i> Semana actual
+              </span>
+            } @else {
+              <button
+                class="btn btn-sm btn-outline-light fw-semibold rounded-pill"
+                (click)="goToCurrentWeek()"
+                title="Volver a la semana actual"
+              >
+                <i class="fas fa-undo me-1"></i> Volver a hoy
+              </button>
+            }
           </div>
 
-          <div class="row mb-3 align-items-center">
-            <div class="col-12 col-md-4">
-              <label class="form-label text-muted small mb-1">
-                <i class="fas fa-history me-1"></i> Historial de Salidas
-              </label>
-              <div class="d-flex gap-2">
-                <select
-                  class="form-select border-primary-subtle"
-                  [(ngModel)]="selectedHistoryWeek"
-                  (change)="onWeekSelect()"
-                >
-                  <option value="" disabled selected>
-                    Seleccionar historial...
-                  </option>
-                  @for (week of weeklyHistory; track week.id) {
-                    <option [value]="week.id">
-                      Semana del {{ getFormattedHistoryDate(week.weekId) }}
-                    </option>
-                  }
-                </select>
-                <button
-                  class="btn btn-outline-danger"
-                  [disabled]="!selectedHistoryWeek"
-                  (click)="deleteWeek()"
-                  title="Eliminar semana seleccionada"
-                >
-                  <i class="fas fa-trash-alt"></i>
-                </button>
-              </div>
-            </div>
-            <div class="col-12 col-md-8 mt-3 mt-md-0">
-              <label class="form-label text-muted small mb-1">
-                <i class="far fa-calendar-alt me-1"></i> O seleccionar otra
-                semana
-              </label>
-              <div class="input-group">
-                <span class="input-group-text bg-white border-end-0">
-                  <span class="d-none d-md-inline">Semana del Lunes</span>
-                </span>
-                <input
-                  type="date"
-                  class="form-control border-start-0 ps-0"
-                  [formControl]="dateDeparture"
-                />
-                <button class="btn btn-primary px-4" (click)="updateDate()">
-                  Actualizar
-                </button>
-              </div>
-            </div>
-          </div>
-
-          @if (selectedWeekRange) {
+          <!-- Cuerpo principal -->
+          <div class="departure-header-body px-4 pb-4 pt-3">
+            <!-- Semana grande con navegación -->
             <div
-              class="alert alert-info py-2 px-3 mb-0 border-0 d-flex align-items-center"
-              style="background-color: #e3f2fd; color: #0d47a1"
+              class="departure-week-nav d-flex align-items-center justify-content-between gap-3"
             >
-              <span class="fw-bold me-2">Semana seleccionada:</span>
-              <span class="text-uppercase small">{{ selectedWeekRange }}</span>
+              <!-- Botón semana anterior -->
+              <button
+                class="btn departure-nav-btn"
+                (click)="prevWeek()"
+                title="Semana anterior"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <!-- Semana central -->
+              <div class="departure-week-display text-center flex-grow-1">
+                <div class="departure-week-label text-muted small mb-1">
+                  Editando salidas de la semana del
+                </div>
+                <div class="departure-week-range fw-bold">
+                  {{ selectedWeekRange || "Cargando..." }}
+                </div>
+                <!-- Input de fecha oculto, accionable -->
+                <div class="mt-2">
+                  <label class="departure-date-picker-label text-muted small">
+                    <i class="far fa-calendar me-1"></i>
+                    <span>Elegir otra semana:</span>
+                    <input
+                      type="date"
+                      class="departure-date-input form-control form-control-sm d-inline-block ms-1"
+                      [formControl]="dateDeparture"
+                      style="width: 160px"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <!-- Botón semana siguiente -->
+              <button
+                class="btn departure-nav-btn"
+                (click)="nextWeek()"
+                title="Semana siguiente"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
-          }
+
+            <!-- Fila inferior: historial + guardar -->
+            <div
+              class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mt-4 pt-3 border-top"
+            >
+              <!-- Selector de historial -->
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="text-muted small">
+                  <i class="fas fa-history me-1"></i> Cargar semana guardada:
+                </span>
+                <div class="d-flex gap-2">
+                  <select
+                    class="form-select form-select-sm departure-history-select"
+                    [(ngModel)]="selectedHistoryWeek"
+                    (change)="onWeekSelect()"
+                    style="min-width: 220px"
+                  >
+                    <option value="" disabled selected>Seleccionar...</option>
+                    @for (week of weeklyHistory; track week.id) {
+                      <option [value]="week.id">
+                        {{ getFormattedHistoryDate(week.weekId) }}
+                      </option>
+                    }
+                  </select>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    [disabled]="!selectedHistoryWeek"
+                    (click)="deleteWeek()"
+                    title="Eliminar semana del historial"
+                  >
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Botón guardar -->
+              <button
+                class="btn btn-primary departure-save-btn"
+                (click)="saveAll()"
+                [disabled]="!dateDeparture.value"
+              >
+                <i class="fas fa-save me-2"></i>
+                Guardar salidas
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- ===== FORMULARIO DE SALIDAS ===== -->
 @if (dataLoaded) {
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-12 col-md-12">
+      <div class="col-12">
         <app-form-edit-departures
           [formDepartureDataInput]="formDepartureData"
           [dateDepartureInput]="dateDeparture.value"
         ></app-form-edit-departures>
+
+        <!-- Botón guardar al pie -->
+        <div class="d-flex justify-content-center my-4">
+          <button
+            class="btn btn-primary btn-lg px-5 shadow-sm"
+            (click)="saveAll()"
+            [disabled]="!dateDeparture.value"
+          >
+            <i class="fas fa-save me-2"></i>
+            Guardar salidas
+          </button>
+        </div>
       </div>
     </div>
   </div>
