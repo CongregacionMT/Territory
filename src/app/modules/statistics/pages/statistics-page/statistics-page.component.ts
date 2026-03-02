@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { SortBy } from '@core/pipes/sort-by.pipe';
 import { environment } from '@environments/environment';
 
@@ -12,7 +12,7 @@ import { environment } from '@environments/environment';
   selector: 'app-statistics-page',
   templateUrl: './statistics-page.component.html',
   styleUrls: ['./statistics-page.component.scss'],
-  imports: [ReactiveFormsModule, DatePipe, SortBy],
+  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, SortBy],
 })
 export class StatisticsPageComponent implements OnInit {
   private territorieDataService = inject(TerritoryDataService);
@@ -193,7 +193,7 @@ export class StatisticsPageComponent implements OnInit {
     const data = this.dataListFull();
     let totalApplesInLocality = 0;
     let completedApplesInPeriod = 0;
-    let territoriesWithActivity = 0;
+    let territoriesCompleted = 0;
 
     data.forEach((territoryCards) => {
       const primaryCard = territoryCards[0];
@@ -205,23 +205,30 @@ export class StatisticsPageComponent implements OnInit {
 
       // Si no es placeholder, hubo actividad en el periodo
       if (!primaryCard.isPlaceholder) {
-        territoriesWithActivity++;
-
-        // Sumamos las manzanas completadas en el último estado reportado en el periodo
+        // Sumamos las manzanas completadas en el card más reciente del periodo
         const checkedCount = (primaryCard.applesData || []).filter(
           (a: any) => a.checked,
         ).length;
         completedApplesInPeriod += checkedCount;
+
+        // Un territorio está completado si algún card del periodo tiene TODAS sus manzanas marcadas
+        const wasFullyCompleted = territoryCards.some((c: any) => {
+          const apples = c.applesData || [];
+          return apples.length > 0 && apples.every((a: any) => a.checked);
+        });
+        if (wasFullyCompleted) territoriesCompleted++;
       }
     });
 
     this.summaryStats.set({
       totalTerritories: data.length,
-      completedInPeriod: territoriesWithActivity,
+      completedInPeriod: territoriesCompleted,
       totalApples: completedApplesInPeriod,
       percentCompleted:
         totalApplesInLocality > 0
-          ? Math.round((completedApplesInPeriod / totalApplesInLocality) * 100)
+          ? Math.round(
+              (completedApplesInPeriod / totalApplesInLocality) * 1000,
+            ) / 10
           : 0,
     });
   }
