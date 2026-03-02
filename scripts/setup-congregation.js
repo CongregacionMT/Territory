@@ -295,6 +295,7 @@ async function initializeFirebase(config, localitiesData) {
           end: "",
           comments: "Inicializado por script",
           link: collectionName, // ✅ CORREGIDO: Usar el nombre de la colección
+          isInitial: true,
         };
 
         await collectionRef.add(initialCard);

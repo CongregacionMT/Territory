@@ -99,15 +99,26 @@ async function deleteQueryBatch(db, query, resolve) {
   }
 
   const batch = db.batch();
+  let deletedCount = 0;
   snapshot.docs.forEach((doc) => {
-    batch.delete(doc.ref);
+    const data = doc.data();
+    if (data.isInitial !== true) {
+      batch.delete(doc.ref);
+      deletedCount++;
+    }
   });
 
-  await batch.commit();
+  if (deletedCount > 0) {
+    await batch.commit();
+  }
 
-  process.nextTick(() => {
-    deleteQueryBatch(db, query, resolve);
-  });
+  if (snapshot.size === batchSize) {
+    process.nextTick(() => {
+      deleteQueryBatch(db, query, resolve);
+    });
+  } else {
+    resolve();
+  }
 }
 
 async function main() {
