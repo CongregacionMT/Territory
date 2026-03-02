@@ -40,6 +40,7 @@ export class DeparturePageComponent implements OnInit {
   departures$: Departure[] = [];
   weeklyHistory: WeeklyDeparture[] = [];
   selectedWeek: string = 'actual';
+  showHistory: boolean = false;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -56,38 +57,32 @@ export class DeparturePageComponent implements OnInit {
   }
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[10];
+    this.loadHistory();
+    this.loadCurrentWeek();
+  }
+
+  loadHistory() {
     this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
       this.weeklyHistory = history.sort((a, b) =>
-        a.weekId.localeCompare(b.weekId),
+        b.weekId.localeCompare(a.weekId),
       );
+    });
+  }
 
-      // Intentar encontrar la semana actual del calendario en el historial
-      const currentWeekId = getWeekId(new Date());
-      const currentWeekInHistory = this.weeklyHistory.find(
-        (w) => w.weekId === currentWeekId,
-      );
-
-      if (currentWeekInHistory) {
-        this.selectedWeek = currentWeekInHistory.id || '';
-        this.departures$ = currentWeekInHistory.departure;
+  loadCurrentWeek() {
+    this.selectedWeek = 'actual';
+    this.territoryDataService.getDepartures().subscribe({
+      next: (departure: DepartureData) => {
+        this.departures$ = departure.departure;
         this.sortDepartures();
-        this.dateDeparture.setValue(currentWeekInHistory.weekId);
-        this.spinner.cerrarSpinner();
-      } else {
-        // Si no está en el historial, cargar lo que esté configurado como actual (docDeparture)
-        this.territoryDataService.getDepartures().subscribe({
-          next: (departure: DepartureData) => {
-            this.departures$ = departure.departure;
-            this.sortDepartures();
-            this.territoryDataService.getDateDepartures().subscribe({
-              next: (date: DateDeparture) => {
-                this.dateDeparture.setValue(date.date);
-                this.spinner.cerrarSpinner();
-              },
-            });
+        this.territoryDataService.getDateDepartures().subscribe({
+          next: (date: DateDeparture) => {
+            this.dateDeparture.setValue(date.date);
+            this.spinner.cerrarSpinner();
           },
         });
-      }
+      },
+      error: () => this.spinner.cerrarSpinner(),
     });
   }
 

@@ -14,23 +14,43 @@
         class="me-2"
         alt="Calendar"
       />
-      <h2 class="h5 mb-0">{{ getFormattedDate("actual") }}</h2>
+      <h2 class="h5 mb-0">
+        {{ getFormattedDate(dateDeparture.value || "actual") }}
+      </h2>
     </div>
 
     <div class="row justify-content-center">
-      <div class="col-10 col-md-4">
-        <select
-          class="form-select rounded-pill px-3 shadow-sm border-info"
-          [(ngModel)]="selectedWeek"
-          (change)="onWeekChange()"
-        >
-          <option value="actual">📅 Semana actual</option>
-          @for (week of weeklyHistory; track week.id) {
-            <option [value]="week.id">
-              📜 Historial: {{ getFormattedDate(week.weekId) }}
-            </option>
-          }
-        </select>
+      <div class="col-12 col-md-4">
+        <div class="text-center mb-1">
+          <button
+            class="btn btn-sm text-white text-decoration-none d-inline-flex align-items-center opacity-75"
+            (click)="showHistory = !showHistory"
+          >
+            <img
+              src="https://api.iconify.design/mdi:history.svg?color=%236c757d"
+              width="18"
+              height="18"
+              class="me-1"
+              alt="History"
+            />
+            {{ showHistory ? "Ocultar historial" : "Ver historial" }}
+          </button>
+        </div>
+
+        @if (showHistory) {
+          <select
+            class="form-select form-select-sm rounded-pill px-3 shadow-sm border-secondary-subtle animate__animated animate__fadeIn"
+            [(ngModel)]="selectedWeek"
+            (change)="onWeekChange()"
+          >
+            <option value="actual">📅 Semana actual</option>
+            @for (week of weeklyHistory; track week.id) {
+              <option [value]="week.id">
+                📜 Historial: {{ getFormattedDate(week.weekId) }}
+              </option>
+            }
+          </select>
+        }
       </div>
     </div>
   </div>
