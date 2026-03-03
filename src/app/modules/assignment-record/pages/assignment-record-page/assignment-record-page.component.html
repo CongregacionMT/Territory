@@ -3,15 +3,69 @@
   <div class="card-container">
     @for (terr of territorioMaps(); track terr) {
       <app-card-xl
-        mapSRC="{{ terr.src }}"
-        mapName="{{ terr.name }}"
-        [routerLink]="terr.link"
+      mapSRC="{{ terr.src }}"
+      mapName="{{ terr.name }}"
+      [routerLink]="terr.link"
       ></app-card-xl>
     }
   </div>
 
   <hr />
+  
+  <h2 class="text-center my-4 fw-bold">Revisión de tarjetas recibidas</h2>
+  <div class="card-s-container">
+    @for (card of allCardsReceived(); track card) {
+      <div
+        class="card-received"
+        [class.card-received--reviewed]="card.revisionComplete"
+        [class.card-received--pending]="!card.revisionComplete"
+        (click)="cardReceived(card)"
+      >
+        <!-- Botón eliminar flotante -->
+        <button
+          class="card-received__delete-btn"
+          data-bs-toggle="modal"
+          data-bs-target="#exampleModal"
+          (click)="$event.stopPropagation(); cardConfirmationDelete(card)"
+          title="Eliminar tarjeta"
+        >
+          ✕
+        </button>
 
+        <!-- Badge de estado (elemento más prominente) -->
+        <div class="card-received__status-badge">
+          @if (card.revisionComplete) {
+            ✔ Revisado
+          } @else {
+            ⏳ Sin revisar
+          }
+        </div>
+
+        <!-- Territorio -->
+        <div class="card-received__territory">
+          TERRITORIO {{ card.numberTerritory }}
+        </div>
+
+        <!-- Nombre del publicador -->
+        <div class="card-received__name">{{ card.driver | titlecase }}</div>
+
+        <!-- Metadatos -->
+        <div class="card-received__meta">
+          <div class="card-received__meta-row">
+            <span>Localidad</span>
+            <span>{{ card.location | titlecase }}</span>
+          </div>
+          <div class="card-received__meta-row">
+            <span>Iniciado</span>
+            <span>{{ card.start | date: "dd 'de' MMMM" }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <hr />
+  
   <h2 class="text-center my-4 fw-bold">Territorios Personales</h2>
 
   <div class="card-s-container">
@@ -76,57 +130,6 @@
 
   <hr />
 
-  <h2 class="text-center my-4 fw-bold">Revisión de tarjetas recibidas</h2>
-  <div class="card-s-container">
-    @for (card of allCardsReceived(); track card) {
-      <div
-        class="card-received"
-        [class.card-received--reviewed]="card.revisionComplete"
-        [class.card-received--pending]="!card.revisionComplete"
-        (click)="cardReceived(card)"
-      >
-        <!-- Botón eliminar flotante -->
-        <button
-          class="card-received__delete-btn"
-          data-bs-toggle="modal"
-          data-bs-target="#exampleModal"
-          (click)="$event.stopPropagation(); cardConfirmationDelete(card)"
-          title="Eliminar tarjeta"
-        >
-          ✕
-        </button>
-
-        <!-- Badge de estado (elemento más prominente) -->
-        <div class="card-received__status-badge">
-          @if (card.revisionComplete) {
-            ✔ Revisado
-          } @else {
-            ⏳ Sin revisar
-          }
-        </div>
-
-        <!-- Territorio -->
-        <div class="card-received__territory">
-          TERRITORIO {{ card.numberTerritory }}
-        </div>
-
-        <!-- Nombre del publicador -->
-        <div class="card-received__name">{{ card.driver | titlecase }}</div>
-
-        <!-- Metadatos -->
-        <div class="card-received__meta">
-          <div class="card-received__meta-row">
-            <span>Localidad</span>
-            <span>{{ card.location | titlecase }}</span>
-          </div>
-          <div class="card-received__meta-row">
-            <span>Iniciado</span>
-            <span>{{ card.start | date: "dd 'de' MMMM" }}</span>
-          </div>
-        </div>
-      </div>
-    }
-  </div>
 
   <!-- Modal de creación de asignación -->
   <div
