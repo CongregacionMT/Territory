@@ -152,7 +152,8 @@ export class FormEditDeparturesComponent implements OnInit {
     });
 
     // Asegurar que groupKeys esté ordenado y no tenga duplicados
-    this.groupKeys = [...new Set(this.groupKeys)].sort((a, b) => a - b);
+    // Siempre incluir el grupo 0 (Salidas Generales) para que el botón "Nueva salida +" esté disponible
+    this.groupKeys = [...new Set([0, ...this.groupKeys])].sort((a, b) => a - b);
   }
   loadTerritoryData() {
     const stored = sessionStorage.getItem('numberTerritory');
@@ -320,8 +321,9 @@ export class FormEditDeparturesComponent implements OnInit {
     this.isSaved = false;
     this.numberGroup = group;
     this.departureFormArray.removeAt(index);
-    // Si el grupo queda vacío, eliminarlo de groupKeys (sin renumerar)
-    if (this.departureFormArray.length === 0) {
+    // Si el grupo queda vacío, eliminarlo de groupKeys SOLO si NO es el grupo 0 (Salidas Generales)
+    // El grupo 0 siempre debe permanecer para que el botón "Nueva salida +" esté disponible
+    if (this.departureFormArray.length === 0 && group !== 0) {
       this.groupKeys = this.groupKeys.filter((k) => k !== group);
     }
   }
@@ -432,15 +434,36 @@ export class FormEditDeparturesComponent implements OnInit {
       .map((number) => this.formDeparture.value?.[`departure${number}`])
       .flat();
 
-    // Guardar SOLO en WeeklyDepartures/{weekId} — no tocar docDeparture.
-    // docDeparture es solo la plantilla/template; mezclar fechas allí causa datos fantasma.
-    // Filtramos solo las salidas que realmente pertenecen a esta semana.
-    const weeklyOnly = formDepartures.filter((d: Departure) => {
-      if (!d.date) return true;
+    // Separar salidas: las de esta semana vs. las de otras semanas
+    const weeklyOnly: Departure[] = [];
+    const otherWeeks: { [weekId: string]: Departure[] } = {};
+
+    formDepartures.forEach((d: Departure) => {
+      if (!d.date) {
+        weeklyOnly.push(d);
+        return;
+      }
       const date = new Date(d.date + 'T00:00:00');
-      return date >= targetMonday && date <= targetSunday;
+      if (
+        isNaN(date.getTime()) ||
+        (date >= targetMonday && date <= targetSunday)
+      ) {
+        weeklyOnly.push(d);
+      } else {
+        // Esta salida pertenece a otra semana: calcular su lunes
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+        const otherMonday = new Date(date);
+        otherMonday.setDate(diff);
+        const otherWeekId = otherMonday.toISOString().split('T')[0];
+        if (!otherWeeks[otherWeekId]) {
+          otherWeeks[otherWeekId] = [];
+        }
+        otherWeeks[otherWeekId].push(d);
+      }
     });
 
+    // Guardar las salidas de esta semana
     if (targetMondayStr) {
       const weeklyDeparture: WeeklyDeparture = {
         departure: weeklyOnly,
@@ -450,12 +473,42 @@ export class FormEditDeparturesComponent implements OnInit {
       this.territoryDataService.postWeeklyDeparture(weeklyDeparture);
     }
 
+    // Guardar las salidas que pertenecen a otras semanas en su semana correspondiente
+    // Para cada semana distinta, hacemos un merge con lo que ya existe en Firestore
+    Object.entries(otherWeeks).forEach(([otherWeekId, newDepartures]) => {
+      this.territoryDataService
+        .getWeeklyDeparture(otherWeekId)
+        .pipe(take(1))
+        .subscribe((existing) => {
+          const existingDepartures = existing?.departure || [];
+          // Combinar sin duplicar (evitar agregar si ya existe)
+          const merged = [...existingDepartures];
+          newDepartures.forEach((nd) => {
+            const alreadyExists = existingDepartures.some(
+              (ed: Departure) =>
+                ed.date === nd.date &&
+                ed.driver === nd.driver &&
+                ed.schedule === nd.schedule,
+            );
+            if (!alreadyExists) {
+              merged.push(nd);
+            }
+          });
+          const otherWeeklyDeparture: WeeklyDeparture = {
+            departure: merged,
+            weekId: otherWeekId,
+            createdAt: new Date(),
+          };
+          this.territoryDataService.postWeeklyDeparture(otherWeeklyDeparture);
+        });
+    });
+
     this._snackBar.open('✅ Semana y salidas guardadas correctamente', 'Ok', {
       verticalPosition: this.verticalPosition,
       duration: 3000,
     });
 
-    // Re-inicializar el formulario para aplicar filtros visuales
-    this.initForm(formDepartures);
+    // Re-inicializar el formulario mostrando solo las salidas de esta semana
+    this.initForm(weeklyOnly);
   }
 }
