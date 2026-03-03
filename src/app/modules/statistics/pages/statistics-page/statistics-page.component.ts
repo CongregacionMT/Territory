@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { take } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
@@ -7,6 +8,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { SortBy } from '@core/pipes/sort-by.pipe';
 import { environment } from '@environments/environment';
+import { Card } from '@core/models/Card';
 
 @Component({
   selector: 'app-statistics-page',
@@ -38,6 +40,23 @@ export class StatisticsPageComponent implements OnInit {
     completedInPeriod: 0,
     totalApples: 0,
     percentCompleted: 0,
+  });
+
+  // Datos crudos de Firestore (las tarjetas de territorios personales)
+  allPersonalEntries = signal<Card[]>([]);
+
+  // Señal computada para filtrar automáticamente las tarjetas personales por localidad actual
+  personalTerritories = computed(() => {
+    const path = this.territoryPath();
+    const entries = this.allPersonalEntries();
+    if (!path) return [];
+
+    return entries.filter((e) => {
+      const loc = (e.location || '').toLowerCase();
+      const p = (path || '').toLowerCase();
+      // Un match más robusto que cubra tanto el nombre (Wheelwright) como la clave (wheelwright)
+      return loc === p || loc.includes(p) || p.includes(loc);
+    });
   });
 
   // FormControls no necesitan ser signals ya que tienen su propia reactividad
@@ -86,7 +105,18 @@ export class StatisticsPageComponent implements OnInit {
       }
     });
 
+    // Initial data load for the locality set in the constructor
     this.getDataStatisticTerritory();
+
+    // Usar getCardAssigned (colección 'Assigned') como fuente única de verdad
+    this.territorieDataService
+      .getCardAssigned()
+      .pipe(take(1)) // Solo necesitamos este stream una vez para las stats, o dejarlo abierto para tiempo real?
+      // El usuario recargará usualmente, pero mejor dejarlo abierto para tiempo real si no causa problemas.
+      // Sin embargo, para evitar duplicados si hay un error en el pipe, take(1) es seguro.
+      .subscribe((entries) => {
+        this.allPersonalEntries.set(entries);
+      });
   }
 
   async setTimeRange(months: number) {
@@ -140,6 +170,7 @@ export class StatisticsPageComponent implements OnInit {
           // Obtenemos el histórico para tener la estructura del territorio (blueprint)
           this.territorieDataService
             .getCardTerritorie(t.collection, 120)
+            .pipe(take(1)) // EVITAR DUPLICADOS SI EL STREAM EMITE MÁS DE UNA VEZ
             .subscribe((allCards) => {
               const blueprintCard = allCards[0];
 
@@ -280,5 +311,21 @@ export class StatisticsPageComponent implements OnInit {
     return this.order() === -1
       ? 'fa fa-sort-down text-primary'
       : 'fa fa-sort-up text-primary';
+  }
+
+  /** Retorna true si el número de territorio está actualmente asignado como personal */
+  isPersonalTerritory(number: any): boolean {
+    const searchNum = parseInt(String(number), 10);
+    return this.personalTerritories().some(
+      (e: Card) => parseInt(String(e.territory), 10) === searchNum,
+    );
+  }
+
+  /** Obtiene la entrada personal para un territorio dado (para mostrar el publicador) */
+  getPersonalEntry(number: any): Card | undefined {
+    const searchNum = parseInt(String(number), 10);
+    return this.personalTerritories().find(
+      (e: Card) => parseInt(String(e.territory), 10) === searchNum,
+    );
   }
 }

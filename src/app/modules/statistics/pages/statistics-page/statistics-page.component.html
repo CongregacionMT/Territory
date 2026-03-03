@@ -170,9 +170,23 @@
           ) {
             <tr class="align-middle" [class]="'row-' + paintRow(dataList)">
               <td class="ps-4 border-0">
-                <span class="fw-semibold"
-                  >Número {{ dataList[0].numberTerritory }}</span
-                >
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="fw-semibold"
+                    >Número {{ dataList[0].numberTerritory }}</span
+                  >
+                  @if (isPersonalTerritory(dataList[0].numberTerritory)) {
+                    <span
+                      class="badge personal-territory-badge"
+                      [title]="
+                        'Publicador: ' +
+                        (getPersonalEntry(dataList[0].numberTerritory)
+                          ?.publisher || '')
+                      "
+                    >
+                      🏠 Territorio Personal
+                    </span>
+                  }
+                </div>
               </td>
               <td class="border-0">
                 @if (

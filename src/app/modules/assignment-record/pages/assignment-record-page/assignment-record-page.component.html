@@ -80,45 +80,48 @@
   <div class="card-s-container">
     @for (card of allCardsReceived(); track card) {
       <div
-        class="personal-card-minimal cursor-pointer"
+        class="card-received"
+        [class.card-received--reviewed]="card.revisionComplete"
+        [class.card-received--pending]="!card.revisionComplete"
         (click)="cardReceived(card)"
       >
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="text-primary fw-bold"
-            >TERRITORIO {{ card.numberTerritory }}</span
-          >
-          <button
-            class="btn btn-sm btn-outline-danger border-0 rounded-circle"
-            data-bs-toggle="modal"
-            data-bs-target="#exampleModal"
-            (click)="$event.stopPropagation(); cardConfirmationDelete(card)"
-          >
-            ✕
-          </button>
+        <!-- Botón eliminar flotante -->
+        <button
+          class="card-received__delete-btn"
+          data-bs-toggle="modal"
+          data-bs-target="#exampleModal"
+          (click)="$event.stopPropagation(); cardConfirmationDelete(card)"
+          title="Eliminar tarjeta"
+        >
+          ✕
+        </button>
+
+        <!-- Badge de estado (elemento más prominente) -->
+        <div class="card-received__status-badge">
+          @if (card.revisionComplete) {
+            ✔ Revisado
+          } @else {
+            ⏳ Sin revisar
+          }
         </div>
 
-        <h2 class="publisher-name-large mb-3">{{ card.driver | titlecase }}</h2>
+        <!-- Territorio -->
+        <div class="card-received__territory">
+          TERRITORIO {{ card.numberTerritory }}
+        </div>
 
-        <div class="border-top pt-3">
-          <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted">Estado:</span>
-            <span
-              class="fw-bold"
-              [class.text-success]="card.revisionComplete"
-              [class.text-danger]="!card.revisionComplete"
-            >
-              {{ card.revisionComplete ? "✔ Revisado" : "❌ Sin revisar" }}
-            </span>
+        <!-- Nombre del publicador -->
+        <div class="card-received__name">{{ card.driver | titlecase }}</div>
+
+        <!-- Metadatos -->
+        <div class="card-received__meta">
+          <div class="card-received__meta-row">
+            <span>Localidad</span>
+            <span>{{ card.location | titlecase }}</span>
           </div>
-          <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted">Localidad:</span>
-            <span class="fw-bold text-dark">{{ card.location | titlecase }}</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <span class="text-muted">Iniciado:</span>
-            <span class="fw-bold text-dark">{{
-              card.start | date: "dd 'de' MMMM"
-            }}</span>
+          <div class="card-received__meta-row">
+            <span>Iniciado</span>
+            <span>{{ card.start | date: "dd 'de' MMMM" }}</span>
           </div>
         </div>
       </div>
@@ -149,7 +152,11 @@
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label-custom">Localidad</label>
-                <select class="form-select" formControlName="location">
+                <select
+                  class="form-select"
+                  formControlName="location"
+                  (change)="onLocationChange()"
+                >
                   <option [value]="congregationName">
                     {{ congregationName }}
                   </option>
@@ -169,11 +176,16 @@
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label-custom">N° de Territorio</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  formControlName="territory"
-                />
+                <select class="form-select" formControlName="territory">
+                  @if (availableTerritoryNumbers().length === 0) {
+                    <option value="">Sin territorios disponibles</option>
+                  }
+                  @for (t of availableTerritoryNumbers(); track t.territorio) {
+                    <option [value]="t.territorio">
+                      Territorio {{ t.territorio }}
+                    </option>
+                  }
+                </select>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label-custom">Fecha de Entrega</label>

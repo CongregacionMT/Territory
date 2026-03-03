@@ -19,6 +19,15 @@ export class SortBy implements PipeTransform {
       const valueA = a[0] ? a[0][args] : a[args];
       const valueB = b[0] ? b[0][args] : b[args];
 
+      // Si es el número de territorio, forzar comparación numérica
+      if (args === 'numberTerritory' || args === 'territory') {
+        const numA = parseInt(String(valueA), 10);
+        const numB = parseInt(String(valueB), 10);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+      }
+
       return this.compareValues(valueA, valueB);
     });
 
