@@ -489,6 +489,29 @@ async function initializeFirebase(config, localitiesData) {
   );
 
   console.log("   ✓ Usuario admin creado/actualizado");
+
+  // 9. Crear colección Assigned (Territorios Personales)
+  const assignedRef = db.collection("Assigned");
+  const assignedDocs = await assignedRef.limit(1).get();
+
+  if (assignedDocs.empty) {
+    const placeholderAssigned = {
+      location: localitiesData[0]?.locality.name || "",
+      publisher: "Sistema",
+      territory: 0,
+      date: new Date().toISOString().split("T")[0],
+      driver: "Sistema",
+      creation: admin.firestore.Timestamp.now(),
+      isPlaceholder: true,
+    };
+
+    await assignedRef.add(placeholderAssigned);
+    console.log(
+      "   ✓ Colección Assigned (Territorios Personales) inicializada",
+    );
+  } else {
+    console.log("   ⊙ Assigned ya tiene datos");
+  }
 }
 
 async function ensureFirebaseLogin() {
