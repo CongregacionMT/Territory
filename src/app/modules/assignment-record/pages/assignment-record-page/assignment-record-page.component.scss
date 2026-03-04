@@ -1,56 +1,232 @@
-.card-container{
-    display: flex;
-    justify-content: center;
+.card-container {
+  display: flex;
+  justify-content: center;
 }
-.card-s-container{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+.card-s-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
-.card{
-    width: 18rem;
-    background-color: #f9f9c8;
+.card {
+  width: 18rem;
+  background-color: #f9f9c8;
+  margin: 1rem;
+}
+.card:hover {
+  cursor: pointer;
+  transition: all 300ms;
+  -webkit-transition: all 300ms;
+  -moz-transition: all 300ms;
+  -ms-transition: all 300ms;
+  -o-transition: all 300ms;
+  box-shadow: 2px 2px 32px 1px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: 2px 2px 32px 1px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 2px 2px 32px 1px rgba(0, 0, 0, 0.75);
+}
+.card-new {
+  width: 18rem;
+  background-color: #fffff9;
+  margin: 1rem;
+  .card-border {
     margin: 1rem;
+    border: 5px dashed #6c757d;
+  }
 }
-.card:hover{
-    cursor:pointer;
-    transition: all 300ms;
-    -webkit-transition: all 300ms;
-    -moz-transition: all 300ms;
-    -ms-transition: all 300ms;
-    -o-transition: all 300ms;
-    box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
-    -webkit-box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
-    -moz-box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
-}
-.card-new{
-    width: 18rem;
-    background-color: #fffff9;
-    margin: 1rem;
-    .card-border{
-        margin: 1rem;
-        border: 5px dashed #6c757d;
-    }
-}
-.card-new:hover{
-    cursor:pointer;
-    transition: all 300ms;
-    -webkit-transition: all 300ms;
-    -moz-transition: all 300ms;
-    -ms-transition: all 300ms;
-    -o-transition: all 300ms;
-    box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
-    -webkit-box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
-    -moz-box-shadow: 2px 2px 32px 1px rgba(0,0,0,0.75);
+.card-new:hover {
+  cursor: pointer;
+  transition: all 300ms;
+  -webkit-transition: all 300ms;
+  -moz-transition: all 300ms;
+  -ms-transition: all 300ms;
+  -o-transition: all 300ms;
+  box-shadow: 2px 2px 32px 1px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: 2px 2px 32px 1px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 2px 2px 32px 1px rgba(0, 0, 0, 0.75);
 }
 @media (max-width: 990px) {
-    .card-container{
-        flex-wrap: wrap;
-    }
+  .card-container {
+    flex-wrap: wrap;
+  }
 }
 @media (max-width: 768px) {
-    .card-container{
-        align-items: center;
-        flex-direction: column;
+  .card-container {
+    align-items: center;
+    flex-direction: column;
+  }
+}
+
+/* --- ESTILOS MINIMALISTAS PARA TERRITORIOS PERSONALES --- */
+.personal-card-minimal {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+    border-color: #adb5bd;
+  }
+
+  &.is-overdue {
+    border: 2px solid #dc3545;
+  }
+}
+
+.publisher-name-large {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #212529;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  word-wrap: break-word;
+}
+
+.personal-card-new {
+  width: 100%;
+  max-width: 420px;
+  min-height: 150px;
+  margin: 0.75rem;
+  border: 3px dashed #dee2e6;
+  border-radius: 12px;
+  color: #adb5bd;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #0d6efd;
+    color: #0d6efd;
+    background: #f8f9fa;
+  }
+}
+
+/* --- ESTILOS TARJETAS DE REVISIÓN (REVISADO / SIN REVISAR) --- */
+.card-received {
+  position: relative;
+  background: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
+  overflow: hidden;
+  cursor: pointer;
+  border-left: 6px solid #dee2e6;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+  }
+
+  /* REVISADO — verde */
+  &--reviewed {
+    border-left-color: #198754;
+    background: linear-gradient(145deg, #f0fdf4 0%, #ffffff 55%);
+
+    .card-received__status-badge {
+      background-color: #198754;
+      color: #fff;
     }
+  }
+
+  /* PENDIENTE — ámbar */
+  &--pending {
+    border-left-color: #f59e0b;
+    background: linear-gradient(145deg, #fffbeb 0%, #ffffff 55%);
+
+    .card-received__status-badge {
+      background-color: #f59e0b;
+      color: #1a1a1a;
+    }
+  }
+}
+
+/* Pill badge de estado — el elemento más prominente de la tarjeta */
+.card-received__status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.card-received__territory {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6c757d;
+  margin-bottom: 0.1rem;
+}
+
+.card-received__name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  word-wrap: break-word;
+  margin-bottom: 0.85rem;
+}
+
+.card-received__meta {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.card-received__meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+
+  span:first-child {
+    color: #9ca3af;
+  }
+  span:last-child {
+    font-weight: 600;
+    color: #374151;
+  }
+}
+
+/* Botón de eliminar flotante */
+.card-received__delete-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: #adb5bd;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 50%;
+  transition:
+    color 0.2s,
+    background 0.2s;
+
+  &:hover {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.08);
+  }
 }

@@ -1,44 +1,82 @@
 <div class="departures-grid">
-  @for (departure of departures(); track departure) {
+  @for (departure of departures(); track departure; let i = $index) {
     @if (currentPath === departure.group || departure.group === 0) {
-      <div class="departure-card">
-        <!-- Header: Day & Time -->
-        <div class="card-header-custom" [class]="'bg-' + departure.color + '-subtle'">
-          <div class="header-content">
-            <span class="day-badge">{{ getDayOfWeek(departure.date) }}</span>
-            <span class="time-badge">{{ departure.schedule }}hs</span>
+      <div class="departure-card" [class.is-today]="isToday(departure.date)">
+        @if (isToday(departure.date)) {
+          <div class="today-badge-left">
+            <img
+              src="https://api.iconify.design/mdi:star-circle.svg?color=white"
+              width="14"
+              height="14"
+              alt="Star"
+            />
+            <span>HOY</span>
           </div>
-          <button class="btn-subscribe" (click)="addToCalendar(departure)" title="Agendar salida">
-            <img src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=%236c757d" width="20" height="20" alt="Notificarme" />
+        }
+
+        <!-- Header -->
+        <div
+          class="card-header-inner"
+          [class]="'bg-' + departure.color + '-subtle'"
+        >
+          <div class="header-left">
+            <span class="day-text">{{ getDayOfWeek(departure.date) }}</span>
+            <span class="time-tag">{{ departure.schedule }}hs</span>
+          </div>
+          <button
+            class="action-btn"
+            (click)="addToCalendar(departure)"
+            title="Agendar salida"
+          >
+            <img
+              src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=%236c757d"
+              width="18"
+              height="18"
+              alt="Notificarme"
+            />
           </button>
         </div>
 
-        <!-- Body: Details -->
-        <div class="card-body-custom">
-          
+        <!-- Body -->
+        <div class="card-body-inner">
           <!-- Driver -->
-          <div class="info-row">
-            <div class="icon-wrapper">
-              <img src="https://api.iconify.design/mdi:account-tie.svg?color=%236c757d" width="20" height="20" alt="Leader" />
+          <div class="detail-row">
+            <div class="icon-box">
+              <img
+                src="https://api.iconify.design/mdi:account-tie.svg?color=%236c757d"
+                width="18"
+                height="18"
+                alt="Leader"
+              />
             </div>
-            <div class="content">
-              <span class="label">Conductor</span>
-              <span class="value">{{ departure.driver }}</span>
+            <div class="info-content">
+              <label>Conductor</label>
+              <strong>{{ departure.driver }}</strong>
             </div>
           </div>
 
-          <!-- Location (Enhanced) -->
-          <div class="info-row">
-            <div class="icon-wrapper">
-              <img src="https://api.iconify.design/mdi:map-marker.svg?color=%236c757d" width="20" height="20" alt="Location" />
+          <!-- Location -->
+          <div class="detail-row">
+            <div class="icon-box">
+              <img
+                src="https://api.iconify.design/mdi:map-marker.svg?color=%236c757d"
+                width="18"
+                height="18"
+                alt="Location"
+              />
             </div>
-            <div class="content">
-              <span class="label">Punto de encuentro</span>
-              <span class="value">{{ departure.point }}</span>
-              
-              @if(departure.maps) {
-                <a [href]="departure.maps" target="_blank" class="map-action-btn">
-                  <img src="https://api.iconify.design/logos:google-maps.svg" width="20" height="20" alt="Google Maps" />
+            <div class="info-content">
+              <label>Punto de encuentro</label>
+              <strong>{{ departure.point }}</strong>
+
+              @if (departure.maps) {
+                <a [href]="departure.maps" target="_blank" class="maps-link">
+                  <img
+                    src="https://api.iconify.design/logos:google-maps.svg"
+                    width="16"
+                    height="16"
+                    alt="Maps"
+                  />
                   Ver en Mapa
                 </a>
               }
@@ -46,32 +84,39 @@
           </div>
 
           <!-- Territories -->
-          <div class="info-row">
-            <div class="icon-wrapper">
-              <img src="https://api.iconify.design/mdi:map-legend.svg?color=%236c757d" width="20" height="20" alt="Territories" />
+          <div class="detail-row">
+            <div class="icon-box">
+              <img
+                src="https://api.iconify.design/mdi:map-legend.svg?color=%236c757d"
+                width="18"
+                height="18"
+                alt="Territories"
+              />
             </div>
-            <div class="content">
-              <span class="label">Territorios</span>
-              <div class="territories-container">
+            <div class="info-content">
+              <label>Territorios</label>
+              <div class="territory-list">
                 @for (territory of departure.territory; track territory) {
                   <a
-                    class="territory-chip"
-                    [routerLink]="'../../territorios/' + departure.location + '-' + territory.replace('N°', '')"
+                    class="territory-item"
+                    [routerLink]="
+                      '../../../territorios/' +
+                      getNormalizedLocation(departure.location) +
+                      '-' +
+                      territory.replace('N°', '')
+                    "
                   >
-                    <span class="territory-text">{{ territory }}</span>
-                    <img 
-                      src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d" 
-                      alt="Ver" 
-                      width="16" 
-                      height="16"
-                      class="territory-icon"
+                    <span>{{ territory }}</span>
+                    <img
+                      src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d"
+                      width="12"
+                      height="12"
                     />
                   </a>
                 }
               </div>
             </div>
           </div>
-
         </div>
       </div>
     }

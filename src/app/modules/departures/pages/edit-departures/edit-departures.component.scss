@@ -1,0 +1,126 @@
+/* ============================================================
+   DEPARTURE HEADER — Estilos para el encabezado de salidas
+   ============================================================ */
+
+.departure-header-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+/* Banda superior con gradiente azul */
+.departure-header-band {
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 60%, #42a5f5 100%);
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+/* Zona central del cuerpo */
+.departure-header-body {
+  background: #ffffff;
+}
+
+/* Botones de navegación semana anterior/siguiente */
+.departure-nav-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 2px solid #bbdefb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.departure-nav-btn:hover {
+  background: #1565c0;
+  color: white;
+  border-color: #1565c0;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+}
+
+.departure-nav-btn:active {
+  transform: scale(0.96);
+}
+
+/* Visualización grande de la semana */
+.departure-week-display {
+  min-width: 0;
+}
+
+.departure-week-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.departure-week-range {
+  font-size: 1.35rem;
+  color: #1a237e;
+  line-height: 1.2;
+}
+
+/* Input de fecha en línea */
+.departure-date-input {
+  border: 1px solid #90caf9 !important;
+  border-radius: 8px !important;
+  font-size: 0.8rem !important;
+  color: #1565c0 !important;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.departure-date-input:focus {
+  border-color: #1565c0 !important;
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15) !important;
+  outline: none;
+}
+
+/* Dropdown de historial */
+.departure-history-select {
+  border-radius: 8px;
+  font-size: 0.85rem;
+  border-color: #e0e0e0;
+  color: #546e7a;
+}
+
+.departure-history-select:focus {
+  border-color: #90caf9;
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+}
+
+/* Botón de guardar principal */
+.departure-save-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 10px 28px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 3px 10px rgba(21, 101, 192, 0.25);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.departure-save-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(21, 101, 192, 0.35);
+}
+
+.departure-save-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Responsive: semana más pequeña en mobile */
+@media (max-width: 576px) {
+  .departure-week-range {
+    font-size: 1.05rem;
+  }
+}

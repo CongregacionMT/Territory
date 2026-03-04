@@ -1,9 +1,12 @@
-<nav style="--bs-breadcrumb-divider: '>'" aria-label="breadcrumb">
+<nav style="--bs-breadcrumb-divider: &quot;>&quot;" aria-label="breadcrumb">
   <ol class="breadcrumb">
-    @for (route of routerBreadcrum(); track route; let c = $count; let i = $index) {
-      <li
-        class="breadcrumb-item d-flex"
-        >
+    @for (
+      route of breadcrumbItems();
+      track route;
+      let c = $count;
+      let i = $index
+    ) {
+      <li class="breadcrumb-item d-flex">
         <a [routerLink]="returnBack.repeat(c - i)" class="route">{{
           route.route
         }}</a>
@@ -11,7 +14,7 @@
       </li>
     }
     <li class="breadcrumb-item active" aria-current="page">
-      {{ ultimateElement }}
+      {{ ultimateElement() }}
     </li>
   </ol>
 </nav>

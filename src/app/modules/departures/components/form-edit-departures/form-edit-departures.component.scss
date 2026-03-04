@@ -31,7 +31,9 @@
   .card {
     margin-bottom: 1rem;
   }
-  .btn, .form-select, .form-control {
+  .btn,
+  .form-select,
+  .form-control {
     font-size: 1rem;
     width: 100%;
   }
@@ -40,4 +42,12 @@
 .card {
   border-radius: 1rem;
   background: #f8f9fa;
+}
+
+// Garantiza que el select de color siempre tenga texto legible (negro sobre blanco),
+// sin importar la clase dinámica de color aplicada como indicador visual.
+.color-select {
+  color: #212529 !important;
+  background-color: #fff !important;
+  padding-left: 0.75rem;
 }

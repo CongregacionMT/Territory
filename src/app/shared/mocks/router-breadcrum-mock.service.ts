@@ -8,7 +8,7 @@ export class RouterBreadcrumMockService {
   constructor() {}
 
   getBreadcrum() {
-    return ([
+    return [
       [
         {
           name: 'Home',
@@ -51,7 +51,7 @@ export class RouterBreadcrumMockService {
         {
           name: environment.congregationName,
           route: environment.congregationName,
-        }
+        },
       ],
       [
         {
@@ -64,8 +64,8 @@ export class RouterBreadcrumMockService {
         },
         {
           name: 'Rural',
-          route: 'Rural'
-        }
+          route: 'Rural',
+        },
       ],
       [
         {
@@ -78,12 +78,12 @@ export class RouterBreadcrumMockService {
         },
         {
           name: environment.congregationName,
-          route: environment.congregationName
+          route: environment.congregationName,
         },
         {
           name: 'Territorio',
-          route: 'Territorio'
-        }
+          route: 'Territorio',
+        },
       ],
       [
         {
@@ -96,12 +96,12 @@ export class RouterBreadcrumMockService {
         },
         {
           name: 'Rural',
-          route: 'Rural'
+          route: 'Rural',
         },
         {
           name: 'Territorio',
-          route: 'Territorio'
-        }
+          route: 'Territorio',
+        },
       ],
       [
         {
@@ -114,8 +114,8 @@ export class RouterBreadcrumMockService {
         },
         {
           name: 'Territorio',
-          route: 'Territorio'
-        }
+          route: 'Territorio',
+        },
       ],
       [
         {
@@ -125,7 +125,7 @@ export class RouterBreadcrumMockService {
         {
           name: 'Estadísticas',
           route: 'Estadísticas',
-        }
+        },
       ],
       [
         {
@@ -134,12 +134,12 @@ export class RouterBreadcrumMockService {
         },
         {
           name: 'Salidas',
-          route: 'Salidas'
+          route: 'Salidas',
         },
         {
           name: 'Grupo',
-          route: 'Grupo'
-        }
+          route: 'Grupo',
+        },
       ],
       [
         {
@@ -148,12 +148,12 @@ export class RouterBreadcrumMockService {
         },
         {
           name: 'Salidas',
-          route: 'Salidas'
+          route: 'Salidas',
         },
         {
           name: 'Lista',
-          route: 'Lista'
-        }
+          route: 'Lista',
+        },
       ],
       [
         {
@@ -162,8 +162,8 @@ export class RouterBreadcrumMockService {
         },
         {
           name: 'Carrito',
-          route: 'Carrito'
-        }
+          route: 'Carrito',
+        },
       ],
       [
         {
@@ -172,13 +172,27 @@ export class RouterBreadcrumMockService {
         },
         {
           name: 'Carrito',
-          route: 'Carrito'
+          route: 'Carrito',
         },
         {
           name: 'Editar',
-          route: 'Editar'
-        }
-      ]
-    ]);
+          route: 'Editar',
+        },
+      ],
+      [
+        {
+          name: 'Home',
+          route: 'Home',
+        },
+        {
+          name: 'Salidas',
+          route: 'Salidas',
+        },
+        {
+          name: 'Estadísticas',
+          route: 'Estadísticas',
+        },
+      ],
+    ];
   }
 }

@@ -295,6 +295,7 @@ async function initializeFirebase(config, localitiesData) {
           end: "",
           comments: "Inicializado por script",
           link: collectionName, // ✅ CORREGIDO: Usar el nombre de la colección
+          isInitial: true,
         };
 
         await collectionRef.add(initialCard);
@@ -390,7 +391,7 @@ async function initializeFirebase(config, localitiesData) {
       departure: [
         {
           driver: "",
-          location: localitiesData[0]?.locality.key || "",
+          location: localitiesData[0]?.locality.territoryPrefix || "",
           territory: [],
           date: new Date().toISOString().split("T")[0],
           maps: "",
@@ -467,7 +468,16 @@ async function initializeFirebase(config, localitiesData) {
     console.log("   ⊙ Cart (locations) ya existe");
   }
 
-  // 7. Crear usuario admin
+  // 7. Crear colección WeeklyDepartures (vacía como plantilla)
+  const weeklyRef = db.collection("WeeklyDepartures");
+  const weeklyDocs = await weeklyRef.limit(1).get();
+  if (weeklyDocs.empty) {
+    console.log(
+      "   ℹ Colección WeeklyDepartures habilitada (se poblará al guardar salidas)",
+    );
+  }
+
+  // 8. Crear usuario admin
   const usersRef = db.collection("users");
   await usersRef.doc("admin").set(
     {
@@ -479,6 +489,29 @@ async function initializeFirebase(config, localitiesData) {
   );
 
   console.log("   ✓ Usuario admin creado/actualizado");
+
+  // 9. Crear colección Assigned (Territorios Personales)
+  const assignedRef = db.collection("Assigned");
+  const assignedDocs = await assignedRef.limit(1).get();
+
+  if (assignedDocs.empty) {
+    const placeholderAssigned = {
+      location: localitiesData[0]?.locality.name || "",
+      publisher: "Sistema",
+      territory: 0,
+      date: new Date().toISOString().split("T")[0],
+      driver: "Sistema",
+      creation: admin.firestore.Timestamp.now(),
+      isPlaceholder: true,
+    };
+
+    await assignedRef.add(placeholderAssigned);
+    console.log(
+      "   ✓ Colección Assigned (Territorios Personales) inicializada",
+    );
+  } else {
+    console.log("   ⊙ Assigned ya tiene datos");
+  }
 }
 
 async function ensureFirebaseLogin() {

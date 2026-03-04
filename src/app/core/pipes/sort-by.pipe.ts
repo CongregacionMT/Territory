@@ -7,12 +7,28 @@ export class SortBy implements PipeTransform {
 
     newArray.sort((a: any, b: any) => {
       if (args === 'start' || args === 'end') {
-        const dateA = new Date(this.getDateValue(a, args));
-        const dateB = new Date(this.getDateValue(b, args));
-        return dateA.getTime() - dateB.getTime();
+        const valA = this.getDateValue(a, args);
+        const valB = this.getDateValue(b, args);
+
+        const dateA = valA ? new Date(valA).getTime() : 0;
+        const dateB = valB ? new Date(valB).getTime() : 0;
+
+        return dateA - dateB;
       }
 
-      return this.compareValues(a[0] ? a[0][args] : a[args], b[0] ? b[0][args] : b[args]);
+      const valueA = a[0] ? a[0][args] : a[args];
+      const valueB = b[0] ? b[0][args] : b[args];
+
+      // Si es el número de territorio, forzar comparación numérica
+      if (args === 'numberTerritory' || args === 'territory') {
+        const numA = parseInt(String(valueA), 10);
+        const numB = parseInt(String(valueB), 10);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+      }
+
+      return this.compareValues(valueA, valueB);
     });
 
     if (order !== 1) {
@@ -28,7 +44,7 @@ export class SortBy implements PipeTransform {
 
     if (dates.includes(property)) {
       for (let i = 0; i < 6; i++) {
-        if (item[i]?.[property] !== '') {
+        if (item[i] && item[i][property] && item[i][property] !== '') {
           value = item[i][property];
           break;
         }

@@ -4,32 +4,33 @@ import { MatDialog } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DialogService {
   private dialog = inject(MatDialog);
 
-
   matDialog = inject(MatDialog);
 
-  private static instance : DialogService | null= null;
+  private static instance: DialogService | null = null;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {
     DialogService.instance = this;
   }
-  public static getInstance(){
+  public static getInstance() {
     return DialogService.instance;
   }
 
-
-  openDialog<T, D = any, R = boolean>(data: D, component: ComponentType<T>): Observable<R | undefined> {
-
-    return this.matDialog.open(component,{
-      data: data,
-      disableClose: true,
-    }).afterClosed();
-
+  openDialog<T, D = any, R = boolean>(
+    data: D,
+    component: ComponentType<T>,
+  ): Observable<R | undefined> {
+    return this.matDialog
+      .open(component, {
+        data: data,
+        disableClose: true,
+      })
+      .afterClosed();
   }
 }

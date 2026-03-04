@@ -118,8 +118,8 @@ export class HomeStatisticsPageComponent implements OnInit {
   }
   
   getStorageKeyForLocality(localityKey: string): string {
-    // Genera clave única para cada localidad: statisticDataMariaTeresa, statisticDataWheelwright
+    // Genera clave única para cada localidad: statisticDataMariaTeresa_12
     const suffix = localityKey.charAt(0).toUpperCase() + localityKey.slice(1).replace(/-/g, '');
-    return `statisticData${suffix}`;
+    return `statisticData${suffix}_12`;
   }
 }

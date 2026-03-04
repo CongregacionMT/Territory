@@ -3,86 +3,134 @@
   <div class="card-container">
     @for (terr of territorioMaps(); track terr) {
       <app-card-xl
-        mapSRC="{{ terr.src }}"
-        mapName="{{ terr.name }}"
-        [routerLink]="terr.link"
+      mapSRC="{{ terr.src }}"
+      mapName="{{ terr.name }}"
+      [routerLink]="terr.link"
       ></app-card-xl>
     }
   </div>
 
   <hr />
+  
+  <h2 class="text-center my-4 fw-bold">Revisión de tarjetas recibidas</h2>
+  <div class="card-s-container">
+    @for (card of allCardsReceived(); track card) {
+      <div
+        class="card-received"
+        [class.card-received--reviewed]="card.revisionComplete"
+        [class.card-received--pending]="!card.revisionComplete"
+        (click)="cardReceived(card)"
+      >
+        <!-- Botón eliminar flotante -->
+        <button
+          class="card-received__delete-btn"
+          data-bs-toggle="modal"
+          data-bs-target="#exampleModal"
+          (click)="$event.stopPropagation(); cardConfirmationDelete(card)"
+          title="Eliminar tarjeta"
+        >
+          ✕
+        </button>
 
-  <h1 class="text-center">Territorios entregados esta semana</h1>
-  <div class="d-flex justify-content-center flex-wrap">
-    @for (card of allCardsAssigned(); track card) {
-      <div class="card-s-container">
-        <div class="card" style="width: auto">
-          <div class="card-body d-flex flex-column text-dark pb-0">
-            <h4>🔸Localidad: {{ card.location }}</h4>
-            <h4>🔸Conductor: {{ card.driver }}</h4>
-            <h4>🔸Territorio: N° {{ card.territory }}</h4>
-            <h4>🔸Fecha: {{ card.creation | date:"dd-MM-yyyy" }}</h4>
+        <!-- Badge de estado (elemento más prominente) -->
+        <div class="card-received__status-badge">
+          @if (card.revisionComplete) {
+            ✔ Revisado
+          } @else {
+            ⏳ Sin revisar
+          }
+        </div>
+
+        <!-- Territorio -->
+        <div class="card-received__territory">
+          TERRITORIO {{ card.numberTerritory }}
+        </div>
+
+        <!-- Nombre del publicador -->
+        <div class="card-received__name">{{ card.driver | titlecase }}</div>
+
+        <!-- Metadatos -->
+        <div class="card-received__meta">
+          <div class="card-received__meta-row">
+            <span>Localidad</span>
+            <span>{{ card.location | titlecase }}</span>
           </div>
-          <button
-            class="btn btn-danger m-2"
-            (click)="deleteCardAssigned(card)"
-            >
-            Eliminar
-          </button>
+          <div class="card-received__meta-row">
+            <span>Iniciado</span>
+            <span>{{ card.start | date: "dd 'de' MMMM" }}</span>
+          </div>
         </div>
       </div>
     }
-    <!-- Nuevo -->
+  </div>
+
+  <hr />
+  
+  <h2 class="text-center my-4 fw-bold">Territorios Personales</h2>
+
+  <div class="card-s-container">
+    @for (card of allCardsAssigned(); track card) {
+      <div
+        class="personal-card-minimal"
+        [class.is-overdue]="isOverdue(card.creation)"
+      >
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-primary fw-bold"
+            >TERRITORIO {{ card.territory }}</span
+          >
+          <button
+            class="btn btn-sm btn-outline-danger border-0 rounded-circle"
+            (click)="deleteCardAssigned(card)"
+          >
+            ✕
+          </button>
+        </div>
+
+        <h2 class="publisher-name-large mb-3">{{ card.driver | titlecase }}</h2>
+
+        <div class="border-top pt-3">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Asignado:</span>
+            <span class="fw-bold text-dark">{{
+              (card.creation?.toDate ? card.creation.toDate() : card.creation)
+                | date: "dd 'de' MMMM"
+            }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Devolver:</span>
+            <span
+              class="fw-bold text-dark"
+              [class.text-danger]="isOverdue(card.creation)"
+              >{{ getReturnDate(card.creation) | date: "dd 'de' MMMM" }}</span
+            >
+          </div>
+        </div>
+
+        @if (isOverdue(card.creation)) {
+          <div
+            class="overdue-banner mt-3 py-2 bg-danger text-white text-center fw-bold small rounded-bottom"
+            style="margin: 0 -1.25rem -1.25rem"
+          >
+            VENCIDO
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Botón para Nuevo -->
     <div
-      class="card-s-container"
+      class="personal-card-new d-flex flex-column align-items-center justify-content-center p-4 text-center"
       data-bs-toggle="modal"
       data-bs-target="#creationModal"
-      >
-      <div
-        class="card-new d-flex justify-content-center align-items-center"
-        style="width: 200px"
-        >
-        <div
-          class="card-border d-flex justify-content-center align-items-center"
-          style="width: 180px; height: 165px"
-          >
-          <h1 class="fs-1 text-secondary text-center">+</h1>
-        </div>
-      </div>
+    >
+      <span class="display-4">+</span>
+      <span class="fw-bold">Nuevo Pedido</span>
     </div>
   </div>
 
   <hr />
 
-  <h1 class="text-center">Revisión de tarjetas recibidas</h1>
-  <div class="d-flex justify-content-center flex-wrap">
-    @for (card of allCardsReceived(); track card) {
-      <div class="card-s-container">
-        <div class="card" style="width: auto">
-          <div
-            class="card-body d-flex flex-column text-dark pb-0"
-            (click)="cardReceived(card)"
-            >
-            <h6 class="text-center">
-              {{ card.revisionComplete ? "✔ Revisado" : "❌(Sin revisar)" }}
-            </h6>
-            <h4>🔸{{ card.location }}</h4>
-            <h4>🔸{{ card.driver }}</h4>
-            <h4>🔸N°{{ card.numberTerritory }}</h4>
-            <h4>🔸{{ card.start | date: "dd-MM-yyyy" }}</h4>
-          </div>
-          <button
-            class="btn btn-danger m-2"
-            data-bs-toggle="modal"
-            data-bs-target="#exampleModal"
-            (click)="cardConfirmationDelete(card)"
-            >
-            Eliminar
-          </button>
-        </div>
-      </div>
-    }
-  </div>
+
   <!-- Modal de creación de asignación -->
   <div
     class="modal fade"
@@ -90,13 +138,11 @@
     tabindex="-1"
     aria-labelledby="creationModalLabel"
     aria-hidden="true"
-    >
+  >
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title text-dark" id="exampleModalLabel">
-            Nueva tarjeta
-          </h5>
+          <h5 class="modal-title text-dark">Registrar pedido de territorio</h5>
           <button
             type="button"
             class="btn-close"
@@ -106,39 +152,59 @@
         </div>
         <div class="modal-body">
           <form [formGroup]="formCard()" (ngSubmit)="postCardAssigned()">
-            <div class="d-flex align-items-center">
-              <h4 class="text-dark">🔸Localidad:</h4>
-              <select class="form-select ms-2" formControlName="location">
-                <option selected>{{ congregationName }}</option>
-                <option>Rural</option>
-              </select>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label-custom">Localidad</label>
+                <select
+                  class="form-select"
+                  formControlName="location"
+                  (change)="onLocationChange()"
+                >
+                  <option [value]="congregationName">
+                    {{ congregationName }}
+                  </option>
+                  <option value="Rural">Rural</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label-custom">Publicador/a</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="publisher"
+                  placeholder="Nombre completo"
+                />
+              </div>
             </div>
-            <div class="d-flex align-items-center my-4">
-              <h4 class="text-dark">🔸Conductor:</h4>
-              <select class="form-select ms-2" formControlName="driver">
-                <option selected>Miguel</option>
-                <option>David</option>
-                <option>Mariano</option>
-                <option>Nicolas</option>
-                <option>Jonathan</option>
-                <option>Facundo</option>
-                <option>Viajero</option>
-              </select>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label-custom">N° de Territorio</label>
+                <select class="form-select" formControlName="territory">
+                  @if (availableTerritoryNumbers().length === 0) {
+                    <option value="">Sin territorios disponibles</option>
+                  }
+                  @for (t of availableTerritoryNumbers(); track t.territorio) {
+                    <option [value]="t.territorio">
+                      Territorio {{ t.territorio }}
+                    </option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label-custom">Fecha de Entrega</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  formControlName="date"
+                />
+              </div>
             </div>
-            <div class="d-flex align-items-center my-4">
-              <h4 class="text-dark">🔸Territorio:</h4>
-              <input type="number" class="form-control ms-2" formControlName="territory"/>
-            </div>
-            <div class="d-flex align-items-center my-4">
-              <h4 class="text-dark">🔸Fecha:</h4>
-              <input type="date" class="form-control ms-2" formControlName="date"/>
-            </div>
-            <div class="modal-footer">
+            <div class="modal-footer px-0 pb-0 mt-4">
               <button
                 type="button"
                 class="btn btn-secondary"
                 data-bs-dismiss="modal"
-                >
+              >
                 Cancelar
               </button>
               <button
@@ -146,7 +212,7 @@
                 class="btn btn-primary"
                 data-bs-dismiss="modal"
                 [disabled]="formCard().invalid"
-                >
+              >
                 Crear tarjeta
               </button>
             </div>
@@ -155,6 +221,7 @@
       </div>
     </div>
   </div>
+
   <!-- Modal de confirmación -->
   <div
     class="modal fade"
@@ -162,11 +229,11 @@
     tabindex="-1"
     aria-labelledby="exampleModalLabel"
     aria-hidden="true"
-    >
+  >
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title text-dark" id="exampleModalLabel">
+          <h5 class="modal-title text-dark">
             ¿Estás seguro de que quieres eliminar esta tarjeta?
           </h5>
           <button
@@ -176,31 +243,18 @@
             aria-label="Close"
           ></button>
         </div>
-        @if(cardConfirmation()){
-          <div class="modal-body">
-            <div class="d-flex align-items-center">
-              <h4 class="text-dark">🔸Localidad:</h4>
-              <p class="text-dark fs-4 mb-2 ps-2">
-                {{ cardConfirmation()?.location }}
-              </p>
-            </div>
-            <div class="d-flex align-items-center">
-              <h4 class="text-dark">🔸Conductor:</h4>
-              <p class="text-dark fs-4 mb-2 ps-2">
-                {{ cardConfirmation()?.driver }}
-              </p>
-            </div>
-            <div class="d-flex align-items-center">
-              <h4 class="text-dark">🔸Territorio:</h4>
-              <p class="text-dark fs-4 mb-2 ps-2">
-                N°{{ cardConfirmation()?.numberTerritory }}
-              </p>
-            </div>
-            <div class="d-flex align-items-center">
-              <h4 class="text-dark">🔸Fecha:</h4>
-              <p class="text-dark fs-4 mb-2 ps-2">
-                {{ cardConfirmation()?.start ? (cardConfirmation()?.start | date: "dd-MM-yyyy") : '-' }}
-              </p>
+        @if (cardConfirmation()) {
+          <div class="modal-body text-center p-4">
+            <p class="text-muted mb-1">Confirmar eliminación de:</p>
+            <h3 class="fw-bold mb-3 text-dark">
+              {{ cardConfirmation()?.driver | titlecase }}
+            </h3>
+            <div class="badge bg-light text-primary border mb-2 fs-6">
+              TERRITORIO
+              {{
+                cardConfirmation()?.numberTerritory ||
+                  cardConfirmation()?.territory
+              }}
             </div>
           </div>
         }
@@ -209,7 +263,7 @@
             type="button"
             class="btn btn-secondary"
             data-bs-dismiss="modal"
-            >
+          >
             Cancelar
           </button>
           <button
@@ -217,7 +271,7 @@
             class="btn btn-danger"
             data-bs-dismiss="modal"
             (click)="cardDelete()"
-            >
+          >
             Eliminar
           </button>
         </div>

@@ -17,3 +17,9 @@ export interface DepartureData {
 export interface DateDeparture {
   date: string;
 }
+
+export interface WeeklyDeparture extends DepartureData {
+  id?: string;
+  weekId: string; // Formato YYYY-MM-DD o YYYY-Www
+  createdAt: any;
+}

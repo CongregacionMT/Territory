@@ -1,14 +1,57 @@
 <div class="container py-4">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
-  
+
   <div class="header-section text-center mb-4 mt-2">
     @if (titleGroup) {
       <h2 class="text-info fw-bold mb-1">{{ titleGroup }}</h2>
     }
     <h1 class="display-6 fw-bold mb-3">Salidas a predicar</h1>
-    <div class="date-pill">
-      <img src="https://api.iconify.design/mdi:calendar-month.svg?color=%230277bd" width="24" height="24" class="me-2" alt="Calendar" />
-      <h2 class="h5 mb-0">{{ dateDeparture.value }}</h2>
+    <div class="date-pill mb-3">
+      <img
+        src="https://api.iconify.design/mdi:calendar-month.svg?color=%230277bd"
+        width="24"
+        height="24"
+        class="me-2"
+        alt="Calendar"
+      />
+      <h2 class="h5 mb-0">
+        {{ getFormattedDate(dateDeparture.value || "actual") }}
+      </h2>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-4">
+        <div class="text-center mb-1">
+          <button
+            class="btn btn-sm text-white text-decoration-none d-inline-flex align-items-center opacity-75"
+            (click)="showHistory = !showHistory"
+          >
+            <img
+              src="https://api.iconify.design/mdi:history.svg?color=%236c757d"
+              width="18"
+              height="18"
+              class="me-1"
+              alt="History"
+            />
+            {{ showHistory ? "Ocultar historial" : "Ver historial" }}
+          </button>
+        </div>
+
+        @if (showHistory) {
+          <select
+            class="form-select form-select-sm rounded-pill px-3 shadow-sm border-secondary-subtle animate__animated animate__fadeIn"
+            [(ngModel)]="selectedWeek"
+            (change)="onWeekChange()"
+          >
+            <option value="actual">📅 Semana actual</option>
+            @for (week of weeklyHistory; track week.id) {
+              <option [value]="week.id">
+                📜 Historial: {{ getFormattedDate(week.weekId) }}
+              </option>
+            }
+          </select>
+        }
+      </div>
     </div>
   </div>
 
@@ -22,11 +65,33 @@
   }
 
   <div class="d-flex justify-content-center my-4">
-    <button class="btn btn-primary btn-lg btn-list-primary shadow-sm rounded-pill px-4" routerLink="../publicadores">
+    <button
+      class="btn btn-primary btn-lg btn-list-primary shadow-sm rounded-pill px-4"
+      routerLink="/salidas/publicadores"
+    >
       <div class="d-flex align-items-center gap-2">
-        <img src="https://api.iconify.design/mdi:account-group.svg?color=white" width="24" height="24" alt="Users" />
+        <img
+          src="https://api.iconify.design/mdi:account-group.svg?color=white"
+          width="24"
+          height="24"
+          alt="Users"
+        />
         <span>Lista de publicadores</span>
       </div>
     </button>
+    <!-- <button
+      class="btn btn-success btn-lg shadow-sm rounded-pill px-4 ms-2"
+      routerLink="/salidas/estadisticas"
+    >
+      <div class="d-flex align-items-center gap-2">
+        <img
+          src="https://api.iconify.design/mdi:chart-bar.svg?color=white"
+          width="24"
+          height="24"
+          alt="Stats"
+        />
+        <span>Ver estadísticas</span>
+      </div>
+    </button> -->
   </div>
 </div>
