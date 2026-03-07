@@ -180,6 +180,31 @@
                 }
               ],
               "outputHashing": "all"
+            },
+            "test-congregation": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.test-congregation.ts"
+                },
+                {
+                  "replace": "src/app/core/config/maps.config.ts",
+                  "with": "src/app/core/config/maps.test-congregation.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "6kb"
+                }
+              ],
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production"
@@ -204,6 +229,9 @@
             },
             "arias": {
               "buildTarget": "territory:build:arias"
+            },
+            "test-congregation": {
+              "buildTarget": "territory:build:test-congregation"
             }
           },
           "defaultConfiguration": "development"
