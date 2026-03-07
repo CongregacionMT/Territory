@@ -71,12 +71,15 @@ export class CampaignService {
     return allTerritories;
   }
 
-  async startCampaign(data: {
-    name: string;
-    description: string;
-    dateEnd: any;
-    initialInvitations?: number;
-  }) {
+  async startCampaign(
+    data: {
+      name: string;
+      description: string;
+      dateEnd: any;
+      initialInvitations?: number;
+    },
+    onProgress?: (current: number, total: number) => void,
+  ) {
     const campaignRef = collection(this.firestore, 'campaigns');
 
     // Obtener TODOS los territorios de TODAS las localidades
@@ -94,20 +97,24 @@ export class CampaignService {
       stats: {},
     });
 
+    // Reportar inicio
+    onProgress?.(0, totalTerritories);
+
     if (allTerritories.length > 0) {
-      // Usar la lista dinámica de territorios
-      await Promise.all(
-        allTerritories.map((territory) =>
-          this.resetTerritoryByCollection(territory.collection, campaignDoc.id),
-        ),
-      );
+      // Procesar de a uno para poder reportar progreso
+      for (let i = 0; i < allTerritories.length; i++) {
+        await this.resetTerritoryByCollection(
+          allTerritories[i].collection,
+          campaignDoc.id,
+        );
+        onProgress?.(i + 1, allTerritories.length);
+      }
     } else {
       // Fallback para compatibilidad si no hay datos en sessionStorage
-      await Promise.all(
-        Array.from({ length: TERRITORY_COUNT }, (_, i) =>
-          this.resetTerritory(i + 1, campaignDoc.id),
-        ),
-      );
+      for (let i = 0; i < TERRITORY_COUNT; i++) {
+        await this.resetTerritory(i + 1, campaignDoc.id);
+        onProgress?.(i + 1, TERRITORY_COUNT);
+      }
     }
 
     await updateDoc(campaignDoc, {
@@ -147,6 +154,14 @@ export class CampaignService {
    * Resetea un territorio específico por su nombre de colección
    */
   async resetTerritoryByCollection(collectionName: string, campaignId: string) {
+    // Guard: evitar error de Firebase si la colección está vacía
+    if (!collectionName?.trim()) {
+      console.warn(
+        '[CampaignService] resetTerritoryByCollection: collectionName vacío, saltando.',
+      );
+      return;
+    }
+
     const colRef = collection(this.firestore, collectionName);
 
     // Tomar solo el último documento del territorio
@@ -216,13 +231,40 @@ export class CampaignService {
     const done = card.applesData.filter((a) => a.checked).length;
     const percent = Math.round((done / total) * 100);
 
+    console.log('[CampaignService] updateCampaignStats:', {
+      link: card.link,
+      territory: card.territory,
+      territoryNumber: card.territoryNumber,
+      done,
+      total,
+      percent,
+    });
+
     const campaignRef = doc(this.firestore, 'campaigns', campaignId);
 
-    // Usar la colección completa como clave si está disponible, sino fallback
-    const statKey = card.territory || `Territorio ${card.territoryNumber}`;
+    // Usar la colección completa (link) como clave si está disponible, sino fallback robusto
+    // IMPORTANTE: Evitar usar el string "undefined" que a veces viene en card.territory
+    let statKey = card.link;
+
+    if (!statKey || statKey === 'undefined') {
+      statKey =
+        card.territory && card.territory !== 'undefined'
+          ? card.territory
+          : undefined;
+    }
+
+    if (!statKey) {
+      statKey =
+        card.location && card.territoryNumber
+          ? `${card.location}-${card.territoryNumber}`
+          : card.territoryNumber
+            ? `Territorio ${card.territoryNumber}`
+            : 'Territorio Desconocido';
+    }
+
+    console.log('[CampaignService] Using statKey:', statKey);
 
     // ✅ Actualizar solo los campos, no reemplazar el objeto entero
-    // Intentar actualizar usando la colección primero (nuevo formato)
     try {
       await updateDoc(campaignRef, {
         [`stats.${statKey}.done`]: done,
@@ -230,11 +272,15 @@ export class CampaignService {
         [`stats.${statKey}.percent`]: percent,
       });
     } catch (e) {
+      console.error('[CampaignService] Error updating stats:', e);
       // Fallback a formato antiguo si falla
+      const fallbackKey = card.territoryNumber
+        ? `Territorio ${card.territoryNumber}`
+        : 'Territorio';
       await updateDoc(campaignRef, {
-        [`stats.Territorio ${card.territoryNumber}.done`]: done,
-        [`stats.Territorio ${card.territoryNumber}.total`]: total,
-        [`stats.Territorio ${card.territoryNumber}.percent`]: percent,
+        [`stats.${fallbackKey}.done`]: done,
+        [`stats.${fallbackKey}.total`]: total,
+        [`stats.${fallbackKey}.percent`]: percent,
       });
     }
 
@@ -324,6 +370,7 @@ export class CampaignService {
     finalStats: any,
     leftoverInvitations?: string,
     departuresInfo?: DeparturesInfo,
+    onProgress?: (current: number, total: number) => void,
   ) {
     const campaignDocRef = doc(this.firestore, 'campaigns', campaignId);
 
@@ -345,18 +392,81 @@ export class CampaignService {
 
     const allTerritories = this.getAllTerritoriesFromAllLocalities();
 
+    // Fallback robusto: si sessionStorage no tiene datos (ej: se recargó la pestaña),
+    // construir la lista de colecciones directamente desde environment
+    let collectionsToReset: string[] = [];
+
     if (allTerritories.length > 0) {
-      await Promise.all(
-        allTerritories.map((territory) =>
-          this.resetTerritoryAfterCampaignByCollection(territory.collection),
-        ),
+      collectionsToReset = allTerritories
+        .map((t) => t.collection)
+        .filter((c) => !!c?.trim());
+    }
+
+    if (collectionsToReset.length === 0) {
+      // Intentar leer también de localStorage como fallback
+      const storedInLocal = localStorage.getItem('numberTerritory');
+      if (storedInLocal) {
+        try {
+          const numberTerritory = JSON.parse(storedInLocal);
+          if (environment.localities?.length > 0) {
+            environment.localities.forEach((loc) => {
+              if (numberTerritory[loc.key]) {
+                const cols = (numberTerritory[loc.key] as any[])
+                  .map((t: any) => t.collection)
+                  .filter((c: string) => !!c?.trim());
+                collectionsToReset.push(...cols);
+              }
+            });
+          } else {
+            const fallback = numberTerritory[environment.congregationKey] || [];
+            collectionsToReset = fallback
+              .map((t: any) => t.collection)
+              .filter((c: string) => !!c?.trim());
+          }
+        } catch {
+          console.warn(
+            '[CampaignService] localStorage numberTerritory no parseable',
+          );
+        }
+      }
+    }
+
+    // Último fallback: usar prefix legacy + números del 1 al TERRITORY_COUNT
+    if (collectionsToReset.length === 0) {
+      console.warn(
+        '[CampaignService] Sin territorios en storage, usando fallback numérico',
       );
-    } else {
-      await Promise.all(
-        Array.from({ length: TERRITORY_COUNT }, (_, i) =>
-          this.resetTerritoryAfterCampaign(i + 1),
-        ),
-      );
+      for (let n = 1; n <= TERRITORY_COUNT; n++) {
+        collectionsToReset.push(`${environment.territoryPrefix}-${n}`);
+      }
+    }
+
+    console.log(
+      '[CampaignService] Territorios a resetear:',
+      collectionsToReset.length,
+      collectionsToReset,
+    );
+
+    const total = Math.max(collectionsToReset.length, 1);
+    onProgress?.(0, total);
+
+    for (let i = 0; i < collectionsToReset.length; i++) {
+      const col = collectionsToReset[i];
+      if (!col?.trim()) {
+        console.warn('[CampaignService] Saltando colección vacía en idx', i);
+        onProgress?.(i + 1, total);
+        continue;
+      }
+      try {
+        await this.resetTerritoryAfterCampaignByCollection(col);
+      } catch (err) {
+        console.error(
+          '[CampaignService] Error reseteando colección:',
+          col,
+          err,
+        );
+      }
+      onProgress?.(i + 1, total);
     }
 
     await this.cleanupCampaignData(campaignId);
@@ -381,6 +491,14 @@ export class CampaignService {
   }
 
   async resetTerritoryAfterCampaignByCollection(collectionName: string) {
+    // Guard: evitar error de Firebase si la colección está vacía
+    if (!collectionName?.trim()) {
+      console.warn(
+        '[CampaignService] resetTerritoryAfterCampaignByCollection: collectionName vacío, saltando.',
+      );
+      return;
+    }
+
     const colRef = collection(this.firestore, collectionName);
 
     // Tomar solo el último documento
@@ -448,17 +566,48 @@ export class CampaignService {
 
   async cleanupCampaignData(campaignId: string) {
     const allTerritories = this.getAllTerritoriesFromAllLocalities();
+    let collectionsToCheck: string[] = [];
 
-    // Si no hay territorios cargados, usar fallback
-    const collectionsToCheck =
-      allTerritories.length > 0
-        ? allTerritories.map((t) => t.collection)
-        : Array.from(
-            { length: TERRITORY_COUNT },
-            (_, i) => `${environment.territoryPrefix}-${i + 1}`,
+    if (allTerritories.length > 0) {
+      collectionsToCheck = allTerritories
+        .map((t) => t.collection)
+        .filter((c) => !!c?.trim());
+    }
+
+    // Fallback si storage está vacío
+    if (collectionsToCheck.length === 0) {
+      const storedInLocal = localStorage.getItem('numberTerritory');
+      if (storedInLocal) {
+        try {
+          const numberTerritory = JSON.parse(storedInLocal);
+          if (environment.localities?.length > 0) {
+            environment.localities.forEach((loc) => {
+              if (numberTerritory[loc.key]) {
+                const cols = (numberTerritory[loc.key] as any[])
+                  .map((t: any) => t.collection)
+                  .filter((c: string) => !!c?.trim());
+                collectionsToCheck.push(...cols);
+              }
+            });
+          }
+        } catch (e) {
+          console.warn(
+            '[CampaignService] cleanup error parsing local storage',
+            e,
           );
+        }
+      }
+    }
+
+    // Último recurso: fallback numérico
+    if (collectionsToCheck.length === 0) {
+      for (let n = 1; n <= TERRITORY_COUNT; n++) {
+        collectionsToCheck.push(`${environment.territoryPrefix}-${n}`);
+      }
+    }
 
     for (const collectionName of collectionsToCheck) {
+      if (!collectionName?.trim()) continue;
       const colRef = collection(this.firestore, collectionName);
 
       const snapshot = await getDocs(colRef);

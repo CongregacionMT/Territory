@@ -91,6 +91,13 @@ export class TerritoryDataService {
       return;
     }
 
+    if (!collectionName?.trim()) {
+      console.error(
+        '[TerritoryDataService] postCardTerritorie: collectionName is empty',
+      );
+      return;
+    }
+
     this.isCreating = true;
     let countFalseApples = 0;
     card.revision = false;
