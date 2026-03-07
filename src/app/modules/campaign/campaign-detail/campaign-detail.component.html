@@ -1,66 +1,199 @@
 <div class="container py-5 campaign-detail">
-  <div class="text-center mb-5">
-    <h1 class="display-4 fw-bold">{{ campaign()?.name }}</h1>
-    <p class="lead">{{ campaign()?.description }}</p>
-    <p class="text-info">
-      📅 {{ campaign()?.dateInit | date:'longDate' }} – {{ campaign()?.dateEnd | date:'longDate' }}
+  <!-- Header Animado Superior -->
+  <div class="header-section text-center mb-5 fade-in">
+    <h1 class="display-3 fw-bold title-gradient mb-3">
+      {{ campaign()?.name }}
+    </h1>
+    <p class="lead text-white-50 mx-auto" style="max-width: 600px">
+      {{ campaign()?.description || "Campaña estratégica de predicación." }}
     </p>
+    <div
+      class="d-inline-flex align-items-center bg-darker px-4 py-2 rounded-pill border border-white-10 mt-3 glow-subtle"
+    >
+      <i class="bi bi-calendar2-range text-primary me-2"></i>
+      <span class="text-white fw-medium"
+        >{{ campaign()?.dateInit | date: "mediumDate" }} —
+        {{ campaign()?.dateEnd | date: "mediumDate" }}</span
+      >
+      @if (!campaign()?.active) {
+        <span class="badge bg-danger ms-3">Finalizada</span>
+      } @else {
+        <span class="badge bg-success ms-3">En progreso</span>
+      }
+    </div>
   </div>
 
-  <!-- Progreso Global -->
-  @if (campaign()?.stats?.global) {
-    <div class="card shadow-lg border-0 mb-4">
-      <div class="card-body">
-        <h4 class="card-title">🌍 Progreso Global</h4>
-        <div class="progress progress-animated" style="height: 30px;">
-          <div class="progress-bar bg-success"
-               [style.width.%]="campaign().stats.global.percent">
-            {{ campaign().stats.global.percent }}%
+  <!-- KPI Cards Row (Glassmorphism) -->
+  <div class="row g-4 mb-5 fade-in delay-2">
+    <!-- Invitaciones Iniciales -->
+    @if (initialInvitations > 0) {
+      <div class="col-md-6 col-lg-3">
+        <div
+          class="kpi-card glass-card p-4 text-center h-100 position-relative overflow-hidden"
+        >
+          <div class="kpi-icon bg-gradient-info text-white mb-3 shadow">
+            <i class="bi bi-envelope-paper-fill"></i>
           </div>
+          <p class="text-white-50 text-uppercase small tracking-wide mb-1">
+            Invitaciones Iniciales
+          </p>
+          <h2 class="display-6 fw-bold text-white mb-0">
+            {{ initialInvitations }}
+          </h2>
+          <div class="kpi-bg-icon"><i class="bi bi-envelope-paper"></i></div>
         </div>
-        <p class="mt-2 text-muted">
-          Territorios completados:
-          {{ campaign().stats.global.completedTerritories }}/{{ campaign().stats.global.totalTerritories }}
+      </div>
+    }
+
+    <!-- Salidas Específicas Registradas -->
+    <div class="col-md-6 col-lg-3">
+      <div
+        class="kpi-card glass-card p-4 text-center h-100 position-relative overflow-hidden"
+      >
+        <div class="kpi-icon bg-gradient-success text-white mb-3 shadow">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <p class="text-white-50 text-uppercase small tracking-wide mb-1">
+          Salidas Registradas
         </p>
+        <h2 class="display-6 fw-bold text-white mb-0">
+          {{ departuresCount }}
+          <span class="fs-6 text-white-50 fw-normal">sem.</span>
+        </h2>
+        @if (totalPublishers > 0) {
+          <p class="text-success small mt-2 mb-0 fw-bold">
+            <i class="bi bi-person-check-fill me-1"></i>
+            {{ totalPublishers }} publicadores en total
+          </p>
+        }
+        <div class="kpi-bg-icon"><i class="bi bi-people"></i></div>
+      </div>
+    </div>
+
+    <!-- Territorios Completados -->
+    <div class="col-md-6 col-lg-3">
+      <div
+        class="kpi-card glass-card p-4 text-center h-100 position-relative overflow-hidden"
+      >
+        <div class="kpi-icon bg-gradient-warning text-dark mb-3 shadow">
+          <i class="bi bi-map-fill"></i>
+        </div>
+        <p class="text-white-50 text-uppercase small tracking-wide mb-1">
+          Territorios Listos
+        </p>
+        <h2 class="display-6 fw-bold text-white mb-0">
+          {{ territoriosCompletados
+          }}<span class="fs-4 text-white-50 fw-normal"
+            >/{{
+              campaign()?.stats?.global?.totalTerritories ||
+                territorios().length
+            }}</span
+          >
+        </h2>
+        <div class="kpi-bg-icon"><i class="bi bi-map"></i></div>
+      </div>
+    </div>
+
+    <!-- Estado Final de Invitaciones -->
+    @if (leftoverInvitations) {
+      <div class="col-md-6 col-lg-3">
+        <div
+          class="kpi-card glass-card p-4 text-center h-100 position-relative overflow-hidden"
+        >
+          <div class="kpi-icon bg-gradient-danger text-white mb-3 shadow">
+            <i class="bi bi-box-seam-fill"></i>
+          </div>
+          <p class="text-white-50 text-uppercase small tracking-wide mb-1">
+            Estado de Stock
+          </p>
+          <h3 class="fw-bold text-white text-capitalize mt-2 mb-0">
+            Sobraron {{ leftoverInvitations }}
+          </h3>
+          <div class="kpi-bg-icon"><i class="bi bi-box-seam"></i></div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Progreso Global Especial Front-and-Center -->
+  @if (campaign()?.stats?.global) {
+    <div
+      class="global-progress-card glass-card p-5 text-center mb-5 border-0 shadow-lg position-relative overflow-hidden fade-in delay-3"
+    >
+      <div class="radial-glow-bg"></div>
+      <h3 class="fw-bold text-white mb-4 z-index-1 position-relative">
+        Progreso Total Alcanzado
+      </h3>
+
+      <div
+        class="d-flex align-items-center justify-content-center flex-column z-index-1 position-relative"
+      >
+        <div
+          class="progress global-progress w-100 mx-auto"
+          style="
+            max-width: 800px;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 30px;
+          "
+        >
+          <div
+            class="progress-bar custom-progress-bar"
+            [style.width.%]="campaign().stats.global.percent"
+          ></div>
+        </div>
+        <h1 class="display-1 fw-bold text-white mt-4 glow-text mb-0">
+          {{ campaign().stats.global.percent
+          }}<span class="fs-2 text-white-50">%</span>
+        </h1>
       </div>
     </div>
   }
 
-  <!-- Métricas globales -->
-  <div class="row text-center mb-4">
-    <div class="col-md-6 mb-3 mb-md-0">
-      <div class="card shadow-sm border-0 stat-card">
-        <div class="card-body">
-          <h5 class="card-title">🗺️ Territorios Completados</h5>
-          <p class="display-6 fw-bold text-success">{{ territoriosCompletados }}</p>
-        </div>
-      </div>
+  <!-- Grid de Detalle de Territorios -->
+  <div class="row fade-in delay-4">
+    <div class="col-12 mb-4">
+      <h4 class="text-white fw-bold">
+        <i class="bi bi-list-check text-success me-2"></i> Desglose por
+        Territorio
+      </h4>
     </div>
-    <div class="col-md-6">
-      <div class="card shadow-sm border-0 stat-card">
-        <div class="card-body">
-          <h5 class="card-title">🚶‍♂️ Salidas Realizadas</h5>
-          <p class="display-6 fw-bold text-info">{{ salidasTotales }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
-
-  <!-- Progreso por territorios -->
-  <div class="row">
     @for (territorio of territorios(); track territorio.nombre) {
-      <div class="col-md-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <h6 class="card-title">{{ territorio.nombre }}</h6>
-            <div class="progress progress-animated mb-2" style="height: 20px;">
-              <div class="progress-bar bg-info"
-                   [style.width.%]="territorio.porcentaje">
-                {{ territorio.porcentaje }}%
-              </div>
+      <div class="col-sm-6 col-lg-4 col-xl-3 mb-4">
+        <div
+          class="card bg-darker border-white-10 shadow-sm territory-card h-100 hover-lift"
+        >
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="card-title text-white fw-bold mb-0">
+                {{ territorio.nombre }}
+              </h6>
+              @if (territorio.porcentaje === 100) {
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+              } @else {
+                <span class="text-white-50 small"
+                  >{{ territorio.porcentaje }}%</span
+                >
+              }
             </div>
-            <small class="text-muted">🚶 {{ territorio.salidas }} salidas</small>
+
+            <div class="progress territory-progress mb-3 mt-auto">
+              <div
+                class="progress-bar territory-bar"
+                [style.width.%]="territorio.porcentaje"
+                [class.bg-success]="territorio.porcentaje === 100"
+              ></div>
+            </div>
+
+            <div
+              class="d-flex justify-content-between align-items-center pt-3 border-top border-white-10 mt-auto"
+            >
+              <span class="text-white-50 small"
+                ><i class="bi bi-geo text-info me-1"></i>
+                {{ territorio.salidas }} reg. en tajeta</span
+              >
+            </div>
           </div>
         </div>
       </div>

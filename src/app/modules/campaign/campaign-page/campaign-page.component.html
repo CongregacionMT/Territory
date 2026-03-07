@@ -1,145 +1,453 @@
 <div class="container py-5 campaign-container">
-  <div class="text-center mb-5">
-    <h1 class="display-4 fw-bold">📣 Gestión de Campañas</h1>
-    <p class="lead text-muted">Iniciá, finalizá y hacé seguimiento a las campañas de predicación</p>
+  <div class="text-center mb-5 header-animate">
+    <h1 class="display-3 fw-bold title-gradient">Centro de Campañas</h1>
+    <p class="lead text-muted">
+      Gestión de recursos, territorios y progreso de campaña.
+    </p>
   </div>
 
-  @if(daysLeft > 0){
-    <div class="alert alert-info text-center mb-4 shadow-sm">
-      ⏳ Quedan <strong>{{ daysLeft }}</strong> días para finalizar la campaña
+  @if (daysLeft > 0) {
+    <div class="alert custom-alert text-center mb-5 shadow bounce-in">
+      <i class="bi bi-hourglass-split me-2"></i> Quedan
+      <strong>{{ daysLeft }}</strong> días para finalizar la campaña actual.
     </div>
   }
 
   <!-- Nueva campaña -->
-  @if(!campaignInProgress()){
-    <div class="card shadow-lg border-0 mb-4 campaign-card">
-      <div class="card-body">
-        <h4 class="text-white">📝 Nueva Campaña</h4>
-        <form (ngSubmit)="startCampaign()" class="needs-validation">
-          <div class="mb-3">
-            <label for="campaignName" class="form-label text-white">Nombre de la campaña</label>
-            <input id="campaignName"
-                  type="text"
-                  class="form-control"
-                  [ngModel]="campaignName()"
-                  (ngModelChange)="onNameChange($event)"
-                  name="campaignName"
-                  required
-                  minlength="3">
-            @if(nameInvalid()){
-              <div class="text-danger mt-2">
-                Por favor, escriba un nombre válido (mínimo 3 caracteres).
+  @if (!campaignInProgress()) {
+    <div class="card glass-card shadow-lg border-0 mb-5 fade-in">
+      <div class="card-body p-4">
+        <h4 class="text-white mb-4 fw-bold">
+          <i class="bi bi-rocket-takeoff text-primary me-2"></i> Iniciar Nueva
+          Campaña
+        </h4>
+        <form
+          (ngSubmit)="startCampaign()"
+          class="needs-validation row gx-4 gy-3"
+        >
+          <div class="col-md-6 mb-3">
+            <label for="campaignName" class="form-label text-white-50"
+              >Nombre de la campaña</label
+            >
+            <input
+              id="campaignName"
+              type="text"
+              class="form-control premium-input"
+              [ngModel]="campaignName()"
+              (ngModelChange)="onNameChange($event)"
+              name="campaignName"
+              placeholder="Ej. Campaña Especial 2026"
+              required
+              minlength="3"
+            />
+            @if (nameInvalid()) {
+              <div class="text-danger mt-2 small fade-in">
+                <i class="bi bi-exclamation-circle me-1"></i> Por favor, escriba
+                un nombre válido.
               </div>
             }
           </div>
 
-          <div class="mb-3">
-            <label for="campaignDescription" class="form-label text-white">Descripción</label>
-            <textarea id="campaignDescription" class="form-control" rows="3"
-                      [ngModel]="campaignDescription()" (ngModelChange)="campaignDescription.set($event)"
-                      name="campaignDescription"></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label for="campaignEnd" class="form-label text-white">Fecha de finalización</label>
-            <input id="campaignEnd"
-                  type="date"
-                  class="form-control"
-                  [ngModel]="campaignEnd()"
-                  (ngModelChange)="onDateChange($event)"
-                  name="campaignEnd"
-                  required>
-            @if(dateInvalid()){
-              <div class="text-danger mt-2">
-                Seleccioná una fecha de finalización.
+          <div class="col-md-6 mb-3">
+            <label for="campaignEnd" class="form-label text-white-50"
+              >Fecha de finalización</label
+            >
+            <input
+              id="campaignEnd"
+              type="date"
+              class="form-control premium-input"
+              [ngModel]="campaignEnd()"
+              (ngModelChange)="onDateChange($event)"
+              name="campaignEnd"
+              required
+            />
+            @if (dateInvalid()) {
+              <div class="text-danger mt-2 small fade-in">
+                <i class="bi bi-exclamation-circle me-1"></i> Seleccioná una
+                fecha de finalización.
               </div>
             }
           </div>
 
-          <!-- Botón de iniciar campaña -->
-          <button type="button" class="btn btn-success w-100 btn-lg" data-bs-toggle="modal" data-bs-target="#confirmStartModal">
-            🚀 Iniciar Campaña
-          </button>
+          <div class="col-12 mb-3">
+            <label for="initialInvitations" class="form-label text-white-50"
+              >Invitaciones Iniciales Planeadas</label
+            >
+            <input
+              id="initialInvitations"
+              type="number"
+              class="form-control premium-input"
+              [ngModel]="initialInvitations()"
+              (ngModelChange)="initialInvitations.set($event)"
+              name="initialInvitations"
+              placeholder="Ej. 5000"
+            />
+            <small class="text-muted"
+              >No es obligatorio. Útil para llevar la estadística al
+              terminar.</small
+            >
+          </div>
 
-          <!-- Modal de confirmación -->
-          <div class="modal fade" id="confirmStartModal" tabindex="-1" aria-labelledby="confirmStartModalLabel" aria-hidden="true">
+          <div class="col-12 mb-4">
+            <label for="campaignDescription" class="form-label text-white-50"
+              >Descripción / Notas</label
+            >
+            <textarea
+              id="campaignDescription"
+              class="form-control premium-input"
+              rows="2"
+              [ngModel]="campaignDescription()"
+              (ngModelChange)="campaignDescription.set($event)"
+              name="campaignDescription"
+              placeholder="Añade detalles sobre esta campaña..."
+            ></textarea>
+          </div>
+
+          <div class="col-12 text-end">
+            <button
+              type="button"
+              class="btn btn-primary start-btn w-100 py-3 fw-bold"
+              data-bs-toggle="modal"
+              data-bs-target="#confirmStartModal"
+            >
+              🚀 NUEVA CAMPAÑA
+            </button>
+          </div>
+
+          <!-- Modal de confirmación (Mantenido nativo de bootstrap pero restilizado si es posible) -->
+          <div
+            class="modal fade"
+            id="confirmStartModal"
+            tabindex="-1"
+            aria-hidden="true"
+          >
             <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                  <h5 class="modal-title" id="confirmStartModalLabel">⚠️ Confirmar inicio de campaña</h5>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              <div class="modal-content glass-modal text-white">
+                <div class="modal-header border-bottom-0 pb-0">
+                  <h5 class="modal-title fw-bold text-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Atención requerida
+                  </h5>
+                  <button
+                    type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                  ></button>
                 </div>
                 <div class="modal-body">
-                  Iniciar una nueva campaña reiniciará todas las manzanas de todos los territorios.
-                  <strong>Esta acción no tiene retorno.</strong>
-                  ¿Está seguro de que desea continuar?
+                  <p>
+                    Al iniciar una nueva campaña,
+                    <strong
+                      >todas las manzanas de todos los territorios se
+                      reiniciarán</strong
+                    >
+                    para poder cubrirlas desde cero.
+                  </p>
+                  <p class="text-white-50 small mb-0">
+                    Esta acción no se puede deshacer de forma fácil.
+                  </p>
                 </div>
-                <div class="modal-footer border-0">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="button" class="btn btn-danger" (click)="confirmStartCampaign()" data-bs-dismiss="modal">Sí, iniciar</button>
+                <div class="modal-footer border-top-0 pt-0">
+                  <button
+                    type="button"
+                    class="btn btn-dark"
+                    data-bs-dismiss="modal"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-warning fw-bold text-dark"
+                    (click)="confirmStartCampaign()"
+                    data-bs-dismiss="modal"
+                  >
+                    Sí, estoy seguro
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-
         </form>
       </div>
     </div>
   }
 
-  <!-- Progreso campaña -->
-  @if(campaignInProgress()){
-    <div class="card shadow-lg border-0 mb-4 campaign-card">
-      <div class="card-body">
-        <h4 class="card-title text-white">📊 Progreso de la Campaña</h4>
+  <!-- Progreso campaña en curso -->
+  @if (campaignInProgress() && !showEndCampaignModal()) {
+    <div class="card glass-card shadow-lg border-0 mb-5 fade-in scale-in">
+      <div class="card-body p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="fw-bold text-white mb-0">
+            <i class="bi bi-bar-chart-fill text-info me-2"></i> Progreso en
+            Tiempo Real
+          </h3>
+        </div>
 
-        @if(statsGlobal){
-          <div class="mb-4">
-            <h5 class="text-white">Progreso Global</h5>
-            <div class="progress progress-animated">
-              <div class="progress-bar bg-success"
-                   [style.width.%]="statsGlobal.percent"
-                   role="progressbar">
-                {{ statsGlobal.percent }}%
-              </div>
+        @if (statsGlobal) {
+          <div
+            class="global-progress-wrapper text-center mb-5 p-4 rounded-4"
+            style="background: rgba(255, 255, 255, 0.03)"
+          >
+            <h5 class="text-white-50 mb-3 text-uppercase tracking-wide">
+              Avance Global
+            </h5>
+            <div class="progress global-progress">
+              <div
+                class="progress-bar custom-progress-bar"
+                [style.width.%]="statsGlobal.percent"
+                role="progressbar"
+              ></div>
             </div>
+            <h2 class="display-5 fw-bold text-white mt-3">
+              {{ statsGlobal.percent }}<span class="fs-5 text-white-50">%</span>
+            </h2>
           </div>
         }
 
-        @for(territorio of territorios() | orderTerritories; track territorio;){
-          <div class="mb-3">
-            <label class="form-label text-white">{{ territorio.nombre }}</label>
-            <div class="progress">
-              <div class="progress-bar bg-info text-white"
-                   role="progressbar"
-                   [style.width.%]="territorio.porcentaje">
-                {{ territorio.porcentaje }}%
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          @for (
+            territorio of territorios() | orderTerritories;
+            track territorio
+          ) {
+            <div class="col">
+              <div class="territory-node card bg-darker border-0 p-3 h-100">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-2"
+                >
+                  <span class="fw-bold text-white fs-6">{{
+                    territorio.nombre
+                  }}</span>
+                  <span
+                    class="badge"
+                    [class.bg-success]="territorio.porcentaje === 100"
+                    [class.bg-secondary]="territorio.porcentaje < 100"
+                    >{{ territorio.porcentaje }}%</span
+                  >
+                </div>
+                <div class="progress territory-progress mt-auto">
+                  <div
+                    class="progress-bar territory-bar"
+                    role="progressbar"
+                    [style.width.%]="territorio.porcentaje"
+                    [class.bg-success]="territorio.porcentaje === 100"
+                  ></div>
+                </div>
               </div>
             </div>
-          </div>
-        }
+          }
+        </div>
       </div>
     </div>
 
-    <div class="d-flex gap-3 mb-5">
-      <button class="btn btn-danger flex-fill btn-lg" (click)="endCampaign()">Finalizar Campaña</button>
+    <div class="text-center mb-5 fade-in delay-2">
+      <button
+        class="btn btn-danger btn-lg px-5 py-3 fw-bold finish-campaign-btn shadow"
+        (click)="openEndCampaignModal()"
+      >
+        <i class="bi bi-stop-circle me-2"></i> FINALIZAR CAMPAÑA ACTUAL
+      </button>
+    </div>
+  }
+
+  <!-- Asistente de finalización (Modal Expandido embebido o fullscreen overlay) -->
+  @if (showEndCampaignModal()) {
+    <div
+      class="end-campaign-wizard glass-card p-4 p-md-5 rounded-4 shadow-lg mb-5 fade-in"
+    >
+      <h2 class="text-white fw-bold mb-4 text-center text-md-start">
+        <i class="bi bi-flag-fill text-danger me-2"></i> Resumen Final de
+        Campaña
+      </h2>
+
+      <div class="row g-5">
+        <!-- Paso 1: Stock de invitaciones -->
+        <div class="col-lg-5 border-end-lg border-white-10">
+          <h4 class="text-white mb-3">1. Stock de Invitaciones</h4>
+          <p class="text-white-50 small mb-4">
+            ¿Cómo quedaron las invitaciones o tratados al finalizar?
+          </p>
+
+          <div class="d-grid gap-2">
+            <input
+              type="radio"
+              class="btn-check"
+              name="leftovers"
+              id="l-muchas"
+              value="muchas"
+              [ngModel]="leftoverInvitations()"
+              (ngModelChange)="leftoverInvitations.set($event)"
+            />
+            <label
+              class="btn btn-outline-light text-start p-3 wizard-option"
+              for="l-muchas"
+              >📦 Sobraron <strong>Muchas</strong></label
+            >
+
+            <input
+              type="radio"
+              class="btn-check"
+              name="leftovers"
+              id="l-algunas"
+              value="algunas"
+              [ngModel]="leftoverInvitations()"
+              (ngModelChange)="leftoverInvitations.set($event)"
+            />
+            <label
+              class="btn btn-outline-light text-start p-3 wizard-option"
+              for="l-algunas"
+              >📦 Sobraron <strong>Algunas</strong></label
+            >
+
+            <input
+              type="radio"
+              class="btn-check"
+              name="leftovers"
+              id="l-pocas"
+              value="pocas"
+              [ngModel]="leftoverInvitations()"
+              (ngModelChange)="leftoverInvitations.set($event)"
+            />
+            <label
+              class="btn btn-outline-light text-start p-3 wizard-option"
+              for="l-pocas"
+              >📦 Sobraron <strong>Pocas</strong></label
+            >
+
+            <input
+              type="radio"
+              class="btn-check"
+              name="leftovers"
+              id="l-ninguna"
+              value="ninguna"
+              [ngModel]="leftoverInvitations()"
+              (ngModelChange)="leftoverInvitations.set($event)"
+            />
+            <label
+              class="btn btn-outline-light text-start p-3 wizard-option"
+              for="l-ninguna"
+              >🚫 No sobró <strong>Ninguna</strong></label
+            >
+          </div>
+        </div>
+
+        <!-- Paso 2: Salidas (Departures) -->
+        <div class="col-lg-7">
+          <h4 class="text-white mb-3">2. Salidas Registradas</h4>
+          <p class="text-white-50 small mb-4">
+            Marcá cuáles salidas se usaron para predicar esta campaña e indicá
+            cuántos publicadores asistieron (Opcional).
+          </p>
+
+          @if (filteredDepartures().length === 0) {
+            <div
+              class="alert bg-dark border-white-10 text-center text-white-50 p-4"
+            >
+              No se registraron salidas de grupo en las semanas que duró esta
+              campaña.
+            </div>
+          }
+
+          <div
+            class="departures-list flex-column gap-2 mb-4"
+            style="max-height: 350px; overflow-y: auto; padding-right: 5px"
+          >
+            @for (dep of filteredDepartures(); track dep.id; let idx = $index) {
+              <div
+                class="departure-item p-3 mb-2 rounded border border-white-10 bg-dark d-flex flex-wrap align-items-center justify-content-between gap-3"
+                [class.border-success]="dep.checked"
+              >
+                <div class="form-check form-switch custom-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    [id]="'depCheck' + idx"
+                    [checked]="dep.checked"
+                    (change)="toggleDepartureCheck(idx)"
+                  />
+                  <label
+                    class="form-check-label text-white fw-bold ms-2 mt-1 cursor-pointer"
+                    [for]="'depCheck' + idx"
+                    >Semana {{ dep.date }}</label
+                  >
+                </div>
+                <div
+                  class="d-flex align-items-center opacity-transition"
+                  [class.opacity-25]="!dep.checked"
+                  [class.pe-none]="!dep.checked"
+                >
+                  <i class="bi bi-people-fill text-white-50 me-2"></i>
+                  <input
+                    type="number"
+                    class="form-control form-control-sm bg-transparent text-white border-white-25 text-center"
+                    style="width: 70px"
+                    placeholder="Cant."
+                    [ngModel]="dep.publishers"
+                    (ngModelChange)="updateDeparturePublishers(idx, $event)"
+                    min="0"
+                  />
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top border-white-10"
+      >
+        <button class="btn btn-dark px-4 py-2" (click)="cancelEndCampaign()">
+          Cancelar
+        </button>
+        <button
+          class="btn btn-success px-5 py-2 fw-bold shadow glow"
+          [disabled]="!leftoverInvitations()"
+          (click)="confirmEndCampaign()"
+        >
+          ✓ CONFIRMAR Y FINALIZAR
+        </button>
+      </div>
     </div>
   }
 
   <!-- Historial -->
-  @if(campaignHistory().length > 0){
-    <div class="card shadow-lg border-0 campaign-card">
-      <div class="card-body">
-        <h4 class="card-title text-white">📚 Historial de Campañas</h4>
-        <ul class="list-group list-group-flush mt-3">
-          @for(history of campaignHistory(); track history;){
-            <li class="list-group-item list-group-item-action history-item"
-                (click)="goToCampaignDetail(history.id)">
-              <div class="text-white">{{ history.nombre }}</div>
-              <small class="text-white">{{ history.fecha }}</small>
-            </li>
-          }
-        </ul>
+  @if (campaignHistory().length > 0 && !showEndCampaignModal()) {
+    <div class="mb-5 fade-in delay-3">
+      <h3 class="fw-bold text-white mb-4 d-flex align-items-center">
+        <i class="bi bi-journal-album text-primary me-2"></i> Archivo de
+        Campañas
+      </h3>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        @for (history of campaignHistory(); track history) {
+          <div class="col">
+            <div
+              class="card bg-darker border-white-10 shadow-sm history-card h-100"
+              (click)="goToCampaignDetail(history.id)"
+            >
+              <div class="card-body p-4 d-flex flex-column hover-effect">
+                <h5 class="text-white fw-bold text-truncate mb-2">
+                  {{ history.nombre }}
+                </h5>
+                <p class="text-white-50 small mb-4 flex-grow-1">
+                  {{ history.descripcion || "Sin descripción." }}
+                </p>
+                <div
+                  class="d-flex justify-content-between align-items-end mt-auto"
+                >
+                  <span
+                    class="badge bg-secondary text-white-50 border border-white-10 fw-normal px-2 py-1"
+                    ><i class="bi bi-calendar3 me-1"></i> Fin:
+                    {{ history.fecha }}</span
+                  >
+                  <div class="link-circle">
+                    <i class="bi bi-arrow-right"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
       </div>
     </div>
   }

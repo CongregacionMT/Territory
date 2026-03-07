@@ -11,6 +11,17 @@ export interface CampaignStats {
   avgPerTerritory?: number;
 }
 
+export interface DeparturesInfo {
+  checkedCount: number;
+  totalPublishers: number;
+  details: {
+    id: string;
+    date: string;
+    checked: boolean;
+    publishers?: number;
+  }[];
+}
+
 export interface Campaign {
   id?: string;
   name: string;
@@ -18,6 +29,9 @@ export interface Campaign {
   dateEnd: any;
   dateInit: any;
   active: boolean;
+  initialInvitations?: number;
+  leftoverInvitations?: 'muchas' | 'algunas' | 'pocas' | 'ninguna' | '';
+  departuresInfo?: DeparturesInfo;
   stats: {
     global: CampaignStats;
     [key: string]: CampaignStats;
