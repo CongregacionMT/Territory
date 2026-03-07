@@ -1,9 +1,26 @@
 <div class="container py-5 campaign-container">
   <div class="text-center mb-5 header-animate">
-    <h1 class="display-3 fw-bold title-gradient">Centro de Campañas</h1>
-    <p class="lead text-muted">
-      Gestión de recursos, territorios y progreso de campaña.
-    </p>
+    @if (campaignInProgress() && activeCampaign) {
+      <div
+        class="badge bg-primary text-uppercase px-3 py-2 mb-3 tracking-widest fade-in"
+        style="font-size: 0.7rem; border-radius: 50px"
+      >
+        Campaña en curso
+      </div>
+      <h1
+        class="display-1 fw-bold title-gradient mb-2 active-campaign-title scale-in"
+      >
+        {{ activeCampaign.name }}
+      </h1>
+      <p class="lead text-white-50 max-w-600 mx-auto fade-in">
+        {{ activeCampaign.description }}
+      </p>
+    } @else {
+      <h1 class="display-3 fw-bold title-gradient">Centro de Campañas</h1>
+      <p class="lead text-white">
+        Gestión de recursos, territorios y progreso de campaña.
+      </p>
+    }
   </div>
 
   @if (daysLeft > 0) {
@@ -113,61 +130,6 @@
               🚀 NUEVA CAMPAÑA
             </button>
           </div>
-
-          <!-- Modal de confirmación (Mantenido nativo de bootstrap pero restilizado si es posible) -->
-          <div
-            class="modal fade"
-            id="confirmStartModal"
-            tabindex="-1"
-            aria-hidden="true"
-          >
-            <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content glass-modal text-white">
-                <div class="modal-header border-bottom-0 pb-0">
-                  <h5 class="modal-title fw-bold text-warning">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    Atención requerida
-                  </h5>
-                  <button
-                    type="button"
-                    class="btn-close btn-close-white"
-                    data-bs-dismiss="modal"
-                    aria-label="Cerrar"
-                  ></button>
-                </div>
-                <div class="modal-body">
-                  <p>
-                    Al iniciar una nueva campaña,
-                    <strong
-                      >todas las manzanas de todos los territorios se
-                      reiniciarán</strong
-                    >
-                    para poder cubrirlas desde cero.
-                  </p>
-                  <p class="text-white-50 small mb-0">
-                    Esta acción no se puede deshacer de forma fácil.
-                  </p>
-                </div>
-                <div class="modal-footer border-top-0 pt-0">
-                  <button
-                    type="button"
-                    class="btn btn-dark"
-                    data-bs-dismiss="modal"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-warning fw-bold text-dark"
-                    (click)="confirmStartCampaign()"
-                    data-bs-dismiss="modal"
-                  >
-                    Sí, estoy seguro
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
         </form>
       </div>
     </div>
@@ -205,34 +167,46 @@
           </div>
         }
 
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-          @for (
-            territorio of territorios() | orderTerritories;
-            track territorio
-          ) {
-            <div class="col">
-              <div class="territory-node card bg-darker border-0 p-3 h-100">
-                <div
-                  class="d-flex justify-content-between align-items-center mb-2"
-                >
-                  <span class="fw-bold text-white fs-6">{{
-                    territorio.nombre
-                  }}</span>
-                  <span
-                    class="badge"
-                    [class.bg-success]="territorio.porcentaje === 100"
-                    [class.bg-secondary]="territorio.porcentaje < 100"
-                    >{{ territorio.porcentaje }}%</span
-                  >
-                </div>
-                <div class="progress territory-progress mt-auto">
-                  <div
-                    class="progress-bar territory-bar"
-                    role="progressbar"
-                    [style.width.%]="territorio.porcentaje"
-                    [class.bg-success]="territorio.porcentaje === 100"
-                  ></div>
-                </div>
+        <div class="territories-grouped-list">
+          @for (grupo of territoriosPorLocalidad(); track grupo.name) {
+            <div class="locality-group mb-5">
+              <h5
+                class="text-white-50 mb-3 text-uppercase tracking-wide border-bottom border-white-10 pb-2"
+              >
+                <i class="bi bi-geo-alt-fill text-info me-2"></i>
+                {{ grupo.name }}
+              </h5>
+
+              <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @for (territorio of grupo.territories; track territorio.id) {
+                  <div class="col">
+                    <div
+                      class="territory-node card bg-darker border-0 p-3 h-100"
+                    >
+                      <div
+                        class="d-flex justify-content-between align-items-center mb-2"
+                      >
+                        <span class="fw-bold text-white fs-6">{{
+                          territorio.nombre
+                        }}</span>
+                        <span
+                          class="badge"
+                          [class.bg-success]="territorio.porcentaje === 100"
+                          [class.bg-secondary]="territorio.porcentaje < 100"
+                          >{{ territorio.porcentaje }}%</span
+                        >
+                      </div>
+                      <div class="progress territory-progress mt-auto">
+                        <div
+                          class="progress-bar territory-bar"
+                          role="progressbar"
+                          [style.width.%]="territorio.porcentaje"
+                          [class.bg-success]="territorio.porcentaje === 100"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                }
               </div>
             </div>
           }
@@ -367,10 +341,27 @@
                     (change)="toggleDepartureCheck(idx)"
                   />
                   <label
-                    class="form-check-label text-white fw-bold ms-2 mt-1 cursor-pointer"
+                    class="form-check-label text-white fw-bold ms-2 cursor-pointer pb-0"
                     [for]="'depCheck' + idx"
-                    >Semana {{ dep.date }}</label
                   >
+                    <span
+                      class="d-block"
+                      style="font-size: 0.9rem; text-transform: capitalize"
+                      >{{ dep.dateLabel }}
+                      @if (dep.locality) {
+                        <span
+                          class="badge bg-primary ms-1"
+                          style="font-size: 0.6rem"
+                          >{{ dep.locality }}</span
+                        >
+                      }
+                    </span>
+                    <span
+                      class="text-white-50 fw-normal"
+                      style="font-size: 0.75rem"
+                      ><i class="bi bi-person me-1"></i>{{ dep.driver }}</span
+                    >
+                  </label>
                 </div>
                 <div
                   class="d-flex align-items-center opacity-transition"
@@ -451,4 +442,114 @@
       </div>
     </div>
   }
+</div>
+
+<!-- Overlay de progreso para creación o finalización de campaña -->
+@if (startingCampaign() || finishingCampaign()) {
+  <div class="campaign-loading-overlay">
+    <div class="campaign-loading-card">
+      @if (campaignError()) {
+        <!-- Estado de Error -->
+        <div class="loading-rocket">⚠️</div>
+        <h3 class="loading-title text-danger">Error al Finalizar</h3>
+        <p class="loading-subtitle text-white-50">{{ campaignError() }}</p>
+        <button
+          class="btn btn-outline-light mt-3"
+          (click)="window.location.reload()"
+        >
+          <i class="bi bi-arrow-clockwise me-2"></i>Recargar Página
+        </button>
+      } @else {
+        <!-- Estado Normal de Progreso -->
+        <div class="loading-rocket">{{ startingCampaign() ? "🚀" : "🏁" }}</div>
+        <h3 class="loading-title">
+          {{ startingCampaign() ? "Iniciando Campaña" : "Finalizando Campaña" }}
+        </h3>
+        <p class="loading-subtitle">
+          {{
+            startingCampaign()
+              ? "Reiniciando territorios... esto puede tardar unos momentos."
+              : "Guardando resultados y reseteando mapa..."
+          }}
+        </p>
+
+        <div class="loading-progress-wrap">
+          <div class="loading-progress-bar-bg">
+            <div
+              class="loading-progress-bar-fill"
+              [style.width.%]="
+                campaignProgressTotal() > 0
+                  ? (campaignProgress() / campaignProgressTotal()) * 100
+                  : 0
+              "
+            ></div>
+          </div>
+          <div class="loading-progress-label">
+            @if (campaignProgressTotal() > 0) {
+              <span class="loading-count"
+                >{{ campaignProgress() }} / {{ campaignProgressTotal() }}</span
+              >
+              <span class="loading-pct"
+                >{{
+                  (
+                    (campaignProgress() / campaignProgressTotal()) *
+                    100
+                  ).toFixed(0)
+                }}%</span
+              >
+            } @else {
+              <span class="loading-count">Preparando...</span>
+            }
+          </div>
+        </div>
+
+        <p class="loading-hint">No cierres esta pantalla hasta que finalice.</p>
+      }
+    </div>
+  </div>
+}
+
+<!-- Modal de confirmación al final de la raíz para evitar problemas de stacking context con el fondo oscuro -->
+<div class="modal fade" id="confirmStartModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal text-white bg-dark">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold text-warning">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Atención requerida
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Al iniciar una nueva campaña,
+          <strong
+            >todas las manzanas de todos los territorios se reiniciarán</strong
+          >
+          para poder cubrirlas desde cero.
+        </p>
+        <p class="text-white-50 small mb-0">
+          Esta acción no se puede deshacer de forma fácil.
+        </p>
+      </div>
+      <div class="modal-footer border-top-0 pt-0">
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-warning fw-bold text-dark"
+          (click)="confirmStartCampaign()"
+          data-bs-dismiss="modal"
+        >
+          Sí, estoy seguro
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
