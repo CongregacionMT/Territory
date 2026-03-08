@@ -69,10 +69,7 @@ export class DeparturePageComponent implements OnInit {
 
     // Calcular el lunes de la semana actual
     const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff));
-    const currentWeekId = monday.toISOString().split('T')[0];
+    const currentWeekId = getWeekId(today);
 
     this.dateDeparture.setValue(currentWeekId);
 
@@ -80,16 +77,36 @@ export class DeparturePageComponent implements OnInit {
       next: (weeklyData: any) => {
         if (weeklyData?.departure?.length > 0) {
           this.departures$ = weeklyData.departure;
+          this.sortDepartures();
+          this.spinner.cerrarSpinner();
         } else {
-          // Si no hay datos para esta semana todavía, mostrar lista vacía
-          this.departures$ = [];
+          // Fallback a las salidas "master" si no hay historial guardado para esta semana todavía
+          this.territoryDataService.getDepartures().subscribe({
+            next: (masterData: any) => {
+              this.departures$ = masterData?.departure || [];
+              this.sortDepartures();
+              this.spinner.cerrarSpinner();
+            },
+            error: () => {
+              this.departures$ = [];
+              this.spinner.cerrarSpinner();
+            },
+          });
         }
-        this.sortDepartures();
-        this.spinner.cerrarSpinner();
       },
       error: () => {
-        this.departures$ = [];
-        this.spinner.cerrarSpinner();
+        // En caso de error, intentar fallback también
+        this.territoryDataService.getDepartures().subscribe({
+          next: (masterData: any) => {
+            this.departures$ = masterData?.departure || [];
+            this.sortDepartures();
+            this.spinner.cerrarSpinner();
+          },
+          error: () => {
+            this.departures$ = [];
+            this.spinner.cerrarSpinner();
+          },
+        });
       },
     });
   }
