@@ -62,7 +62,7 @@ async function main() {
           driver: "",
           start: "",
           end: "",
-          comments: "Recuperado por script de restauración",
+          comments: "",
           link: collectionName,
           isInitial: true,
         };

@@ -295,6 +295,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       const updatedCard = {
         ...currentCard,
         creation: Timestamp.now(),
+        isInitial: false,
       };
       this.card.set(updatedCard);
 
