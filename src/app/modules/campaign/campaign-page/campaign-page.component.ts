@@ -8,11 +8,9 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { OrderTerritoriesPipe } from '@core/pipes/order-territories.pipe';
 import { CampaignService } from '@core/services/campaign.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { WeeklyDeparture } from '@core/models/Departures';
 import { environment } from '@environments/environment';
 
 export interface LocalityGroup {
@@ -22,7 +20,7 @@ export interface LocalityGroup {
 
 @Component({
   selector: 'app-campaign-page',
-  imports: [FormsModule, OrderTerritoriesPipe],
+  imports: [FormsModule],
   templateUrl: './campaign-page.component.html',
   styleUrl: './campaign-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

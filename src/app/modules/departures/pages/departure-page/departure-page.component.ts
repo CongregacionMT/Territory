@@ -34,6 +34,8 @@ export class DeparturePageComponent implements OnInit {
   dateDeparture: any = new FormControl('');
   departures$: Departure[] = [];
   weeklyHistory: WeeklyDeparture[] = [];
+  pastWeeks: WeeklyDeparture[] = [];
+  futureWeeks: WeeklyDeparture[] = [];
   selectedWeek: string = 'actual';
   showHistory: boolean = false;
 
@@ -58,9 +60,18 @@ export class DeparturePageComponent implements OnInit {
 
   loadHistory() {
     this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
-      this.weeklyHistory = history.sort((a, b) =>
-        b.weekId.localeCompare(a.weekId),
-      );
+      this.weeklyHistory = history;
+      
+      const today = new Date();
+      const currentWeekId = getWeekId(today);
+
+      this.futureWeeks = history
+        .filter((w) => w.weekId > currentWeekId)
+        .sort((a, b) => a.weekId.localeCompare(b.weekId));
+
+      this.pastWeeks = history
+        .filter((w) => w.weekId < currentWeekId)
+        .sort((a, b) => b.weekId.localeCompare(a.weekId));
     });
   }
 
@@ -119,21 +130,26 @@ export class DeparturePageComponent implements OnInit {
     });
   }
 
-  onWeekChange() {
+  selectWeek(id: string) {
+    this.selectedWeek = id;
+    this.showHistory = false;
     this.spinner.cargarSpinner();
+
     if (this.selectedWeek === 'actual') {
       this.loadCurrentWeek();
-    } else {
-      const historyRecord = this.weeklyHistory.find(
-        (w) => w.id === this.selectedWeek,
-      );
-      if (historyRecord) {
-        this.departures$ = historyRecord.departure;
-        this.sortDepartures();
-        this.dateDeparture.setValue(historyRecord.weekId);
-      }
-      this.spinner.cerrarSpinner();
+      return;
     }
+
+    const historyRecord = this.weeklyHistory.find(
+      (w) => w.id === this.selectedWeek,
+    );
+
+    if (historyRecord) {
+      this.departures$ = historyRecord.departure;
+      this.sortDepartures();
+      this.dateDeparture.setValue(historyRecord.weekId);
+    }
+    this.spinner.cerrarSpinner();
   }
 
   getFormattedDate(date: string): string {
