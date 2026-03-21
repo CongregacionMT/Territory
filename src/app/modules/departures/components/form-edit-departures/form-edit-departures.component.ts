@@ -147,6 +147,8 @@ export class FormEditDeparturesComponent implements OnInit {
           maps: new FormControl(departure.maps || ''),
           color: new FormControl(departure.color || 'secondary'),
           group: new FormControl(groupKey),
+          isEvent: new FormControl(departure.isEvent || false),
+          title: new FormControl(departure.title || ''),
         }),
       );
     });
@@ -270,6 +272,37 @@ export class FormEditDeparturesComponent implements OnInit {
     }
     return 'Grupo ' + group;
   }
+
+  getDepartureTitle(dateStr: string, scheduleStr: string): string {
+    if (!dateStr) return 'Salida sin fecha';
+    
+    // Parse date (add time to prevent timezone shifts)
+    const date = new Date(dateStr + 'T00:00:00');
+    if (isNaN(date.getTime())) return 'Fecha inválida';
+
+    const daysOfWeek = [
+      'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+    ];
+    const dayName = daysOfWeek[date.getDay()];
+
+    let timeLabel = '';
+    if (scheduleStr) {
+      const [hoursStr] = scheduleStr.split(':');
+      const hours = parseInt(hoursStr, 10);
+
+      if (!isNaN(hours)) {
+        if (hours < 12) {
+          timeLabel = ' (mañana)';
+        } else if (hours < 20) {
+          timeLabel = ' (tarde)';
+        } else {
+          timeLabel = ' (noche)';
+        }
+      }
+    }
+
+    return `${dayName}${timeLabel}`;
+  }
   onChangeInput(e: any, key: string, index: number, group: number) {
     const departureGroupKey = `departure${group}`;
     const departureFormArrayItem = this.formDeparture.get(
@@ -299,6 +332,29 @@ export class FormEditDeparturesComponent implements OnInit {
       control.get('color')?.setValue(event.target.value);
     }
   }
+  onChangeCheckbox(e: any, key: string, index: number, group: number) {
+    this.isSaved = false;
+    const departureGroupKey = `departure${group}`;
+    const departureFormArrayItem = this.formDeparture.get(
+      departureGroupKey,
+    ) as FormArray;
+    const control = departureFormArrayItem.at(index);
+    if (control) {
+      if (key === 'isEvent') {
+        const checked = e.target.checked;
+        control.get(key)?.setValue(checked);
+        if (checked) {
+          // Clear locations and territories if it's now an event
+          const territoryArray = control.get('territory') as FormArray;
+          if (territoryArray) {
+            territoryArray.clear();
+          }
+        }
+      } else {
+        control.get(key)?.setValue(e.target.checked);
+      }
+    }
+  }
   addInputForm(group: number) {
     this.isSaved = false;
     this.numberGroup = group;
@@ -314,6 +370,8 @@ export class FormEditDeparturesComponent implements OnInit {
         maps: new FormControl(''),
         color: new FormControl('secondary'),
         group: new FormControl(group),
+        isEvent: new FormControl(false),
+        title: new FormControl(''),
       }),
     );
   }
@@ -370,6 +428,8 @@ export class FormEditDeparturesComponent implements OnInit {
           maps: new FormControl(departure.maps),
           color: new FormControl(departure.color),
           group: new FormControl(departure.group),
+          isEvent: new FormControl(departure.isEvent || false),
+          title: new FormControl(departure.title || ''),
         }),
       );
     });

@@ -8,6 +8,8 @@ export interface Departure {
   schedule: string;
   color: string;
   group: number;
+  isEvent?: boolean;
+  title?: string;
 }
 
 export interface DepartureData {
