@@ -15,6 +15,9 @@ import {
   Timestamp,
   updateDoc,
   where,
+  writeBatch,
+  documentId,
+  WriteBatch,
 } from '@angular/fire/firestore';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { Observable } from 'rxjs';
@@ -455,26 +458,34 @@ export class CampaignService {
     const total = Math.max(collectionsToReset.length, 1);
     onProgress?.(0, total);
 
-    for (let i = 0; i < collectionsToReset.length; i++) {
-      const col = collectionsToReset[i];
-      if (!col?.trim()) {
-        console.warn('[CampaignService] Saltando colección vacía en idx', i);
-        onProgress?.(i + 1, total);
-        continue;
-      }
-      try {
-        await this.resetTerritoryAfterCampaignByCollection(col);
-      } catch (err) {
-        console.error(
-          '[CampaignService] Error reseteando colección:',
-          col,
-          err,
-        );
-      }
-      onProgress?.(i + 1, total);
-    }
+    // ✅ Optimización: Usar WriteBatch para agrupar todos los resets en una sola petición de escritura
+    const batch = writeBatch(this.firestore);
 
-    await this.cleanupCampaignData(campaignId);
+    // Procesar lecturas en paralelo para mayor velocidad
+    await Promise.all(
+      collectionsToReset.map(async (col, i) => {
+        if (!col?.trim()) return;
+        try {
+          await this.resetTerritoryAfterCampaignByCollection(col, batch);
+        } catch (err) {
+          console.error(
+            '[CampaignService] Error preparando reset para:',
+            col,
+            err,
+          );
+        }
+        onProgress?.(i + 1, total);
+      }),
+    );
+
+    // Commit todos los resets de una sola vez
+    await batch.commit();
+
+    // Run cleanup in the background — do NOT await it.
+    // Optimized cleanup: Now uses prefix query and batched deletes.
+    this.cleanupCampaignData(campaignId).catch((err) =>
+      console.warn('[CampaignService] Background cleanup failed:', err),
+    );
 
     localStorage.removeItem('activeCampaign');
   }
@@ -495,7 +506,10 @@ export class CampaignService {
     return this.resetTerritoryAfterCampaignByCollection(collectionName);
   }
 
-  async resetTerritoryAfterCampaignByCollection(collectionName: string) {
+  async resetTerritoryAfterCampaignByCollection(
+    collectionName: string,
+    batch?: WriteBatch,
+  ) {
     // Guard: evitar error de Firebase si la colección está vacía
     if (!collectionName?.trim()) {
       console.warn(
@@ -510,25 +524,29 @@ export class CampaignService {
     const q = query(colRef, orderBy('creation', 'desc'), limit(1));
     const snapshot = await getDocs(q);
 
-    return Promise.all(
-      snapshot.docs.map(async (docSnap) => {
-        const data = docSnap.data();
-        if (data && Array.isArray(data['applesData'])) {
-          const newVersion = {
-            ...data,
-            revision: false,
-            revisionComplete: false,
-            creation: Timestamp.now(),
-            campaignId: null,
-          };
+    if (snapshot.empty) return;
 
-          // ID personalizado para diferenciarlo
-          const customId = `PostCampaña-${Date.now()}`;
-          const newDocRef = doc(this.firestore, collectionName, customId);
-          await setDoc(newDocRef, newVersion);
-        }
-      }),
-    );
+    const docSnap = snapshot.docs[0];
+    const data = docSnap.data();
+    if (data && Array.isArray(data['applesData'])) {
+      const newVersion = {
+        ...data,
+        revision: false,
+        revisionComplete: false,
+        creation: Timestamp.now(),
+        campaignId: null,
+      };
+
+      // ID personalizado para diferenciarlo
+      const customId = `PostCampaña-${Date.now()}`;
+      const newDocRef = doc(this.firestore, collectionName, customId);
+
+      if (batch) {
+        batch.set(newDocRef, newVersion);
+      } else {
+        await setDoc(newDocRef, newVersion);
+      }
+    }
   }
 
   async getInactiveCampaigns(): Promise<Campaign[]> {
@@ -604,20 +622,40 @@ export class CampaignService {
       }
     }
 
-    for (const collectionName of collectionsToCheck) {
-      if (!collectionName?.trim()) continue;
-      const colRef = collection(this.firestore, collectionName);
+    const batch = writeBatch(this.firestore);
+    let count = 0;
 
-      const snapshot = await getDocs(colRef);
+    // ✅ Optimización: Fetch en paralelo del cleanup usando queries de prefijo exacto (documentId)
+    // Esto evita descargar TODA la colección por cada territorio.
+    const prefix = `Campaña-${campaignId}`;
 
-      const deletes = snapshot.docs
-        .filter((d) => d.id.startsWith(`Campaña-${campaignId}`)) // 👈 match exacto
-        .map((d) => deleteDoc(doc(this.firestore, collectionName, d.id)));
+    await Promise.all(
+      collectionsToCheck.map(async (collectionName) => {
+        if (!collectionName?.trim()) return;
+        const colRef = collection(this.firestore, collectionName);
 
-      if (deletes.length > 0) {
-        await Promise.all(deletes);
-        // console.log(`🗑️ Eliminados ${deletes.length} docs de ${collectionName}`);
-      }
+        // Query eficiente por ID del documento
+        const q = query(
+          colRef,
+          where(documentId(), '>=', prefix),
+          where(documentId(), '<', prefix + '\uf8ff'),
+        );
+
+        try {
+          const snapshot = await getDocs(q);
+          snapshot.docs.forEach((d) => {
+            batch.delete(doc(this.firestore, collectionName, d.id));
+            count++;
+          });
+        } catch (err) {
+          console.error('[CampaignService] Cleanup error in', collectionName, err);
+        }
+      }),
+    );
+
+    if (count > 0) {
+      console.log(`[CampaignService] Limpiando ${count} docs temporales...`);
+      await batch.commit();
     }
   }
 }

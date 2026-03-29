@@ -12,6 +12,7 @@ import { CampaignService } from '@core/services/campaign.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { environment } from '@environments/environment';
+import { take } from 'rxjs/operators';
 
 export interface LocalityGroup {
   name: string;
@@ -172,7 +173,9 @@ export class CampaignPageComponent implements OnInit {
     }
 
     // Load departures within campaign dates
-    this.territoryService.getWeeklyDepartures().subscribe((departures) => {
+    // take(1) is critical: without it, every Firestore update re-triggers this
+    // subscriber, causing the end-campaign modal and save flow to loop infinitely.
+    this.territoryService.getWeeklyDepartures().pipe(take(1)).subscribe((departures) => {
       // Extraer fecha de inicio de forma robusta
       let initTime = 0;
       const dInit = this.activeCampaign.dateInit;
@@ -314,6 +317,10 @@ export class CampaignPageComponent implements OnInit {
       details: checkedDeps,
     };
 
+    // Capture the campaign ID before clearing state, so we can navigate to
+    // the result detail page once saving completes.
+    const finishedCampaignId = active.id;
+
     this.campaignError.set(null);
     try {
       await this.campaignService.endCampaign(
@@ -333,8 +340,12 @@ export class CampaignPageComponent implements OnInit {
       this.activeCampaign = null;
       this.finishingCampaign.set(false);
       this.cdr.markForCheck();
+
+      // Navigate to the finished campaign's detail/result page
+      this.router.navigate(['/campaign', finishedCampaignId]);
     } catch (err: any) {
       console.error('[CampaignPage] Error finalizando campaña:', err);
+      this.finishingCampaign.set(false);
       this.campaignError.set(
         err?.message ||
           'Ocurrió un error inesperado al finalizar. Recargá la página e intentá de nuevo.',
