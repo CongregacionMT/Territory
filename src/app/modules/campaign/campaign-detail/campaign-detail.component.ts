@@ -38,6 +38,7 @@ export class CampaignDetailComponent implements OnInit {
   salidasTotales = 0;
   manzanasCompletadas = 0;
   manzanasTotales = 0;
+  territorioPercent = 0;
 
   // Novedades
   initialInvitations = 0;
@@ -177,6 +178,9 @@ export class CampaignDetailComponent implements OnInit {
           this.territoriosCompletados = territoriosMapped.filter(
             (t) => t.porcentaje === 100,
           ).length;
+          this.territorioPercent = territoriosMapped.length > 0 
+            ? Math.round((this.territoriosCompletados / territoriosMapped.length) * 100) 
+            : 0;
           this.salidasTotales = territoriosMapped.reduce(
             (acc, t) => acc + t.salidas,
             0,

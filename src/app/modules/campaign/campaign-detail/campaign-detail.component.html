@@ -7,8 +7,32 @@
   </div>
 
   @if (campaign()) {
-    <!-- Dashboard Hero (Split Layout on Desktop) -->
-    <div class="row align-items-center mb-5 fade-in">
+    <!-- Header SOLO para impresión: centrado, vertical -->
+    <div class="d-none d-print-block text-center mb-3 print-header">
+      <h1 class="fw-bold print-text-dark" style="font-size: 2rem; margin-bottom: 0.25rem;">{{ campaign().name }}</h1>
+      <p class="print-text-gray" style="font-size: 0.9rem; margin-bottom: 0.5rem;">{{ campaign()?.description }}</p>
+      <div class="d-flex justify-content-center align-items-center gap-3 mb-3" style="font-size: 0.8rem;">
+        <span class="print-text-gray">{{ campaign().dateInit | date: "mediumDate" }} — {{ campaign().dateEnd | date: "mediumDate" }}</span>
+      </div>
+      @if (campaign().stats?.global) {
+        <div style="border: 1px solid #ccc; border-radius: 12px; padding: 1rem 1.5rem; margin: 0 auto 1.5rem auto;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size: 0.85rem; font-weight: 600; color: #333;">Progreso Total</span>
+            <span style="font-size: 1.5rem; font-weight: 700; color: #10b981;">{{ territorioPercent }}%</span>
+          </div>
+          <div style="background: #e2e8f0; height: 14px; border-radius: 30px; margin-bottom: 0.4rem;">
+            <div style="height: 100%; border-radius: 30px; background: #10b981; print-color-adjust: exact; -webkit-print-color-adjust: exact;" [style.width.%]="territorioPercent"></div>
+          </div>
+          <div class="d-flex justify-content-between" style="font-size: 0.75rem; color: #555;">
+            <span>{{ territoriosCompletados }} territorios completados</span>
+            <span>{{ territorios().length }} territorios en total</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Dashboard Hero (Split Layout on Desktop) - oculto en impresión -->
+    <div class="row align-items-center mb-5 fade-in print-hide">
       
       <!-- Detalle de Cabecera (Izquierda) -->
       <div class="col-lg-6 mb-4 mb-lg-0 text-center text-lg-start">
@@ -45,17 +69,17 @@
                 Progreso Total
               </h3>
               <h2 class="display-4 fw-bold text-white mb-0 glow-text text-success print-text-dark">
-                {{ campaign().stats.global.percent }}<span class="fs-4 text-white-50 print-text-gray">%</span>
+                {{ territorioPercent }}<span class="fs-4 text-white-50 print-text-gray">%</span>
               </h2>
             </div>
 
             <div class="z-index-1 position-relative w-100">
               <div class="progress global-progress w-100 bg-darker print-bg-light mb-2 shadow-inner" style="height: 24px; border-radius: 30px;">
-                <div class="progress-bar custom-progress-bar print-progress-bar" [style.width.%]="campaign().stats.global.percent"></div>
+                <div class="progress-bar custom-progress-bar print-progress-bar" [style.width.%]="territorioPercent"></div>
               </div>
               <div class="d-flex justify-content-between text-white-50 small fw-medium mt-2">
-                <span>{{ campaign().stats.global.done }} completadas</span>
-                <span>{{ campaign().stats.global.total }} total</span>
+                <span>{{ territoriosCompletados }} territorios completados</span>
+                <span>{{ territorios().length }} territorios en total</span>
               </div>
             </div>
           </div>
@@ -73,7 +97,7 @@
         </div>
         <i class="fas fa-map fs-3 text-warning mb-2 d-none d-print-block mx-auto"></i>
         <div class="d-flex flex-column justify-content-center flex-grow-1">
-          <h3 class="display-5 fw-bold text-white mb-2 print-text-dark lh-1">{{ territoriosCompletados }}</h3>
+          <h3 class="display-5 fw-bold text-white mb-2 print-text-dark lh-1">{{ territoriosCompletados }}<span class="fs-5 text-white-50 fw-normal ms-1 print-text-gray">/{{ territorios().length }}</span></h3>
           <p class="text-white-50 text-uppercase tracking-wide mb-0 mt-auto print-text-gray fw-medium kpi-label mx-auto" style="line-height: 1.25;">Territorios completados</p>
         </div>
       </div>
@@ -179,10 +203,9 @@
       }
     </div>
 
-    <!-- Estadisticas por Localidad / Pueblo -->
     @if (territoriosPorLocalidad().length > 0) {
-      <div class="row fade-in delay-4 mb-5 print-avoid-page-break">
-        <div class="col-12 mb-4">
+      <div class="row fade-in delay-4 mb-3 print-avoid-page-break">
+        <div class="col-12 mb-2">
           <div class="d-flex align-items-center mb-3">
             <h4 class="text-white fw-bold mb-0 print-text-dark">
               <i class="fas fa-map-marker-alt text-info me-2 print-text-blue"></i> Desempeño por Localidad
