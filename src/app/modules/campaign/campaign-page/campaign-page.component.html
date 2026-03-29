@@ -239,7 +239,7 @@
         <div class="col-lg-5 border-end-lg border-white-10">
           <h4 class="text-white mb-3">1. Stock de Invitaciones</h4>
           <p class="text-white-50 small mb-4">
-            ¿Cómo quedaron las invitaciones o tratados al finalizar?
+            ¿Cuántas invitaciones quedaron al finalizar la campaña?
           </p>
 
           <div class="d-grid gap-2">
@@ -302,6 +302,38 @@
               for="l-ninguna"
               >🚫 No sobró <strong>Ninguna</strong></label
             >
+
+            <input
+              type="radio"
+              class="btn-check"
+              name="leftovers"
+              id="l-faltaron"
+              value="faltaron"
+              [ngModel]="leftoverInvitations()"
+              (ngModelChange)="leftoverInvitations.set($event)"
+            />
+            <label
+              class="btn btn-outline-light text-start p-3 wizard-option"
+              for="l-faltaron"
+              >⚠️ <strong>Faltaron</strong> invitaciones</label
+            >
+
+            @if (leftoverInvitations() === 'faltaron') {
+              <div class="mt-2 p-3 bg-dark rounded border border-warning scale-in">
+                <label for="missingCount" class="form-label text-warning small mb-2 fw-bold"
+                  >¿Cuántas más recomendarías pedir para la próxima vez?</label
+                >
+                <input
+                  id="missingCount"
+                  type="number"
+                  class="form-control bg-transparent text-white border-warning"
+                  placeholder="Ej. 500"
+                  [ngModel]="missingInvitations()"
+                  (ngModelChange)="missingInvitations.set($event)"
+                  min="1"
+                />
+              </div>
+            }
           </div>
         </div>
 
@@ -393,7 +425,7 @@
         </button>
         <button
           class="btn btn-success px-5 py-2 fw-bold shadow glow"
-          [disabled]="!leftoverInvitations()"
+          [disabled]="!leftoverInvitations() || (leftoverInvitations() === 'faltaron' && !missingInvitations())"
           (click)="confirmEndCampaign()"
         >
           ✓ CONFIRMAR Y FINALIZAR

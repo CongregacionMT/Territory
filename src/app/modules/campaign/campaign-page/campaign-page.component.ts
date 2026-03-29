@@ -44,9 +44,10 @@ export class CampaignPageComponent implements OnInit {
 
   // End Campaign Modal State
   showEndCampaignModal = signal(false);
-  leftoverInvitations = signal<'muchas' | 'algunas' | 'pocas' | 'ninguna' | ''>(
+  leftoverInvitations = signal<'muchas' | 'algunas' | 'pocas' | 'ninguna' | 'faltaron' | ''>(
     '',
   );
+  missingInvitations = signal<number | null>(null);
   filteredDepartures = signal<
     {
       id: string;
@@ -320,6 +321,7 @@ export class CampaignPageComponent implements OnInit {
         active.stats,
         this.leftoverInvitations(),
         departuresInfo,
+        this.leftoverInvitations() === 'faltaron' ? this.missingInvitations() || undefined : undefined,
         (current, total) => {
           this.campaignProgress.set(current);
           this.campaignProgressTotal.set(total);

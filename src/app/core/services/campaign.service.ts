@@ -370,6 +370,7 @@ export class CampaignService {
     finalStats: any,
     leftoverInvitations?: string,
     departuresInfo?: DeparturesInfo,
+    missingInvitations?: number,
     onProgress?: (current: number, total: number) => void,
   ) {
     const campaignDocRef = doc(this.firestore, 'campaigns', campaignId);
@@ -382,6 +383,10 @@ export class CampaignService {
 
     if (leftoverInvitations) {
       updateData.leftoverInvitations = leftoverInvitations;
+    }
+
+    if (missingInvitations !== undefined && missingInvitations !== null) {
+      updateData.missingInvitations = missingInvitations;
     }
 
     if (departuresInfo) {
@@ -509,15 +514,8 @@ export class CampaignService {
       snapshot.docs.map(async (docSnap) => {
         const data = docSnap.data();
         if (data && Array.isArray(data['applesData'])) {
-          const resetApples = data['applesData'].map((apple: any) => ({
-            ...apple,
-            checked: false,
-          }));
-
           const newVersion = {
             ...data,
-            applesData: resetApples,
-            completed: 0,
             revision: false,
             revisionComplete: false,
             creation: Timestamp.now(),
