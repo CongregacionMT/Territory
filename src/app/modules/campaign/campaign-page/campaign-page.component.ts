@@ -56,6 +56,7 @@ export class CampaignPageComponent implements OnInit {
       dateLabel: string;
       driver: string;
       locality?: string;
+      point?: string;
       checked: boolean;
       publishers: number | undefined;
     }[]
@@ -179,9 +180,10 @@ export class CampaignPageComponent implements OnInit {
       // Extraer fecha de inicio de forma robusta
       let initTime = 0;
       const dInit = this.activeCampaign.dateInit;
-
       if (typeof dInit === 'string') {
-        initTime = new Date(dInit).getTime();
+        // Usar T12:00:00 para asegurar interpretación local y evitar desfasajes por zona horaria
+        const dateObj = new Date(dInit.includes('T') ? dInit : dInit + 'T12:00:00');
+        initTime = dateObj.getTime();
       } else if (dInit?.toDate) {
         initTime = dInit.toDate().getTime();
       } else if (dInit?.seconds) {
@@ -190,37 +192,72 @@ export class CampaignPageComponent implements OnInit {
         initTime = new Date(dInit).getTime();
       }
 
-      const now = new Date().getTime();
+      // Calcular fecha fin (límite superior)
+      let endTime = Infinity;
+      const dEnd = this.activeCampaign.dateEnd;
+      if (dEnd) {
+        let endDate: Date;
+        if (typeof dEnd === 'string') {
+          // Importante: Usamos T12:00:00 primero para que el navegador lo tome como hora local.
+          // Si usáramos T23:59:59 directamente, algunos navegadores podrían interpretarlo como UTC.
+          endDate = new Date(dEnd.includes('T') ? dEnd : dEnd + 'T12:00:00');
+        } else if (dEnd?.toDate) {
+          endDate = dEnd.toDate();
+        } else if (dEnd?.seconds) {
+          endDate = new Date(dEnd.seconds * 1000);
+        } else {
+          endDate = new Date(dEnd);
+        }
+        // Forzamos al último milisegundo del día en hora LOCAL
+        endDate.setHours(23, 59, 59, 999);
+        endTime = endDate.getTime();
+      }
 
       // Ajustar initTime al lunes de esa semana para no perder la semana de inicio
+      // Usamos mediodía para el cálculo del lunes también para asegurar consistencia
       const startDate = new Date(initTime);
       const day = startDate.getDay();
       const diffToMonday = day === 0 ? 6 : day - 1;
       const mondayOfStartWeek = new Date(startDate);
       mondayOfStartWeek.setDate(startDate.getDate() - diffToMonday);
-      mondayOfStartWeek.setHours(0, 0, 0, 0);
+      mondayOfStartWeek.setHours(12, 0, 0, 0); 
       const startCompareTime = mondayOfStartWeek.getTime();
 
-      console.log('[CampaignStats] Filtering departures:', {
-        campaignStart: new Date(initTime).toISOString(),
-        mondayOfStartWeek: mondayOfStartWeek.toISOString(),
-        now: new Date(now).toISOString(),
-        totalDepartures: departures.length,
+      console.log('--- [DEBUG] Finalizando Campaña ---');
+      console.log('Rango Campaña:', {
+        inicio: new Date(initTime).toLocaleString(),
+        finLimit: endTime === Infinity ? 'Sin límite' : new Date(endTime).toLocaleString(),
+        lunesSemanaInicio: mondayOfStartWeek.toLocaleString()
       });
+      console.log('Total semanas recuperadas de DB:', departures.length);
 
       const inRangeWeeks = departures.filter((d) => {
-        const dDate = new Date(d.weekId).getTime();
+        const dDate = new Date(d.weekId + 'T12:00:00').getTime();
         return dDate >= startCompareTime;
       });
+
+      console.log('Semanas filtradas (>= lunes inicio):', inRangeWeeks.map(w => w.weekId));
 
       // Aplanamos todas las salidas individuales de cada semana
       const allIndividualDepartures: any[] = [];
       inRangeWeeks.forEach((week) => {
         if (week.departure && Array.isArray(week.departure)) {
           week.departure.forEach((dep, idx) => {
-            const depDate = new Date(dep.date).getTime();
-            // Filtrar cada salida individual por la fecha exacta de inicio de campaña
-            if (depDate >= initTime) {
+            const depDate = new Date(dep.date + 'T12:00:00').getTime(); // noon precision
+            
+            const isAfterInit = depDate >= initTime;
+            const isBeforeEnd = depDate <= endTime;
+
+            console.log(`Verificando salida ${dep.date}:`, {
+              driver: dep.driver,
+              point: dep.point,
+              isAfterInit,
+              isBeforeEnd,
+              incluida: isAfterInit && isBeforeEnd
+            });
+
+            // Filtrar cada salida individual por el rango exacto de la campaña
+            if (isAfterInit && isBeforeEnd) {
               // Resolver nombre amigable de la localidad
               let localityName: string | undefined;
               if (dep.location && environment.localities?.length) {
@@ -240,13 +277,14 @@ export class CampaignPageComponent implements OnInit {
                 day: 'numeric',
                 month: 'long',
               });
-              console.log('dep', dep);
+              
               allIndividualDepartures.push({
                 id: `${week.weekId}-${idx}`,
                 date: dep.date,
                 dateLabel,
                 driver: dep.driver || 'Sin conductor',
                 locality: localityName,
+                point: dep.point || 'Sin punto de encuentro',
                 checked: false,
                 publishers: undefined,
               });
@@ -280,6 +318,7 @@ export class CampaignPageComponent implements OnInit {
   toggleDepartureCheck(index: number) {
     const list = [...this.filteredDepartures()];
     list[index].checked = !list[index].checked;
+    console.log(`[DEBUG] Toggled Departure: ${list[index].date} - ${list[index].point}. Checked: ${list[index].checked}`);
     this.filteredDepartures.set(list);
   }
 

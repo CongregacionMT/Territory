@@ -115,16 +115,18 @@
       </div>
 
       <!-- 3. Salidas a predicar -->
-      <div class="card bg-darker border-white-10 h-100 p-4 print-kpi print-card hover-lift kpi-item text-center">
-        <div class="icon-circle bg-success-subtle text-success mx-auto mb-3 print-hide shadow-sm" style="width: 52px; height: 52px;">
-           <i class="fas fa-users fs-4"></i>
+      @if (departuresCount > 0) {
+        <div class="card bg-darker border-white-10 h-100 p-4 print-kpi print-card hover-lift kpi-item text-center">
+          <div class="icon-circle bg-success-subtle text-success mx-auto mb-3 print-hide shadow-sm" style="width: 52px; height: 52px;">
+             <i class="fas fa-users fs-4"></i>
+          </div>
+          <i class="fas fa-users fs-3 text-success mb-2 d-none d-print-block mx-auto"></i>
+          <div class="d-flex flex-column justify-content-center flex-grow-1">
+            <h3 class="display-5 fw-bold text-white mb-2 print-text-dark lh-1">{{ departuresCount }}</h3>
+            <p class="text-white-50 text-uppercase tracking-wide mb-0 mt-auto print-text-gray fw-medium kpi-label mx-auto" style="line-height: 1.25;">Salidas a predicar</p>
+          </div>
         </div>
-        <i class="fas fa-users fs-3 text-success mb-2 d-none d-print-block mx-auto"></i>
-        <div class="d-flex flex-column justify-content-center flex-grow-1">
-          <h3 class="display-5 fw-bold text-white mb-2 print-text-dark lh-1">{{ departuresCount }}</h3>
-          <p class="text-white-50 text-uppercase tracking-wide mb-0 mt-auto print-text-gray fw-medium kpi-label mx-auto" style="line-height: 1.25;">Salidas a predicar</p>
-        </div>
-      </div>
+      }
 
       <!-- 4. Promedio de Publicadores -->
       @if (averagePublishers && averagePublishers > 0) {
@@ -204,7 +206,7 @@
     </div>
 
     @if (territoriosPorLocalidad().length > 0) {
-      <div class="row fade-in delay-4 mb-3 print-avoid-page-break">
+      <div class="row fade-in delay-4 mb-6 print-avoid-page-break">
         <div class="col-12 mb-2">
           <div class="d-flex align-items-center mb-3">
             <h4 class="text-white fw-bold mb-0 print-text-dark">
@@ -214,7 +216,7 @@
           </div>
         </div>
         
-        <div class="row g-4 print-locality-row">
+        <div class="row g-4 print-locality-row mb-5">
           @for (grupo of territoriosPorLocalidad(); track grupo.name) {
             <div class="col-md-6 col-xl-4 print-locality-col">
               <div class="card glass-card h-100 p-4 hover-lift-slight" [class.completed-card]="grupo.percent === 100" [class.border-0]="grupo.percent !== 100">
@@ -252,7 +254,7 @@
     }
 
     <!-- Grid de Detalle de Territorios -->
-    <div class="row fade-in delay-5 print-hide">
+    <div class="row fade-in delay-5 print-hide mt-6">
       <div class="col-12 mb-4">
         <div class="d-flex align-items-center mb-3">
           <h4 class="text-white fw-bold mb-0">
