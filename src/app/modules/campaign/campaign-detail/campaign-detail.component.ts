@@ -1,4 +1,4 @@
-import { DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -24,7 +24,7 @@ export interface LocalityGroup {
 
 @Component({
   selector: 'app-campaign-detail',
-  imports: [DatePipe, TitleCasePipe],
+  imports: [DatePipe],
   templateUrl: './campaign-detail.component.html',
   styleUrl: './campaign-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,8 +45,7 @@ export class CampaignDetailComponent implements OnInit {
   leftoverInvitations = '';
   missingInvitations: number | null = null;
   departuresCount = 0;
-  totalPublishers = 0;
-  averagePublishers: number | null = null;
+  finalComments = '';
   
   territoriosPorLocalidad = signal<LocalityGroup[]>([]);
 
@@ -67,24 +66,10 @@ export class CampaignDetailComponent implements OnInit {
         this.initialInvitations = data.initialInvitations || 0;
         this.leftoverInvitations = data.leftoverInvitations || '';
         this.missingInvitations = data.missingInvitations || null;
+        this.finalComments = data.finalComments || '';
 
         if (data.departuresInfo) {
           this.departuresCount = data.departuresInfo.checkedCount || 0;
-          this.totalPublishers = data.departuresInfo.totalPublishers || 0;
-
-          let depsWithPublishersCount = 0;
-          let sumPublishers = 0;
-          if (data.departuresInfo.details && Array.isArray(data.departuresInfo.details)) {
-            data.departuresInfo.details.forEach((dep: any) => {
-              if (dep.publishers !== undefined && dep.publishers !== null) {
-                 depsWithPublishersCount++;
-                 sumPublishers += dep.publishers;
-              }
-            });
-          }
-          if (depsWithPublishersCount > 0) {
-            this.averagePublishers = Math.round(sumPublishers / depsWithPublishersCount);
-          }
         }
 
         if (data.stats) {
@@ -163,7 +148,7 @@ export class CampaignDetailComponent implements OnInit {
               });
               group.completed = group.territories.filter((t: any) => t.porcentaje === 100).length;
               group.total = group.territories.length;
-              group.percent = group.total > 0 ? Math.round((group.completed / group.total) * 100) : 0;
+              group.percent = group.applesTotal > 0 ? Math.round((group.applesDone / group.applesTotal) * 100) : 0;
               
               this.manzanasCompletadas += group.applesDone;
               this.manzanasTotales += group.applesTotal;
@@ -178,8 +163,8 @@ export class CampaignDetailComponent implements OnInit {
           this.territoriosCompletados = territoriosMapped.filter(
             (t) => t.porcentaje === 100,
           ).length;
-          this.territorioPercent = territoriosMapped.length > 0 
-            ? Math.round((this.territoriosCompletados / territoriosMapped.length) * 100) 
+          this.territorioPercent = this.manzanasTotales > 0 
+            ? Math.round((this.manzanasCompletadas / this.manzanasTotales) * 100) 
             : 0;
           this.salidasTotales = territoriosMapped.reduce(
             (acc, t) => acc + t.salidas,

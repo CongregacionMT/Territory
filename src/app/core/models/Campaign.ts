@@ -13,12 +13,11 @@ export interface CampaignStats {
 
 export interface DeparturesInfo {
   checkedCount: number;
-  totalPublishers: number;
+  totalPublishers?: number;
   details: {
     id: string;
     date: string;
     checked: boolean;
-    publishers?: number;
   }[];
 }
 

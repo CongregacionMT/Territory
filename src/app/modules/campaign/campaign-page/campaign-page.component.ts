@@ -49,6 +49,7 @@ export class CampaignPageComponent implements OnInit {
     '',
   );
   missingInvitations = signal<number | null>(null);
+  finalComments = signal('');
   filteredDepartures = signal<
     {
       id: string;
@@ -322,12 +323,6 @@ export class CampaignPageComponent implements OnInit {
     this.filteredDepartures.set(list);
   }
 
-  updateDeparturePublishers(index: number, count: any) {
-    const list = [...this.filteredDepartures()];
-    list[index].publishers = count ? Number(count) : undefined;
-    this.filteredDepartures.set(list);
-  }
-
   async confirmEndCampaign() {
     if (!this.leftoverInvitations()) return;
 
@@ -345,14 +340,9 @@ export class CampaignPageComponent implements OnInit {
     // Format departures Info
     const deps = this.filteredDepartures();
     const checkedDeps = deps.filter((d) => d.checked);
-    const totalPublishers = checkedDeps.reduce(
-      (acc, curr) => acc + (curr.publishers || 0),
-      0,
-    );
 
     const departuresInfo = {
       checkedCount: checkedDeps.length,
-      totalPublishers: totalPublishers,
       details: checkedDeps,
     };
 
@@ -368,7 +358,8 @@ export class CampaignPageComponent implements OnInit {
         this.leftoverInvitations(),
         departuresInfo,
         this.leftoverInvitations() === 'faltaron' ? this.missingInvitations() || undefined : undefined,
-        (current, total) => {
+        this.finalComments(),
+        (current: number, total: number) => {
           this.campaignProgress.set(current);
           this.campaignProgressTotal.set(total);
           this.cdr.markForCheck();

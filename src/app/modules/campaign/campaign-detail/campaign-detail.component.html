@@ -128,19 +128,7 @@
         </div>
       }
 
-      <!-- 4. Promedio de Publicadores -->
-      @if (averagePublishers && averagePublishers > 0) {
-        <div class="card bg-darker border-white-10 h-100 p-4 print-kpi print-card hover-lift kpi-item text-center">
-          <div class="icon-circle bg-secondary-subtle text-white mx-auto mb-3 print-hide shadow-sm" style="width: 52px; height: 52px;">
-             <i class="fas fa-user-friends fs-4"></i>
-          </div>
-          <i class="fas fa-user-friends fs-3 text-white mb-2 d-none d-print-block mx-auto" style="filter: brightness(0.2);"></i>
-          <div class="d-flex flex-column justify-content-center flex-grow-1">
-            <h3 class="display-5 fw-bold text-white mb-2 print-text-dark lh-1">{{ averagePublishers }}</h3>
-            <p class="text-white-50 text-uppercase tracking-wide mb-0 mt-auto print-text-gray fw-medium kpi-label mx-auto" style="line-height: 1.25;">Promedio Publicadores</p>
-          </div>
-        </div>
-      }
+
 
       <!-- 5. Invitaciones Iniciales -->
       @if (initialInvitations > 0) {
@@ -204,6 +192,22 @@
         </div>
       }
     </div>
+
+    <!-- Comentarios Finales -->
+    @if (finalComments) {
+      <div class="row mb-5 fade-in delay-3">
+        <div class="col-12">
+          <div class="card glass-card p-4 border-0 shadow-lg print-card">
+            <h4 class="text-white fw-bold mb-3 print-text-dark">
+              <i class="fas fa-comment-dots text-primary me-2 print-text-blue"></i> Observaciones de la Campaña
+            </h4>
+            <div class="text-white-50 print-text-dark" style="white-space: pre-wrap; font-size: 1.1rem; line-height: 1.6;">
+              {{ finalComments }}
+            </div>
+          </div>
+        </div>
+      </div>
+    }
 
     @if (territoriosPorLocalidad().length > 0) {
       <div class="row fade-in delay-4 mb-6 print-avoid-page-break">

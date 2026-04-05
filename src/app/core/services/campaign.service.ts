@@ -374,6 +374,7 @@ export class CampaignService {
     leftoverInvitations?: string,
     departuresInfo?: DeparturesInfo,
     missingInvitations?: number,
+    finalComments?: string,
     onProgress?: (current: number, total: number) => void,
   ) {
     const campaignDocRef = doc(this.firestore, 'campaigns', campaignId);
@@ -394,6 +395,10 @@ export class CampaignService {
 
     if (departuresInfo) {
       updateData.departuresInfo = departuresInfo;
+    }
+
+    if (finalComments) {
+      updateData.finalComments = finalComments;
     }
 
     await updateDoc(campaignDocRef, updateData);
