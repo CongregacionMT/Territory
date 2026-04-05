@@ -90,15 +90,19 @@ export class DeparturesCardsComponent implements OnInit {
     const end = formatDate(endDateTime);
 
     // Include location in title for better context
-    const title = encodeURIComponent(`Salida a predicar - ${departure.point}`);
+    const eventName = departure.isEvent ? departure.title : 'Salida a predicar';
+    const title = encodeURIComponent(`${eventName} - ${departure.point}`);
 
     // Build description with Maps link prominently displayed
-    let descriptionText = `📍 Punto de encuentro: ${departure.point}`;
+    let descriptionText = `📍 Lugar: ${departure.point}`;
     if (departure.maps) {
       descriptionText += `\n🗺️ Ver ubicación: ${departure.maps}`;
     }
-    descriptionText += `\n\n👤 Conductor: ${departure.driver}`;
-    descriptionText += `\n📋 Territorios: ${departure.territory.join(', ')}`;
+    
+    if (!departure.isEvent) {
+      descriptionText += `\n\n👤 Conductor: ${departure.driver}`;
+      descriptionText += `\n📋 Territorios: ${departure.territory?.join(', ') || ''}`;
+    }
 
     const details = encodeURIComponent(descriptionText);
 

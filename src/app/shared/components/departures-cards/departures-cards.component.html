@@ -39,21 +39,33 @@
 
         <!-- Body -->
         <div class="card-body-inner">
-          <!-- Driver -->
-          <div class="detail-row">
-            <div class="icon-box">
-              <img
-                src="https://api.iconify.design/mdi:account-tie.svg?color=%236c757d"
-                width="18"
-                height="18"
-                alt="Leader"
-              />
+          @if (departure.isEvent) {
+             <div class="detail-row">
+               <div class="icon-box">
+                 <img src="https://api.iconify.design/mdi:calendar-star.svg?color=%236c757d" width="18" height="18" alt="Event" />
+               </div>
+               <div class="info-content">
+                 <label>Evento especial</label>
+                 <strong>{{ departure.title }}</strong>
+               </div>
+             </div>
+          } @else {
+            <!-- Driver -->
+            <div class="detail-row">
+              <div class="icon-box">
+                <img
+                  src="https://api.iconify.design/mdi:account-tie.svg?color=%236c757d"
+                  width="18"
+                  height="18"
+                  alt="Leader"
+                />
+              </div>
+              <div class="info-content">
+                <label>Conductor</label>
+                <strong>{{ departure.driver }}</strong>
+              </div>
             </div>
-            <div class="info-content">
-              <label>Conductor</label>
-              <strong>{{ departure.driver }}</strong>
-            </div>
-          </div>
+          }
 
           <!-- Location -->
           <div class="detail-row">
@@ -84,39 +96,41 @@
           </div>
 
           <!-- Territories -->
-          <div class="detail-row">
-            <div class="icon-box">
-              <img
-                src="https://api.iconify.design/mdi:map-legend.svg?color=%236c757d"
-                width="18"
-                height="18"
-                alt="Territories"
-              />
-            </div>
-            <div class="info-content">
-              <label>Territorios</label>
-              <div class="territory-list">
-                @for (territory of departure.territory; track territory) {
-                  <a
-                    class="territory-item"
-                    [routerLink]="
-                      '../../../territorios/' +
-                      getNormalizedLocation(departure.location) +
-                      '-' +
-                      territory.replace('N°', '')
-                    "
-                  >
-                    <span>{{ territory }}</span>
-                    <img
-                      src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d"
-                      width="12"
-                      height="12"
-                    />
-                  </a>
-                }
+          @if (!departure.isEvent) {
+            <div class="detail-row">
+              <div class="icon-box">
+                <img
+                  src="https://api.iconify.design/mdi:map-legend.svg?color=%236c757d"
+                  width="18"
+                  height="18"
+                  alt="Territories"
+                />
+              </div>
+              <div class="info-content">
+                <label>Territorios</label>
+                <div class="territory-list">
+                  @for (territory of departure.territory; track territory) {
+                    <a
+                      class="territory-item"
+                      [routerLink]="
+                        '../../../territorios/' +
+                        getNormalizedLocation(departure.location) +
+                        '-' +
+                        territory.replace('N°', '')
+                      "
+                    >
+                      <span>{{ territory }}</span>
+                      <img
+                        src="https://api.iconify.design/mdi:chevron-right.svg?color=%236c757d"
+                        width="12"
+                        height="12"
+                      />
+                    </a>
+                  }
+                </div>
               </div>
             </div>
-          </div>
+          }
         </div>
       </div>
     }

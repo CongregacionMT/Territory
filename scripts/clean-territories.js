@@ -80,44 +80,43 @@ function findAvailableCongregations() {
     .map((file) => file.replace("environment.", "").replace(".ts", ""));
 }
 
-async function deleteCollection(db, collectionPath, batchSize = 100) {
+async function deleteCollection(db, collectionPath, batchLimit = 100) {
   const collectionRef = db.collection(collectionPath);
-  const query = collectionRef.limit(batchSize);
+  let lastDoc = null;
+  let hasMore = true;
 
-  return new Promise((resolve, reject) => {
-    deleteQueryBatch(db, query, resolve).catch(reject);
-  });
-}
-
-async function deleteQueryBatch(db, query, resolve) {
-  const snapshot = await query.get();
-
-  const batchSize = snapshot.size;
-  if (batchSize === 0) {
-    resolve();
-    return;
-  }
-
-  const batch = db.batch();
-  let deletedCount = 0;
-  snapshot.docs.forEach((doc) => {
-    const data = doc.data();
-    if (data.isInitial !== true) {
-      batch.delete(doc.ref);
-      deletedCount++;
+  while (hasMore) {
+    let query = collectionRef.limit(batchLimit);
+    if (lastDoc) {
+      query = query.startAfter(lastDoc);
     }
-  });
 
-  if (deletedCount > 0) {
-    await batch.commit();
-  }
+    const snapshot = await query.get();
 
-  if (snapshot.size === batchSize) {
-    process.nextTick(() => {
-      deleteQueryBatch(db, query, resolve);
+    if (snapshot.empty) {
+      hasMore = false;
+      break;
+    }
+
+    const batch = db.batch();
+    let deletedCount = 0;
+
+    snapshot.docs.forEach((doc) => {
+      if (doc.data().isInitial !== true) {
+        batch.delete(doc.ref);
+        deletedCount++;
+      }
     });
-  } else {
-    resolve();
+
+    if (deletedCount > 0) {
+      await batch.commit();
+    }
+
+    if (snapshot.size < batchLimit) {
+      hasMore = false;
+    } else {
+      lastDoc = snapshot.docs[snapshot.size - 1];
+    }
   }
 }
 

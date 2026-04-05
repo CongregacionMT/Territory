@@ -12,8 +12,24 @@
             <div class="card shadow-sm border-0 mb-2">
               <div class="card-body p-3">
                 <div class="row align-items-center mb-2">
-                  <div class="col-6">
-                    <span class="fw-bold">Salida {{ i + 1 }}</span>
+                  <div class="col-6 d-flex align-items-center">
+                    <span class="fw-bold me-3 text-capitalize">{{ getDepartureTitle(days.get('date')?.value, days.get('schedule')?.value) }}</span>
+                    <div class="form-check form-switch mb-0">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        [id]="'isEvent_' + i + '_' + group"
+                        [checked]="days.get('isEvent')?.value"
+                        (change)="onChangeCheckbox($event, 'isEvent', i, group)"
+                      />
+                      <label 
+                        class="form-check-label text-muted small" 
+                        [for]="'isEvent_' + i + '_' + group"
+                      >
+                        Es evento especial
+                      </label>
+                    </div>
                   </div>
                   <div class="col-6 text-end">
                     <button
@@ -45,29 +61,42 @@
                       (change)="onChangeInput($event, 'schedule', i, group)"
                     />
                   </div>
-                  <div class="col-12 col-md-2">
-                    <select
-                      aria-label="driver"
-                      class="form-control form-select"
-                      (change)="onChangeInput($event, 'driver', i, group)"
-                    >
-                      <option
-                        value=""
-                        [selected]="!days.get('driver')?.value"
-                        disabled
+                  @if (days.get('isEvent')?.value) {
+                    <div class="col-12 col-md-4">
+                      <input
+                        type="text"
+                        aria-label="title"
+                        class="form-control"
+                        placeholder="Título del evento (ej. Conmemoración)"
+                        [value]="days.get('title')?.value || ''"
+                        (change)="onChangeInput($event, 'title', i, group)"
+                      />
+                    </div>
+                  } @else {
+                    <div class="col-12 col-md-2">
+                      <select
+                        aria-label="driver"
+                        class="form-control form-select"
+                        (change)="onChangeInput($event, 'driver', i, group)"
                       >
-                        Conductor
-                      </option>
-                      @for (driver of drivers(); track driver.user) {
                         <option
-                          [value]="driver.user"
-                          [selected]="driver.user === days.get('driver')?.value"
+                          value=""
+                          [selected]="!days.get('driver')?.value"
+                          disabled
                         >
-                          {{ driver.user }}
+                          Conductor
                         </option>
-                      }
-                    </select>
-                  </div>
+                        @for (driver of drivers(); track driver.user) {
+                          <option
+                            [value]="driver.user"
+                            [selected]="driver.user === days.get('driver')?.value"
+                          >
+                            {{ driver.user }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+                  }
                   <div class="col-12 col-md-3">
                     <input
                       type="text"
@@ -88,8 +117,9 @@
                       (change)="onChangeInput($event, 'maps', i, group)"
                     />
                   </div>
-                  <div class="col-12 col-md-2">
-                    <select
+                  @if (!days.get('isEvent')?.value) {
+                    <div class="col-12 col-md-2">
+                      <select
                       class="form-control form-select"
                       [value]="days.get('location')?.value || ''"
                       (change)="onChangeInput($event, 'location', i, group)"
@@ -104,9 +134,11 @@
                       }
                     </select>
                   </div>
+                  }
                 </div>
                 <div class="row mt-2 g-2">
-                  <div class="col-12 col-md-6">
+                  @if (!days.get('isEvent')?.value) {
+                    <div class="col-12 col-md-6">
                     <button
                       type="button"
                       class="btn btn-success w-100"
@@ -125,9 +157,10 @@
                           {{ t }}
                         </span>
                       }
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-12 col-md-6">
+                  }
+                  <div class="col-12" [class.col-md-6]="!days.get('isEvent')?.value">
                     <select
                       class="form-select w-100 color-select"
                       [style.border-left]="

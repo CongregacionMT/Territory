@@ -1,4 +1,4 @@
-<div class="container py-5 campaign-container">
+<div class="py-5 campaign-container px-4">
   <div class="text-center mb-5 header-animate">
     @if (campaignInProgress() && activeCampaign) {
       <div
@@ -239,7 +239,7 @@
         <div class="col-lg-5 border-end-lg border-white-10">
           <h4 class="text-white mb-3">1. Stock de Invitaciones</h4>
           <p class="text-white-50 small mb-4">
-            ¿Cómo quedaron las invitaciones o tratados al finalizar?
+            ¿Cuántas invitaciones quedaron al finalizar la campaña?
           </p>
 
           <div class="d-grid gap-2">
@@ -302,6 +302,38 @@
               for="l-ninguna"
               >🚫 No sobró <strong>Ninguna</strong></label
             >
+
+            <input
+              type="radio"
+              class="btn-check"
+              name="leftovers"
+              id="l-faltaron"
+              value="faltaron"
+              [ngModel]="leftoverInvitations()"
+              (ngModelChange)="leftoverInvitations.set($event)"
+            />
+            <label
+              class="btn btn-outline-light text-start p-3 wizard-option"
+              for="l-faltaron"
+              >⚠️ <strong>Faltaron</strong> invitaciones</label
+            >
+
+            @if (leftoverInvitations() === 'faltaron') {
+              <div class="mt-2 p-3 bg-dark rounded border border-warning scale-in">
+                <label for="missingCount" class="form-label text-warning small mb-2 fw-bold"
+                  >¿Cuántas más recomendarías pedir para la próxima vez?</label
+                >
+                <input
+                  id="missingCount"
+                  type="number"
+                  class="form-control bg-transparent text-white border-warning"
+                  placeholder="Ej. 500"
+                  [ngModel]="missingInvitations()"
+                  (ngModelChange)="missingInvitations.set($event)"
+                  min="1"
+                />
+              </div>
+            }
           </div>
         </div>
 
@@ -323,64 +355,90 @@
           }
 
           <div
-            class="departures-list flex-column gap-2 mb-4"
-            style="max-height: 350px; overflow-y: auto; padding-right: 5px"
+            class="departures-list flex-column gap-3 mb-4"
+            style="max-height: 400px; overflow-y: auto; padding-right: 8px"
           >
             @for (dep of filteredDepartures(); track dep.id; let idx = $index) {
               <div
-                class="departure-item p-3 mb-2 rounded border border-white-10 bg-dark d-flex flex-wrap align-items-center justify-content-between gap-3"
+                class="departure-item p-3 rounded border border-white-10 bg-dark d-flex flex-wrap align-items-center justify-content-between gap-3 shadow-sm"
                 [class.border-success]="dep.checked"
+                [style.background]="dep.checked ? 'rgba(25, 135, 84, 0.05)' : 'rgba(255,255,255,0.02)'"
               >
-                <div class="form-check form-switch custom-switch">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    role="switch"
-                    [id]="'depCheck' + idx"
-                    [checked]="dep.checked"
-                    (change)="toggleDepartureCheck(idx)"
-                  />
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                  <div class="form-check form-switch custom-switch me-0">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      [id]="'depCheck' + idx"
+                      [checked]="dep.checked"
+                      (change)="toggleDepartureCheck(idx)"
+                    />
+                  </div>
+                  
                   <label
-                    class="form-check-label text-white fw-bold ms-2 cursor-pointer pb-0"
+                    class="form-check-label text-white cursor-pointer m-0 flex-grow-1"
                     [for]="'depCheck' + idx"
                   >
-                    <span
-                      class="d-block"
-                      style="font-size: 0.9rem; text-transform: capitalize"
-                      >{{ dep.dateLabel }}
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <span class="fw-bold" style="font-size: 0.95rem; text-transform: capitalize;">{{ dep.dateLabel }}</span>
                       @if (dep.locality) {
-                        <span
-                          class="badge bg-primary ms-1"
-                          style="font-size: 0.6rem"
-                          >{{ dep.locality }}</span
-                        >
+                        <span class="badge bg-primary rounded-pill" style="font-size: 0.65rem;">{{ dep.locality }}</span>
                       }
-                    </span>
-                    <span
-                      class="text-white-50 fw-normal"
-                      style="font-size: 0.75rem"
-                      ><i class="bi bi-person me-1"></i>{{ dep.driver }}</span
-                    >
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 text-white-50" style="font-size: 0.8rem;">
+                      <span class="d-flex align-items-center"><i class="bi bi-geo-fill me-1 text-info"></i> {{ dep.point }}</span>
+                      <span class="d-flex align-items-center"><i class="bi bi-person-fill me-1 text-secondary"></i> {{ dep.driver }}</span>
+                    </div>
                   </label>
                 </div>
-                <div
-                  class="d-flex align-items-center opacity-transition"
-                  [class.opacity-25]="!dep.checked"
-                  [class.pe-none]="!dep.checked"
-                >
-                  <i class="bi bi-people-fill text-white-50 me-2"></i>
-                  <input
-                    type="number"
-                    class="form-control form-control-sm bg-transparent text-white border-white-25 text-center"
-                    style="width: 70px"
-                    placeholder="Cant."
-                    [ngModel]="dep.publishers"
-                    (ngModelChange)="updateDeparturePublishers(idx, $event)"
-                    min="0"
-                  />
-                </div>
+
               </div>
             }
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 3: Detalles Finales -->
+      <div class="row mt-5">
+        <div class="col-lg-4 mb-4 mb-lg-0 border-end-lg">
+          <h4 class="text-white mb-3">3. Fecha de Cierre</h4>
+          <p class="text-white-50 small mb-3">
+            Confirmá la fecha en la que terminó la campaña.
+          </p>
+          <input
+            type="date"
+            class="form-control premium-input"
+            [ngModel]="finalEndDate()"
+            (ngModelChange)="finalEndDate.set($event)"
+          />
+        </div>
+        <div class="col-lg-8">
+          <h4 class="text-white mb-3">4. Comentarios Finales</h4>
+          <p class="text-white-50 small mb-3">
+            Agregá cualquier observación o resumen de la campaña.
+          </p>
+          <textarea
+            class="form-control premium-input w-100"
+            rows="3"
+            placeholder="Ej: Se recomienda para la siguiente campaña pedir más invitaciones..."
+            [ngModel]="finalComments()"
+            (ngModelChange)="finalComments.set($event)"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Advertencia Final -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <div class="alert alert-danger-premium d-flex align-items-center gap-3 p-4 rounded-4 shadow-sm">
+            <i class="fas fa-exclamation-triangle fs-3"></i>
+            <div>
+              <h5 class="fw-bold mb-1">¡Acción Definitiva!</h5>
+              <p class="mb-0 small" style="opacity: 0.9;">
+                Al finalizar esta campaña, se <strong>bloqueará todo cambio</strong> en los territorios asociados y los datos se archivarán permanentemente. Por favor, asegúrate de haber registrado todas las manzanas antes de confirmar.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -393,7 +451,7 @@
         </button>
         <button
           class="btn btn-success px-5 py-2 fw-bold shadow glow"
-          [disabled]="!leftoverInvitations()"
+          [disabled]="!leftoverInvitations() || (leftoverInvitations() === 'faltaron' && !missingInvitations())"
           (click)="confirmEndCampaign()"
         >
           ✓ CONFIRMAR Y FINALIZAR
@@ -469,7 +527,7 @@
           {{
             startingCampaign()
               ? "Reiniciando territorios... esto puede tardar unos momentos."
-              : "Guardando resultados y reseteando mapa..."
+              : "Guardando resultados..."
           }}
         </p>
 
