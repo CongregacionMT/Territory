@@ -399,12 +399,24 @@
         </div>
       </div>
 
-      <!-- Paso 3: Comentarios -->
+      <!-- Paso 3: Detalles Finales -->
       <div class="row mt-5">
-        <div class="col-12">
-          <h4 class="text-white mb-3">3. Comentarios Finales</h4>
+        <div class="col-lg-4 mb-4 mb-lg-0 border-end-lg">
+          <h4 class="text-white mb-3">3. Fecha de Cierre</h4>
           <p class="text-white-50 small mb-3">
-            Agregá cualquier observación o resumen de la campaña que sea útil para el futuro.
+            Confirmá la fecha en la que terminó la campaña.
+          </p>
+          <input
+            type="date"
+            class="form-control premium-input"
+            [ngModel]="finalEndDate()"
+            (ngModelChange)="finalEndDate.set($event)"
+          />
+        </div>
+        <div class="col-lg-8">
+          <h4 class="text-white mb-3">4. Comentarios Finales</h4>
+          <p class="text-white-50 small mb-3">
+            Agregá cualquier observación o resumen de la campaña.
           </p>
           <textarea
             class="form-control premium-input w-100"
@@ -413,6 +425,21 @@
             [ngModel]="finalComments()"
             (ngModelChange)="finalComments.set($event)"
           ></textarea>
+        </div>
+      </div>
+
+      <!-- Advertencia Final -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <div class="alert alert-danger-premium d-flex align-items-center gap-3 p-4 rounded-4 shadow-sm">
+            <i class="fas fa-exclamation-triangle fs-3"></i>
+            <div>
+              <h5 class="fw-bold mb-1">¡Acción Definitiva!</h5>
+              <p class="mb-0 small" style="opacity: 0.9;">
+                Al finalizar esta campaña, se <strong>bloqueará todo cambio</strong> en los territorios asociados y los datos se archivarán permanentemente. Por favor, asegúrate de haber registrado todas las manzanas antes de confirmar.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

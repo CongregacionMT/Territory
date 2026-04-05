@@ -373,15 +373,16 @@ export class CampaignService {
     finalStats: any,
     leftoverInvitations?: string,
     departuresInfo?: DeparturesInfo,
-    missingInvitations?: number,
+    missingInvitations?: number | null,
     finalComments?: string,
+    manualEndDate?: any,
     onProgress?: (current: number, total: number) => void,
   ) {
     const campaignDocRef = doc(this.firestore, 'campaigns', campaignId);
 
     const updateData: any = {
       active: false,
-      dateEnd: Timestamp.now(),
+      dateEnd: manualEndDate || Timestamp.now(),
       stats: finalStats,
     };
 

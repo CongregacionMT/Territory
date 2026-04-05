@@ -6,6 +6,13 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import {
+  Firestore,
+  getDocs,
+  query,
+  where,
+  Timestamp,
+} from '@angular/fire/firestore';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CampaignService } from '@core/services/campaign.service';
@@ -50,6 +57,7 @@ export class CampaignPageComponent implements OnInit {
   );
   missingInvitations = signal<number | null>(null);
   finalComments = signal('');
+  finalEndDate = signal('');
   filteredDepartures = signal<
     {
       id: string;
@@ -174,6 +182,13 @@ export class CampaignPageComponent implements OnInit {
       return;
     }
 
+    if (this.activeCampaign.dateEnd) {
+      let d = this.activeCampaign.dateEnd;
+      if (d.toDate) d = d.toDate();
+      const iso = new Date(d).toISOString().split('T')[0];
+      this.finalEndDate.set(iso);
+    }
+
     // Load departures within campaign dates
     // take(1) is critical: without it, every Firestore update re-triggers this
     // subscriber, causing the end-campaign modal and save flow to loop infinitely.
@@ -284,10 +299,9 @@ export class CampaignPageComponent implements OnInit {
                 date: dep.date,
                 dateLabel,
                 driver: dep.driver || 'Sin conductor',
-                locality: localityName,
+                locality: localityName || null,
                 point: dep.point || 'Sin punto de encuentro',
                 checked: false,
-                publishers: undefined,
               });
             }
           });
@@ -324,6 +338,11 @@ export class CampaignPageComponent implements OnInit {
   }
 
   async confirmEndCampaign() {
+    const isConfirmed = window.confirm(
+      '¿Estás seguro de que quieres finalizar la campaña? Ya NO podrás hacer más cambios en los territorios ni salidas una vez confirmada esta acción.'
+    );
+    if (!isConfirmed) return;
+
     if (!this.leftoverInvitations()) return;
 
     const active = this.campaignService.getCachedCampaign();
@@ -357,8 +376,9 @@ export class CampaignPageComponent implements OnInit {
         active.stats,
         this.leftoverInvitations(),
         departuresInfo,
-        this.leftoverInvitations() === 'faltaron' ? this.missingInvitations() || undefined : undefined,
+        this.leftoverInvitations() === 'faltaron' ? (this.missingInvitations() ?? null) : null,
         this.finalComments(),
+        Timestamp.fromDate(new Date(this.finalEndDate() + 'T23:59:59')),
         (current: number, total: number) => {
           this.campaignProgress.set(current);
           this.campaignProgressTotal.set(total);
