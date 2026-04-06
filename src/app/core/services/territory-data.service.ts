@@ -117,6 +117,7 @@ export class TerritoryDataService {
           ...card,
           creation: Timestamp.now(),
           completed: (card.completed ?? 0) + 1,
+          isInitial: false,
         };
 
         // ✅ Solo usar ID personalizado si estamos en modo campaña
@@ -137,6 +138,7 @@ export class TerritoryDataService {
           ...card,
           creation: Timestamp.now(),
           completed: (card.completed ?? 0) + 1,
+          isInitial: false,
           applesData: (card.applesData ?? []).map((a) => ({
             ...a,
             checked: false,
@@ -153,7 +155,11 @@ export class TerritoryDataService {
           await addDoc(cardRef, resetCard);
         }
       } else {
-        const partialCard = { ...card, creation: Timestamp.now() };
+        const partialCard = {
+          ...card,
+          creation: Timestamp.now(),
+          isInitial: false,
+        };
 
         // ✅ Solo usar ID personalizado si estamos en modo campaña
         if (isInCampaignMode) {

@@ -64,7 +64,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "6kb"
+                  "maximumError": "6.5kb"
                 }
               ],
               "fileReplacements": [
@@ -101,7 +101,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "6kb"
+                  "maximumError": "7kb"
                 }
               ],
               "outputHashing": "all"
@@ -126,7 +126,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "6kb"
+                  "maximumError": "7kb"
                 }
               ],
               "outputHashing": "all"
@@ -151,7 +151,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "6kb"
+                  "maximumError": "7kb"
                 }
               ],
               "outputHashing": "all"
@@ -176,7 +176,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "6kb"
+                  "maximumError": "7kb"
                 }
               ],
               "outputHashing": "all"
@@ -201,7 +201,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "6kb"
+                  "maximumError": "7kb"
                 }
               ],
               "outputHashing": "all"

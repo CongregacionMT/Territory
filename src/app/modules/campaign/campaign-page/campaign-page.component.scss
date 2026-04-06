@@ -262,3 +262,50 @@
   font-size: 0.75rem;
   margin: 0;
 }
+
+/* Selector de publicadores mas intuitivo */
+.publisher-selector {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  border-radius: 12px;
+  min-width: 110px;
+
+  .bg-darker {
+    background: rgba(10, 13, 20, 0.6) !important;
+  }
+
+  input[type="number"] {
+    appearance: none;
+    -moz-appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+
+  .btn-link {
+    text-decoration: none;
+    transition: 0.2s;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff !important;
+    }
+    &:active {
+      transform: scale(0.9);
+    }
+  }
+}
+
+.departure-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+}
