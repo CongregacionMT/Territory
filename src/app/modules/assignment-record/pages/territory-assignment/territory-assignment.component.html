@@ -72,7 +72,7 @@
                             style="border: 0px transparent"
                           >
                             <td class="pe-3">
-                              {{ list.start | date: "dd-MM-yyyy" }}
+                              {{ (list.start || list.creation?.toDate?.() || (list.creation?.seconds ? list.creation.seconds * 1000 : list.creation)) | date: "dd-MM-yyyy" }}
                             </td>
                             |
                             <td class="ps-3">
