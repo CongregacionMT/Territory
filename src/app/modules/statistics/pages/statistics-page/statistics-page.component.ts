@@ -34,7 +34,7 @@ export class StatisticsPageComponent implements OnInit {
   nameTitleTerritory = signal<string>('');
 
   // New signals for filtering and summary
-  timeRange = signal<number>(1); // months
+  timeRange = signal<number>(6); // months
   summaryStats = signal({
     totalTerritories: 0,
     completedInPeriod: 0,
