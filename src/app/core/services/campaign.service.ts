@@ -183,7 +183,7 @@ export class CampaignService {
           const newVersion = {
             ...data,
             applesData: resetApples,
-            completed: 0,
+            completed: data['completed'] ?? 0,
             revision: false,
             revisionComplete: false,
             creation: Timestamp.now(),
@@ -640,6 +640,23 @@ export class CampaignService {
         if (!collectionName?.trim()) return;
         const colRef = collection(this.firestore, collectionName);
 
+      const snapshot = await getDocs(colRef);
+
+      const deletes = snapshot.docs
+        .filter((d) => d.id.startsWith(`Campaña-${campaignId}`)) // 👈 match exacto
+        .filter((d) => {
+          const data = d.data();
+          const apples = data['applesData'] || [];
+          const hasActivity = apples.some((a: any) => a.checked === true);
+          // Omitir el borrado si la tarjeta tiene actividad (fue completada)
+          return !hasActivity; 
+        })
+        .map((d) => deleteDoc(doc(this.firestore, collectionName, d.id)));
+
+      if (deletes.length > 0) {
+        await Promise.all(deletes);
+        // console.log(`🗑️ Eliminados ${deletes.length} docs de ${collectionName}`);
+      }
         // Query eficiente por ID del documento
         const q = query(
           colRef,

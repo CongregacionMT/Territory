@@ -70,7 +70,7 @@ export class TerritoryDataService {
       where('creation', '>=', fromDate),
       orderBy('creation', 'desc'),
     );
-    return collectionData(q) as Observable<Card[]>;
+    return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
   }
 
   async sendRevisionCardTerritorie(card: Card) {
@@ -109,7 +109,8 @@ export class TerritoryDataService {
     try {
       const activeCampaign = this.campaignService.getCachedCampaign();
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
-      const isInCampaignMode = activeCampaign?.id != null;
+      const campaignIdValid = (activeCampaign?.id && activeCampaign.id !== 'undefined') ? activeCampaign.id : null;
+      const isInCampaignMode = campaignIdValid != null;
 
       if (countFalseApples === 0) {
         const completedCard = {
@@ -121,7 +122,7 @@ export class TerritoryDataService {
 
         // ✅ Solo usar ID personalizado si estamos en modo campaña
         if (isInCampaignMode) {
-          const completedId = `Campaña-${activeCampaign.id}-${Date.now()}-completed`;
+          const completedId = `Campaña-${campaignIdValid}-${Date.now()}-completed`;
           await setDoc(
             doc(this.firestore, collectionName, completedId),
             completedCard,
@@ -146,7 +147,7 @@ export class TerritoryDataService {
 
         // ✅ Solo usar ID personalizado si estamos en modo campaña
         if (isInCampaignMode) {
-          const resetId = `Campaña-${activeCampaign.id}-${Date.now()}-reset`;
+          const resetId = `Campaña-${campaignIdValid}-${Date.now()}-reset`;
           await setDoc(doc(this.firestore, collectionName, resetId), resetCard);
         } else {
           // Usar ID auto-generado de Firebase
@@ -162,7 +163,7 @@ export class TerritoryDataService {
 
         // ✅ Solo usar ID personalizado si estamos en modo campaña
         if (isInCampaignMode) {
-          const cardId = `Campaña-${activeCampaign.id}-${Date.now()}`;
+          const cardId = `Campaña-${campaignIdValid}-${Date.now()}`;
           await setDoc(
             doc(this.firestore, collectionName, cardId),
             partialCard,
@@ -360,7 +361,7 @@ export class TerritoryDataService {
   getCardTerritorieRegisterTable(collectionParam: string): Observable<Card[]> {
     const cardRef = collection(this.firestore, collectionParam);
     const q = query(cardRef, orderBy('creation', 'asc'));
-    return collectionData(q) as Observable<Card[]>;
+    return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
   }
   // USERS
   getUsers(): Observable<User[]> {

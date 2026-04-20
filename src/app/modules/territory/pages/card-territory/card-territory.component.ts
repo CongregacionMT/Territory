@@ -6,6 +6,7 @@ import {
   signal,
   viewChild,
   computed,
+  ElementRef,
 } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import {
@@ -34,6 +35,8 @@ import { environment } from '@environments/environment';
 
 import { Card, CardApplesData } from '@core/models/Card';
 import { BreadcrumbItem } from '@core/models/Breadcrumb';
+
+declare var google: any;
 
 @Component({
   selector: 'app-card-territory',
@@ -87,6 +90,12 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   dataLoaded = signal<boolean>(false);
 
   readonly modalComponent = viewChild(ModalComponent);
+  readonly mapElement = viewChild<ElementRef>('mapContainer');
+
+  isNativeMapReady = signal<boolean>(false);
+  mapObj: any = null;
+  mapMarker: any = null;
+  watchId: number | null = null;
 
   isRevisionMode = computed(() => this.card().revision === true);
   hasValidDriver = computed(
@@ -316,6 +325,9 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.card.set(updatedCard);
 
     this.cardService.dataCard.revision = false;
+    if (this.watchId !== null) {
+      navigator.geolocation.clearWatch(this.watchId);
+    }
     this.cardSubscription().unsubscribe();
   }
 }

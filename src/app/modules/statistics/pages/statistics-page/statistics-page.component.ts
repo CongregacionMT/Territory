@@ -34,7 +34,7 @@ export class StatisticsPageComponent implements OnInit {
   nameTitleTerritory = signal<string>('');
 
   // New signals for filtering and summary
-  timeRange = signal<number>(1); // months
+  timeRange = signal<number>(6); // months
   summaryStats = signal({
     totalTerritories: 0,
     completedInPeriod: 0,
@@ -180,17 +180,24 @@ export class StatisticsPageComponent implements OnInit {
               fromDateLimit.setMonth(fromDateLimit.getMonth() - filterMonths);
 
               const periodCards = allCards.filter((c) => {
-                const creation = c.creation;
-                const cardDate =
-                  creation && (creation as any).toDate
-                    ? (creation as any).toDate()
-                    : new Date(creation);
-                return cardDate >= fromDateLimit;
+                const creation = c.creation as any;
+                let cardDate: Date;
+                
+                if (creation && typeof creation.toDate === 'function') {
+                  cardDate = creation.toDate();
+                } else if (creation && typeof creation.seconds === 'number') {
+                  cardDate = new Date(creation.seconds * 1000);
+                } else {
+                  cardDate = new Date(creation);
+                }
+                
+                return !isNaN(cardDate.getTime()) && cardDate >= fromDateLimit;
               });
 
-              // Consideramos actividad si hay manzanas marcadas en el periodo
+              // Consideramos actividad si hay manzanas marcadas o si son hitos de PostCampaña
               const activityCards = periodCards.filter((c) =>
-                (c.applesData || []).some((a: any) => a.checked),
+                (c.applesData || []).some((a: any) => a.checked) ||
+                (c.id && (c.id.startsWith('PostCampaña') || c.id.startsWith('Campaña-undefined'))),
               );
 
               if (activityCards.length > 0) {
@@ -236,17 +243,24 @@ export class StatisticsPageComponent implements OnInit {
 
       // Si no es placeholder, hubo actividad en el periodo
       if (!primaryCard.isPlaceholder) {
-        // Sumamos las manzanas completadas en el card más reciente del periodo
-        const checkedCount = (primaryCard.applesData || []).filter(
-          (a: any) => a.checked,
-        ).length;
-        completedApplesInPeriod += checkedCount;
+        let maxCheckedInPeriod = 0;
+        let wasFullyCompleted = false;
 
-        // Un territorio está completado si algún card del periodo tiene TODAS sus manzanas marcadas
-        const wasFullyCompleted = territoryCards.some((c: any) => {
+        territoryCards.forEach((c: any) => {
+          if (c.isPlaceholder) return;
           const apples = c.applesData || [];
-          return apples.length > 0 && apples.every((a: any) => a.checked);
+          const checkedCount = apples.filter((a: any) => a.checked).length;
+          
+          if (checkedCount > maxCheckedInPeriod) {
+             maxCheckedInPeriod = checkedCount;
+          }
+          
+          if (apples.length > 0 && checkedCount === apples.length) {
+            wasFullyCompleted = true;
+          }
         });
+
+        completedApplesInPeriod += maxCheckedInPeriod;
         if (wasFullyCompleted) territoriesCompleted++;
       }
     });

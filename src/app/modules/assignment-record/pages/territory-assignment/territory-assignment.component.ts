@@ -150,8 +150,9 @@ export class TerritoryAssignmentComponent implements OnInit {
                 (apple) => apple.checked,
               ).length;
             }
-            // Solo incluimos tarjetas que tengan al menos una manzana marcada (completada/en progreso)
-            return checkedAppleCount > 0;
+
+            // Dejar pasar tarjetas con manzanas completadas O las tarjetas de inicio/cierre que actúan como hito.
+            return checkedAppleCount > 0 || (card.id && (card.id.startsWith('PostCampaña') || card.id.startsWith('Campaña-undefined')));
           });
         });
 
@@ -229,8 +230,19 @@ export class TerritoryAssignmentComponent implements OnInit {
 
     const filtered = fullData.map((territoryCards: Card[]) => {
       return territoryCards.filter((card: Card) => {
-        const dateStart = card.start ? new Date(card.start) : null;
-        if (!dateStart) return false;
+        let dateStart: Date | null = null;
+        if (card.start) {
+          dateStart = new Date(card.start);
+        } else if (card.creation) {
+          if (typeof (card.creation as any).toDate === 'function') {
+            dateStart = (card.creation as any).toDate();
+          } else if ((card.creation as any).seconds) {
+            dateStart = new Date((card.creation as any).seconds * 1000);
+          } else {
+            dateStart = new Date(card.creation as any);
+          }
+        }
+        if (!dateStart || isNaN(dateStart.getTime())) return false;
 
         if (valueNumber === 1) {
           // Últimos 6 meses
