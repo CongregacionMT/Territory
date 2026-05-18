@@ -35,7 +35,7 @@ export class LoginPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.formLogin.get('user')?.valueChanges.subscribe(value => {
-      const lower = value?.toLowerCase?.();
+      const lower = value;
       if (value !== lower) {
         this.formLogin.get('user')?.setValue(lower, { emitEvent: false });
       }
