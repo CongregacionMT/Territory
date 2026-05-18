@@ -28,6 +28,7 @@ import { User } from '@core/models/User';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import {
   DateDeparture,
+  Departure,
   DepartureData,
   WeeklyDeparture,
 } from '@core/models/Departures';
@@ -306,6 +307,55 @@ export class TerritoryDataService {
     updateDoc(departuresRef, { ...date });
   }
 
+  createDepartureId(
+    weekId: string,
+    departure: Departure,
+    index: number = 0,
+  ): string {
+    const raw = [
+      weekId,
+      departure.date || 'sin-fecha',
+      departure.schedule || 'sin-hora',
+      departure.group ?? 0,
+      index,
+    ].join('-');
+
+    return raw
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  normalizeDepartureForCardTracking(
+    departure: Departure,
+    weekId: string,
+    index: number,
+  ): Departure {
+    const departureId =
+      departure.departureId || this.createDepartureId(weekId, departure, index);
+
+    if (departure.isEvent) {
+      return {
+        ...departure,
+        departureId,
+        cardStatus: 'not_required',
+      };
+    }
+
+    const status =
+      departure.cardStatus && departure.cardStatus !== 'not_required'
+        ? departure.cardStatus
+        : 'pending';
+
+    return {
+      ...departure,
+      departureId,
+      cardStatus: status,
+    };
+  }
+
   // HISTORIAL DE SALIDAS
   getWeeklyDepartures(): Observable<WeeklyDeparture[]> {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
@@ -326,7 +376,19 @@ export class TerritoryDataService {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
     // Usamos weekId como ID del documento para que sea único por semana y sea fácil de actualizar si se vuelve a guardar
     const docRef = doc(departuresRef, weeklyDeparture.weekId);
-    await setDoc(docRef, { ...weeklyDeparture, createdAt: Timestamp.now() });
+    const normalizedDepartures = (weeklyDeparture.departure || []).map(
+      (departure, index) =>
+        this.normalizeDepartureForCardTracking(
+          departure,
+          weeklyDeparture.weekId,
+          index,
+        ),
+    );
+    await setDoc(docRef, {
+      ...weeklyDeparture,
+      departure: normalizedDepartures,
+      createdAt: Timestamp.now(),
+    });
   }
 
   async deleteWeeklyDeparture(weekId: string) {

@@ -27,6 +27,7 @@ import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { User } from '@core/models/User';
 import { WeeklyDeparture } from '../../../../core/models/Departures';
 import { take } from 'rxjs';
+import { Card } from '@core/models/Card';
 
 @Component({
   selector: 'app-form-edit-departures',
@@ -51,13 +52,22 @@ export class FormEditDeparturesComponent implements OnInit {
   drivers = signal<User[]>([]);
   congregationName = environment.congregationName;
   territoryPrefix = environment.territoryPrefix;
+  congregationKey = environment.congregationKey;
   localities = environment.localities;
   territoryOptionsMap: { [key: string]: string[] } = {};
   isSaved: boolean = false;
+  isAdmin: boolean = false;
+  personalAssignments: Card[] = [];
+  showPersonalTerritories: boolean = false;
+  sortByAge: boolean = false;
+  weeklyHistory: WeeklyDeparture[] = [];
+
+  private readonly CARD_TRACKING_START_DATE = '2026-05-11';
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
   constructor() {
+    this.isAdmin = !!localStorage.getItem('tokenAdmin');
     this.formDeparture = this.fb.group({
       departure0: new FormArray([]),
     });
@@ -71,6 +81,8 @@ export class FormEditDeparturesComponent implements OnInit {
   ngOnInit(): void {
     this.loadTerritoryData();
     this.loadDrivers();
+    this.loadPersonalAssignments();
+    this.loadWeeklyHistory();
   }
 
   initForm(departures: Departure[]) {
@@ -149,6 +161,11 @@ export class FormEditDeparturesComponent implements OnInit {
           group: new FormControl(groupKey),
           isEvent: new FormControl(departure.isEvent || false),
           title: new FormControl(departure.title || ''),
+          cardStatus: new FormControl(
+            departure.isEvent
+              ? 'not_required'
+              : departure.cardStatus || 'pending',
+          ),
         }),
       );
     });
@@ -230,6 +247,18 @@ export class FormEditDeparturesComponent implements OnInit {
     });
   }
 
+  loadPersonalAssignments() {
+    this.territoryDataService
+      .getCardAssigned()
+      .subscribe((cards) => (this.personalAssignments = cards || []));
+  }
+
+  loadWeeklyHistory() {
+    this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
+      this.weeklyHistory = history;
+    });
+  }
+
   getTerritoryList(locationPrefix: string): string[] {
     if (!locationPrefix || locationPrefix === 'Seleccionar localidad')
       return [];
@@ -244,6 +273,275 @@ export class FormEditDeparturesComponent implements OnInit {
     if (locationPrefix === 'TerritorioR') return ['Rural'];
 
     return [];
+  }
+
+  getFilteredTerritoryList(
+    locationPrefix: string,
+    index: number,
+    group: number,
+  ): string[] {
+    return this.getTerritoryList(locationPrefix)
+      .filter(
+        (num) =>
+          this.showPersonalTerritories ||
+          !this.isPersonalTerritory(num, locationPrefix) ||
+          this.isTerritoryChecked(num, index, group),
+      )
+      .sort((a, b) => {
+        // Territorios ya elegidos esta semana — siempre al final
+        const aUsed = this.isTerritoryUsedInWeek(a, locationPrefix, index, group) ? 1 : 0;
+        const bUsed = this.isTerritoryUsedInWeek(b, locationPrefix, index, group) ? 1 : 0;
+        if (aUsed !== bUsed) return aUsed - bUsed;
+
+        // Territorios personales — al final (antes de los ya elegidos)
+        const aPersonal = this.isPersonalTerritory(a, locationPrefix) && !this.isTerritoryChecked(a, index, group) ? 1 : 0;
+        const bPersonal = this.isPersonalTerritory(b, locationPrefix) && !this.isTerritoryChecked(b, index, group) ? 1 : 0;
+        if (aPersonal !== bPersonal) return aPersonal - bPersonal;
+
+        if (this.sortByAge) {
+          // Ordenar por antigüedad: más días sin usar primero (rojo antes que verde)
+          const aDays = this.getTerritoryLastUsedDays(a, locationPrefix);
+          const bDays = this.getTerritoryLastUsedDays(b, locationPrefix);
+          // Sin historial (Infinity) va primero
+          if (aDays !== bDays) return bDays - aDays;
+        }
+
+        // Mismo nivel de antigüedad o sin sortByAge: orden numérico
+        return this.normalizeTerritoryNumber(a) - this.normalizeTerritoryNumber(b);
+      });
+  }
+
+  getTerritoryLink(locationPrefix: string | undefined, territoryNum: string): string {
+    const prefix = locationPrefix || this.territoryPrefix;
+    const num = String(territoryNum).match(/\d+/)?.[0] || territoryNum;
+    return `https://territorios-${this.congregationKey}.web.app/territorios/${prefix}-${num}`;
+  }
+
+  isPersonalTerritory(num: string, locationPrefix: string): boolean {
+    const territoryNumber = this.normalizeTerritoryNumber(num);
+    const locationNames = this.getLocationNames(locationPrefix);
+
+    return this.personalAssignments.some((assignment) => {
+      const assignedTerritory = this.normalizeTerritoryNumber(
+        String(assignment.territory || assignment.territoryNumber || ''),
+      );
+      const assignedLocation = String(assignment.location || '').toLowerCase();
+
+      return (
+        assignedTerritory === territoryNumber &&
+        locationNames.some((name) => assignedLocation.includes(name))
+      );
+    });
+  }
+
+  getPersonalPublisher(num: string, locationPrefix: string): string {
+    const territoryNumber = this.normalizeTerritoryNumber(num);
+    const locationNames = this.getLocationNames(locationPrefix);
+    const assignment = this.personalAssignments.find((item) => {
+      const assignedTerritory = this.normalizeTerritoryNumber(
+        String(item.territory || item.territoryNumber || ''),
+      );
+      const assignedLocation = String(item.location || '').toLowerCase();
+      return (
+        assignedTerritory === territoryNumber &&
+        locationNames.some((name) => assignedLocation.includes(name))
+      );
+    });
+
+    return assignment?.publisher || assignment?.driver || '';
+  }
+
+  isTerritoryUsedInWeek(
+    num: string,
+    locationPrefix: string,
+    currentIndex: number,
+    currentGroup: number,
+  ): boolean {
+    const territoryNumber = this.normalizeTerritoryNumber(num);
+    const locationNames = this.getLocationNames(locationPrefix);
+
+    return this.groupKeys.some((group) => {
+      const controls = this.filterControlsByGroup(group);
+      return controls.some((control, index) => {
+        if (group === currentGroup && index === currentIndex) return false;
+        const controlLocation = String(control.get('location')?.value || '');
+        const controlLocationNames = this.getLocationNames(controlLocation);
+        const sameLocation = locationNames.some((name) =>
+          controlLocationNames.includes(name),
+        );
+        if (!sameLocation) return false;
+
+        return this.getTerritories(control).some(
+          (selected) => this.normalizeTerritoryNumber(selected) === territoryNumber,
+        );
+      });
+    });
+  }
+
+  getTerritoryBadges(
+    num: string,
+    locationPrefix: string,
+    currentIndex: number,
+    currentGroup: number,
+  ): string[] {
+    const badges: string[] = [];
+
+    if (this.isPersonalTerritory(num, locationPrefix)) {
+      const publisher = this.getPersonalPublisher(num, locationPrefix);
+      badges.push(publisher ? `Personal: ${publisher}` : 'Personal');
+    }
+
+    if (this.isTerritoryUsedInWeek(num, locationPrefix, currentIndex, currentGroup)) {
+      badges.push('Ya elegido esta semana');
+    }
+
+    return badges;
+  }
+
+  getCardStatusLabel(dayGroup: AbstractControl): string {
+    const isEvent = dayGroup.get('isEvent')?.value;
+    if (isEvent) return 'No requerida';
+    const status = dayGroup.get('cardStatus')?.value;
+    if (status === 'received') return 'Recibida';
+    return 'Pendiente';
+  }
+
+  getCardStatusClass(dayGroup: AbstractControl): string {
+    const isEvent = dayGroup.get('isEvent')?.value;
+    if (isEvent) return 'bg-secondary-subtle text-secondary';
+    const status = dayGroup.get('cardStatus')?.value;
+    if (status === 'received') return 'bg-success-subtle text-success';
+    return 'bg-warning-subtle text-warning';
+  }
+
+  isBeforeTrackingStart(dateStr: string): boolean {
+    if (!dateStr) return false;
+    return dateStr < this.CARD_TRACKING_START_DATE;
+  }
+
+  /**
+   * Retorna cuántos días hace que se usó un territorio en salidas.
+   * Infinity = nunca usado (prioridad máxima — aparece primero en rojo).
+   */
+  getTerritoryLastUsedDays(num: string, locationPrefix: string): number {
+    const territoryNumber = this.normalizeTerritoryNumber(num);
+    const locationNames = this.getLocationNames(locationPrefix);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let lastDate: Date | null = null;
+
+    for (const week of this.weeklyHistory) {
+      for (const departure of week.departure || []) {
+        // Verificar que la localidad coincide
+        const depLocation = String(departure.location || '');
+        const depLocationNames = this.getLocationNames(depLocation);
+        const sameLocation = locationNames.some((name) =>
+          depLocationNames.includes(name),
+        );
+        if (!sameLocation) continue;
+
+        // Verificar si este territorio aparece en la salida
+        const hasTerritory = (departure.territory || []).some(
+          (t) => this.normalizeTerritoryNumber(t) === territoryNumber,
+        );
+        if (!hasTerritory) continue;
+
+        // Tomar la fecha más reciente
+        if (departure.date) {
+          const d = new Date(departure.date + 'T00:00:00');
+          if (!isNaN(d.getTime()) && (!lastDate || d > lastDate)) {
+            lastDate = d;
+          }
+        }
+      }
+    }
+
+    if (!lastDate) return Infinity;
+    const diff = today.getTime() - lastDate.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * Retorna una etiqueta human-friendly de la antigüedad del territorio.
+   * Ejemplos: "Nunca", "Hace 3 sem", "Hace 2 meses".
+   */
+  getTerritoryAgeLabel(num: string, locationPrefix: string): string {
+    const days = this.getTerritoryLastUsedDays(num, locationPrefix);
+    if (!isFinite(days)) return 'Nunca';
+    if (days < 7) return `Hace ${days}d`;
+    if (days < 30) return `Hace ${Math.floor(days / 7)} sem`;
+    const months = Math.floor(days / 30);
+    return `Hace ${months} ${months === 1 ? 'mes' : 'meses'}`;
+  }
+
+  /**
+   * Retorna la clase de color de fila según antigüedad del territorio.
+   * Misma lógica que paintRow() en la pantalla de estadísticas.
+   */
+  getTerritoryPriorityColor(num: string, locationPrefix: string): string {
+    const days = this.getTerritoryLastUsedDays(num, locationPrefix);
+    if (!isFinite(days) || days >= 57) return 'danger';
+    if (days >= 43) return 'warning';
+    if (days >= 29) return 'primary';
+    return 'success';
+  }
+
+  onToggleCardReceived(index: number, group: number, checked: boolean): void {
+    const departureGroupKey = `departure${group}`;
+    const departureFormArrayItem = this.formDeparture.get(
+      departureGroupKey,
+    ) as FormArray;
+    const control = departureFormArrayItem?.at(index);
+    if (!control) return;
+
+    control.get('cardStatus')?.setValue(checked ? 'received' : 'pending');
+    this.isSaved = false;
+  }
+
+  markDepartureAsReceived(departureToMark: Departure): boolean {
+    for (const group of this.groupKeys) {
+      const departureGroupKey = `departure${group}`;
+      const groupArray = this.formDeparture.get(departureGroupKey) as FormArray;
+      if (!groupArray) continue;
+      
+      for (let i = 0; i < groupArray.length; i++) {
+        const control = groupArray.at(i);
+        if (
+          control.get('date')?.value === departureToMark.date &&
+          control.get('schedule')?.value === departureToMark.schedule &&
+          control.get('group')?.value === Number(departureToMark.group) &&
+          control.get('driver')?.value === departureToMark.driver
+        ) {
+          control.get('cardStatus')?.setValue('received');
+          this.isSaved = false;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private normalizeTerritoryNumber(value: string): number {
+    const match = String(value).match(/\d+/);
+    return match ? Number(match[0]) : -1;
+  }
+
+  private getLocationNames(locationPrefix: string): string[] {
+    const location = String(locationPrefix || '').toLowerCase();
+    const locality = this.localities.find(
+      (loc) =>
+        String(loc.territoryPrefix || '').toLowerCase() === location ||
+        String(loc.key || '').toLowerCase() === location ||
+        String(loc.name || '').toLowerCase() === location,
+    );
+
+    return [
+      location,
+      String(locality?.key || '').toLowerCase(),
+      String(locality?.name || '').toLowerCase(),
+      String(locality?.territoryPrefix || '').toLowerCase(),
+    ].filter(Boolean);
   }
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -343,6 +641,7 @@ export class FormEditDeparturesComponent implements OnInit {
       if (key === 'isEvent') {
         const checked = e.target.checked;
         control.get(key)?.setValue(checked);
+        control.get('cardStatus')?.setValue(checked ? 'not_required' : 'pending');
         if (checked) {
           // Clear locations and territories if it's now an event
           const territoryArray = control.get('territory') as FormArray;
@@ -372,6 +671,7 @@ export class FormEditDeparturesComponent implements OnInit {
         group: new FormControl(group),
         isEvent: new FormControl(false),
         title: new FormControl(''),
+        cardStatus: new FormControl('pending'),
       }),
     );
   }
@@ -430,6 +730,11 @@ export class FormEditDeparturesComponent implements OnInit {
           group: new FormControl(departure.group),
           isEvent: new FormControl(departure.isEvent || false),
           title: new FormControl(departure.title || ''),
+          cardStatus: new FormControl(
+            departure.isEvent
+              ? 'not_required'
+              : departure.cardStatus || 'pending',
+          ),
         }),
       );
     });
@@ -482,7 +787,7 @@ export class FormEditDeparturesComponent implements OnInit {
     return this.formDeparture.dirty;
   }
 
-  submitForm() {
+  submitForm(): Departure[] {
     this.isSaved = true;
 
     const targetMondayStr = this.dateDepartureInput();
@@ -525,12 +830,20 @@ export class FormEditDeparturesComponent implements OnInit {
 
     // Guardar las salidas de esta semana
     if (targetMondayStr) {
+      const normalizedWeeklyOnly = weeklyOnly.map((departure, index) =>
+        this.territoryDataService.normalizeDepartureForCardTracking(
+          departure,
+          targetMondayStr,
+          index,
+        ),
+      );
       const weeklyDeparture: WeeklyDeparture = {
-        departure: weeklyOnly,
+        departure: normalizedWeeklyOnly,
         weekId: targetMondayStr,
         createdAt: new Date(),
       };
       this.territoryDataService.postWeeklyDeparture(weeklyDeparture);
+      weeklyOnly.splice(0, weeklyOnly.length, ...normalizedWeeklyOnly);
     }
 
     // Guardar las salidas que pertenecen a otras semanas en su semana correspondiente
@@ -570,5 +883,6 @@ export class FormEditDeparturesComponent implements OnInit {
 
     // Re-inicializar el formulario mostrando solo las salidas de esta semana
     this.initForm(weeklyOnly);
+    return weeklyOnly;
   }
 }

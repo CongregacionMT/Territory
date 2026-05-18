@@ -1,5 +1,5 @@
 <div class="departures-grid">
-  @for (departure of departures(); track departure; let i = $index) {
+  @for (departure of departures(); track departure) {
     @if (currentPath === departure.group || departure.group === 0) {
       <div class="departure-card" [class.is-today]="isToday(departure.date)">
         @if (isToday(departure.date)) {
@@ -36,7 +36,6 @@
             />
           </button>
         </div>
-
         <!-- Body -->
         <div class="card-body-inner">
           @if (departure.isEvent) {
@@ -112,12 +111,7 @@
                   @for (territory of departure.territory; track territory) {
                     <a
                       class="territory-item"
-                      [routerLink]="
-                        '../../../territorios/' +
-                        getNormalizedLocation(departure.location) +
-                        '-' +
-                        territory.replace('N°', '')
-                      "
+                      [routerLink]="getTerritoryRoute(departure, territory)"
                     >
                       <span>{{ territory }}</span>
                       <img

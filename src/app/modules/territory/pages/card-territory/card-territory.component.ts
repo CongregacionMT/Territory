@@ -18,7 +18,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
-import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -35,6 +35,7 @@ import { environment } from '@environments/environment';
 
 import { Card, CardApplesData } from '@core/models/Card';
 import { BreadcrumbItem } from '@core/models/Breadcrumb';
+import { User } from '@core/models/User';
 
 declare var google: any;
 
@@ -88,6 +89,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   countTrueApples = signal<number>(0);
   countFalseApples = signal<number>(0);
   dataLoaded = signal<boolean>(false);
+  availableDrivers = signal<User[]>([]);
+  isAdmin: boolean = false;
+  isDriver: boolean = false;
+  loggedDriverName: string = '';
 
   readonly modalComponent = viewChild(ModalComponent);
   readonly mapElement = viewChild<ElementRef>('mapContainer');
@@ -112,6 +117,9 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   constructor(...args: unknown[]);
   constructor() {
     this.spinner.cargarSpinner();
+    this.isAdmin = !!localStorage.getItem('tokenAdmin');
+    this.isDriver = !!localStorage.getItem('tokenConductor') && !this.isAdmin;
+    this.loggedDriverName = localStorage.getItem('nombreConductor') || '';
 
     // VALIDAR SI ESTOY REVISANDO O NO LA CARD
     if (this.cardService.dataCard.revision === true) {
@@ -162,6 +170,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
             }
 
             this.countTrueApples.set(0);
+            this.applyDriverDefaultIfNeeded();
             this.dataLoaded.set(true);
             this.spinner.cerrarSpinner();
           },
@@ -191,6 +200,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     if (mapHtml) {
       this.iframe.set(this.domSanitizer.bypassSecurityTrustHtml(mapHtml));
     }
+
+    this.loadDriversOptions();
   }
 
   onCheckboxChange(e: any): void {
@@ -308,12 +319,46 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       };
       this.card.set(updatedCard);
 
-      this.territorieDataService
-        .sendRevisionCardTerritorie(updatedCard)
-        ?.then(() => {
-          this.spinner.cerrarSpinner();
-          this.openModal();
-        });
+      await this.territorieDataService.sendRevisionCardTerritorie(updatedCard);
+
+      this.spinner.cerrarSpinner();
+      this.openModal();
+    }
+  }
+
+  isConductorMode(): boolean {
+    return this.isDriver && !this.isAdmin;
+  }
+
+  private loadDriversOptions(): void {
+    if (!this.isConductorMode()) return;
+
+    this.territorieDataService.getUsers().subscribe((users) => {
+      const available = (users || [])
+        .filter((user) => user.rol !== 'admin')
+        .sort((a, b) => a.user.localeCompare(b.user));
+
+      this.availableDrivers.set(available);
+      this.applyDriverDefaultIfNeeded();
+    });
+  }
+
+  private applyDriverDefaultIfNeeded(): void {
+    if (!this.isConductorMode()) return;
+
+    const form = this.formCard();
+    const currentDriver = String(form.get('driver')?.value || '').trim();
+    if (currentDriver) return;
+
+    const ownName = this.loggedDriverName.trim();
+    if (!ownName) return;
+
+    const ownUserExists = this.availableDrivers().some(
+      (user) => user.user.toLowerCase() === ownName.toLowerCase(),
+    );
+
+    if (ownUserExists) {
+      form.patchValue({ driver: ownName });
     }
   }
 
