@@ -56,6 +56,17 @@ export class TerritoryDataService {
     const numberRef = collection(this.firestore, 'NumberTerritory');
     return collectionData(numberRef) as Observable<TerritoryNumberData[]>;
   }
+
+  // GRUPOS DE TERRITORIOS
+  getTerritoryGroups(): Observable<any> {
+    const docRef = doc(this.firestore, 'Settings', 'TerritoryGroups');
+    return docData(docRef);
+  }
+
+  async saveTerritoryGroups(data: any) {
+    const docRef = doc(this.firestore, 'Settings', 'TerritoryGroups');
+    await setDoc(docRef, data);
+  }
   // TARJETAS DE CONDUCTORES
   getCardTerritorie(
     collectionParam: string,

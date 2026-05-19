@@ -62,6 +62,11 @@ export class FormEditDeparturesComponent implements OnInit {
   sortByAge: boolean = true;
   weeklyHistory: WeeklyDeparture[] = [];
   territoryLastCompletedDays: { [locationPrefix: string]: { [num: number]: number } } = {};
+  // territoryGroupsMap: { [locationPrefix: string]: { [territoryNum: number]: number } }
+  // Maps location prefix -> territory number -> group number (1, 2, 3...)
+  territoryGroupsMap: { [locationPrefix: string]: { [territoryNum: number]: number } } = {};
+  selectedTerritoryGroup: number | null = null; // null = todos
+  availableGroupNumbers: number[] = []; // grupos disponibles para la localidad actual
 
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';
 
@@ -84,6 +89,7 @@ export class FormEditDeparturesComponent implements OnInit {
     this.loadDrivers();
     this.loadPersonalAssignments();
     this.loadWeeklyHistory();
+    this.loadTerritoryGroups();
   }
 
   initForm(departures: Departure[]) {
@@ -375,6 +381,61 @@ export class FormEditDeparturesComponent implements OnInit {
     });
   }
 
+  loadTerritoryGroups() {
+    this.territoryDataService.getTerritoryGroups().subscribe((data: any) => {
+      if (!data) return;
+      // data shape: { [locationPrefix]: { [territoryNum]: groupNumber } }
+      this.territoryGroupsMap = data;
+    });
+  }
+
+  async saveTerritoryGroups() {
+    await this.territoryDataService.saveTerritoryGroups(this.territoryGroupsMap);
+  }
+
+  /**
+   * Returns the group number assigned to a territory, or 0 if not assigned.
+   */
+  getTerritoryGroupNumber(num: string, locationPrefix: string): number {
+    const n = this.normalizeTerritoryNumber(num);
+    const locMap = this.territoryGroupsMap[locationPrefix];
+    if (locMap && locMap[n] !== undefined) return locMap[n];
+    // fallback: check by alternate location names
+    for (const loc of this.localities) {
+      const names = [loc.territoryPrefix, loc.key, loc.name].map(s => s?.toLowerCase());
+      const locationNames = this.getLocationNames(locationPrefix);
+      if (locationNames.some(name => names.includes(name))) {
+        const altMap = this.territoryGroupsMap[loc.territoryPrefix];
+        if (altMap && altMap[n] !== undefined) return altMap[n];
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * Assigns a territory to a departure group (for the admin config panel).
+   */
+  setTerritoryGroupAssignment(num: string, locationPrefix: string, groupNum: number | null) {
+    if (!this.territoryGroupsMap[locationPrefix]) {
+      this.territoryGroupsMap[locationPrefix] = {};
+    }
+    const n = this.normalizeTerritoryNumber(num);
+    if (groupNum === null || groupNum === 0) {
+      delete this.territoryGroupsMap[locationPrefix][n];
+    } else {
+      this.territoryGroupsMap[locationPrefix][n] = groupNum;
+    }
+  }
+
+  /**
+   * Returns distinct group numbers that have territories assigned in a location.
+   */
+  getAvailableGroupNumbers(locationPrefix: string): number[] {
+    const locMap = this.territoryGroupsMap[locationPrefix] || {};
+    const nums = new Set<number>(Object.values(locMap).filter(v => v > 0));
+    return Array.from(nums).sort((a, b) => a - b);
+  }
+
   getTerritoryList(locationPrefix: string): string[] {
     if (!locationPrefix || locationPrefix === 'Seleccionar localidad')
       return [];
@@ -397,12 +458,18 @@ export class FormEditDeparturesComponent implements OnInit {
     group: number,
   ): string[] {
     return this.getTerritoryList(locationPrefix)
-      .filter(
-        (num) =>
-          this.showPersonalTerritories ||
-          !this.isPersonalTerritory(num, locationPrefix) ||
-          this.isTerritoryChecked(num, index, group),
-      )
+      .filter((num) => {
+        // Always show already-checked territories
+        if (this.isTerritoryChecked(num, index, group)) return true;
+        // Filter by selected group
+        if (this.selectedTerritoryGroup !== null) {
+          const assignedGroup = this.getTerritoryGroupNumber(num, locationPrefix);
+          if (assignedGroup !== this.selectedTerritoryGroup) return false;
+        }
+        // Filter personal territories
+        if (!this.showPersonalTerritories && this.isPersonalTerritory(num, locationPrefix)) return false;
+        return true;
+      })
       .sort((a, b) => {
         // Territorios ya elegidos esta semana — siempre al final
         const aUsed = this.isTerritoryUsedInWeek(a, locationPrefix, index, group) ? 1 : 0;
