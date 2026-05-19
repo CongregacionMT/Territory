@@ -59,8 +59,9 @@ export class FormEditDeparturesComponent implements OnInit {
   isAdmin: boolean = false;
   personalAssignments: Card[] = [];
   showPersonalTerritories: boolean = false;
-  sortByAge: boolean = false;
+  sortByAge: boolean = true;
   weeklyHistory: WeeklyDeparture[] = [];
+  territoryLastCompletedDays: { [locationPrefix: string]: { [num: number]: number } } = {};
 
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';
 
@@ -239,6 +240,121 @@ export class FormEditDeparturesComponent implements OnInit {
     if (departures.length > 0) {
       this.initForm(departures);
     }
+    this.loadAllTerritoryCompletionData(data);
+  }
+
+  async loadAllTerritoryCompletionData(data: any) {
+    const promises = [];
+    for (const loc of this.localities) {
+      if (loc.hasNumberedTerritories) {
+        const rawData = data[loc.key] || [];
+        const territories = rawData.filter((t: any) => t && typeof t === 'object' && t.collection && t.territorio);
+        if (territories.length > 0) {
+          promises.push(this.loadTerritoryCompletionData(loc, territories));
+        }
+      }
+    }
+    await Promise.all(promises);
+  }
+
+  async loadTerritoryCompletionData(loc: any, territories: any[]) {
+    const locationPrefix = loc.territoryPrefix;
+    if (!this.territoryLastCompletedDays[locationPrefix]) {
+      this.territoryLastCompletedDays[locationPrefix] = {};
+    }
+
+    const path = loc.key;
+    const suffix = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
+    
+    const storageKeys = [`statisticData${suffix}_6`, `statisticData${suffix}_12`, `statisticData${suffix}_24`];
+    for (const key of storageKeys) {
+      const cachedData = sessionStorage.getItem(key);
+      if (cachedData) {
+        try {
+          const parsedData = JSON.parse(cachedData);
+          parsedData.forEach((territoryCards: any[]) => {
+            if (territoryCards && territoryCards.length > 0) {
+              const primaryCard = territoryCards[0];
+              const num = primaryCard.numberTerritory || primaryCard.territory;
+              if (num !== undefined) {
+                let lastEnd = null;
+                for (let i = 0; i < 6 && i < territoryCards.length; i++) {
+                  if (territoryCards[i].end) {
+                    lastEnd = territoryCards[i].end;
+                    break;
+                  }
+                }
+                if (lastEnd) {
+                  const today = new Date();
+                  const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                  let dateCard: Date;
+                  if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
+                    dateCard = new Date(lastEnd);
+                  } else if (lastEnd && typeof (lastEnd as any).toDate === 'function') {
+                    dateCard = (lastEnd as any).toDate();
+                  } else if (lastEnd && typeof (lastEnd as any).seconds === 'number') {
+                    dateCard = new Date((lastEnd as any).seconds * 1000);
+                  } else {
+                    dateCard = new Date(lastEnd);
+                  }
+
+                  if (!isNaN(dateCard.getTime())) {
+                    const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
+                    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                    this.territoryLastCompletedDays[locationPrefix][num] = days;
+                  } else {
+                    this.territoryLastCompletedDays[locationPrefix][num] = Infinity;
+                  }
+                } else {
+                  this.territoryLastCompletedDays[locationPrefix][num] = Infinity;
+                }
+              }
+            }
+          });
+          return;
+        } catch (e) {}
+      }
+    }
+
+    const promises = territories.map((t: any) =>
+      new Promise<void>((resolve) => {
+        this.territoryDataService.getCardTerritorie(t.collection, 120).pipe(take(1)).subscribe(cards => {
+          let lastEnd = null;
+          for (const c of cards) {
+            if (c.end) {
+              lastEnd = c.end;
+              break;
+            }
+          }
+          if (lastEnd) {
+            const today = new Date();
+            const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            let dateCard: Date;
+            if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
+              dateCard = new Date(lastEnd);
+            } else if (lastEnd && typeof (lastEnd as any).toDate === 'function') {
+              dateCard = (lastEnd as any).toDate();
+            } else if (lastEnd && typeof (lastEnd as any).seconds === 'number') {
+              dateCard = new Date((lastEnd as any).seconds * 1000);
+            } else {
+              dateCard = new Date(lastEnd);
+            }
+
+            if (!isNaN(dateCard.getTime())) {
+              const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
+              const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+              this.territoryLastCompletedDays[locationPrefix][t.territorio] = days;
+            } else {
+              this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
+            }
+          } else {
+            this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
+          }
+          resolve();
+        });
+      })
+    );
+    await Promise.all(promises);
   }
 
   loadDrivers() {
@@ -420,46 +536,32 @@ export class FormEditDeparturesComponent implements OnInit {
   }
 
   /**
-   * Retorna cuántos días hace que se usó un territorio en salidas.
-   * Infinity = nunca usado (prioridad máxima — aparece primero en rojo).
+   * Retorna cuántos días hace que se COMPLETÓ un territorio.
+   * Infinity = nunca completado (prioridad máxima — aparece primero en rojo).
    */
   getTerritoryLastUsedDays(num: string, locationPrefix: string): number {
     const territoryNumber = this.normalizeTerritoryNumber(num);
     const locationNames = this.getLocationNames(locationPrefix);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    let lastDate: Date | null = null;
+    let foundDays = Infinity;
 
-    for (const week of this.weeklyHistory) {
-      for (const departure of week.departure || []) {
-        // Verificar que la localidad coincide
-        const depLocation = String(departure.location || '');
-        const depLocationNames = this.getLocationNames(depLocation);
-        const sameLocation = locationNames.some((name) =>
-          depLocationNames.includes(name),
-        );
-        if (!sameLocation) continue;
-
-        // Verificar si este territorio aparece en la salida
-        const hasTerritory = (departure.territory || []).some(
-          (t) => this.normalizeTerritoryNumber(t) === territoryNumber,
-        );
-        if (!hasTerritory) continue;
-
-        // Tomar la fecha más reciente
-        if (departure.date) {
-          const d = new Date(departure.date + 'T00:00:00');
-          if (!isNaN(d.getTime()) && (!lastDate || d > lastDate)) {
-            lastDate = d;
+    if (this.territoryLastCompletedDays[locationPrefix] && 
+        this.territoryLastCompletedDays[locationPrefix][territoryNumber] !== undefined) {
+      foundDays = this.territoryLastCompletedDays[locationPrefix][territoryNumber];
+    } else {
+      for (const loc of this.localities) {
+        if (locationNames.includes(loc.territoryPrefix.toLowerCase()) || 
+            locationNames.includes(loc.key.toLowerCase())) {
+          if (this.territoryLastCompletedDays[loc.territoryPrefix] && 
+              this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber] !== undefined) {
+            foundDays = this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber];
+            break;
           }
         }
       }
     }
 
-    if (!lastDate) return Infinity;
-    const diff = today.getTime() - lastDate.getTime();
-    return Math.floor(diff / (1000 * 60 * 60 * 24));
+    return foundDays;
   }
 
   /**
