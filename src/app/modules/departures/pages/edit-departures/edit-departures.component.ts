@@ -49,7 +49,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   isSaved: boolean = false;
   isAdmin: boolean = false;
-  isCardsCollapsed: boolean = false;
+  isCardsCollapsed: boolean = true;
   weeklyHistory: WeeklyDeparture[] = [];
   selectedHistoryWeek: string = '';
   currentMondayStr: string = '';

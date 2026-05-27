@@ -591,11 +591,14 @@ export class FormEditDeparturesComponent implements OnInit {
 
   getCardStatusClass(dayGroup: AbstractControl): string {
     const isEvent = dayGroup.get('isEvent')?.value;
-    if (isEvent) return 'bg-secondary-subtle text-secondary';
+    if (isEvent) 
+      return 'bg-secondary text-light';
     const status = dayGroup.get('cardStatus')?.value;
-    if (status === 'received') return 'bg-success-subtle text-success';
-    return 'bg-warning-subtle text-warning';
+    if (status === 'received') 
+      return 'bg-success text-light';
+    return 'bg-warning text-dark';
   }
+
 
   isBeforeTrackingStart(dateStr: string): boolean {
     if (!dateStr) return false;
@@ -654,6 +657,129 @@ export class FormEditDeparturesComponent implements OnInit {
     if (days >= 43) return 'warning';
     if (days >= 29) return 'primary';
     return 'success';
+  }
+
+  getCurrentDepartureControl(index: number, group: number): AbstractControl | null {
+    const departureGroupKey = `departure${group}`;
+    const departureFormArrayItem = this.formDeparture.get(
+      departureGroupKey,
+    ) as FormArray;
+    return departureFormArrayItem?.at(index) ?? null;
+  }
+
+  getSuggestedTerritories(index: number, group: number): string[] {
+    const control = this.getCurrentDepartureControl(index, group);
+    if (!control) return [];
+
+    const location = this.getControlValue(index, group, 'location');
+    return this.getFilteredTerritoryList(location, index, group)
+      .filter((territory) => !this.getTerritories(control).includes(territory))
+      .slice(0, 3);
+  }
+
+  getQuickSuggestionText(index: number, group: number): string {
+    const suggestion = this.getSuggestedMeetingDetails(index, group);
+    if (!suggestion.point && !suggestion.maps) return '';
+
+    const pieces = [];
+    if (suggestion.point) pieces.push(`Punto: ${suggestion.point}`);
+    if (suggestion.maps) pieces.push('Mapa disponible');
+
+    return pieces.join(' · ');
+  }
+
+  hasQuickMeetingSuggestions(index: number, group: number): boolean {
+    return !!this.getQuickSuggestionText(index, group);
+  }
+
+  getControlValue(index: number, group: number, key: string): any {
+    return this.getCurrentDepartureControl(index, group)?.get(key)?.value;
+  }
+
+  getSuggestedMeetingDetails(index: number, group: number): { point: string; maps: string } {
+    const control = this.getCurrentDepartureControl(index, group);
+    if (!control) return { point: '', maps: '' };
+
+    const location = control.get('location')?.value;
+    const selectedTerritories = this.getTerritories(control);
+
+    if (!location || location === 'Seleccionar localidad') {
+      return { point: '', maps: '' };
+    }
+
+    for (const territory of selectedTerritories) {
+      const detail = this.getLastMeetingDetailsForTerritory(location, territory);
+      if (detail.point || detail.maps) {
+        return detail;
+      }
+    }
+
+    const fallbackTerritory = this.getSuggestedTerritories(index, group)[0];
+    if (!fallbackTerritory) {
+      return { point: '', maps: '' };
+    }
+
+    return this.getLastMeetingDetailsForTerritory(location, fallbackTerritory);
+  }
+
+  getLastMeetingDetailsForTerritory(
+    locationPrefix: string,
+    territory: string,
+  ): { point: string; maps: string } {
+    const normalizedTerritory = this.normalizeTerritoryNumber(territory);
+
+    const matches = (this.weeklyHistory || [])
+      .flatMap((week) => week.departure || [])
+      .filter((departure) => departure.location === locationPrefix)
+      .filter((departure) =>
+        (departure.territory || []).some(
+          (item) => this.normalizeTerritoryNumber(String(item)) === normalizedTerritory,
+        ),
+      )
+      .filter((departure) => !!departure.point || !!departure.maps)
+      .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+    const bestMatch = matches[0];
+    return {
+      point: bestMatch?.point || '',
+      maps: bestMatch?.maps || '',
+    };
+  }
+
+  syncMeetingDetails(index: number, group: number): void {
+    const control = this.getCurrentDepartureControl(index, group);
+    if (!control) return;
+
+    const location = control.get('location')?.value;
+    if (!location || location === 'Seleccionar localidad') return;
+
+    const selectedTerritories = this.getTerritories(control);
+    if (selectedTerritories.length === 0) return;
+
+    for (const territory of selectedTerritories) {
+      const detail = this.getLastMeetingDetailsForTerritory(location, territory);
+      if (detail.point && !control.get('point')?.value) {
+        control.get('point')?.setValue(detail.point);
+      }
+      if (detail.maps && !control.get('maps')?.value) {
+        control.get('maps')?.setValue(detail.maps);
+      }
+      if (control.get('point')?.value || control.get('maps')?.value) {
+        break;
+      }
+    }
+  }
+
+  applySuggestedTerritory(index: number, group: number, territory: string): void {
+    const control = this.getCurrentDepartureControl(index, group);
+    if (!control) return;
+
+    if (!this.getTerritories(control).includes(territory)) {
+      this.toggleTerritory(territory, index, group, true);
+    }
+
+    this.syncMeetingDetails(index, group);
+    this.isSaved = false;
   }
 
   onToggleCardReceived(index: number, group: number, checked: boolean): void {
@@ -950,6 +1076,7 @@ export class FormEditDeparturesComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     const isChecked = input.checked;
     this.toggleTerritory(num, i, group, isChecked);
+    this.syncMeetingDetails(i, group);
   }
 
   isDirty(): boolean {
