@@ -48,10 +48,87 @@
   font-weight: 700;
 }
 
-.departure-action-btn,
+.departure-entry-actions .departure-action-btn,
 .departure-entry-card .btn-outline-danger {
   color: #fecaca !important;
   border-color: rgba(248, 113, 113, 0.45) !important;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.departure-action-btn:hover {
+  background-color: rgba(248, 113, 113, 0.16) !important;
+  color: #fed7d7 !important;
+}
+
+.departure-color-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.departure-territory-btn {
+  width: auto;
+  white-space: nowrap;
+}
+
+.departure-toggle-input {
+  accent-color: #22c55e !important;
+}
+
+.departure-toggle-input:checked {
+  background-color: #22c55e !important;
+  border-color: #22c55e !important;
+}
+
+.departure-toggle-label {
+  color: #cbd5e1 !important;
+  transition: color 0.2s ease;
+}
+
+.departure-toggle-input:checked + .departure-toggle-label {
+  color: #f8fafc !important;
+}
+
+.departure-group-section {
+  padding: 1rem;
+  border-radius: 22px;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(71, 85, 105, 0.28);
+}
+
+.departure-group-section--nested {
+  background: rgba(15, 23, 42, 0.65);
+  border-left: 4px solid rgba(56, 189, 248, 0.9);
+}
+
+.departure-group-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.territory-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 48px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.8rem;
+  border: 1.5px solid rgba(71, 85, 105, 0.25);
+  background-color: #111827;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.territory-row:hover {
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.22);
+  background-color: rgba(148, 163, 184, 0.06);
 }
 
 .departure-row {
@@ -67,7 +144,7 @@
 
 .departure-row--secondary {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr) minmax(240px, 1fr);
+  grid-template-columns: 300px 285px 210px;
   gap: 0.75rem;
   align-items: start;
 }
@@ -77,6 +154,7 @@
 .departure-map-block {
   display: flex;
   flex-direction: column;
+  width: 100%;
   gap: 0.5rem;
 }
 
@@ -384,5 +462,19 @@
 
   .departure-action-btn {
     width: 100%;
+  }
+  .departure-row--secondary {
+    display: grid;
+    grid-template-columns: 300px 285px 310px;
+    gap: 0.75rem;
+    align-items: start;
+  }
+}
+@media (min-width: 1200px) {
+  .departure-row--secondary {
+    display: grid;
+    grid-template-columns: 290px 310px 365px;
+    gap: 1rem;
+    align-items: start;
   }
 }

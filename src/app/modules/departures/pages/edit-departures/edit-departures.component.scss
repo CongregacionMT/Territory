@@ -25,7 +25,7 @@
 
 .toolbar-grid {
   display: grid;
-  grid-template-columns: 0.80fr 1.60fr;
+  grid-template-columns: 0.60fr 1.60fr;
   gap: 1rem;
 }
 
@@ -37,6 +37,16 @@
   letter-spacing: 0.08em;
   font-weight: 800;
   color: #93c5fd;
+}
+
+.panel-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  background: rgba(30, 41, 59, 0.65);
+  border-radius: 999px;
+  color: #a5f3fc;
 }
 
 .toolbar-week-range {
@@ -69,9 +79,19 @@
   color: #bbf7d0;
 }
 
-.toolbar-chip--warning {
-  background: rgba(255, 99, 71, 0.2);
-  color: #ff6b6b;
+.toolbar-chip--unsaved {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fbbf24;
+}
+
+.toolbar-chip--counter-pending {
+  background: rgba(59, 130, 246, 0.18);
+  color: #bfdbfe;
+}
+
+.toolbar-chip--counter-received {
+  background: rgba(34, 197, 94, 0.16);
+  color: #bbf7d0;
 }
 
 .toolbar-actions {

@@ -1,6 +1,6 @@
 @for (group of groupKeys.sort(); track group) {
-  <div class="mb-4">
-    <h3 class="text-center mb-3">{{ getGroupTitle(group) }}</h3>
+  <div class="mb-4 departure-group-section" [class.departure-group-section--nested]="group > 0">
+    <h3 class="departure-group-title text-center mb-3">{{ getGroupTitle(group) }}</h3>
     <form [formGroup]="formDeparture" class="d-flex flex-column justify-center">
       <div class="row g-3">
         @for (
@@ -23,27 +23,27 @@
                   <div class="departure-entry-actions">
                     <div class="form-check form-switch">
                       <input
-                        class="form-check-input"
+                        class="form-check-input departure-toggle-input"
                         type="checkbox"
                         role="switch"
                         [id]="'isEvent_' + i + '_' + group"
                         [checked]="days.get('isEvent')?.value"
                         (change)="onChangeCheckbox($event, 'isEvent', i, group)"
                       />
-                      <label class="form-check-label" [for]="'isEvent_' + i + '_' + group">
+                      <label class="form-check-label departure-toggle-label" [for]="'isEvent_' + i + '_' + group">
                         Evento
                       </label>
                     </div>
                     @if (isAdmin && !days.get('isEvent')?.value) {
                       <div class="form-check form-switch">
                         <input
-                          class="form-check-input"
+                          class="form-check-input departure-toggle-input"
                           type="checkbox"
                           [id]="'cardReceived_' + i + '_' + group"
                           [checked]="days.get('cardStatus')?.value === 'received'"
                           (change)="onToggleCardReceived(i, group, $any($event.target).checked)"
                         />
-                        <label class="form-check-label" [for]="'cardReceived_' + i + '_' + group">
+                        <label class="form-check-label departure-toggle-label" [for]="'cardReceived_' + i + '_' + group">
                           Revisada
                         </label>
                       </div>
@@ -53,7 +53,7 @@
                       class="btn btn-sm btn-outline-danger departure-action-btn"
                       (click)="deleteInputForm(i, group)"
                     >
-                      Quitar
+                      <i class="fas fa-trash-alt me-1"></i>Quitar
                     </button>
                   </div>
                 </div>
@@ -128,7 +128,13 @@
                     </div>
                   }
                   <div class="departure-field-block departure-field-block--color">
-                    <label class="departure-label">Color</label>
+                    <label class="departure-label">
+                      Color
+                      <span
+                        class="departure-color-swatch"
+                        [style.background-color]="getColorSwatch(days.get('color')?.value)"
+                      ></span>
+                    </label>
                     <select
                       class="form-select color-select"
                       [style.border-left]="
@@ -171,7 +177,7 @@
                     <div class="departure-territory-block">
                       <button
                         type="button"
-                        class="btn btn-sm btn-primary w-100"
+                        class="btn btn-sm btn-primary departure-territory-btn"
                         data-bs-toggle="modal"
                         [attr.data-bs-target]="'#territoryModal-' + i + '-' + group"
                         (click)="selectedTerritoryGroup = (group > 0 ? group : null)"
@@ -391,10 +397,10 @@
       <div class="d-flex justify-content-end mt-2">
         <button
           type="button"
-          class="btn btn-success"
+          class="btn btn-sm btn-outline-secondary"
           (click)="addInputForm(group)"
         >
-          Nueva salida +
+          <i class="fas fa-plus me-1"></i> Nueva salida +
         </button>
       </div>
       <hr />
@@ -404,7 +410,7 @@
 <div class="pb-3">
   <button
     type="button"
-    class="btn btn-outline-secondary"
+    class="btn btn-sm btn-outline-secondary"
     (click)="addNewGroup()"
   >
     <i class="fas fa-plus me-1"></i> Nuevo grupo

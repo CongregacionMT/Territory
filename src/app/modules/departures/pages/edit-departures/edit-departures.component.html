@@ -11,8 +11,8 @@
                 <i class="fas" [class.fa-star]="isCurrentWeek()" [class.fa-calendar]="!isCurrentWeek()"></i>
                 {{ isCurrentWeek() ? 'Actual' : 'Otra semana' }}
               </span>
-              <span class="toolbar-chip" [class.toolbar-chip--success]="isSaved" [class.toolbar-chip--warning]="!isSaved">
-                <i class="fas" [class.fa-check]="isSaved" [class.fa-exclamation-circle]="!isSaved"></i>
+              <span class="toolbar-chip" [class.toolbar-chip--success]="isSaved" [class.toolbar-chip--unsaved]="!isSaved">
+                <i class="fas" [class.fa-check]="isSaved" [class.fa-exclamation-triangle]="!isSaved"></i>
                 {{ isSaved ? 'Guardado' : 'Sin guardar' }}
               </span>
             </div>
@@ -80,11 +80,11 @@
               <h2 class="panel-title">Pendientes de esta semana</h2>
             </div>
             <div class="panel-summary">
-              <span class="toolbar-chip toolbar-chip--warning">
+              <span class="toolbar-chip toolbar-chip--counter-pending">
                 <i class="fas fa-clock"></i>
                 {{ getPendingCardDepartures().length }} pendientes
               </span>
-              <span class="toolbar-chip toolbar-chip--success">
+              <span class="toolbar-chip toolbar-chip--counter-received">
                 <i class="fas fa-check"></i>
                 {{ getReceivedCardCount() }} recibidas
               </span>

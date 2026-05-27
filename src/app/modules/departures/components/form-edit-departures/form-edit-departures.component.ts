@@ -68,6 +68,17 @@ export class FormEditDeparturesComponent implements OnInit {
   selectedTerritoryGroup: number | null = null; // null = todos
   availableGroupNumbers: number[] = []; // grupos disponibles para la localidad actual
 
+  colorSwatchMap: { [key: string]: string } = {
+    secondary: '#64748b',
+    primary: '#3b82f6',
+    success: '#22c55e',
+    danger: '#ef4444',
+    warning: '#f59e0b',
+    info: '#38bdf8',
+    light: '#f8fafc',
+    dark: '#0f172a',
+  };
+
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';
 
   /** Inserted by Angular inject() migration for backwards compatibility */
@@ -677,15 +688,15 @@ export class FormEditDeparturesComponent implements OnInit {
       .slice(0, 3);
   }
 
+  getColorSwatch(colorKey: string | null | undefined): string {
+    return this.colorSwatchMap[colorKey || 'secondary'] || this.colorSwatchMap['secondary'];
+  }
+
   getQuickSuggestionText(index: number, group: number): string {
     const suggestion = this.getSuggestedMeetingDetails(index, group);
-    if (!suggestion.point && !suggestion.maps) return '';
+    if (!suggestion.point) return '';
 
-    const pieces = [];
-    if (suggestion.point) pieces.push(`Punto: ${suggestion.point}`);
-    if (suggestion.maps) pieces.push('Mapa disponible');
-
-    return pieces.join(' · ');
+    return `Punto: ${suggestion.point}`;
   }
 
   hasQuickMeetingSuggestions(index: number, group: number): boolean {
