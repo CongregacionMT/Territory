@@ -5,7 +5,10 @@
   @if (error() && !useFallback()) {
     <div class="map-error-overlay">
       <p>{{ error() }}</p>
-      <button class="btn btn-primary" (click)="retry()">Reintentar</button>
+      <div class="d-flex flex-column gap-2">
+        <button class="btn btn-primary" (click)="retry()">Reintentar</button>
+        <button class="btn btn-secondary" (click)="switchToFallback()">Cargar mapa antiguo</button>
+      </div>
     </div>
   }
 </div>
@@ -19,12 +22,17 @@
       🧭
     </button>
 
-    <div class="rotation-controls">
-      <button (click)="rotate(-90)" title="Rotar izquierda">↺</button>
-      <button (click)="rotate(90)" title="Rotar derecha">↻</button>
-    </div>
+    <button class="compass-btn"
+            (click)="centerOnMe()"
+            title="Centrar en mi ubicación">
+      📍
+    </button>
 
-    <div class="heading-display">{{ getHeadingLabel() }}</div>
-    <div class="degrees-display">{{ heading() }}°</div>
+  </div>
+
+  <div class="mt-2 text-center">
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="switchToFallback()">
+      <i class="fas fa-map-marked-alt me-1"></i> Cargar mapa antiguo
+    </button>
   </div>
 }

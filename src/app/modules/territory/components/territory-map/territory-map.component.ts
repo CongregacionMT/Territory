@@ -64,9 +64,10 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
         const absoluteKmlUrl = config.kmlUrl.startsWith('http')
           ? config.kmlUrl
           : `${window.location.origin}/${config.kmlUrl}`;
-        await this.mapService.loadKml(map, absoluteKmlUrl);
+        await this.mapService.loadKml(map, absoluteKmlUrl, config.markerOverrides);
         this.mapLoaded.set(true);
         this.startHeadingSync();
+        this.mapService.trackUserLocation();
       } catch (err) {
         console.error('Error loading KML map:', err);
         this.fallbackToIframe(config);
@@ -82,6 +83,13 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
     this.mapService.createFallbackIframe(this.mapContainer().nativeElement, config.iframeHtml);
     this.useFallback.set(true);
     this.mapLoaded.set(true);
+  }
+
+  switchToFallback(): void {
+    const config = this.currentMapConfig();
+    if (config) {
+      this.fallbackToIframe(config);
+    }
   }
 
   private startHeadingSync(): void {
@@ -115,6 +123,10 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
     const newHeading = (this.mapService.getHeading() + degrees) % 360;
     this.mapService.setHeading(newHeading);
     this.heading.set(Math.round(newHeading));
+  }
+
+  centerOnMe(): void {
+    this.mapService.centerOnUser();
   }
 
   getHeadingLabel(): string {

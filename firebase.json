@@ -11,7 +11,8 @@
         "source": "**",
         "destination": "/index.html"
       }
-    ]
+    ],
+    "site": "territorios-wheelwright"
   },
   "firestore": {
     "database": "(default)",
