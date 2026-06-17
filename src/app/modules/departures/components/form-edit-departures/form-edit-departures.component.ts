@@ -5,6 +5,8 @@ import {
   input,
   signal,
   effect,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import {
   AbstractControl,
@@ -49,6 +51,7 @@ export class FormEditDeparturesComponent implements OnInit {
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
   readonly dateDepartureInput = input<string>('');
+  @Output() requestSave = new EventEmitter<void>();
   drivers = signal<User[]>([]);
   congregationName = environment.congregationName;
   territoryPrefix = environment.territoryPrefix;

@@ -1,6 +1,6 @@
 @for (group of groupKeys.sort(); track group) {
   <div class="mb-4 departure-group-section" [class.departure-group-section--nested]="group > 0">
-    <h3 class="departure-group-title text-center mb-3">{{ getGroupTitle(group) }}</h3>
+    <h3 class="departure-group-title text-center">{{ getGroupTitle(group) }}</h3>
     <form [formGroup]="formDeparture" class="d-flex flex-column justify-center">
       <div class="row g-3">
         @for (
@@ -367,6 +367,17 @@
                                   <span class="territory-row-age">
                                     {{ getTerritoryAgeLabel(num, days.get('location')?.value) }}
                                   </span>
+
+                                  <a
+                                    [href]="getTerritoryLink(days.get('location')?.value, num)"
+                                    target="_blank"
+                                    class="btn btn-sm btn-outline-primary ms-2 d-flex align-items-center gap-1"
+                                    style="position: relative; z-index: 2; pointer-events: auto; font-size: 0.75rem; border-radius: 999px;"
+                                    (click)="$event.stopPropagation()"
+                                    title="Abrir mapa del territorio en una nueva pestaña"
+                                  >
+                                    <i class="fas fa-map-marked-alt"></i> Mapa
+                                  </a>
                                 </div>
                               </div>
                             </div>
@@ -375,7 +386,7 @@
                       </div>
 
                       <div class="modal-footer justify-content-between">
-                        <span class="text-muted small"
+                        <span class="small"
                           >Podés seleccionar varios territorios</span
                         >
                         <button
@@ -407,13 +418,20 @@
     </form>
   </div>
 }
-<div class="pb-3">
+<div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-4">
   <button
     type="button"
     class="btn btn-sm btn-outline-secondary"
     (click)="addNewGroup()"
   >
     <i class="fas fa-plus me-1"></i> Nuevo grupo
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary px-4 py-2"
+    (click)="requestSave.emit()"
+  >
+    <i class="fas fa-save me-2"></i>Guardar Salidas
   </button>
 </div>
 
@@ -422,13 +440,6 @@
   <div class="card departure-config-panel border-0 shadow-sm mt-4">
     <div class="card-header departure-config-panel__header d-flex justify-content-between align-items-center">
       <span class="fw-semibold">⚙️ Asignar territorios a grupos de predicación</span>
-      <button
-        type="button"
-        class="btn btn-primary btn-sm"
-        (click)="saveTerritoryGroups()"
-      >
-        💾 Guardar asignaciones
-      </button>
     </div>
     <div class="card-body departure-config-panel__body">
       <p class="small mb-3">
@@ -463,6 +474,15 @@
           </div>
         }
       }
+    </div>
+    <div class="card-header departure-config-panel__header d-flex justify-content-between align-items-center">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        (click)="saveTerritoryGroups()"
+      >
+        💾 Guardar asignaciones
+      </button>
     </div>
   </div>
 }

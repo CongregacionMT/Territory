@@ -325,7 +325,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
           {
             driver: source.driver || '',
             location: source.location || environment.territoryPrefix,
-            territory: [...(source.territory || [])],
+            territory: [],
             date: targetDate,
             maps: source.maps || '',
             point: source.point || '',
