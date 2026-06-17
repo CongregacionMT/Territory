@@ -28,6 +28,13 @@
       border: 0;
     }
   }
+
+  &:fullscreen, &:-webkit-full-screen, &:-ms-fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: none !important;
+    border-radius: 0;
+  }
 }
 
 .map-controls {

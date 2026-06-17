@@ -28,6 +28,16 @@
       📍
     </button>
 
+    <button class="compass-btn"
+            (click)="toggleFullscreen()"
+            [title]="isFullscreen() ? 'Salir de pantalla completa' : 'Pantalla completa'">
+      @if (isFullscreen()) {
+        <i class="fas fa-compress"></i>
+      } @else {
+        <i class="fas fa-expand"></i>
+      }
+    </button>
+
   </div>
 
   <div class="mt-2 text-center">

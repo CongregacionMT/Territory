@@ -511,7 +511,7 @@ export class FormEditDeparturesComponent implements OnInit {
   getTerritoryLink(locationPrefix: string | undefined, territoryNum: string): string {
     const prefix = locationPrefix || this.territoryPrefix;
     const num = String(territoryNum).match(/\d+/)?.[0] || territoryNum;
-    return `https://territorios-${this.congregationKey}.web.app/territorios/${prefix}-${num}`;
+    return `${window.location.origin}/territorios/${prefix}-${num}`;
   }
 
   isPersonalTerritory(num: string, locationPrefix: string): boolean {

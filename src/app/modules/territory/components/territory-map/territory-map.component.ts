@@ -35,6 +35,7 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   heading = signal(0);
   mapLoaded = signal(false);
   useFallback = signal(false);
+  isFullscreen = signal(false);
   error = signal<string | null>(null);
 
   currentMapConfig = computed(() => {
@@ -43,6 +44,10 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initMap();
+    
+    document.addEventListener('fullscreenchange', () => {
+      this.isFullscreen.set(!!document.fullscreenElement);
+    });
   }
 
   ngOnDestroy(): void {
@@ -127,6 +132,30 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
 
   centerOnMe(): void {
     this.mapService.centerOnUser();
+  }
+
+  toggleFullscreen(): void {
+    const elem = this.mapContainer().nativeElement;
+    
+    if (!document.fullscreenElement) {
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if ((elem as any).webkitRequestFullscreen) {
+        (elem as any).webkitRequestFullscreen();
+      } else if ((elem as any).msRequestFullscreen) {
+        (elem as any).msRequestFullscreen();
+      }
+      this.isFullscreen.set(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+      this.isFullscreen.set(false);
+    }
   }
 
   getHeadingLabel(): string {
