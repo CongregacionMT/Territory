@@ -9,6 +9,8 @@ export const environment = {
     measurementId: "G-XLQ9YJ42HL",
     hostingSite: 'territorios-wheelwright'
   },
+  googleMapsApiKey: 'AIzaSyCqn3TvPUjylJsZSWFchRJ9yeDmjMGiKXU',
+  mapId: '5d8d6c22a66f94b7804fb3a7',
   production: true,
   congregationName: 'Wheelwright',
   congregationKey: 'wheelwright',

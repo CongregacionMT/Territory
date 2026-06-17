@@ -6,7 +6,6 @@ import {
   signal,
   viewChild,
   computed,
-  ElementRef,
 } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import {
@@ -19,7 +18,6 @@ import {
 } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
@@ -30,14 +28,13 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
 import { ModalComponent as ModalComponent_1 } from '../../../../shared/components/modal/modal.component';
 import { CampaignService } from '@core/services/campaign.service';
-import { mapConfig } from '@core/config/maps.config';
 import { environment } from '@environments/environment';
 
 import { Card, CardApplesData } from '@core/models/Card';
 import { BreadcrumbItem } from '@core/models/Breadcrumb';
 import { User } from '@core/models/User';
 
-declare var google: any;
+import { TerritoryMapComponent } from '../../components/territory-map/territory-map.component';
 
 @Component({
   selector: 'app-card-territory',
@@ -50,12 +47,12 @@ declare var google: any;
     RouterLink,
     ModalComponent_1,
     TitleCasePipe,
+    TerritoryMapComponent,
   ],
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private fb = inject(FormBuilder);
-  private domSanitizer = inject(DomSanitizer);
   private territorieDataService = inject(TerritoryDataService);
   private cardService = inject(CardService);
   private activatedRoute = inject(ActivatedRoute);
@@ -78,7 +75,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     revisionComplete: false,
   });
 
-  iframe = signal<SafeHtml | null>(null);
+  congregationKey = environment.congregationKey;
   path = signal<string>('');
   routerBreadcrum = signal<BreadcrumbItem[]>([]);
   formCard = signal<FormGroup>(this.createFormCard());
@@ -95,12 +92,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   loggedDriverName: string = '';
 
   readonly modalComponent = viewChild(ModalComponent);
-  readonly mapElement = viewChild<ElementRef>('mapContainer');
-
-  isNativeMapReady = signal<boolean>(false);
-  mapObj: any = null;
-  mapMarker: any = null;
-  watchId: number | null = null;
 
   isRevisionMode = computed(() => this.card().revision === true);
   hasValidDriver = computed(
@@ -193,13 +184,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum.set(breadcrumData[9]);
-
-    const collection = this.activatedRoute.snapshot.params['collection'];
-    const mapHtml = mapConfig.maps[collection];
-
-    if (mapHtml) {
-      this.iframe.set(this.domSanitizer.bypassSecurityTrustHtml(mapHtml));
-    }
 
     this.loadDriversOptions();
   }
@@ -370,9 +354,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.card.set(updatedCard);
 
     this.cardService.dataCard.revision = false;
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-    }
     this.cardSubscription().unsubscribe();
   }
 }

@@ -18,7 +18,12 @@
       </h3>
     </div>
   </div>
-  <div class="d-flex justify-content-center" [innerHTML]="iframe()"></div>
+  <div class="w-100 d-flex justify-content-center">
+    <app-territory-map
+      [collection]="path()"
+      [congregationKey]="congregationKey">
+    </app-territory-map>
+  </div>
   <div class="d-flex justify-content-center">
     @if (dataLoaded()) {
       <form

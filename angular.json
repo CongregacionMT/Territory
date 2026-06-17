@@ -35,6 +35,7 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
+              "src/assets/maps",
               "src/manifest.webmanifest",
               "src/firebase-messaging-sw.js"
             ],

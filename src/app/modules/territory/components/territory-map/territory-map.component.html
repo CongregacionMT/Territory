@@ -1,0 +1,30 @@
+<div #mapContainer class="map-container"
+     [class.loaded]="mapLoaded()"
+     [class.fallback]="useFallback()"
+     [class.has-error]="error() !== null">
+  @if (error() && !useFallback()) {
+    <div class="map-error-overlay">
+      <p>{{ error() }}</p>
+      <button class="btn btn-primary" (click)="retry()">Reintentar</button>
+    </div>
+  }
+</div>
+
+@if (mapLoaded() && !useFallback()) {
+  <div class="map-controls">
+    <button class="compass-btn"
+            (click)="toggleCompass()"
+            [class.active]="compassMode()"
+            title="Modo brújula">
+      🧭
+    </button>
+
+    <div class="rotation-controls">
+      <button (click)="rotate(-90)" title="Rotar izquierda">↺</button>
+      <button (click)="rotate(90)" title="Rotar derecha">↻</button>
+    </div>
+
+    <div class="heading-display">{{ getHeadingLabel() }}</div>
+    <div class="degrees-display">{{ heading() }}°</div>
+  </div>
+}

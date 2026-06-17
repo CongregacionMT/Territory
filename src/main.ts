@@ -29,8 +29,6 @@ if (environment.production) {
   enableProdMode();
 }
 
-initializeApp(environment.firebase);
-
 bootstrapApplication(AppComponent, {
   providers: [
     provideZonelessChangeDetection(),
