@@ -478,7 +478,7 @@ export class FormEditDeparturesComponent implements OnInit {
         // Filter by selected group
         if (this.selectedTerritoryGroup !== null) {
           const assignedGroup = this.getTerritoryGroupNumber(num, locationPrefix);
-          if (assignedGroup !== this.selectedTerritoryGroup) return false;
+          if (assignedGroup > 0 && assignedGroup !== this.selectedTerritoryGroup) return false;
         }
         // Filter personal territories
         if (!this.showPersonalTerritories && this.isPersonalTerritory(num, locationPrefix)) return false;
