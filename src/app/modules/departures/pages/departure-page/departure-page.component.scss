@@ -71,3 +71,209 @@
         cursor: not-allowed;
     }
 }
+
+// Modern Premium Empty State Card & Animations
+.empty-state-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f4fbff 60%, #e6f7ff 100%);
+    border: 1px solid rgba(2, 136, 209, 0.15);
+    max-width: 540px;
+    box-shadow: 0 12px 32px rgba(2, 119, 189, 0.08) !important;
+}
+
+.bg-grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(rgba(2, 119, 189, 0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    pointer-events: none;
+    z-index: 0;
+
+    &-1 {
+        width: 140px;
+        height: 140px;
+        top: -20px;
+        left: -20px;
+        background: rgba(2, 143, 201, 0.15);
+    }
+
+    &-2 {
+        width: 160px;
+        height: 160px;
+        bottom: -30px;
+        right: -30px;
+        background: rgba(0, 200, 83, 0.12);
+    }
+}
+
+// Central Map Animation Stage
+.map-stage {
+    width: 180px;
+    height: 180px;
+    z-index: 1;
+}
+
+.central-map-badge {
+    width: 90px;
+    height: 90px;
+    z-index: 3;
+    border: 3px solid #e0f7fa;
+    box-shadow: 0 10px 28px rgba(2, 119, 189, 0.2);
+    position: relative;
+    background: #ffffff;
+
+    .map-bounce-icon {
+        animation: mapFloat 3s ease-in-out infinite;
+    }
+
+    .magnifier-glass {
+        top: 6px;
+        right: 6px;
+        animation: magnifyScan 4s ease-in-out infinite;
+    }
+}
+
+// Radar Waves
+.radar-wave {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px dashed rgba(2, 136, 209, 0.35);
+    animation: radarExpand 4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    z-index: 1;
+
+    &.wave-1 {
+        width: 80px;
+        height: 80px;
+        animation-delay: 0s;
+    }
+
+    &.wave-2 {
+        width: 80px;
+        height: 80px;
+        animation-delay: 1.3s;
+    }
+
+    &.wave-3 {
+        width: 80px;
+        height: 80px;
+        animation-delay: 2.6s;
+    }
+}
+
+// Orbiting Map Pins
+.orbiting-container {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    animation: orbitRotate 10s linear infinite;
+    z-index: 2;
+}
+
+.orbiting-pin {
+    position: absolute;
+    background: #ffffff;
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.pin-1 {
+        top: -6px;
+        left: calc(50% - 17px);
+    }
+
+    &.pin-2 {
+        bottom: 15px;
+        right: 0px;
+    }
+
+    &.pin-3 {
+        bottom: 15px;
+        left: 0px;
+    }
+}
+
+// Status dot indicator
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #0288d1;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(2, 136, 209, 0.5);
+    animation: statusPulse 1.8s infinite;
+}
+
+// Keyframes
+@keyframes mapFloat {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-5px) scale(1.04);
+    }
+}
+
+@keyframes magnifyScan {
+    0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(-12px, 8px) rotate(-10deg);
+    }
+    50% {
+        transform: translate(-20px, -6px) rotate(15deg);
+    }
+    75% {
+        transform: translate(-6px, 12px) rotate(-5deg);
+    }
+}
+
+@keyframes radarExpand {
+    0% {
+        width: 70px;
+        height: 70px;
+        opacity: 0.9;
+    }
+    100% {
+        width: 190px;
+        height: 190px;
+        opacity: 0;
+    }
+}
+
+@keyframes orbitRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes statusPulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(2, 136, 209, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(2, 136, 209, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(2, 136, 209, 0);
+    }
+}
