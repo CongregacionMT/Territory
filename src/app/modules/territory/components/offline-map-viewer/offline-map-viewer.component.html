@@ -1,0 +1,18 @@
+@if (loading()) {
+  <div class="offline-loading-overlay">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <span class="ms-2">Cargando mapa offline...</span>
+  </div>
+}
+
+@if (error()) {
+  <div class="offline-error-overlay">
+    <p>{{ error() }}</p>
+    <button class="btn btn-outline-primary mt-2" (click)="loadKml()">Reintentar</button>
+  </div>
+}
+
+<!-- The leaflet map container -->
+<div #mapContainer class="leaflet-map-container"></div>

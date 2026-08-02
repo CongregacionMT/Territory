@@ -3,12 +3,15 @@ import { FormBuilder, FormControl } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
+import { NetworkService } from '@core/services/network.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Departure, WeeklyDeparture } from '@core/models/Departures';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { FormsModule } from '@angular/forms';
 import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils';
+
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-departure-page',
@@ -19,6 +22,7 @@ import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils'
     DeparturesCardsComponent,
     RouterLink,
     FormsModule,
+    NgClass,
   ],
 })
 export class DeparturePageComponent implements OnInit {
@@ -27,6 +31,7 @@ export class DeparturePageComponent implements OnInit {
   private fb = inject(FormBuilder);
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
+  public networkService = inject(NetworkService);
 
   routerBreadcrum: any = [];
   numberGroup: any = '0';
@@ -56,6 +61,14 @@ export class DeparturePageComponent implements OnInit {
     this.routerBreadcrum = this.routerBreadcrum[10];
     this.loadHistory();
     this.loadCurrentWeek();
+
+    // Si estamos offline y firebase se queda colgado sin caché,
+    // forzamos el cierre del spinner después de un breve delay.
+    if (!this.networkService.isOnline()) {
+      setTimeout(() => {
+        this.spinner.cerrarSpinner();
+      }, 1500);
+    }
   }
 
   loadHistory() {
@@ -156,39 +169,135 @@ export class DeparturePageComponent implements OnInit {
   }
 
   selectWeek(id: string) {
-    this.selectedWeek = id;
     this.showHistory = false;
-    this.spinner.cargarSpinner();
 
-    if (this.selectedWeek === 'actual') {
+    if (id === 'actual') {
       this.loadCurrentWeek();
       return;
     }
 
-    // Si es una semana virtual (próxima semana sin datos aún en BD)
-    if (this.selectedWeek.startsWith('virtual-')) {
-      const weekId = this.selectedWeek.replace('virtual-', '');
-      this.dateDeparture.setValue(weekId);
-      this.departures$ = [];
-      this.spinner.cerrarSpinner();
-      return;
-    }
-
-    const historyRecord = this.weeklyHistory.find(
-      (w) => w.id === this.selectedWeek,
-    );
-
-    if (historyRecord) {
-      this.departures$ = historyRecord.departure || [];
-      this.sortDepartures();
-      this.dateDeparture.setValue(historyRecord.weekId);
+    let weekId = id;
+    if (id.startsWith('virtual-')) {
+      weekId = id.replace('virtual-', '');
     } else {
-      this.departures$ = [];
+      const historyRecord = this.weeklyHistory.find((w) => w.id === id || w.weekId === id);
+      if (historyRecord) {
+        weekId = historyRecord.weekId;
+      }
     }
-    this.spinner.cerrarSpinner();
+
+    this.loadWeekByWeekId(weekId);
   }
 
   getFormattedDate(date: string): string {
     return formatWeekRange(date);
+  }
+
+  navigateWeek(direction: number): void {
+    const val = this.dateDeparture.value;
+    let baseDate: Date;
+
+    if (!val || val === 'actual') {
+      baseDate = new Date();
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      baseDate = new Date(val + 'T12:00:00');
+    } else {
+      baseDate = new Date();
+    }
+
+    const currentMonday = getMonday(baseDate);
+    const targetMonday = new Date(currentMonday);
+    targetMonday.setDate(currentMonday.getDate() + direction * 7);
+
+    const targetWeekId = getWeekId(targetMonday);
+    this.loadWeekByWeekId(targetWeekId);
+  }
+
+  loadWeekByWeekId(targetWeekId: string): void {
+    const currentWeekId = getWeekId(new Date());
+
+    if (targetWeekId === currentWeekId) {
+      this.loadCurrentWeek();
+      return;
+    }
+
+    this.spinner.cargarSpinner();
+    this.selectedWeek = targetWeekId;
+    this.dateDeparture.setValue(targetWeekId);
+
+    this.territoryDataService.getWeeklyDeparture(targetWeekId).subscribe({
+      next: (weeklyData: any) => {
+        if (weeklyData?.departure?.length > 0) {
+          this.departures$ = weeklyData.departure;
+          this.sortDepartures();
+        } else {
+          this.departures$ = [];
+        }
+        this.spinner.cerrarSpinner();
+      },
+      error: (err) => {
+        console.error('Error al cargar semana:', err);
+        this.departures$ = [];
+        this.spinner.cerrarSpinner();
+      },
+    });
+
+    if (!this.networkService.isOnline()) {
+      setTimeout(() => {
+        this.spinner.cerrarSpinner();
+      }, 1500);
+    }
+  }
+
+  getRelativeWeekInfo(): { label: string; badgeClass: string; icon: string } {
+    const val = this.dateDeparture.value;
+    let selectedDate: Date;
+
+    if (!val || val === 'actual') {
+      selectedDate = new Date();
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      selectedDate = new Date(val + 'T12:00:00');
+    } else {
+      selectedDate = new Date();
+    }
+
+    const currentMonday = getMonday(new Date());
+    const selectedMonday = getMonday(selectedDate);
+
+    const diffTime = selectedMonday.getTime() - currentMonday.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+    const diffWeeks = Math.round(diffDays / 7);
+
+    if (diffWeeks === 0) {
+      return {
+        label: 'Esta semana',
+        badgeClass: 'badge-current-week',
+        icon: 'https://api.iconify.design/mdi:calendar-check.svg?color=%23ffffff',
+      };
+    } else if (diffWeeks === 1) {
+      return {
+        label: 'Semana próxima',
+        badgeClass: 'badge-future-week',
+        icon: 'https://api.iconify.design/mdi:calendar-arrow-right.svg?color=%23ffffff',
+      };
+    } else if (diffWeeks > 1) {
+      return {
+        label: `En ${diffWeeks} semanas`,
+        badgeClass: 'badge-future-week',
+        icon: 'https://api.iconify.design/mdi:calendar-arrow-right.svg?color=%23ffffff',
+      };
+    } else if (diffWeeks === -1) {
+      return {
+        label: 'La semana pasada',
+        badgeClass: 'badge-past-week',
+        icon: 'https://api.iconify.design/mdi:calendar-arrow-left.svg?color=%23ffffff',
+      };
+    } else {
+      return {
+        label: `Hace ${Math.abs(diffWeeks)} semanas`,
+        badgeClass: 'badge-past-week',
+        icon: 'https://api.iconify.design/mdi:calendar-arrow-left.svg?color=%23ffffff',
+      };
+    }
   }
 }

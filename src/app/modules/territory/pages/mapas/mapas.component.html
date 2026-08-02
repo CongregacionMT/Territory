@@ -22,7 +22,20 @@
     <p class="small">Gracias por tu paciencia. ¡Pronto vas a estar en marcha! 🙌</p>
   </div>
 }
-<div [class]="class" [innerHTML]="mapa"></div>
+@if (networkService.isOnline()) {
+  <div [class]="class" [innerHTML]="mapa"></div>
+} @else {
+  @if (kmlUrl) {
+    <div [class]="class">
+      <app-offline-map-viewer [kmlUrl]="kmlUrl"></app-offline-map-viewer>
+    </div>
+  } @else {
+    <div class="alert alert-warning m-4 text-center">
+      <h4>Sin conexión a internet</h4>
+      <p>Este mapa requiere conexión para mostrarse interactivo y no tiene versión offline configurada.</p>
+    </div>
+  }
+}
 <!-- <section class="d-flex justify-content-center flex-wrap">
   @for (dataRuralItem of dataRural; track dataRuralItem; let i = $index) {
     <div class="d-flex flex-column align-items-center bg-secondary bg-opacity-25 rounded m-3 px-2 py-3">
