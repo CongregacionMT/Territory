@@ -23,6 +23,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
+import { NetworkService } from '@core/services/network.service';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
@@ -59,6 +60,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   private spinner = inject(SpinnerService);
   private campaignService = inject(CampaignService);
   private router = inject(Router);
+  public networkService = inject(NetworkService);
 
   card = signal<Card>({
     id: '',
@@ -165,8 +167,24 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
             this.dataLoaded.set(true);
             this.spinner.cerrarSpinner();
           },
+          error: (err) => {
+            console.error('Error fetching card:', err);
+            this.spinner.cerrarSpinner();
+            this.dataLoaded.set(true);
+          }
         });
       this.cardSubscription.set(subscription);
+      
+      // Si estamos offline y firebase se queda colgado buscando en la red sin caché,
+      // forzamos el cierre del spinner después de un breve delay para que se vea el mapa.
+      if (!this.networkService.isOnline()) {
+        setTimeout(() => {
+          if (!this.dataLoaded()) {
+            this.spinner.cerrarSpinner();
+            this.dataLoaded.set(true);
+          }
+        }, 1500);
+      }
     }
   }
 
