@@ -2,7 +2,7 @@
      [class.loaded]="mapLoaded()"
      [class.fallback]="useFallback()"
      [class.has-error]="error() !== null">
-  @if (error() && !useFallback()) {
+  @if (error() && !useFallback() && !useOfflineViewer()) {
     <div class="map-error-overlay">
       <p>{{ error() }}</p>
       <div class="d-flex flex-column gap-2">
@@ -11,9 +11,12 @@
       </div>
     </div>
   }
+  @if (useOfflineViewer()) {
+    <app-offline-map-viewer [kmlUrl]="currentMapConfig().kmlUrl || ''"></app-offline-map-viewer>
+  }
 </div>
 
-@if (mapLoaded() && !useFallback()) {
+@if (mapLoaded() && !useFallback() && !useOfflineViewer()) {
   <div class="map-controls">
     <button class="compass-btn"
             (click)="toggleCompass()"

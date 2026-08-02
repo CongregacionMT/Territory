@@ -14,11 +14,13 @@ import { CommonModule } from '@angular/common';
 import { environment } from '@environments/environment';
 import { TerritoryMapService } from '../../services/territory-map.service';
 import { mapConfig } from '@core/config/maps.config';
+import { NetworkService } from '@core/services/network.service';
+import { OfflineMapViewerComponent } from '../offline-map-viewer/offline-map-viewer.component';
 
 @Component({
   selector: 'app-territory-map',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, OfflineMapViewerComponent],
   templateUrl: './territory-map.component.html',
   styleUrl: './territory-map.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +30,7 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   congregationKey = input.required<string>();
 
   private mapService = inject(TerritoryMapService);
+  public networkService = inject(NetworkService);
 
   mapContainer = viewChild.required<ElementRef<HTMLDivElement>>('mapContainer');
 
@@ -35,6 +38,7 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   heading = signal(0);
   mapLoaded = signal(false);
   useFallback = signal(false);
+  useOfflineViewer = signal(false);
   isFullscreen = signal(false);
   error = signal<string | null>(null);
 
@@ -56,44 +60,70 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
 
   private async initMap(): Promise<void> {
     const config = this.currentMapConfig();
+    console.log('[TerritoryMapComponent] initMap invocado. Config:', config);
+    console.log('[TerritoryMapComponent] Estado de red detectado (online):', this.networkService.isOnline());
 
     if (!config) {
+      console.warn('[TerritoryMapComponent] Mapa no configurado para este territorio.');
       this.error.set('Mapa no configurado para este territorio');
       return;
     }
 
     if (config.kmlUrl) {
       try {
+        console.log('[TerritoryMapComponent] Intentando inicializar Google Maps dinámico...');
         await this.mapService.loadMapsApi();
         const map = await this.mapService.initMap(this.mapContainer().nativeElement);
         const absoluteKmlUrl = config.kmlUrl.startsWith('http')
           ? config.kmlUrl
           : `${window.location.origin}/${config.kmlUrl}`;
+        console.log('[TerritoryMapComponent] Cargando KML en Google Map:', absoluteKmlUrl);
         await this.mapService.loadKml(map, absoluteKmlUrl, config.markerOverrides);
         this.mapLoaded.set(true);
         this.startHeadingSync();
         this.mapService.trackUserLocation();
+        console.log('[TerritoryMapComponent] Google Map dinámico cargado con éxito.');
       } catch (err) {
-        console.error('Error loading KML map:', err);
-        this.fallbackToIframe(config);
+        console.error('[TerritoryMapComponent] Error al inicializar mapa de Google dinámico, ejecutando fallback:', err);
+        this.fallbackToIframeOrOffline(config);
       }
     } else if (config.iframeHtml) {
-      this.fallbackToIframe(config);
+      console.log('[TerritoryMapComponent] No hay kmlUrl, cargando fallback a iframe directo.');
+      this.fallbackToIframeOrOffline(config);
     } else {
+      console.warn('[TerritoryMapComponent] Configuración de mapa inválida.');
       this.error.set('Configuración de mapa inválida');
     }
   }
 
-  private fallbackToIframe(config: any): void {
-    this.mapService.createFallbackIframe(this.mapContainer().nativeElement, config.iframeHtml);
-    this.useFallback.set(true);
+  private fallbackToIframeOrOffline(config: any): void {
+    console.log('[TerritoryMapComponent] fallbackToIframeOrOffline invocado. Online:', this.networkService.isOnline());
+    if (this.networkService.isOnline()) {
+      if (config.iframeHtml) {
+        console.log('[TerritoryMapComponent] Dispositivo ONLINE. Cargando Iframe fallback.');
+        this.mapService.createFallbackIframe(this.mapContainer().nativeElement, config.iframeHtml);
+        this.useFallback.set(true);
+      } else {
+        console.warn('[TerritoryMapComponent] Dispositivo ONLINE pero no hay iframeHtml configurado.');
+      }
+    } else {
+      // Offline: use offline viewer if KML exists
+      console.log('[TerritoryMapComponent] Dispositivo OFFLINE. Intentando activar visor offline con KML...');
+      if (config.kmlUrl) {
+        console.log('[TerritoryMapComponent] Activando visor offline para KML:', config.kmlUrl);
+        this.useOfflineViewer.set(true);
+      } else {
+        console.error('[TerritoryMapComponent] Dispositivo OFFLINE pero no hay kmlUrl configurado para fallback.');
+        this.error.set('Mapa offline no disponible para este territorio');
+      }
+    }
     this.mapLoaded.set(true);
   }
 
   switchToFallback(): void {
     const config = this.currentMapConfig();
     if (config) {
-      this.fallbackToIframe(config);
+      this.fallbackToIframeOrOffline(config);
     }
   }
 
@@ -169,6 +199,7 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
     this.error.set(null);
     this.mapLoaded.set(false);
     this.useFallback.set(false);
+    this.useOfflineViewer.set(false);
     this.initMap();
   }
 }

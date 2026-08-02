@@ -18,6 +18,7 @@ export interface MapConfig {
     iframeHtml?: string;
     center?: { lat: number; lng: number };
     zoom?: number;
+
     /** Key = exact Placemark name in the KML. Value = override config. */
     markerOverrides?: Record<string, MarkerOverride>;
   }>;

@@ -11,13 +11,14 @@ import { needConfirmation } from '@shared/decorators/confirm-dialog.decorator';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import { mapConfig } from '@core/config/maps.config';
-
+import { NetworkService } from '@core/services/network.service';
+import { OfflineMapViewerComponent } from '../../components/offline-map-viewer/offline-map-viewer.component';
 @Component({
     selector: 'app-mapas',
     templateUrl: './mapas.component.html',
     styleUrls: ['./mapas.component.scss'],
     providers: [{ provide: LOCALE_ID, useValue: 'es' }],
-    imports: []
+    imports: [OfflineMapViewerComponent]
 })
 export class MapasComponent implements OnInit {
   private activatedRoute = inject(ActivatedRoute);
@@ -26,9 +27,12 @@ export class MapasComponent implements OnInit {
   private fb = inject(FormBuilder);
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
+  public networkService = inject(NetworkService);
 
   isAdmin: boolean = false;
   mapa: SafeHtml | undefined;
+  kmlUrl: string | undefined;
+
   class: string = 'map-responsive';
   showRural: boolean = false;
   dataRural: DataRural[] = [];
@@ -43,9 +47,20 @@ export class MapasComponent implements OnInit {
   ngOnInit(): void {
     const path = this.activatedRoute.snapshot.url[0].path;
     const mapHtml = mapConfig.maps[path];
+    console.log('[MapasComponent] ngOnInit ejecutado para el path:', path);
+    console.log('[MapasComponent] Configuración de mapa encontrada:', mapHtml);
+    console.log('[MapasComponent] Estado de red detectado (online):', this.networkService.isOnline());
     
+    if (mapHtml?.kmlUrl) {
+      this.kmlUrl = mapHtml.kmlUrl;
+      console.log('[MapasComponent] KML URL configurada:', this.kmlUrl);
+    }
+
+
+
     if (mapHtml?.iframeHtml) {
       this.mapa = this.domSanitizer.bypassSecurityTrustHtml(mapHtml.iframeHtml);
+      console.log('[MapasComponent] Iframe HTML configurado.');
     }
     
     if(path === 'rural'){
