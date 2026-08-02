@@ -11,7 +11,7 @@ import { initializeDialogService } from './app/app.module';
 import { environment } from './environments/environment';
 import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideMessaging, getMessaging } from '@angular/fire/messaging';
-import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideFirestore, initializeFirestore, persistentLocalCache, getFirestore } from '@angular/fire/firestore';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
@@ -45,7 +45,12 @@ bootstrapApplication(AppComponent, {
     ),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideMessaging(() => getMessaging(getApp())),
-    provideFirestore(() => getFirestore()),
+    provideFirestore(() => {
+      const app = getApp();
+      return initializeFirestore(app, {
+        localCache: persistentLocalCache()
+      });
+    }),
     importProvidersFrom(MatDialogModule),
     provideEnvironmentInitializer(() => initializeDialogService()),
     provideAnimations(),

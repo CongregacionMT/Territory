@@ -21,6 +21,52 @@
     }
 }
 
+.nav-week-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid #b3e5fc;
+    background: linear-gradient(to right, #e0f7fa, #e1f5fe);
+    box-shadow: 0 2px 6px rgba(0, 143, 201, 0.1);
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: #b3e5fc;
+        border-color: #0277bd;
+        transform: scale(1.08);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
+.relative-week-badge {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.badge-current-week {
+        background: linear-gradient(135deg, #0288d1, #0097a7);
+        color: #ffffff;
+        animation: pulseBadge 2.5s infinite ease-in-out;
+    }
+
+    &.badge-future-week {
+        background: linear-gradient(135deg, #2e7d32, #388e3c);
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
+    }
+
+    &.badge-past-week {
+        background: linear-gradient(135deg, #616161, #757575);
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(97, 97, 97, 0.2);
+    }
+}
+
 // Print modal styles
 .print-modal {
     overflow: hidden;

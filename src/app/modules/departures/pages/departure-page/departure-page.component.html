@@ -6,18 +6,66 @@
       <h2 class="text-info fw-bold mb-1">{{ titleGroup }}</h2>
     }
     <h1 class="display-6 fw-bold mb-3">Salidas a predicar</h1>
-    <div class="date-pill mb-3">
-      <img
-        src="https://api.iconify.design/mdi:calendar-month.svg?color=%230277bd"
-        width="24"
-        height="24"
-        class="me-2"
-        alt="Calendar"
-      />
-      <h2 class="h5 mb-0">
-        {{ getFormattedDate(dateDeparture.value || "actual") }}
-      </h2>
+    <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+      <button
+        type="button"
+        class="btn rounded-circle d-flex align-items-center justify-content-center nav-week-btn"
+        (click)="navigateWeek(-1)"
+        title="Semana anterior"
+      >
+        <img
+          src="https://api.iconify.design/mdi:chevron-left.svg?color=%230277bd"
+          width="24"
+          height="24"
+          alt="Anterior"
+        />
+      </button>
+
+      <div class="date-pill">
+        <img
+          src="https://api.iconify.design/mdi:calendar-month.svg?color=%230277bd"
+          width="24"
+          height="24"
+          class="me-2"
+          alt="Calendar"
+        />
+        <h2 class="h5 mb-0">
+          {{ getFormattedDate(dateDeparture.value || "actual") }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="btn rounded-circle d-flex align-items-center justify-content-center nav-week-btn"
+        (click)="navigateWeek(1)"
+        title="Semana siguiente"
+      >
+        <img
+          src="https://api.iconify.design/mdi:chevron-right.svg?color=%230277bd"
+          width="24"
+          height="24"
+          alt="Siguiente"
+        />
+      </button>
     </div>
+
+    @if (getRelativeWeekInfo(); as relInfo) {
+      <div class="mb-3">
+        <span
+          class="badge rounded-pill px-3 py-2 fs-6 relative-week-badge animate__animated animate__fadeIn animate__faster"
+          [ngClass]="relInfo.badgeClass"
+        >
+          <img
+            [src]="relInfo.icon"
+            width="16"
+            height="16"
+            class="me-1 align-text-bottom"
+            alt="Icon"
+          />
+          {{ relInfo.label }}
+        </span>
+      </div>
+    }
 
     <div class="row justify-content-center">
       <div class="col-12 col-md-5 col-lg-4">
