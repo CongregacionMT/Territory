@@ -436,6 +436,26 @@ export class TerritoryDataService {
     const q = query(cardRef, orderBy('creation', 'asc'));
     return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
   }
+
+  async updateCardInCollection(collectionName: string, cardId: string, updatedData: Partial<Card>) {
+    const cardRef = doc(this.firestore, collectionName, cardId);
+    await updateDoc(cardRef, updatedData);
+  }
+
+  async deleteCardInCollection(collectionName: string, cardId: string) {
+    const cardRef = doc(this.firestore, collectionName, cardId);
+    await deleteDoc(cardRef);
+  }
+
+  async addCardInCollection(collectionName: string, cardData: Partial<Card>) {
+    const cardRef = collection(this.firestore, collectionName);
+    const completedCard = {
+      ...cardData,
+      creation: Timestamp.now(),
+      isInitial: false,
+    };
+    await addDoc(cardRef, completedCard);
+  }
   // USERS
   getUsers(): Observable<User[]> {
     const cardRef = collection(this.firestore, 'users');
