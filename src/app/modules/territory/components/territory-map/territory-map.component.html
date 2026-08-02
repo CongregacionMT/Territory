@@ -1,0 +1,48 @@
+<div #mapContainer class="map-container"
+     [class.loaded]="mapLoaded()"
+     [class.fallback]="useFallback()"
+     [class.has-error]="error() !== null">
+  @if (error() && !useFallback()) {
+    <div class="map-error-overlay">
+      <p>{{ error() }}</p>
+      <div class="d-flex flex-column gap-2">
+        <button class="btn btn-primary" (click)="retry()">Reintentar</button>
+        <button class="btn btn-secondary" (click)="switchToFallback()">Cargar mapa antiguo</button>
+      </div>
+    </div>
+  }
+</div>
+
+@if (mapLoaded() && !useFallback()) {
+  <div class="map-controls">
+    <button class="compass-btn"
+            (click)="toggleCompass()"
+            [class.active]="compassMode()"
+            title="Modo brújula">
+      🧭
+    </button>
+
+    <button class="compass-btn"
+            (click)="centerOnMe()"
+            title="Centrar en mi ubicación">
+      📍
+    </button>
+
+    <button class="compass-btn"
+            (click)="toggleFullscreen()"
+            [title]="isFullscreen() ? 'Salir de pantalla completa' : 'Pantalla completa'">
+      @if (isFullscreen()) {
+        <i class="fas fa-compress"></i>
+      } @else {
+        <i class="fas fa-expand"></i>
+      }
+    </button>
+
+  </div>
+
+  <div class="mt-2 text-center">
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="switchToFallback()">
+      <i class="fas fa-map-marked-alt me-1"></i> Cargar mapa antiguo
+    </button>
+  </div>
+}

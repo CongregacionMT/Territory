@@ -8,6 +8,8 @@ export const environment = {
     appId: "1:1086542552314:web:a5afc53afaa2f305ebfd43",
     hostingSite: 'territorios-congregacionmt'
   },
+  googleMapsApiKey: 'AIzaSyCqn3TvPUjylJsZSWFchRJ9yeDmjMGiKXU',
+  mapId: '5d8d6c22a66f94b7804fb3a7',
   production: true,
   congregationName: 'Maria Teresa',
   congregationKey: 'mariaTeresa',

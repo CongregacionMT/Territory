@@ -1,0 +1,167 @@
+:host {
+  display: block;
+  width: 100%;
+  position: relative;
+}
+
+.map-container {
+  width: 100%;
+  height: 480px;
+  min-height: 480px;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e8e8e8;
+
+  &.loaded {
+    background: transparent;
+  }
+
+  &.has-error {
+    background: #fff;
+  }
+
+  :host-context(.container) & {
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  }
+
+  &:fullscreen, &:-webkit-full-screen, &:-ms-fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: none !important;
+    border-radius: 0;
+  }
+}
+
+.map-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  .compass-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    background: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+    padding: 0;
+    line-height: 1;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+
+    &.active {
+      background: #0d6efd;
+      color: white;
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
+    }
+  }
+
+  .rotation-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    button {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      background: white;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+
+      &:hover {
+        background: #f0f0f0;
+      }
+
+      &:active {
+        background: #e0e0e0;
+      }
+    }
+  }
+
+  .heading-display {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    min-width: 2.5rem;
+    text-align: center;
+  }
+
+  .degrees-display {
+    background: rgba(0, 0, 0, 0.65);
+    color: white;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: monospace;
+  }
+}
+
+.map-error-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  z-index: 10;
+  padding: 2rem;
+  text-align: center;
+}
+
+@media (max-width: 576px) {
+  .map-container {
+    height: 350px;
+    min-height: 350px;
+  }
+
+  .map-controls {
+    top: 0.5rem;
+    right: 0.5rem;
+
+    .compass-btn {
+      width: 38px;
+      height: 38px;
+      font-size: 1.1rem;
+    }
+
+    .rotation-controls {
+      button {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}

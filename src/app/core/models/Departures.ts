@@ -1,4 +1,7 @@
+export type DepartureCardStatus = 'pending' | 'received' | 'not_required';
+
 export interface Departure {
+  departureId?: string;
   driver: string;
   location: string;
   territory: string[];
@@ -10,6 +13,7 @@ export interface Departure {
   group: number;
   isEvent?: boolean;
   title?: string;
+  cardStatus?: DepartureCardStatus;
 }
 
 export interface DepartureData {
@@ -23,5 +27,5 @@ export interface DateDeparture {
 export interface WeeklyDeparture extends DepartureData {
   id?: string;
   weekId: string; // Formato YYYY-MM-DD o YYYY-Www
-  createdAt: any;
+  createdAt?: any;
 }

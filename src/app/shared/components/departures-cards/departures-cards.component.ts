@@ -12,7 +12,6 @@ import { environment } from '@environments/environment';
 export class DeparturesCardsComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
-  readonly dateDeparture = input<string>();
   readonly departures = input<Departure[]>([] as Departure[]);
   currentPath: number = 0;
   private hasScrolled: boolean = false;
@@ -117,5 +116,14 @@ export class DeparturesCardsComponent implements OnInit {
   getNormalizedLocation(location: string): string {
     const locality = environment.localities.find((l) => l.key === location);
     return locality ? locality.territoryPrefix : location;
+  }
+
+  getTerritoryRoute(departure: Departure, territory: string): string {
+    return (
+      '../../../territorios/' +
+      this.getNormalizedLocation(departure.location) +
+      '-' +
+      territory.replace(/\D/g, '')
+    );
   }
 }

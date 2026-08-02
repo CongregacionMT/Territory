@@ -8,6 +8,8 @@ export const environment = {
     appId: "1:698750283432:web:a012aec4a06b681288dc9d",
     measurementId: ""
   },
+  googleMapsApiKey: 'AIzaSyCqn3TvPUjylJsZSWFchRJ9yeDmjMGiKXU',
+  mapId: '5d8d6c22a66f94b7804fb3a7',
   production: true,
   congregationName: 'Hughes',
   congregationKey: 'hughes',

@@ -6,7 +6,6 @@ import {
   signal,
   viewChild,
   computed,
-  ElementRef,
 } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import {
@@ -18,8 +17,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
-import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
@@ -30,13 +28,13 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
 import { ModalComponent as ModalComponent_1 } from '../../../../shared/components/modal/modal.component';
 import { CampaignService } from '@core/services/campaign.service';
-import { mapConfig } from '@core/config/maps.config';
 import { environment } from '@environments/environment';
 
 import { Card, CardApplesData } from '@core/models/Card';
 import { BreadcrumbItem } from '@core/models/Breadcrumb';
+import { User } from '@core/models/User';
 
-declare var google: any;
+import { TerritoryMapComponent } from '../../components/territory-map/territory-map.component';
 
 @Component({
   selector: 'app-card-territory',
@@ -49,12 +47,12 @@ declare var google: any;
     RouterLink,
     ModalComponent_1,
     TitleCasePipe,
+    TerritoryMapComponent,
   ],
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private fb = inject(FormBuilder);
-  private domSanitizer = inject(DomSanitizer);
   private territorieDataService = inject(TerritoryDataService);
   private cardService = inject(CardService);
   private activatedRoute = inject(ActivatedRoute);
@@ -77,7 +75,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     revisionComplete: false,
   });
 
-  iframe = signal<SafeHtml | null>(null);
+  congregationKey = environment.congregationKey;
   path = signal<string>('');
   routerBreadcrum = signal<BreadcrumbItem[]>([]);
   formCard = signal<FormGroup>(this.createFormCard());
@@ -88,14 +86,12 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   countTrueApples = signal<number>(0);
   countFalseApples = signal<number>(0);
   dataLoaded = signal<boolean>(false);
+  availableDrivers = signal<User[]>([]);
+  isAdmin: boolean = false;
+  isDriver: boolean = false;
+  loggedDriverName: string = '';
 
   readonly modalComponent = viewChild(ModalComponent);
-  readonly mapElement = viewChild<ElementRef>('mapContainer');
-
-  isNativeMapReady = signal<boolean>(false);
-  mapObj: any = null;
-  mapMarker: any = null;
-  watchId: number | null = null;
 
   isRevisionMode = computed(() => this.card().revision === true);
   hasValidDriver = computed(
@@ -112,6 +108,9 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   constructor(...args: unknown[]);
   constructor() {
     this.spinner.cargarSpinner();
+    this.isAdmin = !!localStorage.getItem('tokenAdmin');
+    this.isDriver = !!localStorage.getItem('tokenConductor') && !this.isAdmin;
+    this.loggedDriverName = localStorage.getItem('nombreConductor') || '';
 
     // VALIDAR SI ESTOY REVISANDO O NO LA CARD
     if (this.cardService.dataCard.revision === true) {
@@ -162,6 +161,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
             }
 
             this.countTrueApples.set(0);
+            this.applyDriverDefaultIfNeeded();
             this.dataLoaded.set(true);
             this.spinner.cerrarSpinner();
           },
@@ -185,12 +185,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
     this.routerBreadcrum.set(breadcrumData[9]);
 
-    const collection = this.activatedRoute.snapshot.params['collection'];
-    const mapHtml = mapConfig.maps[collection];
-
-    if (mapHtml) {
-      this.iframe.set(this.domSanitizer.bypassSecurityTrustHtml(mapHtml));
-    }
+    this.loadDriversOptions();
   }
 
   onCheckboxChange(e: any): void {
@@ -308,12 +303,46 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       };
       this.card.set(updatedCard);
 
-      this.territorieDataService
-        .sendRevisionCardTerritorie(updatedCard)
-        ?.then(() => {
-          this.spinner.cerrarSpinner();
-          this.openModal();
-        });
+      await this.territorieDataService.sendRevisionCardTerritorie(updatedCard);
+
+      this.spinner.cerrarSpinner();
+      this.openModal();
+    }
+  }
+
+  isConductorMode(): boolean {
+    return this.isDriver && !this.isAdmin;
+  }
+
+  private loadDriversOptions(): void {
+    if (!this.isConductorMode()) return;
+
+    this.territorieDataService.getUsers().subscribe((users) => {
+      const available = (users || [])
+        .filter((user) => user.rol !== 'admin')
+        .sort((a, b) => a.user.localeCompare(b.user));
+
+      this.availableDrivers.set(available);
+      this.applyDriverDefaultIfNeeded();
+    });
+  }
+
+  private applyDriverDefaultIfNeeded(): void {
+    if (!this.isConductorMode()) return;
+
+    const form = this.formCard();
+    const currentDriver = String(form.get('driver')?.value || '').trim();
+    if (currentDriver) return;
+
+    const ownName = this.loggedDriverName.trim();
+    if (!ownName) return;
+
+    const ownUserExists = this.availableDrivers().some(
+      (user) => user.user.toLowerCase() === ownName.toLowerCase(),
+    );
+
+    if (ownUserExists) {
+      form.patchValue({ driver: ownName });
     }
   }
 
@@ -325,9 +354,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.card.set(updatedCard);
 
     this.cardService.dataCard.revision = false;
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-    }
     this.cardSubscription().unsubscribe();
   }
 }

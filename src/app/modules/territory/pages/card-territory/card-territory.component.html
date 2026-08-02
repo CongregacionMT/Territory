@@ -18,7 +18,12 @@
       </h3>
     </div>
   </div>
-  <div class="d-flex justify-content-center" [innerHTML]="iframe()"></div>
+  <div class="w-100 d-flex justify-content-center">
+    <app-territory-map
+      [collection]="path()"
+      [congregationKey]="congregationKey">
+    </app-territory-map>
+  </div>
   <div class="d-flex justify-content-center">
     @if (dataLoaded()) {
       <form
@@ -29,13 +34,22 @@
         class="my-4 form-card"
       >
         <label for="driver" class="fs-5">Conductor</label>
-        <input
-          type="text"
-          placeholder="Nombre del conductor"
-          class="form-control"
-          id="driver"
-          formControlName="driver"
-        />
+        @if (isConductorMode()) {
+          <select class="form-select" id="driver" formControlName="driver">
+            <option value="" disabled>Seleccionar conductor</option>
+            @for (driver of availableDrivers(); track driver.user) {
+              <option [value]="driver.user">{{ driver.user }}</option>
+            }
+          </select>
+        } @else {
+          <input
+            type="text"
+            placeholder="Nombre del conductor"
+            class="form-control"
+            id="driver"
+            formControlName="driver"
+          />
+        }
         <!-- Error  -->
         @if (driverError()) {
           <div

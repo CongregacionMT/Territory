@@ -8,6 +8,8 @@ export const environment = {
     appId: "1:813517020775:web:0807bcea3ff13046993ec2",
     measurementId: ""
   },
+  googleMapsApiKey: 'AIzaSyCqn3TvPUjylJsZSWFchRJ9yeDmjMGiKXU',
+  mapId: '5d8d6c22a66f94b7804fb3a7',
   production: true,
   congregationName: 'Arias',
   congregationKey: 'arias',

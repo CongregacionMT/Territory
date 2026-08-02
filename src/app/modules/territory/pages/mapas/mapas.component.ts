@@ -44,8 +44,8 @@ export class MapasComponent implements OnInit {
     const path = this.activatedRoute.snapshot.url[0].path;
     const mapHtml = mapConfig.maps[path];
     
-    if (mapHtml) {
-      this.mapa = this.domSanitizer.bypassSecurityTrustHtml(mapHtml);
+    if (mapHtml?.iframeHtml) {
+      this.mapa = this.domSanitizer.bypassSecurityTrustHtml(mapHtml.iframeHtml);
     }
     
     if(path === 'rural'){

@@ -35,6 +35,7 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
+              "src/assets/maps",
               "src/manifest.webmanifest",
               "src/firebase-messaging-sw.js"
             ],
@@ -64,7 +65,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "6.5kb"
+                  "maximumError": "8kb"
                 }
               ],
               "fileReplacements": [
@@ -101,7 +102,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "7kb"
+                  "maximumError": "8kb"
                 }
               ],
               "outputHashing": "all"
@@ -126,7 +127,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "7kb"
+                  "maximumError": "8kb"
                 }
               ],
               "outputHashing": "all"
@@ -151,7 +152,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "7kb"
+                  "maximumError": "8kb"
                 }
               ],
               "outputHashing": "all"
@@ -176,7 +177,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "7kb"
+                  "maximumError": "8kb"
                 }
               ],
               "outputHashing": "all"
@@ -201,7 +202,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "7kb"
+                  "maximumError": "8kb"
                 }
               ],
               "outputHashing": "all"

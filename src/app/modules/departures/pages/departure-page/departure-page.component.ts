@@ -8,7 +8,7 @@ import { Departure, WeeklyDeparture } from '@core/models/Departures';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { FormsModule } from '@angular/forms';
-import { formatWeekRange, getWeekId } from '@shared/utils/date-utils';
+import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils';
 
 @Component({
   selector: 'app-departure-page',
@@ -65,9 +65,34 @@ export class DeparturePageComponent implements OnInit {
       const today = new Date();
       const currentWeekId = getWeekId(today);
 
-      this.futureWeeks = history
+      // Filtrar semanas futuras existentes en la base de datos
+      const existingFutureWeeks = history
         .filter((w) => w.weekId > currentWeekId)
         .sort((a, b) => a.weekId.localeCompare(b.weekId));
+
+      // Generar las próximas 3 semanas a partir de la fecha actual
+      const nextThreeWeeks: WeeklyDeparture[] = [];
+      const mondayCurrent = getMonday(today);
+
+      for (let i = 1; i <= 3; i++) {
+        const nextMonday = new Date(mondayCurrent);
+        nextMonday.setDate(mondayCurrent.getDate() + i * 7);
+        const weekId = getWeekId(nextMonday);
+
+        // Si la semana ya existe en Firebase, usamos ese registro. Si no, creamos un item virtual para seleccionar.
+        const match = existingFutureWeeks.find((w) => w.weekId === weekId);
+        if (match) {
+          nextThreeWeeks.push(match);
+        } else {
+          nextThreeWeeks.push({
+            id: `virtual-${weekId}`,
+            weekId: weekId,
+            departure: []
+          });
+        }
+      }
+
+      this.futureWeeks = nextThreeWeeks;
 
       this.pastWeeks = history
         .filter((w) => w.weekId < currentWeekId)
@@ -140,14 +165,25 @@ export class DeparturePageComponent implements OnInit {
       return;
     }
 
+    // Si es una semana virtual (próxima semana sin datos aún en BD)
+    if (this.selectedWeek.startsWith('virtual-')) {
+      const weekId = this.selectedWeek.replace('virtual-', '');
+      this.dateDeparture.setValue(weekId);
+      this.departures$ = [];
+      this.spinner.cerrarSpinner();
+      return;
+    }
+
     const historyRecord = this.weeklyHistory.find(
       (w) => w.id === this.selectedWeek,
     );
 
     if (historyRecord) {
-      this.departures$ = historyRecord.departure;
+      this.departures$ = historyRecord.departure || [];
       this.sortDepartures();
       this.dateDeparture.setValue(historyRecord.weekId);
+    } else {
+      this.departures$ = [];
     }
     this.spinner.cerrarSpinner();
   }
