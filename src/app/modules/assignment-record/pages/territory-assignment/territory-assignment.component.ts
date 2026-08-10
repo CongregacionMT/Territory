@@ -373,9 +373,25 @@ export class TerritoryAssignmentComponent implements OnInit {
     const today = new Date().toISOString().split('T')[0];
     newCard.start = today;
     newCard.end = today;
-    // Añadimos un registro de manzana marcado como true para que la tarjeta pase el filtro
-    // de 'fetchDataForLocality' que descarta las tarjetas sin manzanas completadas.
-    newCard.applesData = [{ name: 'Registro manual', checked: true }];
+
+    // Obtener las manzanas reales del territorio a partir de una card existente.
+    // Si no se encuentran, usar un placeholder para que pase el filtro.
+    const existingCards = this.dataListFull()[territoryIndex] || [];
+    const cardWithApples = existingCards.find(c => Array.isArray(c.applesData) && c.applesData.length > 0);
+    if (cardWithApples) {
+      newCard.applesData = cardWithApples.applesData.map(a => ({ name: a.name, checked: true }));
+    } else {
+      newCard.applesData = [{ name: 'Registro manual', checked: true }];
+    }
+
+    // Copiar campos relevantes del territorio (location, numberTerritory, etc.)
+    const referenceCard = existingCards.find(c => c.location || c.numberTerritory);
+    if (referenceCard) {
+      newCard.location = referenceCard.location;
+      newCard.numberTerritory = referenceCard.numberTerritory;
+      newCard.territoryNumber = referenceCard.territoryNumber;
+      newCard.link = referenceCard.link;
+    }
     
     const key = this.getCompositeKey(collectionName, fakeId);
     this.pendingChanges.update(pending => {
@@ -463,7 +479,13 @@ export class TerritoryAssignmentComponent implements OnInit {
       for (const key of Object.keys(changes)) {
         const { collectionName, cardId, data, isNew } = changes[key];
         if (isNew) {
-           await this.territorieDataService.addCardInCollection(collectionName, data);
+           // Limpiar campos temporales antes de enviar a Firestore
+           const { id, ...cleanData } = data as Card;
+           // Asegurar que applesData siempre esté presente
+           if (!cleanData.applesData) {
+             cleanData.applesData = [{ name: 'Registro manual', checked: true }];
+           }
+           await this.territorieDataService.addCardInCollection(collectionName, cleanData);
         } else {
            await this.territorieDataService.updateCardInCollection(collectionName, cardId, data);
         }

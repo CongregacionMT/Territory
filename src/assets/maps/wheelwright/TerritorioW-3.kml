@@ -391,7 +391,7 @@
         <styleUrl>#icon-1899-DB4436-nodesc</styleUrl>
         <Point>
           <coordinates>
-            -61.2091699,-33.7862568,0
+            -61.209127,-33.7863014,0
           </coordinates>
         </Point>
       </Placemark>
@@ -405,16 +405,16 @@
         </Point>
       </Placemark>
       <Placemark>
-        <name>Punto 9</name>
+        <name>Punto 3</name>
         <styleUrl>#icon-1899-DB4436-nodesc</styleUrl>
         <Point>
           <coordinates>
-            -61.2073031,-33.7876345,0
+            -61.2072495,-33.7875899,0
           </coordinates>
         </Point>
       </Placemark>
       <Placemark>
-        <name>Punto 10</name>
+        <name>Punto 4</name>
         <styleUrl>#icon-1899-DB4436-nodesc</styleUrl>
         <Point>
           <coordinates>
@@ -423,7 +423,7 @@
         </Point>
       </Placemark>
       <Placemark>
-        <name>Punto 11</name>
+        <name>Punto 5</name>
         <styleUrl>#icon-1899-DB4436-nodesc</styleUrl>
         <Point>
           <coordinates>
@@ -432,11 +432,11 @@
         </Point>
       </Placemark>
       <Placemark>
-        <name>Punto 12</name>
+        <name>Punto 6</name>
         <styleUrl>#icon-1899-DB4436-nodesc</styleUrl>
         <Point>
           <coordinates>
-            -61.2080702,-33.7884013,0
+            -61.2080702,-33.7883389,0
           </coordinates>
         </Point>
       </Placemark>
