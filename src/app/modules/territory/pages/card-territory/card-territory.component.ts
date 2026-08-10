@@ -125,7 +125,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       form.patchValue({ end: this.card().end });
       form.patchValue({ comments: this.card().comments });
 
-      this.card().applesData.map((apple: CardApplesData) => {
+      this.card().applesData?.map((apple: CardApplesData) => {
         const applesData: FormArray = form.get('applesData') as FormArray;
         applesData.push(
           new FormControl({ name: apple.name, checked: apple.checked }),
@@ -139,8 +139,24 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       const subscription = this.territorieDataService
         .getCardTerritorie(this.path())
         .subscribe({
-          next: (card) => {
-            this.card.set(card[0]);
+          next: (cards) => {
+            // Buscar la primera card completa (con applesData).
+            // Si no hay ninguna completa, usar la primera y normalizar.
+            const validCard = cards?.find((c: Card) => Array.isArray(c.applesData)) ?? cards?.[0];
+
+            if (!validCard) {
+              console.warn('[CardTerritory] No se encontraron cards para este territorio.');
+              this.dataLoaded.set(true);
+              this.spinner.cerrarSpinner();
+              return;
+            }
+
+            // Normalizar campos faltantes
+            if (!validCard.applesData) {
+              validCard.applesData = [];
+            }
+
+            this.card.set(validCard);
             this.countTrueApples.set(0);
 
             // Limpia el FormArray antes de llenarlo
@@ -149,7 +165,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
             const applesData: FormArray = form.get('applesData') as FormArray;
             applesData.clear();
 
-            this.card().applesData.map((apple: CardApplesData) => {
+            this.card().applesData?.map((apple: CardApplesData) => {
               applesData.push(
                 new FormControl({ name: apple.name, checked: apple.checked }),
               );
@@ -278,7 +294,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     }
     if (form.controls?.['end'].value === '') {
       this.countFalseApples.set(0);
-      form.value.applesData.map((apple: any) => {
+      form.value.applesData?.map((apple: any) => {
         if (apple.checked === false) {
           this.countFalseApples.update((count) => count + 1);
         }

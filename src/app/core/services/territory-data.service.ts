@@ -451,6 +451,8 @@ export class TerritoryDataService {
     const cardRef = collection(this.firestore, collectionName);
     const completedCard = {
       ...cardData,
+      // Asegurar que applesData siempre esté presente como array
+      applesData: cardData.applesData ?? [],
       creation: Timestamp.now(),
       isInitial: false,
     };
