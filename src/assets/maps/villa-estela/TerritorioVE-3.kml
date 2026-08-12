@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Territorio 3 Villa Estela</name>
+    <description/>
+    <Style id="icon-1899-DB4436-nodesc-normal">
+      <IconStyle>
+        <color>ff3644db</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+        <hotSpot x="32" xunits="pixels" y="64" yunits="insetPixels"/>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <Style id="icon-1899-DB4436-nodesc-highlight">
+      <IconStyle>
+        <color>ff3644db</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+        <hotSpot x="32" xunits="pixels" y="64" yunits="insetPixels"/>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <StyleMap id="icon-1899-DB4436-nodesc">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1899-DB4436-nodesc-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1899-DB4436-nodesc-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="poly-0F9D58-3601-82-nodesc-normal">
+      <LineStyle>
+        <color>ff589d0f</color>
+        <width>3.601</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>52589d0f</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <Style id="poly-0F9D58-3601-82-nodesc-highlight">
+      <LineStyle>
+        <color>ff589d0f</color>
+        <width>5.4015</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>52589d0f</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <StyleMap id="poly-0F9D58-3601-82-nodesc">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-0F9D58-3601-82-nodesc-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-0F9D58-3601-82-nodesc-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="poly-9C27B0-2801-69-nodesc-normal">
+      <LineStyle>
+        <color>ffb0279c</color>
+        <width>2.801</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>45b0279c</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <Style id="poly-9C27B0-2801-69-nodesc-highlight">
+      <LineStyle>
+        <color>ffb0279c</color>
+        <width>4.2015</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>45b0279c</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <StyleMap id="poly-9C27B0-2801-69-nodesc">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-9C27B0-2801-69-nodesc-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-9C27B0-2801-69-nodesc-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="poly-FFEA00-2301-77-nodesc-normal">
+      <LineStyle>
+        <color>ff00eaff</color>
+        <width>2.301</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d00eaff</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <Style id="poly-FFEA00-2301-77-nodesc-highlight">
+      <LineStyle>
+        <color>ff00eaff</color>
+        <width>3.4515</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d00eaff</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <StyleMap id="poly-FFEA00-2301-77-nodesc">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-FFEA00-2301-77-nodesc-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-FFEA00-2301-77-nodesc-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Folder>
+      <name>Manzanas </name>
+      <Placemark>
+        <name>Manzana 1</name>
+        <styleUrl>#poly-0F9D58-3601-82-nodesc</styleUrl>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <tessellate>1</tessellate>
+              <coordinates>
+                -61.3124514,-33.7079289,0
+                -61.3114308,-33.7073756,0
+                -61.3120893,-33.7065132,0
+                -61.312725,-33.7068144,0
+                -61.3131206,-33.707061,0
+                -61.3124514,-33.7079289,0
+              </coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+      </Placemark>
+      <Placemark>
+        <name>Manzana 2</name>
+        <styleUrl>#poly-FFEA00-2301-77-nodesc</styleUrl>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <tessellate>1</tessellate>
+              <coordinates>
+                -61.3103699,-33.7068187,0
+                -61.3110391,-33.7059307,0
+                -61.3120893,-33.7065132,0
+                -61.3114308,-33.7073756,0
+                -61.3103699,-33.7068187,0
+              </coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+      </Placemark>
+      <Placemark>
+        <name>Manzana 3</name>
+        <styleUrl>#poly-9C27B0-2801-69-nodesc</styleUrl>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <tessellate>1</tessellate>
+              <coordinates>
+                -61.3107816,-33.7082136,0
+                -61.3097477,-33.707648,0
+                -61.3103699,-33.7068187,0
+                -61.3114308,-33.7073756,0
+                -61.3107816,-33.7082136,0
+              </coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Puntos </name>
+      <Placemark>
+        <name>Manzana 1</name>
+        <styleUrl>#icon-1899-DB4436-nodesc</styleUrl>
+        <Point>
+          <coordinates>
+            -61.3122555,-33.7071958,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Manzana 2</name>
+        <styleUrl>#icon-1899-DB4436-nodesc</styleUrl>
+        <Point>
+          <coordinates>
+            -61.3112202,-33.7066372,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Manzana 3</name>
+        <styleUrl>#icon-1899-DB4436-nodesc</styleUrl>
+        <Point>
+          <coordinates>
+            -61.3105749,-33.7075041,0
+          </coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>
