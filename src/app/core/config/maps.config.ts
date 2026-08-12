@@ -2,6 +2,7 @@ import { MapConfig, MAP_CONFIG } from './maps.types';
 import { environment } from '@environments/environment';
 import { mapConfig as mapConfigWheelwright } from './maps.wheelwright';
 import { mapConfig as mapConfigMariaTeresa } from './maps.maria-teresa';
+import { mapConfig as mapConfigHughes } from './maps.hughes';
 
 export { MapConfig, MAP_CONFIG };
 
@@ -15,6 +16,9 @@ switch (environment.congregationKey) {
   case 'mariaTeresa':
   case 'maria-teresa':
     mapConfig = mapConfigMariaTeresa;
+    break;
+  case 'hughes':
+    mapConfig = mapConfigHughes;
     break;
   default:
     // Fallback to wheelwright if no match found
