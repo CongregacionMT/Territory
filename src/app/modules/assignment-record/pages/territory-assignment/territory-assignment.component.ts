@@ -478,16 +478,32 @@ export class TerritoryAssignmentComponent implements OnInit {
       }
       for (const key of Object.keys(changes)) {
         const { collectionName, cardId, data, isNew } = changes[key];
+        
+        // Remove undefined fields since Firestore doesn't support them
+        const removeUndefined = (obj: any): any => {
+          if (obj === null || typeof obj !== 'object') return obj;
+          if (obj instanceof Date || (typeof obj.toDate === 'function')) return obj;
+          if (Array.isArray(obj)) return obj.map(removeUndefined);
+          const result: any = {};
+          for (const k of Object.keys(obj)) {
+            if (obj[k] !== undefined) {
+              result[k] = removeUndefined(obj[k]);
+            }
+          }
+          return result;
+        };
+        const sanitizedData = removeUndefined(data);
+
         if (isNew) {
            // Limpiar campos temporales antes de enviar a Firestore
-           const { id, ...cleanData } = data as Card;
+           const { id, ...cleanData } = sanitizedData as Card;
            // Asegurar que applesData siempre esté presente
            if (!cleanData.applesData) {
              cleanData.applesData = [{ name: 'Registro manual', checked: true }];
            }
            await this.territorieDataService.addCardInCollection(collectionName, cleanData);
         } else {
-           await this.territorieDataService.updateCardInCollection(collectionName, cardId, data);
+           await this.territorieDataService.updateCardInCollection(collectionName, cardId, sanitizedData);
         }
       }
       this.pendingChanges.set({});
