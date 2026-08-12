@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -10,6 +10,7 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { FormsModule } from '@angular/forms';
 import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils';
+import { Subscription } from 'rxjs';
 
 import { NgClass } from '@angular/common';
 
@@ -25,7 +26,7 @@ import { NgClass } from '@angular/common';
     NgClass,
   ],
 })
-export class DeparturePageComponent implements OnInit {
+export class DeparturePageComponent implements OnInit, OnDestroy {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private territoryDataService = inject(TerritoryDataService);
   private fb = inject(FormBuilder);
@@ -43,6 +44,8 @@ export class DeparturePageComponent implements OnInit {
   futureWeeks: WeeklyDeparture[] = [];
   selectedWeek: string = 'actual';
   showHistory: boolean = false;
+  private dataSub?: Subscription;
+  private fallbackSub?: Subscription;
 
   /** Inserted by Angular inject() migration for backwards compatibility */
   constructor(...args: unknown[]);
@@ -68,6 +71,21 @@ export class DeparturePageComponent implements OnInit {
       setTimeout(() => {
         this.spinner.cerrarSpinner();
       }, 1500);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.cleanupSubscriptions();
+  }
+
+  private cleanupSubscriptions(): void {
+    if (this.dataSub) {
+      this.dataSub.unsubscribe();
+      this.dataSub = undefined;
+    }
+    if (this.fallbackSub) {
+      this.fallbackSub.unsubscribe();
+      this.fallbackSub = undefined;
     }
   }
 
@@ -121,8 +139,12 @@ export class DeparturePageComponent implements OnInit {
     const currentWeekId = getWeekId(today);
 
     this.dateDeparture.setValue(currentWeekId);
+    this.departures$ = [];
+    this.spinner.cargarSpinner();
 
-    this.territoryDataService.getWeeklyDeparture(currentWeekId).subscribe({
+    this.cleanupSubscriptions();
+
+    this.dataSub = this.territoryDataService.getWeeklyDeparture(currentWeekId).subscribe({
       next: (weeklyData: any) => {
         if (weeklyData?.departure?.length > 0) {
           this.departures$ = weeklyData.departure;
@@ -130,7 +152,10 @@ export class DeparturePageComponent implements OnInit {
           this.spinner.cerrarSpinner();
         } else {
           // Fallback a las salidas "master" si no hay historial guardado para esta semana todavía
-          this.territoryDataService.getDepartures().subscribe({
+          if (this.fallbackSub) {
+            this.fallbackSub.unsubscribe();
+          }
+          this.fallbackSub = this.territoryDataService.getDepartures().subscribe({
             next: (masterData: any) => {
               this.departures$ = masterData?.departure || [];
               this.sortDepartures();
@@ -145,7 +170,10 @@ export class DeparturePageComponent implements OnInit {
       },
       error: () => {
         // En caso de error, intentar fallback también
-        this.territoryDataService.getDepartures().subscribe({
+        if (this.fallbackSub) {
+          this.fallbackSub.unsubscribe();
+        }
+        this.fallbackSub = this.territoryDataService.getDepartures().subscribe({
           next: (masterData: any) => {
             this.departures$ = masterData?.departure || [];
             this.sortDepartures();
@@ -224,8 +252,11 @@ export class DeparturePageComponent implements OnInit {
     this.spinner.cargarSpinner();
     this.selectedWeek = targetWeekId;
     this.dateDeparture.setValue(targetWeekId);
+    this.departures$ = [];
 
-    this.territoryDataService.getWeeklyDeparture(targetWeekId).subscribe({
+    this.cleanupSubscriptions();
+
+    this.dataSub = this.territoryDataService.getWeeklyDeparture(targetWeekId).subscribe({
       next: (weeklyData: any) => {
         if (weeklyData?.departure?.length > 0) {
           this.departures$ = weeklyData.departure;
