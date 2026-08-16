@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { SpinnerService } from '@core/services/spinner.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { TerritoryDataService } from '../../../../core/services/territory-data.service';
@@ -9,6 +9,7 @@ import { NgClass } from '@angular/common';
     selector: 'app-table-publishers-page',
     templateUrl: './table-publishers-page.component.html',
     styleUrls: ['./table-publishers-page.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [BreadcrumbComponent, NgClass]
 })
 export class TablePublishersPageComponent implements OnInit {

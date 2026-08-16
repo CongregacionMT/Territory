@@ -6,6 +6,7 @@ import {
   signal,
   viewChild,
   computed,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import {
@@ -41,6 +42,7 @@ import { TerritoryMapComponent } from '../../components/territory-map/territory-
   selector: 'app-card-territory',
   templateUrl: './card-territory.component.html',
   styleUrls: ['./card-territory.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     BreadcrumbComponent,
     ReactiveFormsModule,

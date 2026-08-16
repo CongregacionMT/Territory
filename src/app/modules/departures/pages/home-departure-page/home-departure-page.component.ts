@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -15,6 +15,7 @@ import { forkJoin, take } from 'rxjs';
   selector: 'app-home-departure-page',
   templateUrl: './home-departure-page.component.html',
   styleUrls: ['./home-departure-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [BreadcrumbComponent, CardXlComponent, RouterLink],
 })
 export class HomeDeparturePageComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input } from '@angular/core';
+import { Component, OnInit, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DataRural } from '@core/models/DataRural';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -8,6 +8,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
     selector: 'app-form-rural',
     templateUrl: './form-rural.component.html',
     styleUrls: ['./form-rural.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [ReactiveFormsModule]
 })
 export class FormRuralComponent implements OnInit {

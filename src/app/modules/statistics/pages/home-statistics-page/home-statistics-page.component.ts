@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -13,6 +13,7 @@ import { LocalityData } from '@core/models/LocalityData';
     selector: 'app-home-statistics-page',
     templateUrl: './home-statistics-page.component.html',
     styleUrls: ['./home-statistics-page.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [BreadcrumbComponent, CardXlComponent, RouterLink]
 })
 export class HomeStatisticsPageComponent implements OnInit {

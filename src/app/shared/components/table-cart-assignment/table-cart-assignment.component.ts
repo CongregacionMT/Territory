@@ -1,9 +1,10 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, ChangeDetectionStrategy } from '@angular/core';
 import { CartData } from '@core/models/Cart';
 
 @Component({
     selector: 'app-table-cart-assignment',
     templateUrl: './table-cart-assignment.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./table-cart-assignment.component.scss']
 })
 export class TableCartAssignmentComponent implements OnInit {

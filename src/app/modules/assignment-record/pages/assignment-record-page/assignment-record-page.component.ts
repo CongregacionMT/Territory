@@ -5,6 +5,7 @@ import {
   ChangeDetectorRef,
   signal,
   computed,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Card, CardApplesData } from '@core/models/Card';
@@ -35,6 +36,7 @@ import { Timestamp } from '@angular/fire/firestore';
   selector: 'app-assignment-record-page',
   templateUrl: './assignment-record-page.component.html',
   styleUrls: ['./assignment-record-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     BreadcrumbComponent,
     CardXlComponent,

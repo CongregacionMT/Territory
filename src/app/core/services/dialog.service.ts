@@ -7,20 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class DialogService {
-  private dialog = inject(MatDialog);
-
-  matDialog = inject(MatDialog);
-
-  private static instance: DialogService | null = null;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
-    DialogService.instance = this;
-  }
-  public static getInstance() {
-    return DialogService.instance;
-  }
+  private matDialog = inject(MatDialog);
 
   openDialog<T, D = any, R = boolean>(
     data: D,

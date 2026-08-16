@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { WeeklyDeparture } from '@core/models/Departures';
@@ -12,6 +12,7 @@ import { formatWeekRange } from '@shared/utils/date-utils';
   standalone: true,
   imports: [BreadcrumbComponent],
   templateUrl: './statistics-departures.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./statistics-departures.component.scss'],
 })
 export class StatisticsDeparturesComponent implements OnInit {

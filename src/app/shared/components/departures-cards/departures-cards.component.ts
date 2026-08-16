@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input, effect } from '@angular/core';
+import { Component, OnInit, inject, input, effect, ChangeDetectionStrategy } from '@angular/core';
 import { Departure } from '@core/models/Departures';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
@@ -7,6 +7,7 @@ import { environment } from '@environments/environment';
   selector: 'app-departures-cards',
   templateUrl: './departures-cards.component.html',
   styleUrls: ['./departures-cards.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink],
 })
 export class DeparturesCardsComponent implements OnInit {

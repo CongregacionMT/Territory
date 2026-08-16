@@ -13,7 +13,7 @@
               <div class="card-body p-3">
                 <div class="departure-entry-top">
                   <div>
-                    <div class="departure-entry-title">{{ getDepartureTitle(days.get('date')?.value, days.get('schedule')?.value) }}</div>
+                    <div class="departure-entry-title">{{ getDepartureTitle($safeNavigationMigration(days.get('date')?.value), $safeNavigationMigration(days.get('schedule')?.value)) }}</div>
                     @if (isAdmin) {
                       <span class="departure-status-pill" [class]="getCardStatusClass(days)">
                         {{ getCardStatusLabel(days) }}
@@ -27,7 +27,7 @@
                         type="checkbox"
                         role="switch"
                         [id]="'isEvent_' + i + '_' + group"
-                        [checked]="days.get('isEvent')?.value"
+                        [checked]="$safeNavigationMigration(days.get('isEvent')?.value)"
                         (change)="onChangeCheckbox($event, 'isEvent', i, group)"
                       />
                       <label class="form-check-label departure-toggle-label" [for]="'isEvent_' + i + '_' + group">
@@ -64,7 +64,7 @@
                     <input
                       type="date"
                       class="form-control"
-                      [value]="days.get('date')?.value"
+                      [value]="$safeNavigationMigration(days.get('date')?.value)"
                       (change)="onChangeInput($event, 'date', i, group)"
                     />
                   </div>
@@ -74,7 +74,7 @@
                       type="time"
                       aria-label="schedule"
                       class="form-control"
-                      [value]="days.get('schedule')?.value"
+                      [value]="$safeNavigationMigration(days.get('schedule')?.value)"
                       (change)="onChangeInput($event, 'schedule', i, group)"
                     />
                   </div>
@@ -132,7 +132,7 @@
                       Color
                       <span
                         class="departure-color-swatch"
-                        [style.background-color]="getColorSwatch(days.get('color')?.value)"
+                        [style.background-color]="getColorSwatch($safeNavigationMigration(days.get('color')?.value))"
                       ></span>
                     </label>
                     <select
@@ -204,7 +204,7 @@
                       <div class="selected-territories">
                         @for (t of getTerritories(days); track t) {
                           <a
-                            [href]="getTerritoryLink(days.get('location')?.value, t)"
+                            [href]="getTerritoryLink($safeNavigationMigration(days.get('location')?.value), t)"
                             target="_blank"
                             class="territory-chip"
                           >
@@ -296,7 +296,7 @@
                             </label>
                           </div>
                           <!-- Filtro por grupo -->
-                          @if (getAvailableGroupNumbers(days.get('location')?.value).length > 0) {
+                          @if (getAvailableGroupNumbers($safeNavigationMigration(days.get('location')?.value)).length > 0) {
                             <div class="d-flex align-items-center gap-1">
                               <span class="small text-muted">Grupo:</span>
                               <button
@@ -305,7 +305,7 @@
                                 [class]="selectedTerritoryGroup === null ? 'btn-secondary' : 'btn-outline-secondary'"
                                 (click)="selectedTerritoryGroup = null"
                               >Todos</button>
-                              @for (gn of getAvailableGroupNumbers(days.get('location')?.value); track gn) {
+                              @for (gn of getAvailableGroupNumbers($safeNavigationMigration(days.get('location')?.value)); track gn) {
                                 <button
                                   type="button"
                                   class="btn btn-sm"
@@ -321,7 +321,7 @@
                         >
                           @for (
                             num of getFilteredTerritoryList(
-                              days.get("location")?.value,
+                              $safeNavigationMigration(days.get("location")?.value),
                               i,
                               group
                             );
@@ -330,7 +330,7 @@
                             <div class="col">
                               <div
                                 class="territory-row"
-                                [class]="'territory-row--' + getTerritoryPriorityColor(num, days.get('location')?.value)"
+                                [class]="'territory-row--' + getTerritoryPriorityColor(num, $safeNavigationMigration(days.get('location')?.value))"
                                 [class.territory-row--selected]="isTerritoryChecked(num, i, group)"
                               >
                                 <!-- Label cubre toda la fila para hacerla clickeable -->
@@ -353,23 +353,23 @@
                                   <span class="territory-row-number">{{ num }}</span>
 
                                   <div class="territory-row-badges">
-                                    @if (isTerritoryUsedInWeek(num, days.get('location')?.value, i, group)) {
+                                    @if (isTerritoryUsedInWeek(num, $safeNavigationMigration(days.get('location')?.value), i, group)) {
                                       <span class="territory-badge territory-badge--used">🔁 Ya elegido</span>
                                     }
-                                    @if (isPersonalTerritory(num, days.get('location')?.value)) {
+                                    @if (isPersonalTerritory(num, $safeNavigationMigration(days.get('location')?.value))) {
                                       <span class="territory-badge territory-badge--personal">👤 Personal</span>
                                     }
-                                    @if (getTerritoryGroupNumber(num, days.get('location')?.value) > 0) {
-                                      <span class="territory-badge territory-badge--group">G{{ getTerritoryGroupNumber(num, days.get('location')?.value) }}</span>
+                                    @if (getTerritoryGroupNumber(num, $safeNavigationMigration(days.get('location')?.value)) > 0) {
+                                      <span class="territory-badge territory-badge--group">G{{ getTerritoryGroupNumber(num, $safeNavigationMigration(days.get('location')?.value)) }}</span>
                                     }
                                   </div>
 
                                   <span class="territory-row-age">
-                                    {{ getTerritoryAgeLabel(num, days.get('location')?.value) }}
+                                    {{ getTerritoryAgeLabel(num, $safeNavigationMigration(days.get('location')?.value)) }}
                                   </span>
 
                                   <a
-                                    [href]="getTerritoryLink(days.get('location')?.value, num)"
+                                    [href]="getTerritoryLink($safeNavigationMigration(days.get('location')?.value), num)"
                                     target="_blank"
                                     class="btn btn-sm btn-outline-primary ms-2 d-flex align-items-center gap-1"
                                     style="position: relative; z-index: 2; pointer-events: auto; font-size: 0.75rem; border-radius: 999px;"

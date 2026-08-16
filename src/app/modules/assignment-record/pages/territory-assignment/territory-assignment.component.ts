@@ -1,4 +1,4 @@
-import { Component, OnInit, DOCUMENT, inject, signal } from '@angular/core';
+import { Component, OnInit, DOCUMENT, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { HttpClient } from '@angular/common/http';
@@ -21,6 +21,7 @@ import { BreadcrumbItem } from '@core/models/Breadcrumb';
   selector: 'app-territory-assignment',
   templateUrl: './territory-assignment.component.html',
   styleUrls: ['./territory-assignment.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [BreadcrumbComponent, ReactiveFormsModule, FormsModule, DatePipe],
 })
 export class TerritoryAssignmentComponent implements OnInit {

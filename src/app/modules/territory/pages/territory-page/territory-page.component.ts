@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { CardService } from '@core/services/card.service';
@@ -17,6 +17,7 @@ import { environment } from '@environments/environment';
     selector: 'app-territory-page',
     templateUrl: './territory-page.component.html',
     styleUrls: ['./territory-page.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [BreadcrumbComponent, CardXlComponent, RouterLink, CardSComponent]
 })
 export class TerritoryPageComponent implements OnInit {

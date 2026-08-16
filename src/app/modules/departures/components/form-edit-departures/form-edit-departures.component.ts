@@ -7,6 +7,7 @@ import {
   effect,
   Output,
   EventEmitter,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   AbstractControl,
@@ -35,6 +36,7 @@ import { Card } from '@core/models/Card';
   selector: 'app-form-edit-departures',
   templateUrl: './form-edit-departures.component.html',
   styleUrls: ['./form-edit-departures.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule],
 })
 export class FormEditDeparturesComponent implements OnInit {

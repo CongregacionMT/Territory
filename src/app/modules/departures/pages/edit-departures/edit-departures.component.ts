@@ -4,6 +4,7 @@ import {
   inject,
   ViewChild,
   HostListener,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   FormBuilder,
@@ -31,6 +32,7 @@ import { environment } from '@environments/environment';
   selector: 'app-edit-departures',
   templateUrl: './edit-departures.component.html',
   styleUrls: ['./edit-departures.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, FormEditDeparturesComponent, FormsModule],
 })
 export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {

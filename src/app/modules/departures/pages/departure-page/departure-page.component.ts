@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -18,6 +18,7 @@ import { NgClass } from '@angular/common';
   selector: 'app-departure-page',
   templateUrl: './departure-page.component.html',
   styleUrls: ['./departure-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     BreadcrumbComponent,
     DeparturesCardsComponent,

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,6 +14,7 @@ import { Group, Publisher } from '@core/models/Group';
   standalone: true,
   imports: [CommonModule, FormsModule, DragDropModule, BreadcrumbComponent],
   templateUrl: './manage-publishers.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./manage-publishers.component.scss']
 })
 export class ManagePublishersComponent implements OnInit {

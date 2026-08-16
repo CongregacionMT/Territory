@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -14,6 +14,7 @@ import { BreadcrumbItem } from '@core/models/Breadcrumb';
     selector: 'app-number-territory',
     templateUrl: './number-territory.component.html',
     styleUrls: ['./number-territory.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [BreadcrumbComponent, DatePipe]
 })
 export class NumberTerritoryComponent implements OnInit {

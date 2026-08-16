@@ -73,9 +73,9 @@
                   <input
                     class="form-check-input check"
                     type="checkbox"
-                    [id]="apple?.name"
-                    [value]="apple?.name"
-                    [checked]="apple?.checked"
+                    [id]="$safeNavigationMigration(apple?.name)"
+                    [value]="$safeNavigationMigration(apple?.name)"
+                    [checked]="$safeNavigationMigration(apple?.checked)"
                     (change)="onCheckboxChange($event)"
                   />
                   <label

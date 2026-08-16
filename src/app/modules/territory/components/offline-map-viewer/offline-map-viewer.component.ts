@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, input, signal, ElementRef, viewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, input, signal, ElementRef, viewChild, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 
 import * as toGeoJSON from '@tmcw/togeojson';
 import * as L from 'leaflet';
@@ -8,6 +8,7 @@ import * as L from 'leaflet';
   standalone: true,
   imports: [],
   templateUrl: './offline-map-viewer.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './offline-map-viewer.component.scss'
 })
 export class OfflineMapViewerComponent implements OnInit, OnDestroy, AfterViewInit {

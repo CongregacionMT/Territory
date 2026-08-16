@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CartData, CartLocation } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -10,6 +10,7 @@ import { FormEditCartComponent } from '../../components/form-edit-cart/form-edit
     selector: 'app-cart-edit-page',
     templateUrl: './cart-edit-page.component.html',
     styleUrls: ['./cart-edit-page.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormEditCartComponent]
 })
 export class CartEditPageComponent implements OnInit {

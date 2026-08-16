@@ -1,5 +1,5 @@
 <section class="d-flex justify-content-center rounded formRoad">
-  <form [formGroup]="formRoad" (ngSubmit)="postForm(this.editionForm()?.id)">
+  <form [formGroup]="formRoad" (ngSubmit)="postForm($safeNavigationMigration(this.editionForm()?.id))">
     <div class="mb-3">
       <label for="title" class="form-label text-dark">Nombre</label>
       <input id="title" type="text" class="form-control" formControlName="title" placeholder="Ingresar un nombre">

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { DataRural } from '@core/models/DataRural';
 import { FormRuralComponent } from '../form-rural/form-rural.component';
@@ -9,6 +9,7 @@ declare var window: any;
     selector: 'app-modal-form-rural',
     templateUrl: './modal-form-rural.component.html',
     styleUrls: ['./modal-form-rural.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FormRuralComponent]
 })
 export class ModalFormRuralComponent implements OnInit {

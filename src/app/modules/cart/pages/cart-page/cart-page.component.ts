@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { CartData, CartDataArray } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
@@ -12,6 +12,7 @@ import { RouterLink } from '@angular/router';
     selector: 'app-cart-page',
     templateUrl: './cart-page.component.html',
     styleUrls: ['./cart-page.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [BreadcrumbComponent, TableCartAssignmentComponent, RouterLink]
 })
 export class CartPageComponent implements OnInit{

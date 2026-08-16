@@ -6,7 +6,7 @@ import { AssignmentRecordPageComponent } from './pages/assignment-record-page/as
 
 import { NumberTerritoryComponent } from './pages/number-territory/number-territory.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { TerritoryAssignmentComponent } from './pages/territory-assignment/territory-assignment.component';
 import { FormsModule } from '@angular/forms';
 
@@ -16,5 +16,5 @@ import { FormsModule } from '@angular/forms';
     ReactiveFormsModule,
     FormsModule, AssignmentRecordPageComponent,
     NumberTerritoryComponent,
-    TerritoryAssignmentComponent], providers: [provideHttpClient(withInterceptorsFromDi())] })
+    TerritoryAssignmentComponent], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
 export class AssignmentRecordModule { }
