@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { WeeklyDeparture } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -10,7 +10,7 @@ import { formatWeekRange } from '@shared/utils/date-utils';
 @Component({
   selector: 'app-statistics-departures',
   standalone: true,
-  imports: [CommonModule, BreadcrumbComponent],
+  imports: [BreadcrumbComponent],
   templateUrl: './statistics-departures.component.html',
   styleUrls: ['./statistics-departures.component.scss'],
 })

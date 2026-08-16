@@ -10,7 +10,7 @@ import {
   ElementRef,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { environment } from '@environments/environment';
 import { TerritoryMapService } from '../../services/territory-map.service';
 import { mapConfig } from '@core/config/maps.config';
@@ -20,7 +20,7 @@ import { OfflineMapViewerComponent } from '../offline-map-viewer/offline-map-vie
 @Component({
   selector: 'app-territory-map',
   standalone: true,
-  imports: [CommonModule, OfflineMapViewerComponent],
+  imports: [OfflineMapViewerComponent],
   templateUrl: './territory-map.component.html',
   styleUrl: './territory-map.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

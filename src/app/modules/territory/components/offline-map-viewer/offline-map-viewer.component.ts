@@ -1,12 +1,12 @@
 import { Component, OnInit, OnDestroy, input, signal, ElementRef, viewChild, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import * as toGeoJSON from '@tmcw/togeojson';
 import * as L from 'leaflet';
 
 @Component({
   selector: 'app-offline-map-viewer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './offline-map-viewer.component.html',
   styleUrl: './offline-map-viewer.component.scss'
 })
