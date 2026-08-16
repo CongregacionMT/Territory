@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { CartData, CartLocation } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -14,6 +15,7 @@ import { FormEditCartComponent } from '../../components/form-edit-cart/form-edit
     imports: [FormEditCartComponent]
 })
 export class CartEditPageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private cartDataService = inject(CartDataService);
   private spinner = inject(SpinnerService);
@@ -21,12 +23,7 @@ export class CartEditPageComponent implements OnInit {
   dataLoaded: boolean = false;
   routerBreadcrum: any = [];
   formCartData: CartData[] = [] as CartData[];
-  formLocationsData: CartLocation[] = [] as CartLocation[];
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-
-  constructor(){
+  formLocationsData: CartLocation[] = [] as CartLocation[];constructor(){
     const routerBreadcrumMockService = this.routerBreadcrumMockService;
 
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
@@ -39,7 +36,7 @@ export class CartEditPageComponent implements OnInit {
     forkJoin({
       cartAssignment: this.cartDataService.getCartAssignment(),
       locations: this.cartDataService.getLocations()
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ cartAssignment, locations }) => {
         this.formCartData = cartAssignment.cart;
         this.formLocationsData = locations.locations;

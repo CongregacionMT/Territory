@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { CardService } from '@core/services/card.service';
@@ -12,6 +12,7 @@ import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.c
 import { RouterLink } from '@angular/router';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 import { environment } from '@environments/environment';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-territory-page',
@@ -24,6 +25,7 @@ export class TerritoryPageComponent implements OnInit {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
+  private destroyRef = inject(DestroyRef);
   cardService = inject(CardService);
 
   routerBreadcrum: any = [];
@@ -35,11 +37,7 @@ export class TerritoryPageComponent implements OnInit {
   isAdmin: boolean = false;
   isDriver: boolean = false;
   congregationName: string = environment.congregationName;
-  localities: any[] = environment.localities || [];
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  localities: any[] = environment.localities || [];constructor() {
     const routerBreadcrumMockService = this.routerBreadcrumMockService;
 
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
@@ -57,7 +55,7 @@ export class TerritoryPageComponent implements OnInit {
     // Cargar mapas de localidades desde Firebase (ya vienen con links correctos)
     if(!sessionStorage.getItem("territorioMaps")){
       this.spinner.cargarSpinner();
-      this.territorieDataService.getMaps()
+      this.territorieDataService.getMaps().pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((map: MapData[]) => {
         // Los mapas vienen de Firebase con el link correcto (mariaTeresa, christophersen, etc.)
         if (map.length > 0) {

@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { SpinnerService } from '@core/services/spinner.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { TerritoryDataService } from '../../../../core/services/territory-data.service';
@@ -13,16 +14,13 @@ import { NgClass } from '@angular/common';
     imports: [BreadcrumbComponent, NgClass]
 })
 export class TablePublishersPageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private territoriyDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
 
   routerBreadcrum: any = [];
-  groupList: any[] = [];
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor(){
+  groupList: any[] = [];constructor(){
     const routerBreadcrumMockService = this.routerBreadcrumMockService;
 
     this.spinner.cargarSpinner();
@@ -32,7 +30,7 @@ export class TablePublishersPageComponent implements OnInit {
   ngOnInit(): void {
     this.spinner
     this.routerBreadcrum = this.routerBreadcrum[12];
-    this.territoriyDataService.getGroupList().subscribe({
+    this.territoriyDataService.getGroupList().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.groupList = data;
         this.spinner.cerrarSpinner();

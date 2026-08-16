@@ -129,7 +129,7 @@
                                 >
                               } @else {
                                 <div class="date-value fw-medium text-info">
-                                  {{ (list.start || list.creation?.toDate?.() || (list.creation?.seconds ? list.creation.seconds * 1000 : list.creation)) | date: "dd/MM/yyyy" }}
+                                  {{ (list.start || $any(list.creation)?.toDate?.() || ($any(list.creation)?.seconds ? $any(list.creation).seconds * 1000 : list.creation)) | date: "dd/MM/yy" }}
                                 </div>
                               }
                             </div>

@@ -1,3 +1,4 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnInit,
@@ -6,7 +7,7 @@ import {
   signal,
   computed,
   ChangeDetectionStrategy
-} from '@angular/core';
+, DestroyRef} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Card, CardApplesData } from '@core/models/Card';
 import { CardService } from '@core/services/card.service';
@@ -47,6 +48,7 @@ import { Timestamp } from '@angular/fire/firestore';
   ],
 })
 export class AssignmentRecordPageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private territorieDataService = inject(TerritoryDataService);
   private cardService = inject(CardService);
@@ -77,20 +79,16 @@ export class AssignmentRecordPageComponent implements OnInit {
   // Computed signals (opcional, para valores derivados)
   hasCardsReceived = computed(() => this.allCardsReceived().length > 0);
   hasCardsAssigned = computed(() => this.allCardsAssigned().length > 0);
-  hasTerritoryMaps = computed(() => this.territorioMaps().length > 0);
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  hasTerritoryMaps = computed(() => this.territorioMaps().length > 0);constructor() {
     this.spinner.cargarSpinner();
 
     // get tarjetas asignadas esta semana
-    this.territorieDataService.getCardAssigned().subscribe((card) => {
+    this.territorieDataService.getCardAssigned().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((card) => {
       this.allCardsAssigned.set(card);
     });
 
     // get tarjetas a revisión
-    this.territorieDataService.getRevisionCardTerritorie().subscribe((card) => {
+    this.territorieDataService.getRevisionCardTerritorie().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((card) => {
       this.allCardsReceived.set(card);
       this.cardConfirmation.set(JSON.parse(JSON.stringify(card)));
       this.spinner.cerrarSpinner();
@@ -137,7 +135,7 @@ export class AssignmentRecordPageComponent implements OnInit {
 
     if (!sessionStorage.getItem('territorioMaps')) {
       this.spinner.cargarSpinner();
-      this.territorieDataService.getMaps().subscribe((map) => {
+      this.territorieDataService.getMaps().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((map) => {
         const maps = map[0].maps.map((m: CardButtonsData) => {
           if (m.name === 'urbano') {
             return { ...m, name: this.congregationName };
@@ -166,7 +164,7 @@ export class AssignmentRecordPageComponent implements OnInit {
       this.territoryNumberOfLocalStorage.set(JSON.parse(stored));
       this.updateAvailableTerritories();
     } else {
-      this.territorieDataService.getNumberTerritory().subscribe((data) => {
+      this.territorieDataService.getNumberTerritory().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
         if (data && data.length > 0) {
           const mapped: TerritoriesNumberData = {};
           data.forEach((entry: any) => {

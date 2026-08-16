@@ -14,6 +14,8 @@ import localeEs from '@angular/common/locales/es';
 import { mapConfig } from '@core/config/maps.config';
 import { NetworkService } from '@core/services/network.service';
 import { OfflineMapViewerComponent } from '../../components/offline-map-viewer/offline-map-viewer.component';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-mapas',
@@ -32,6 +34,7 @@ export class MapasComponent implements OnInit {
   private spinner = inject(SpinnerService);
   public networkService = inject(NetworkService);
   private dialogService = inject(DialogService);
+  private destroyRef = inject(DestroyRef);
 
   isAdmin: boolean = false;
   mapa: SafeHtml | undefined;
@@ -40,11 +43,7 @@ export class MapasComponent implements OnInit {
   class: string = 'map-responsive';
   showRural: boolean = false;
   dataRural: DataRural[] = [];
-  readonly modalFormRuralComponent = viewChild(ModalFormRuralComponent);
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  readonly modalFormRuralComponent = viewChild(ModalFormRuralComponent);constructor() {
     registerLocaleData(localeEs);
   }
 
@@ -69,8 +68,8 @@ export class MapasComponent implements OnInit {
     
     if(path === 'rural'){
       this.spinner.cargarSpinner();
-      this.territoriyDataService.getTerritorieRural().subscribe({
-        next: (road: DataRural[]) => {
+      this.territoriyDataService.getTerritorieRural().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: (road: any) => {
           this.dataRural = road;
           this.showRural = true;
           this.spinner.cerrarSpinner();

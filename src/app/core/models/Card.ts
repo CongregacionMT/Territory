@@ -24,7 +24,7 @@ export class Card {
   title?: string;
   territoryNumber?: number;
   publisher?: string;
-  creation?: Date | string | number; // Timestamp or string
+  creation?: Date | string | number | { seconds: number, nanoseconds?: number, toDate?: () => Date }; // Timestamp or string
 
   constructor() {
     this.applesData = [{ name: '', checked: false }];

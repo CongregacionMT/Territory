@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, inject, OnInit, signal, viewChild, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -14,6 +15,7 @@ import { User } from '@core/models/User';
     imports: [ReactiveFormsModule, NgClass]
 })
 export class LoginPageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private territoryDataService = inject(TerritoryDataService);
@@ -35,7 +37,7 @@ export class LoginPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.formLogin.get('user')?.valueChanges.subscribe(value => {
+    this.formLogin.get('user')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => {
       const lower = value;
       if (value !== lower) {
         this.formLogin.get('user')?.setValue(lower, { emitEvent: false });
@@ -49,7 +51,7 @@ export class LoginPageComponent implements OnInit {
     this.territoryDataService.loginUser(
       this.formLogin.value.user,
       this.formLogin.value.password
-    ).subscribe((user: User[]) => {
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user: User[]) => {
       if(user.length !== 0){
         if(user[0].rol === "admin"){
           localStorage.setItem("tokenAdmin", "lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa");

@@ -13,9 +13,4 @@ import { MatButton } from '@angular/material/button';
 })
 export class ConfirmDialogComponent {
   data = inject<ConfirmDialogData>(MAT_DIALOG_DATA);
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-
-  constructor() {}
 }

@@ -1,3 +1,4 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnInit,
@@ -5,7 +6,7 @@ import {
   ViewChild,
   HostListener,
   ChangeDetectionStrategy
-} from '@angular/core';
+, DestroyRef} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -36,6 +37,7 @@ import { environment } from '@environments/environment';
   imports: [ReactiveFormsModule, FormEditDeparturesComponent, FormsModule],
 })
 export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
+  private destroyRef = inject(DestroyRef);
   @ViewChild(FormEditDeparturesComponent)
   formEditComponent!: FormEditDeparturesComponent;
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
@@ -64,11 +66,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     { offset: 5, schedule: '09:30', group: 0, color: 'success' },
     { offset: 6, schedule: '10:00', group: 1, color: 'info' },
     { offset: 6, schedule: '10:00', group: 2, color: 'info' },
-  ];
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  ];constructor() {
     const routerBreadcrumMockService = this.routerBreadcrumMockService;
 
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
@@ -82,7 +80,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     this.currentMondayStr = todayMonday.toISOString().split('T')[0];
 
     // Escuchar cambios en la fecha (esto manejará la carga de datos)
-    this.dateDeparture.valueChanges.subscribe((value: string) => {
+    this.dateDeparture.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value: string) => {
       this.isSaved = false;
       if (value) {
         const dateObj = new Date(value + 'T00:00:00');
@@ -117,7 +115,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     this.territoryDataService
       .getDateDepartures()
       .pipe(take(1))
-      .subscribe({
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (res) => {
           // Siempre arrancamos en la semana actual, ignorando la fecha guardada en Firestore
           const mondayStr = this.currentMondayStr;
@@ -135,7 +133,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   loadHistory() {
-    this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
+    this.territoryDataService.getWeeklyDepartures().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((history) => {
       // Calcular la fecha lunes de hace 8 semanas
       const today = new Date();
       const currentMonday = this.getMonday(today);
@@ -197,7 +195,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     this.territoryDataService
       .getWeeklyDeparture(weekId)
       .pipe(take(1))
-      .subscribe({
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (weeklyData) => {
           if (loadId !== this.lastLoadId) return;
 
@@ -213,7 +211,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
             this.territoryDataService
               .getDepartures()
               .pipe(take(1))
-              .subscribe({
+              .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                 next: (masterData) => {
                   if (loadId !== this.lastLoadId) return;
                   this.formDepartureData = masterData?.departure || [];
@@ -234,7 +232,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
           this.territoryDataService
             .getDepartures()
             .pipe(take(1))
-            .subscribe({
+            .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
               next: (masterData) => {
                 if (loadId !== this.lastLoadId) return;
                 this.formDepartureData = masterData?.departure || [];

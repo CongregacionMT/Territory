@@ -1,3 +1,4 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnDestroy,
@@ -7,7 +8,7 @@ import {
   viewChild,
   computed,
   ChangeDetectionStrategy
-} from '@angular/core';
+, DestroyRef} from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import {
   FormBuilder,
@@ -54,6 +55,7 @@ import { TerritoryMapComponent } from '../../components/territory-map/territory-
   ],
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
+  private destroyRef = inject(DestroyRef);
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private fb = inject(FormBuilder);
   private territorieDataService = inject(TerritoryDataService);
@@ -109,7 +111,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
         ?.length ?? 0,
   );
 
-  constructor(...args: unknown[]);
   constructor() {
     this.spinner.cargarSpinner();
     this.isAdmin = !!localStorage.getItem('tokenAdmin');
@@ -140,7 +141,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       this.path.set(this.activatedRoute.snapshot.params['collection']);
       const subscription = this.territorieDataService
         .getCardTerritorie(this.path())
-        .subscribe({
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: (cards) => {
             // Buscar la primera card completa (con applesData).
             // Si no hay ninguna completa, usar la primera y normalizar.
@@ -353,7 +354,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   private loadDriversOptions(): void {
     if (!this.isConductorMode()) return;
 
-    this.territorieDataService.getUsers().subscribe((users) => {
+    this.territorieDataService.getUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((users) => {
       const available = (users || [])
         .filter((user) => user.rol !== 'admin')
         .sort((a, b) => a.user.localeCompare(b.user));

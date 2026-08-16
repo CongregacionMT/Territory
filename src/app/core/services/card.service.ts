@@ -8,11 +8,7 @@ import { Card } from '@core/models/Card';
 export class CardService {
   private router = inject(Router);
 
-  dataCard: Card;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() { 
+  dataCard: Card;constructor() { 
     this.dataCard = {
       id: "0",
       location: '',

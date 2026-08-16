@@ -2,8 +2,8 @@
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
 
   <div class="header-section text-center mb-4 mt-2">
-    @if (titleGroup) {
-      <h2 class="text-info fw-bold mb-1">{{ titleGroup }}</h2>
+    @if (titleGroup()) {
+      <h2 class="text-info fw-bold mb-1">{{ titleGroup() }}</h2>
     }
     <h1 class="display-6 fw-bold mb-3">Salidas a predicar</h1>
     <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
@@ -30,7 +30,7 @@
           alt="Calendar"
         />
         <h2 class="h5 mb-0">
-          {{ getFormattedDate(dateDeparture.value || "actual") }}
+          {{ getFormattedDate(selectedWeekId()) }}
         </h2>
       </div>
 
@@ -72,7 +72,7 @@
         <div class="text-center mb-1 d-flex justify-content-center gap-2">
           <button
             class="btn btn-sm text-white text-decoration-none d-inline-flex align-items-center opacity-75"
-            (click)="showHistory = true"
+            (click)="showHistory.set(true)"
           >
             <img
               src="https://api.iconify.design/mdi:history.svg?color=%23ffffff"
@@ -85,12 +85,12 @@
           </button>
         </div>
 
-        @if (showHistory) {
+        @if (showHistory()) {
           <!-- Backdrop -->
           <div 
             class="position-fixed top-0 start-0 w-100 h-100 bg-dark animate__animated animate__fadeIn"
             style="opacity: 0.7; z-index: 1040;"
-            (click)="showHistory = false"
+            (click)="showHistory.set(false)"
           ></div>
 
           <!-- Modal Content -->
@@ -103,7 +103,7 @@
                   <img src="https://api.iconify.design/mdi:history.svg?color=%236c757d" width="22" height="22" class="me-2" alt="History" />
                   Historial de semanas
                 </h5>
-                <button type="button" class="btn-close" (click)="showHistory = false" aria-label="Close"></button>
+                <button type="button" class="btn-close" (click)="showHistory.set(false)" aria-label="Close"></button>
               </div>
 
               <!-- Modal Body -->
@@ -112,8 +112,8 @@
                 <!-- Semana actual -->
                 <button 
                   class="btn btn-light w-100 text-start mb-2 rounded-3 d-flex align-items-center border"
-                  [class.border-primary]="selectedWeek === 'actual'"
-                  [class.text-primary]="selectedWeek === 'actual'"
+                  [class.border-primary]="isCurrentWeek()"
+                  [class.text-primary]="isCurrentWeek()"
                   (click)="selectWeek('actual')"
                 >
                   <span class="fs-4 me-2">📅</span>
@@ -124,19 +124,19 @@
                 </button>
 
                 <!-- Próximas semanas -->
-                @if (futureWeeks.length > 0) {
+                @if (futureWeeks().length > 0) {
                   <div class="px-2 pt-2 mb-2 d-flex align-items-center">
                     <img src="https://api.iconify.design/mdi:calendar-arrow-right.svg?color=%23198754" width="16" height="16" class="me-1" alt="Future">
                     <h6 class="text-success small fw-bold mb-0 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Próximas semanas</h6>
                   </div>
                   <div class="d-flex flex-column gap-1 mb-2">
-                    @for (week of futureWeeks; track week.id) {
+                    @for (week of futureWeeks(); track week.id) {
                       <button 
                         class="btn btn-sm border-0 text-start rounded-3 px-3 py-2 fw-medium"
-                        [class.btn-success]="selectedWeek === week.id"
-                        [class.text-white]="selectedWeek === week.id"
-                        [class.btn-light]="selectedWeek !== week.id"
-                        [class.text-success]="selectedWeek !== week.id"
+                        [class.btn-success]="selectedWeekId() === week.id"
+                        [class.text-white]="selectedWeekId() === week.id"
+                        [class.btn-light]="selectedWeekId() !== week.id"
+                        [class.text-success]="selectedWeekId() !== week.id"
                         (click)="selectWeek(week.id ? week.id : 'actual')"
                       >
                         {{ getFormattedDate(week.weekId) }}
@@ -146,18 +146,18 @@
                 }
 
                 <!-- Historial anterior -->
-                @if (pastWeeks.length > 0) {
+                @if (pastWeeks().length > 0) {
                   <div class="px-2 pt-2 mb-2 d-flex align-items-center">
                     <img src="https://api.iconify.design/mdi:history.svg?color=%236c757d" width="16" height="16" class="me-1" alt="Past">
                     <h6 class="text-secondary small fw-bold mb-0 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Historial anterior</h6>
                   </div>
                   <div class="d-flex flex-column gap-1">
-                    @for (week of pastWeeks; track week.id) {
+                    @for (week of pastWeeks(); track week.id) {
                       <button 
                         class="btn btn-sm border-0 text-start rounded-3 px-3 py-2 text-secondary fw-medium"
-                        [class.bg-secondary]="selectedWeek === week.id"
-                        [class.text-white]="selectedWeek === week.id"
-                        [class.bg-light]="selectedWeek !== week.id"
+                        [class.bg-secondary]="selectedWeekId() === week.id"
+                        [class.text-white]="selectedWeekId() === week.id"
+                        [class.bg-light]="selectedWeekId() !== week.id"
                         (click)="selectWeek(week.id ? week.id : 'actual')"
                       >
                         {{ getFormattedDate(week.weekId) }}
@@ -166,7 +166,7 @@
                   </div>
                 }
 
-                @if (futureWeeks.length === 0 && pastWeeks.length === 0) {
+                @if (futureWeeks().length === 0 && pastWeeks().length === 0) {
                   <div class="text-center text-muted p-4">
                     <small>No hay historial disponible</small>
                   </div>
@@ -180,10 +180,10 @@
     </div>
   </div>
 
-  @if (departures$.length > 0) {
+  @if (departures$().length > 0) {
     <div class="mb-5">
       <app-departures-cards
-        [departures]="departures$"
+        [departures]="departures$()"
       ></app-departures-cards>
     </div>
   } @else {

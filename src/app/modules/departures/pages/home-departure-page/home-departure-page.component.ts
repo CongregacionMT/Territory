@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -19,6 +20,7 @@ import { forkJoin, take } from 'rxjs';
   imports: [BreadcrumbComponent, CardXlComponent, RouterLink],
 })
 export class HomeDeparturePageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
@@ -33,11 +35,7 @@ export class HomeDeparturePageComponent implements OnInit {
   // Print state
   showPrintModal: boolean = false;
   isPrintingPdf: boolean = false;
-  pdfGenerated: boolean = false;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  pdfGenerated: boolean = false;constructor() {
     const routerBreadcrumMockService = this.routerBreadcrumMockService;
 
     this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
@@ -50,7 +48,7 @@ export class HomeDeparturePageComponent implements OnInit {
     this.spinner.cargarSpinner();
     this.routerBreadcrum = this.routerBreadcrum[1];
 
-    this.territoryDataService.getGroupList().subscribe((groups: Group[]) => {
+    this.territoryDataService.getGroupList().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((groups: Group[]) => {
       this.groupKeys = [];
       this.groups = groups;
 
@@ -124,7 +122,7 @@ export class HomeDeparturePageComponent implements OnInit {
         current: this.territoryDataService.getWeeklyDeparture(currentWeekId).pipe(take(1)),
         next: this.territoryDataService.getWeeklyDeparture(nextWeekId).pipe(take(1)),
         master: this.territoryDataService.getDepartures().pipe(take(1)),
-      }).subscribe({
+      }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: async (result: any) => {
           try {
             let currentDepartures: Departure[] = [];

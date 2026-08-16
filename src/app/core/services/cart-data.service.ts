@@ -8,13 +8,7 @@ import { CartDataArray, LocationsData } from '@core/models/Cart';
   providedIn: 'root'
 })
 export class CartDataService {
-  private firestore = inject(Firestore);
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-
-
-  constructor() { }
+  private firestore = inject(Firestore);constructor() { }
 
   getCartAssignment(): Observable<CartDataArray> {
     const cartRef = doc(this.firestore, "Cart", `docCart`);

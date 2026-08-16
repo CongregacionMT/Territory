@@ -22,12 +22,7 @@ export class FormEditCartComponent implements OnInit {
   selectedColor: string = 'primary';
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formCartDataInput = input<CartData[]>([] as CartData[]);
-  readonly formLocationsDataInput = input<CartLocation[]>([] as CartLocation[]);
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-
-  constructor() {
+  readonly formLocationsDataInput = input<CartLocation[]>([] as CartLocation[]);constructor() {
     this.formCart = this.fb.group({
       cart: this.fb.array([]),
     });

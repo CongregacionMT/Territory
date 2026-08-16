@@ -8,6 +8,9 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
 
 import { User } from '@core/models/User';
 
+import { tap } from 'rxjs/operators';
+import { toSignal } from '@angular/core/rxjs-interop';
+
 @Component({
   selector: 'app-users-page',
   templateUrl: './users-page.component.html',
@@ -24,12 +27,15 @@ export class UsersPageComponent {
 
   readonly errorMessage = viewChild<any>('errorMessage');
 
-  users = signal<User[]>([]);
+  users = toSignal(
+    this.territoryDataService.getUsers().pipe(
+      tap(() => this.spinner.cerrarSpinner())
+    ),
+    { initialValue: [] as User[] }
+  );
 
   formUser: FormGroup;
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
   constructor() {
     this.spinner.cargarSpinner();
     this.formUser = this.fb.group({
@@ -37,10 +43,6 @@ export class UsersPageComponent {
       password: new FormControl(null, [Validators.required]),
       tokens: new FormControl([], [Validators.required]),
       rol: new FormControl('conductor'),
-    });
-    this.territoryDataService.getUsers().subscribe((users) => {
-      this.spinner.cerrarSpinner();
-      this.users.set(users);
     });
   }
 

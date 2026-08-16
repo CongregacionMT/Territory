@@ -1,3 +1,4 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnInit,
@@ -8,7 +9,7 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy
-} from '@angular/core';
+, DestroyRef} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -40,6 +41,7 @@ import { Card } from '@core/models/Card';
   imports: [ReactiveFormsModule],
 })
 export class FormEditDeparturesComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private territoryDataService = inject(TerritoryDataService);
   private fb = inject(FormBuilder);
   private spinner = inject(SpinnerService);
@@ -84,11 +86,7 @@ export class FormEditDeparturesComponent implements OnInit {
     dark: '#0f172a',
   };
 
-  private readonly CARD_TRACKING_START_DATE = '2026-05-11';
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  private readonly CARD_TRACKING_START_DATE = '2026-05-11';constructor() {
     this.isAdmin = !!localStorage.getItem('tokenAdmin');
     this.formDeparture = this.fb.group({
       departure0: new FormArray([]),
@@ -204,7 +202,7 @@ export class FormEditDeparturesComponent implements OnInit {
     } else {
       this.territoryDataService
         .getNumberTerritory()
-        .subscribe((numbers: TerritoryNumberData[]) => {
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((numbers: TerritoryNumberData[]) => {
           const mergedData = numbers.reduce((acc: any, curr: any) => {
             return { ...acc, ...curr };
           }, {});
@@ -340,7 +338,7 @@ export class FormEditDeparturesComponent implements OnInit {
 
     const promises = territories.map((t: any) =>
       new Promise<void>((resolve) => {
-        this.territoryDataService.getCardTerritorie(t.collection, 120).pipe(take(1)).subscribe(cards => {
+        this.territoryDataService.getCardTerritorie(t.collection, 120).pipe(take(1)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(cards => {
           let lastEnd = null;
           for (const c of cards) {
             if (c.end) {
@@ -380,7 +378,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
 
   loadDrivers() {
-    this.territoryDataService.getUsers().subscribe((users) => {
+    this.territoryDataService.getUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((users) => {
       this.drivers.set(users.sort((a, b) => a.user.localeCompare(b.user)));
     });
   }
@@ -388,17 +386,17 @@ export class FormEditDeparturesComponent implements OnInit {
   loadPersonalAssignments() {
     this.territoryDataService
       .getCardAssigned()
-      .subscribe((cards) => (this.personalAssignments = cards || []));
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((cards) => (this.personalAssignments = cards || []));
   }
 
   loadWeeklyHistory() {
-    this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
+    this.territoryDataService.getWeeklyDepartures().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((history) => {
       this.weeklyHistory = history;
     });
   }
 
   loadTerritoryGroups() {
-    this.territoryDataService.getTerritoryGroups().subscribe((data: any) => {
+    this.territoryDataService.getTerritoryGroups().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data: any) => {
       if (!data) return;
       // data shape: { [locationPrefix]: { [territoryNum]: groupNumber } }
       this.territoryGroupsMap = data;
@@ -1164,7 +1162,7 @@ export class FormEditDeparturesComponent implements OnInit {
       this.territoryDataService
         .getWeeklyDeparture(otherWeekId)
         .pipe(take(1))
-        .subscribe((existing) => {
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((existing) => {
           const existingDepartures = existing?.departure || [];
           // Combinar sin duplicar (evitar agregar si ya existe)
           const merged = [...existingDepartures];

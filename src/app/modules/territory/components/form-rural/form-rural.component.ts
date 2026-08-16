@@ -18,11 +18,7 @@ export class FormRuralComponent implements OnInit {
 
 
   formRoad: FormGroup;
-  readonly editionForm = input<DataRural>();
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  readonly editionForm = input<DataRural>();constructor() {
     this.formRoad = this.fb.group({
       title: new FormControl("", [Validators.required]),
       distance: new FormControl("", [Validators.required]),

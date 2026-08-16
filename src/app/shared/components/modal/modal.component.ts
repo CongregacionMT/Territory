@@ -15,10 +15,6 @@ export class ModalComponent implements OnInit {
 
   modalElement: any;
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {}
-
   ngOnInit(): void {
     let modalID = document.getElementById("modalID");
     this.modalElement = new window.bootstrap.Modal(modalID);

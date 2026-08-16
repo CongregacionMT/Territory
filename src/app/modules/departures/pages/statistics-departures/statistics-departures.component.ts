@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { WeeklyDeparture } from '@core/models/Departures';
@@ -16,6 +17,7 @@ import { formatWeekRange } from '@shared/utils/date-utils';
   styleUrls: ['./statistics-departures.component.scss'],
 })
 export class StatisticsDeparturesComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
@@ -32,7 +34,7 @@ export class StatisticsDeparturesComponent implements OnInit {
     this.spinner.cargarSpinner();
     this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum()[13]; // Home > Salidas > Estadísticas
 
-    this.territoryDataService.getWeeklyDepartures().subscribe({
+    this.territoryDataService.getWeeklyDepartures().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.weeklyDepartures = data;
         this.processStats();

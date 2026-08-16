@@ -5,7 +5,7 @@ export interface CampaignStats {
   completedTerritories?: number;
   totalTerritories?: number;
   progressHistory?: { date: string; percent: number }[];
-  lastUpdate?: Date | string | number;
+  lastUpdate?: Date | string | number | { seconds: number, nanoseconds?: number, toDate?: () => Date };
   salidas?: number;
   territoryNumber?: number;
   avgPerTerritory?: number;
@@ -25,8 +25,8 @@ export interface Campaign {
   id?: string;
   name: string;
   description: string;
-  dateEnd: Date | string | number;
-  dateInit: Date | string | number;
+  dateEnd: Date | string | number | { seconds: number, nanoseconds?: number, toDate?: () => Date };
+  dateInit: Date | string | number | { seconds: number, nanoseconds?: number, toDate?: () => Date };
   active: boolean;
   initialInvitations?: number;
   leftoverInvitations?: 'muchas' | 'algunas' | 'pocas' | 'ninguna' | '';

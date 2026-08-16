@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -18,6 +19,7 @@ import { BreadcrumbItem } from '@core/models/Breadcrumb';
     imports: [BreadcrumbComponent, DatePipe]
 })
 export class NumberTerritoryComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private activatedRoute = inject(ActivatedRoute);
   private territorieDataService = inject(TerritoryDataService);
@@ -29,11 +31,7 @@ export class NumberTerritoryComponent implements OnInit {
   dataList: Card[] = [];
   numberTerritory: number = 0;
   appleCount: number = 0;
-  cardSubscription: Subscription;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  cardSubscription: Subscription;constructor() {
       const routerBreadcrumMockService = this.routerBreadcrumMockService;
 
       this.spinner.cargarSpinner();
@@ -45,7 +43,7 @@ export class NumberTerritoryComponent implements OnInit {
   ngOnInit(): void {
     // RECIBIR LA DATA
     this.path = this.activatedRoute.snapshot.params['collection'];
-    this.territorieDataService.getCardTerritorie(this.path).subscribe({
+    this.territorieDataService.getCardTerritorie(this.path).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: card => {
         this.dataList = card;
         this.numberTerritory = card[0].territoryNumber ?? 0;
@@ -63,7 +61,7 @@ export class NumberTerritoryComponent implements OnInit {
         this.spinner.cerrarSpinner();
         this.dataList.map((list) => {
           if (list.creation && typeof list.creation === 'object' && 'seconds' in list.creation) {
-             let date = new Date(list.creation.seconds * 1000);
+             let date = new Date((list.creation as any).seconds * 1000);
              list.creation = date.getDate()+"-"+(date.getMonth()+1)+"-"+date.getFullYear();
           }
         });

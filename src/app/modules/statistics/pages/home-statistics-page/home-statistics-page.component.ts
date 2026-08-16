@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -17,6 +18,7 @@ import { LocalityData } from '@core/models/LocalityData';
     imports: [BreadcrumbComponent, CardXlComponent, RouterLink]
 })
 export class HomeStatisticsPageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
 
@@ -26,9 +28,6 @@ export class HomeStatisticsPageComponent implements OnInit {
   appleCount = signal<any>(null);
   congregationKey = environment.congregationKey;
   localities: any[] = environment.localities || [];
-
-  constructor(...args: unknown[]);
-  constructor() {}
 
   ngOnInit(): void {
     this.spinner.cargarSpinner();
@@ -81,7 +80,7 @@ export class HomeStatisticsPageComponent implements OnInit {
       new Promise<void>((resolve) => {
         this.territorieDataService
           .getCardTerritorie(territory.collection)
-          .subscribe((card) => {
+          .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((card) => {
             // Filtrar manzanas vacías o sin check
             card.forEach((list: any, index: number) => {
               let count = 0;

@@ -1,4 +1,5 @@
-import { Component, OnInit, DOCUMENT, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, DOCUMENT, inject, signal, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { HttpClient } from '@angular/common/http';
@@ -25,6 +26,7 @@ import { BreadcrumbItem } from '@core/models/Breadcrumb';
   imports: [BreadcrumbComponent, ReactiveFormsModule, FormsModule, DatePipe],
 })
 export class TerritoryAssignmentComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private territoryDataService = inject(TerritoryDataService);
   private territorieDataService = inject(TerritoryDataService);
@@ -51,7 +53,6 @@ export class TerritoryAssignmentComponent implements OnInit {
   pendingChanges = signal<{ [compositeKey: string]: { collectionName: string, cardId: string, data: Partial<Card>, isNew?: boolean } }>({});
   pendingDeletes = signal<{ [compositeKey: string]: { collectionName: string, cardId: string } }>({});
 
-  constructor(...args: unknown[]);
   constructor() {
     this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));
     const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
@@ -105,7 +106,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     const jpgPath =
       this.document.location.origin + '/assets/documents/S-13_S_image.jpg';
 
-    this.http.get(jpgPath, httpOptions).subscribe({
+    this.http.get(jpgPath, httpOptions).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (jpg) => this.s13JPG.set(jpg),
     });
   }
@@ -143,7 +144,7 @@ export class TerritoryAssignmentComponent implements OnInit {
       return;
     }
 
-    forkJoin(requests).subscribe({
+    forkJoin(requests).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (results: any) => {
         // Mantenemos la estructura original de 'results' para que los índices correspondan
         // a 'territoriesNumber'. Filtramos individualmente cada lista de tarjetas.
@@ -193,7 +194,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     this.filterDataListFull.set([]);
 
     // Primero refrescamos el mapeo de territorios (números y colecciones)
-    this.territorieDataService.getNumberTerritory().subscribe({
+    this.territorieDataService.getNumberTerritory().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (numbers: TerritoryNumberData[]) => {
         const mergedData = numbers.reduce((acc: any, curr: any) => {
           return { ...acc, ...curr };
@@ -308,9 +309,10 @@ export class TerritoryAssignmentComponent implements OnInit {
        startDate = new Date(card.start).toISOString().split('T')[0];
     } else if (card.creation) {
        let d: Date;
-       if (typeof card.creation.toDate === 'function') d = card.creation.toDate();
-       else if (card.creation.seconds) d = new Date(card.creation.seconds * 1000);
-       else d = new Date(card.creation);
+       const creationAny = card.creation as any;
+       if (typeof creationAny?.toDate === 'function') d = creationAny.toDate();
+       else if (creationAny?.seconds) d = new Date(creationAny.seconds * 1000);
+       else d = new Date(card.creation as string | number);
        startDate = d.toISOString().split('T')[0];
     }
     

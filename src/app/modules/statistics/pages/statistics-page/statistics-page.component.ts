@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { take } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -18,6 +19,7 @@ import { Card } from '@core/models/Card';
   imports: [ReactiveFormsModule, DatePipe, DecimalPipe, SortBy],
 })
 export class StatisticsPageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
@@ -64,11 +66,7 @@ export class StatisticsPageComponent implements OnInit {
   green: FormControl;
   blue: FormControl;
   yellow: FormControl;
-  red: FormControl;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  red: FormControl;constructor() {
     // Obtener el parámetro de la URL (ej: 'mariaTeresa', 'christophersen', 'rural')
     this.territoryPath.set(
       this.rutaActiva.snapshot.paramMap.get('locality') || '',
@@ -92,7 +90,7 @@ export class StatisticsPageComponent implements OnInit {
 
   ngOnInit(): void {
     // Suscribirse a cambios en los parámetros por si se navega entre localidades
-    this.rutaActiva.paramMap.subscribe((params) => {
+    this.rutaActiva.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const locality = params.get('locality');
       if (locality && locality !== this.territoryPath()) {
         this.territoryPath.set(locality);
@@ -115,7 +113,7 @@ export class StatisticsPageComponent implements OnInit {
       .pipe(take(1)) // Solo necesitamos este stream una vez para las stats, o dejarlo abierto para tiempo real?
       // El usuario recargará usualmente, pero mejor dejarlo abierto para tiempo real si no causa problemas.
       // Sin embargo, para evitar duplicados si hay un error en el pipe, take(1) es seguro.
-      .subscribe((entries) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((entries) => {
         this.allPersonalEntries.set(entries);
       });
   }
@@ -172,7 +170,7 @@ export class StatisticsPageComponent implements OnInit {
           this.territorieDataService
             .getCardTerritorie(t.collection, 120)
             .pipe(take(1)) // EVITAR DUPLICADOS SI EL STREAM EMITE MÁS DE UNA VEZ
-            .subscribe((allCards) => {
+            .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((allCards) => {
               const blueprintCard = allCards[0];
 
               // Filtramos localmente por el rango de tiempo seleccionado

@@ -115,7 +115,7 @@ export class CampaignPageComponent implements OnInit {
         nombre: c.name,
         descripcion: c.description,
         fecha: c.dateEnd
-          ? new Date(c.dateEnd.seconds * 1000).toLocaleDateString()
+          ? new Date((c.dateEnd as any).seconds * 1000).toLocaleDateString()
           : '',
       })),
     );

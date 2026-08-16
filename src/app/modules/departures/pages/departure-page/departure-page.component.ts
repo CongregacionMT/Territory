@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl } from '@angular/forms';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, effect } from '@angular/core';
+import { FormBuilder, FormControl, FormsModule } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
@@ -8,17 +8,17 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Departure, WeeklyDeparture } from '@core/models/Departures';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
-import { FormsModule } from '@angular/forms';
 import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils';
-import { Subscription } from 'rxjs';
-
 import { NgClass } from '@angular/common';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-departure-page',
   templateUrl: './departure-page.component.html',
   styleUrls: ['./departure-page.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     BreadcrumbComponent,
     DeparturesCardsComponent,
@@ -27,181 +27,124 @@ import { NgClass } from '@angular/common';
     NgClass,
   ],
 })
-export class DeparturePageComponent implements OnInit, OnDestroy {
+export class DeparturePageComponent implements OnInit {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private territoryDataService = inject(TerritoryDataService);
-  private fb = inject(FormBuilder);
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
   public networkService = inject(NetworkService);
 
+  // Simple state
   routerBreadcrum: any = [];
   numberGroup: any = '0';
-  titleGroup: string = '';
-  dateDeparture: any = new FormControl('');
-  departures$: Departure[] = [];
-  weeklyHistory: WeeklyDeparture[] = [];
-  pastWeeks: WeeklyDeparture[] = [];
-  futureWeeks: WeeklyDeparture[] = [];
-  selectedWeek: string = 'actual';
-  showHistory: boolean = false;
-  private dataSub?: Subscription;
-  private fallbackSub?: Subscription;
+  titleGroup = signal('');
+  
+  dateDeparture = new FormControl(getWeekId(new Date()));
+  showHistory = signal(false);
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
+  // Reactive state
+  selectedWeekId = signal<string>(getWeekId(new Date()));
+  isCurrentWeek = computed(() => this.selectedWeekId() === getWeekId(new Date()));
+
+  // Data streams converted to Signals
+  weeklyHistory = toSignal(this.territoryDataService.getWeeklyDepartures(), { initialValue: [] });
+
+  departures$ = toSignal(
+    toObservable(this.selectedWeekId).pipe(
+      tap(() => this.spinner.cargarSpinner()),
+      switchMap(weekId => 
+        this.territoryDataService.getWeeklyDeparture(weekId).pipe(
+          map((weeklyData: any) => {
+            let deps = weeklyData?.departure || [];
+            deps.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            return deps;
+          }),
+          catchError(() => 
+            this.territoryDataService.getDepartures().pipe(
+              map((masterData: any) => {
+                let deps = masterData?.departure || [];
+                deps.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                return deps;
+              }),
+              catchError(() => of([]))
+            )
+          )
+        )
+      ),
+      tap(() => {
+        this.spinner.cerrarSpinner();
+        if (!this.networkService.isOnline()) {
+          setTimeout(() => this.spinner.cerrarSpinner(), 1500);
+        }
+      })
+    ),
+    { initialValue: [] }
+  );
+
+  pastWeeks = computed(() => {
+    const history = this.weeklyHistory();
+    const currentWeekId = getWeekId(new Date());
+    return history
+      .filter((w) => w.weekId < currentWeekId)
+      .sort((a, b) => b.weekId.localeCompare(a.weekId));
+  });
+
+  futureWeeks = computed(() => {
+    const history = this.weeklyHistory();
+    const currentWeekId = getWeekId(new Date());
+    const existingFutureWeeks = history
+      .filter((w) => w.weekId > currentWeekId)
+      .sort((a, b) => a.weekId.localeCompare(b.weekId));
+
+    const nextThreeWeeks: WeeklyDeparture[] = [];
+    const mondayCurrent = getMonday(new Date());
+
+    for (let i = 1; i <= 3; i++) {
+      const nextMonday = new Date(mondayCurrent);
+      nextMonday.setDate(mondayCurrent.getDate() + i * 7);
+      const weekId = getWeekId(nextMonday);
+
+      const match = existingFutureWeeks.find((w) => w.weekId === weekId);
+      if (match) {
+        nextThreeWeeks.push(match);
+      } else {
+        nextThreeWeeks.push({
+          id: `virtual-${weekId}`,
+          weekId: weekId,
+          departure: []
+        });
+      }
+    }
+    return nextThreeWeeks;
+  });
+
   constructor() {
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
     this.spinner.cargarSpinner();
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
+    this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
     this.numberGroup = this.rutaActiva.snapshot.params;
-    this.titleGroup =
-      this.numberGroup.number !== '0'
-        ? `(Grupo ${this.numberGroup.number})`
-        : '';
+    if (this.numberGroup.number !== '0') {
+      this.titleGroup.set(`(Grupo ${this.numberGroup.number})`);
+    }
+
+    // Effect to keep FormControl in sync with signal for HTML compatibility
+    effect(() => {
+      this.dateDeparture.setValue(this.selectedWeekId(), { emitEvent: false });
+    });
   }
+
   ngOnInit(): void {
     this.routerBreadcrum = this.routerBreadcrum[10];
-    this.loadHistory();
-    this.loadCurrentWeek();
-
-    // Si estamos offline y firebase se queda colgado sin caché,
-    // forzamos el cierre del spinner después de un breve delay.
+    
     if (!this.networkService.isOnline()) {
-      setTimeout(() => {
-        this.spinner.cerrarSpinner();
-      }, 1500);
+      setTimeout(() => this.spinner.cerrarSpinner(), 1500);
     }
-  }
-
-  ngOnDestroy(): void {
-    this.cleanupSubscriptions();
-  }
-
-  private cleanupSubscriptions(): void {
-    if (this.dataSub) {
-      this.dataSub.unsubscribe();
-      this.dataSub = undefined;
-    }
-    if (this.fallbackSub) {
-      this.fallbackSub.unsubscribe();
-      this.fallbackSub = undefined;
-    }
-  }
-
-  loadHistory() {
-    this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
-      this.weeklyHistory = history;
-      
-      const today = new Date();
-      const currentWeekId = getWeekId(today);
-
-      // Filtrar semanas futuras existentes en la base de datos
-      const existingFutureWeeks = history
-        .filter((w) => w.weekId > currentWeekId)
-        .sort((a, b) => a.weekId.localeCompare(b.weekId));
-
-      // Generar las próximas 3 semanas a partir de la fecha actual
-      const nextThreeWeeks: WeeklyDeparture[] = [];
-      const mondayCurrent = getMonday(today);
-
-      for (let i = 1; i <= 3; i++) {
-        const nextMonday = new Date(mondayCurrent);
-        nextMonday.setDate(mondayCurrent.getDate() + i * 7);
-        const weekId = getWeekId(nextMonday);
-
-        // Si la semana ya existe en Firebase, usamos ese registro. Si no, creamos un item virtual para seleccionar.
-        const match = existingFutureWeeks.find((w) => w.weekId === weekId);
-        if (match) {
-          nextThreeWeeks.push(match);
-        } else {
-          nextThreeWeeks.push({
-            id: `virtual-${weekId}`,
-            weekId: weekId,
-            departure: []
-          });
-        }
-      }
-
-      this.futureWeeks = nextThreeWeeks;
-
-      this.pastWeeks = history
-        .filter((w) => w.weekId < currentWeekId)
-        .sort((a, b) => b.weekId.localeCompare(a.weekId));
-    });
-  }
-
-  loadCurrentWeek() {
-    this.selectedWeek = 'actual';
-
-    // Calcular el lunes de la semana actual
-    const today = new Date();
-    const currentWeekId = getWeekId(today);
-
-    this.dateDeparture.setValue(currentWeekId);
-    this.departures$ = [];
-    this.spinner.cargarSpinner();
-
-    this.cleanupSubscriptions();
-
-    this.dataSub = this.territoryDataService.getWeeklyDeparture(currentWeekId).subscribe({
-      next: (weeklyData: any) => {
-        if (weeklyData?.departure?.length > 0) {
-          this.departures$ = weeklyData.departure;
-          this.sortDepartures();
-          this.spinner.cerrarSpinner();
-        } else {
-          // Fallback a las salidas "master" si no hay historial guardado para esta semana todavía
-          if (this.fallbackSub) {
-            this.fallbackSub.unsubscribe();
-          }
-          this.fallbackSub = this.territoryDataService.getDepartures().subscribe({
-            next: (masterData: any) => {
-              this.departures$ = masterData?.departure || [];
-              this.sortDepartures();
-              this.spinner.cerrarSpinner();
-            },
-            error: () => {
-              this.departures$ = [];
-              this.spinner.cerrarSpinner();
-            },
-          });
-        }
-      },
-      error: () => {
-        // En caso de error, intentar fallback también
-        if (this.fallbackSub) {
-          this.fallbackSub.unsubscribe();
-        }
-        this.fallbackSub = this.territoryDataService.getDepartures().subscribe({
-          next: (masterData: any) => {
-            this.departures$ = masterData?.departure || [];
-            this.sortDepartures();
-            this.spinner.cerrarSpinner();
-          },
-          error: () => {
-            this.departures$ = [];
-            this.spinner.cerrarSpinner();
-          },
-        });
-      },
-    });
-  }
-
-  sortDepartures() {
-    this.departures$.sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return dateA.getTime() - dateB.getTime();
-    });
   }
 
   selectWeek(id: string) {
-    this.showHistory = false;
+    this.showHistory.set(false);
 
     if (id === 'actual') {
-      this.loadCurrentWeek();
+      this.selectedWeekId.set(getWeekId(new Date()));
       return;
     }
 
@@ -209,13 +152,13 @@ export class DeparturePageComponent implements OnInit, OnDestroy {
     if (id.startsWith('virtual-')) {
       weekId = id.replace('virtual-', '');
     } else {
-      const historyRecord = this.weeklyHistory.find((w) => w.id === id || w.weekId === id);
+      const historyRecord = this.weeklyHistory().find((w) => w.id === id || w.weekId === id);
       if (historyRecord) {
         weekId = historyRecord.weekId;
       }
     }
 
-    this.loadWeekByWeekId(weekId);
+    this.selectedWeekId.set(weekId);
   }
 
   getFormattedDate(date: string): string {
@@ -223,7 +166,7 @@ export class DeparturePageComponent implements OnInit, OnDestroy {
   }
 
   navigateWeek(direction: number): void {
-    const val = this.dateDeparture.value;
+    const val = this.selectedWeekId();
     let baseDate: Date;
 
     if (!val || val === 'actual') {
@@ -238,51 +181,11 @@ export class DeparturePageComponent implements OnInit, OnDestroy {
     const targetMonday = new Date(currentMonday);
     targetMonday.setDate(currentMonday.getDate() + direction * 7);
 
-    const targetWeekId = getWeekId(targetMonday);
-    this.loadWeekByWeekId(targetWeekId);
-  }
-
-  loadWeekByWeekId(targetWeekId: string): void {
-    const currentWeekId = getWeekId(new Date());
-
-    if (targetWeekId === currentWeekId) {
-      this.loadCurrentWeek();
-      return;
-    }
-
-    this.spinner.cargarSpinner();
-    this.selectedWeek = targetWeekId;
-    this.dateDeparture.setValue(targetWeekId);
-    this.departures$ = [];
-
-    this.cleanupSubscriptions();
-
-    this.dataSub = this.territoryDataService.getWeeklyDeparture(targetWeekId).subscribe({
-      next: (weeklyData: any) => {
-        if (weeklyData?.departure?.length > 0) {
-          this.departures$ = weeklyData.departure;
-          this.sortDepartures();
-        } else {
-          this.departures$ = [];
-        }
-        this.spinner.cerrarSpinner();
-      },
-      error: (err) => {
-        console.error('Error al cargar semana:', err);
-        this.departures$ = [];
-        this.spinner.cerrarSpinner();
-      },
-    });
-
-    if (!this.networkService.isOnline()) {
-      setTimeout(() => {
-        this.spinner.cerrarSpinner();
-      }, 1500);
-    }
+    this.selectedWeekId.set(getWeekId(targetMonday));
   }
 
   getRelativeWeekInfo(): { label: string; badgeClass: string; icon: string } {
-    const val = this.dateDeparture.value;
+    const val = this.selectedWeekId();
     let selectedDate: Date;
 
     if (!val || val === 'actual') {

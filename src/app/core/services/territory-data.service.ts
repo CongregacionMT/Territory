@@ -42,10 +42,6 @@ export class TerritoryDataService {
   private spinner = inject(SpinnerService);
   private campaignService = inject(CampaignService);
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {}
-
   // MAPAS
   getMaps(): Observable<MapData[]> {
     const mapRef = collection(this.firestore, 'MapsTerritory');

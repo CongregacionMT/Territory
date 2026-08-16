@@ -1,4 +1,5 @@
-import { Component, OnInit, Signal, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, Signal, inject, signal, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
@@ -21,6 +22,7 @@ import { environment } from '@environments/environment';
     imports: [RouterLink]
 })
 export class HomePageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private swUpdate = inject(SwUpdate);
   private spinner = inject(SpinnerService);
@@ -40,11 +42,7 @@ export class HomePageComponent implements OnInit {
   campaignInProgress = signal(false);
   deferredPrompt: any;
   nameDriver: string = '';
-  congregationName: string = environment.congregationName;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
+  congregationName: string = environment.congregationName;constructor() {
     if(this.deferredPrompt){
       this.btnPWA = false;
     }
@@ -55,13 +53,13 @@ export class HomePageComponent implements OnInit {
     if (this.swUpdate.isEnabled) {
       this.swUpdate.versionUpdates
         .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
-        .subscribe(() => {
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
           const snack = this._snackBar.openFromComponent(UpdateSnackbarComponent, {
             duration: undefined,
             horizontalPosition: 'center',
             verticalPosition: 'top',
           });
-          snack.onAction().subscribe(() => {
+          snack.onAction().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
             this.swUpdate.activateUpdate().then(() => window.location.reload());
           });
         });
@@ -78,7 +76,7 @@ export class HomePageComponent implements OnInit {
     if(!sessionStorage.getItem("numberTerritory")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getNumberTerritory()
-      .subscribe((numbers: TerritoryNumberData[]) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((numbers: TerritoryNumberData[]) => {
         // Merge all documents into a single object
         const mergedData = numbers.reduce((acc: any, curr: any) => {
           return { ...acc, ...curr };
@@ -90,7 +88,7 @@ export class HomePageComponent implements OnInit {
     if(!sessionStorage.getItem("territorioStatistics")){
       this.spinner.cargarSpinner();
       this.territorieDataService.getStatisticsButtons()
-      .subscribe((number: StatisticsButton[]) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((number: StatisticsButton[]) => {
         if (number.length > 0) {
             sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
         }
@@ -122,7 +120,7 @@ export class HomePageComponent implements OnInit {
     // Init PWA
     this.initPWA();
 
-    this.cartDataService.getCartAssignment().subscribe({
+    this.cartDataService.getCartAssignment().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (cartArray) => {
         if (cartArray.cart.length > 0) {
           this.hasCartData = true;

@@ -92,7 +92,7 @@
           <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">Asignado:</span>
             <span class="fw-bold text-dark">{{
-              (card.creation?.toDate ? card.creation.toDate() : card.creation)
+              ($any(card.creation)?.toDate ? $any(card.creation).toDate() : card.creation)
                 | date: "dd 'de' MMMM"
             }}</span>
           </div>

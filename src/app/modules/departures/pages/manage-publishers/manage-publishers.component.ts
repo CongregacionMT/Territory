@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,6 +19,7 @@ import { Group, Publisher } from '@core/models/Group';
   styleUrls: ['./manage-publishers.component.scss']
 })
 export class ManagePublishersComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private router = inject(Router);
@@ -42,7 +44,7 @@ export class ManagePublishersComponent implements OnInit {
 
   loadGroups(): void {
     this.spinner.cargarSpinner();
-    this.territoryDataService.getGroupList().subscribe({
+    this.territoryDataService.getGroupList().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data: Group[]) => {
         // Firestore returns an array of documents with id field
         if (Array.isArray(data)) {
