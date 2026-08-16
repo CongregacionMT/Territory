@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { CampaignPageComponent } from './campaign-page/campaign-page.component';
 import { CampaignDetailComponent } from './campaign-detail/campaign-detail.component';
 
-const routes: Routes = [
+export const ROUTES: Routes = [
   {
     path: '', component: CampaignPageComponent,
   },
@@ -12,8 +12,4 @@ const routes: Routes = [
   }
 ];
 
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class CampaignRoutingModule { }
+

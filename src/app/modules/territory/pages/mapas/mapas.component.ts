@@ -1,7 +1,5 @@
 import { Component, OnInit, LOCALE_ID, inject, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Component, OnInit, LOCALE_ID, inject, viewChild, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DataRural } from '@core/models/DataRural';
 import { TerritoryDataService } from '../../../../core/services/territory-data.service';
@@ -33,58 +31,7 @@ export class MapasComponent implements OnInit {
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   public networkService = inject(NetworkService);
-
-  isAdmin: boolean = false;
-  mapa: SafeHtml | undefined;
-  kmlUrl: string | undefined;
-
-  class: string = 'map-responsive';
-  showRural: boolean = false;
-  dataRural: DataRural[] = [];
-  readonly modalFormRuralComponent = viewChild(ModalFormRuralComponent);
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
-    registerLocaleData(localeEs);
-  }
-
-  ngOnInit(): void {
-    const path = this.activatedRoute.snapshot.url[0].path;
-    const mapHtml = mapConfig.maps[path];
-    console.log('[MapasComponent] ngOnInit ejecutado para el path:', path);
-    console.log('[MapasComponent] Configuración de mapa encontrada:', mapHtml);
-    console.log('[MapasComponent] Estado de red detectado (online):', this.networkService.isOnline());
-    
-    if (mapHtml?.kmlUrl) {
-      this.kmlUrl = mapHtml.kmlUrl;
-      console.log('[MapasComponent] KML URL configurada:', this.kmlUrl);
-    }
-
-
-
-    if (mapHtml?.iframeHtml) {
-      this.mapa = this.domSanitizer.bypassSecurityTrustHtml(mapHtml.iframeHtml);
-      console.log('[MapasComponent] Iframe HTML configurado.');
-    }
-    
-    if(path === 'rural'){
-      this.spinner.cargarSpinner();
-      this.territoriyDataService.getTerritorieRural().subscribe({
-        next: (road: DataRural[]) => {
-          this.dataRural = road;
-          this.showRural = true;
-          this.spinner.cerrarSpinner();
-    imports: [OfflineMapViewerComponent]
-})
-export class MapasComponent implements OnInit {
-  private activatedRoute = inject(ActivatedRoute);
-  private domSanitizer = inject(DomSanitizer);
-  private territoriyDataService = inject(TerritoryDataService);
-  private fb = inject(FormBuilder);
-  private territorieDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  public networkService = inject(NetworkService);
+  private dialogService = inject(DialogService);
 
   isAdmin: boolean = false;
   mapa: SafeHtml | undefined;
@@ -132,8 +79,6 @@ export class MapasComponent implements OnInit {
       this.isAdmin = localStorage.getItem('tokenAdmin') ? true : false;
     }
   }
-
-  private dialogService = inject(DialogService);
 
   openModal(mode: ModeModal, form?: DataRural){
     const modalFormRuralComponent = this.modalFormRuralComponent();

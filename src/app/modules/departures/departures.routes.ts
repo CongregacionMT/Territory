@@ -7,7 +7,7 @@ import { EditDeparturesComponent } from './pages/edit-departures/edit-departures
 import { ManagePublishersComponent } from './pages/manage-publishers/manage-publishers.component';
 import { unsavedChangesGuard } from '@core/guards/unsaved-changes.guard';
 
-const routes: Routes = [
+export const ROUTES: Routes = [
   {
     path: '',
     children: [
@@ -22,8 +22,4 @@ const routes: Routes = [
   },
 ];
 
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class DeparturesRoutingModule { }
+

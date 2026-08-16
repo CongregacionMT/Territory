@@ -27,5 +27,5 @@ export interface DateDeparture {
 export interface WeeklyDeparture extends DepartureData {
   id?: string;
   weekId: string; // Formato YYYY-MM-DD o YYYY-Www
-  createdAt?: any;
+  createdAt?: Date | string | number;
 }

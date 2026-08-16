@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { StatisticsPageComponent } from './pages/statistics-page/statistics-page.component';
 import { HomeStatisticsPageComponent } from './pages/home-statistics-page/home-statistics-page.component';
 
-const routes: Routes = [
+export const ROUTES: Routes = [
   {
     path: '',
     children: [
@@ -14,8 +14,4 @@ const routes: Routes = [
   }
 ];
 
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class StatisticsRoutingModule { }
+

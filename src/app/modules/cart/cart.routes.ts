@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { CartPageComponent } from './pages/cart-page/cart-page.component';
 import { CartEditPageComponent } from './pages/cart-edit-page/cart-edit-page.component';
 
-const routes: Routes = [
+export const ROUTES: Routes = [
   {
     path: '',
     children: [
@@ -13,8 +13,4 @@ const routes: Routes = [
   }
 ];
 
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class CartRoutingModule { }
+

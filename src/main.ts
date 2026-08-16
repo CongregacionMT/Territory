@@ -14,7 +14,7 @@ import { provideFirestore, initializeFirestore, persistentLocalCache } from '@an
 import { MatDialogModule } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter, withComponentInputBinding, inMemoryScrolling } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app/app.routes';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -42,7 +42,7 @@ bootstrapApplication(AppComponent, {
         registrationStrategy: 'registerWhenStable:30000',
       }),
     ),
-    provideRouter(routes, withComponentInputBinding(), inMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
+    provideRouter(routes, withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideMessaging(() => getMessaging(getApp())),
     provideFirestore(() => {

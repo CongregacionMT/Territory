@@ -2,18 +2,7 @@ import { Component, inject, viewChild, signal, ChangeDetectionStrategy } from '@
 import { TerritoryDataService } from '../../../core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import {
-import { Component, inject, viewChild, signal, ChangeDetectionStrategy } from '@angular/core';
-import { TerritoryDataService } from '../../../core/services/territory-data.service';
-import { SpinnerService } from '@core/services/spinner.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DialogService } from '@core/services/dialog.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
@@ -31,6 +20,7 @@ export class UsersPageComponent {
   private spinner = inject(SpinnerService);
   private fb = inject(FormBuilder);
   private _snackBar = inject(MatSnackBar);
+  private dialogService = inject(DialogService);
 
   readonly errorMessage = viewChild<any>('errorMessage');
 
@@ -53,40 +43,7 @@ export class UsersPageComponent {
       this.users.set(users);
     });
   }
-  copyToClipboard(token: any): void {
-    const dummyInput = document.createElement('input');
-    document.body.appendChild(dummyInput);
-    dummyInput.value = token;
-    dummyInput.select();
-  imports: [ReactiveFormsModule],
-})
-export class UsersPageComponent {
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private fb = inject(FormBuilder);
-  private _snackBar = inject(MatSnackBar);
 
-  readonly errorMessage = viewChild<any>('errorMessage');
-
-  users = signal<User[]>([]);
-
-  formUser: FormGroup;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
-    this.spinner.cargarSpinner();
-    this.formUser = this.fb.group({
-      user: new FormControl(null, [Validators.required]),
-      password: new FormControl(null, [Validators.required]),
-      tokens: new FormControl([], [Validators.required]),
-      rol: new FormControl('conductor'),
-    });
-    this.territoryDataService.getUsers().subscribe((users) => {
-      this.spinner.cerrarSpinner();
-      this.users.set(users);
-    });
-  }
   copyToClipboard(token: any): void {
     const dummyInput = document.createElement('input');
     document.body.appendChild(dummyInput);
@@ -95,10 +52,10 @@ export class UsersPageComponent {
     document.execCommand('copy');
     document.body.removeChild(dummyInput);
   }
+
   alertSnack() {
     this._snackBar.open('📝 Copiado al portapapeles!', 'ok');
   }
-  private dialogService = inject(DialogService);
 
   createUser() {
     const messageError = this.errorMessage().nativeElement;

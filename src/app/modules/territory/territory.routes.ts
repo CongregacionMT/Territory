@@ -5,7 +5,7 @@ import { MapasComponent } from './pages/mapas/mapas.component';
 import { TerritoryPageComponent } from './pages/territory-page/territory-page.component';
 
 
-const routes: Routes = [
+export const ROUTES: Routes = [
   {
     path: '',
     children: [
@@ -34,8 +34,4 @@ const routes: Routes = [
   }
 ];
 
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class TerritoryRoutingModule { }
+

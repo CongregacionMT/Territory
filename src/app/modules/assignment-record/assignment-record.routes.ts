@@ -4,7 +4,7 @@ import { AssignmentRecordPageComponent } from './pages/assignment-record-page/as
 import { NumberTerritoryComponent } from './pages/number-territory/number-territory.component';
 import { TerritoryAssignmentComponent } from './pages/territory-assignment/territory-assignment.component';
 
-const routes: Routes = [
+export const ROUTES: Routes = [
   {
     path: '',
     children: [
@@ -27,8 +27,4 @@ const routes: Routes = [
   }
 ];
 
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class AssignmentRecordRoutingModule { }
+
