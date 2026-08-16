@@ -5,14 +5,13 @@ import {
   inject,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
+  LOCALE_ID,
 } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { initializeDialogService } from './app/app.module';
 import { environment } from './environments/environment';
 import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideMessaging, getMessaging } from '@angular/fire/messaging';
-import { provideFirestore, initializeFirestore, persistentLocalCache, getFirestore } from '@angular/fire/firestore';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { provideFirestore, initializeFirestore, persistentLocalCache } from '@angular/fire/firestore';
+import { MatDialogModule } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { AppRoutingModule } from './app/app-routing.module';
@@ -21,9 +20,9 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { AppComponent } from './app/app.component';
 import localeEs from '@angular/common/locales/es';
 import { registerLocaleData } from '@angular/common';
-import { LOCALE_ID } from '@angular/core';
 
 registerLocaleData(localeEs, 'es');
+
 
 if (environment.production) {
   enableProdMode();
@@ -52,7 +51,7 @@ bootstrapApplication(AppComponent, {
       });
     }),
     importProvidersFrom(MatDialogModule),
-    provideEnvironmentInitializer(() => initializeDialogService()),
+    provideEnvironmentInitializer(() => inject(DialogService)),
     provideAnimations(),
     { provide: LOCALE_ID, useValue: 'es' },
   ],

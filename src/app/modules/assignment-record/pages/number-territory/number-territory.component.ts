@@ -2,11 +2,9 @@ import { Component, OnInit, inject } from '@angular/core';
 import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { Subject, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
-import { Config } from 'datatables.net';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { DataTablesModule } from 'angular-datatables';
 import { DatePipe } from '@angular/common';
 
 import { Card, CardApplesData } from '@core/models/Card';
@@ -16,7 +14,7 @@ import { BreadcrumbItem } from '@core/models/Breadcrumb';
     selector: 'app-number-territory',
     templateUrl: './number-territory.component.html',
     styleUrls: ['./number-territory.component.scss'],
-    imports: [BreadcrumbComponent, DataTablesModule, DatePipe]
+    imports: [BreadcrumbComponent, DatePipe]
 })
 export class NumberTerritoryComponent implements OnInit {
   private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
@@ -28,8 +26,6 @@ export class NumberTerritoryComponent implements OnInit {
   routerBreadcrum: BreadcrumbItem[] = [];
   path: string = "";
   dataList: Card[] = [];
-  dtTrigger: Subject<any> = new Subject<any>();
-  dtOptions: Config = {};
   numberTerritory: number = 0;
   appleCount: number = 0;
   cardSubscription: Subscription;
@@ -46,25 +42,12 @@ export class NumberTerritoryComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    // tabla
-    this.dtOptions = {
-      pagingType: 'full_numbers',
-      paging: false,
-      scrollY: '310',
-      language: {
-        url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-AR.json',
-      },
-      lengthChange: true,
-      ordering: true,
-      stateSave: true
-    };
     // RECIBIR LA DATA
     this.path = this.activatedRoute.snapshot.params['collection'];
     this.territorieDataService.getCardTerritorie(this.path).subscribe({
       next: card => {
         this.dataList = card;
         this.numberTerritory = card[0].territoryNumber ?? 0;
-        this.dtTrigger.next("");
         this.dataList.map((list: Card, index: number) => {
           this.appleCount = 0;
           list.applesData.map((apple: CardApplesData) => {
@@ -87,6 +70,5 @@ export class NumberTerritoryComponent implements OnInit {
     });
   }
   ngOnDestroy(): void {
-    this.dtTrigger.unsubscribe();
   }
 }

@@ -22,19 +22,8 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-/*
- * Fix para componentes que usan backdrop-filter (glassmorphism).
- * backdrop-filter en un ancestro crea un nuevo stacking context que "atrapa"
- * al .modal-backdrop de Bootstrap, haciendo que se superponga sobre la modal.
- * Esta regla global garantiza el orden correcto de capas.
- */
-.modal-backdrop {
-  z-index: 1040 !important;
-}
-.modal {
-  z-index: 1050 !important;
-}
-
+/* Import Bootstrap utility replacements */
+@import "utilities";
 /* Common Animations */
 @keyframes fadeIn {
   from {
