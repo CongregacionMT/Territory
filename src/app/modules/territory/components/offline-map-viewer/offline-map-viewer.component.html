@@ -1,16 +1,16 @@
 @if (loading()) {
   <div class="offline-loading-overlay">
-    <div class="spinner-border text-primary" role="status">
+    <div class="spinner-border text-blue-600" role="status">
       <span class="visually-hidden">Cargando...</span>
     </div>
-    <span class="ms-2">Cargando mapa offline...</span>
+    <span class="ml-2">Cargando mapa offline...</span>
   </div>
 }
 
 @if (error()) {
   <div class="offline-error-overlay">
     <p>{{ error() }}</p>
-    <button class="btn btn-outline-primary mt-2" (click)="loadKml()">Reintentar</button>
+    <button class="text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white mt-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="loadKml()">Reintentar</button>
   </div>
 }
 

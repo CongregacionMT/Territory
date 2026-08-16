@@ -12,7 +12,7 @@
 
   <hr />
   
-  <h2 class="text-center my-4 fw-bold">Revisión de tarjetas recibidas</h2>
+  <h2 class="text-center my-6 font-bold">Revisión de tarjetas recibidas</h2>
   <div class="card-s-container">
     @for (card of allCardsReceived(); track card) {
       <div
@@ -66,7 +66,7 @@
 
   <hr />
   
-  <h2 class="text-center my-4 fw-bold">Territorios Personales</h2>
+  <h2 class="text-center my-6 font-bold">Territorios Personales</h2>
 
   <div class="card-s-container">
     @for (card of allCardsAssigned(); track card) {
@@ -74,32 +74,32 @@
         class="personal-card-minimal"
         [class.is-overdue]="isOverdue(card.creation)"
       >
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="text-primary fw-bold"
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-blue-600 font-bold"
             >TERRITORIO {{ card.territory }}</span
           >
           <button
-            class="btn btn-sm btn-outline-danger border-0 rounded-circle"
+            class="btn-sm btn-outline-danger border-0 rounded-full inline-block px-4 py-2 text-center rounded transition cursor-pointer"
             (click)="deleteCardAssigned(card)"
           >
             ✕
           </button>
         </div>
 
-        <h2 class="publisher-name-large mb-3">{{ card.driver | titlecase }}</h2>
+        <h2 class="publisher-name-large mb-4">{{ card.driver | titlecase }}</h2>
 
-        <div class="border-top pt-3">
-          <div class="d-flex justify-content-between mb-2">
-            <span class="text-muted">Asignado:</span>
-            <span class="fw-bold text-dark">{{
+        <div class="border-top pt-4">
+          <div class="flex justify-between mb-2">
+            <span class="text-gray-500">Asignado:</span>
+            <span class="font-bold text-gray-900">{{
               ($any(card.creation)?.toDate ? $any(card.creation).toDate() : card.creation)
                 | date: "dd 'de' MMMM"
             }}</span>
           </div>
-          <div class="d-flex justify-content-between">
-            <span class="text-muted">Devolver:</span>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Devolver:</span>
             <span
-              class="fw-bold text-dark"
+              class="font-bold text-gray-900"
               [class.text-danger]="isOverdue(card.creation)"
               >{{ getReturnDate(card.creation) | date: "dd 'de' MMMM" }}</span
             >
@@ -108,7 +108,7 @@
 
         @if (isOverdue(card.creation)) {
           <div
-            class="overdue-banner mt-3 py-2 bg-danger text-white text-center fw-bold small rounded-bottom"
+            class="overdue-banner mt-4 py-2 bg-danger text-white text-center font-bold small rounded-bottom"
             style="margin: 0 -1.25rem -1.25rem"
           >
             VENCIDO
@@ -119,12 +119,12 @@
 
     <!-- Botón para Nuevo -->
     <div
-      class="personal-card-new d-flex flex-column align-items-center justify-content-center p-4 text-center"
+      class="personal-card-new flex flex-col items-center justify-center p-6 text-center"
       data-bs-toggle="modal"
       data-bs-target="#creationModal"
     >
       <span class="display-4">+</span>
-      <span class="fw-bold">Nuevo Pedido</span>
+      <span class="font-bold">Nuevo Pedido</span>
     </div>
   </div>
 
@@ -142,7 +142,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title text-dark">Registrar pedido de territorio</h5>
+          <h5 class="modal-title text-gray-900">Registrar pedido de territorio</h5>
           <button
             type="button"
             class="btn-close"
@@ -152,8 +152,8 @@
         </div>
         <div class="modal-body">
           <form [formGroup]="formCard()" (ngSubmit)="postCardAssigned()">
-            <div class="row">
-              <div class="col-md-6 mb-3">
+            <div class="flex flex-wrap -mx-4">
+              <div class="md:w-6/12 mb-4">
                 <label class="form-label-custom">Localidad</label>
                 <select
                   class="form-select"
@@ -166,7 +166,7 @@
                   <option value="Rural">Rural</option>
                 </select>
               </div>
-              <div class="col-md-6 mb-3">
+              <div class="md:w-6/12 mb-4">
                 <label class="form-label-custom">Publicador/a</label>
                 <input
                   type="text"
@@ -176,8 +176,8 @@
                 />
               </div>
             </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
+            <div class="flex flex-wrap -mx-4">
+              <div class="md:w-6/12 mb-4">
                 <label class="form-label-custom">N° de Territorio</label>
                 <select class="form-select" formControlName="territory">
                   @if (availableTerritoryNumbers().length === 0) {
@@ -190,7 +190,7 @@
                   }
                 </select>
               </div>
-              <div class="col-md-6 mb-3">
+              <div class="md:w-6/12 mb-4">
                 <label class="form-label-custom">Fecha de Entrega</label>
                 <input
                   type="date"
@@ -199,17 +199,17 @@
                 />
               </div>
             </div>
-            <div class="modal-footer px-0 pb-0 mt-4">
+            <div class="modal-footer px-0 pb-0 mt-6">
               <button
                 type="button"
-                class="btn btn-secondary"
+                class="bg-gray-600 text-white border border-gray-600 hover:bg-gray-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                 data-bs-dismiss="modal"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                class="btn btn-primary"
+                class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                 data-bs-dismiss="modal"
                 [disabled]="formCard().invalid"
               >
@@ -233,7 +233,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title text-dark">
+          <h5 class="modal-title text-gray-900">
             ¿Estás seguro de que quieres eliminar esta tarjeta?
           </h5>
           <button
@@ -244,12 +244,12 @@
           ></button>
         </div>
         @if (cardConfirmation()) {
-          <div class="modal-body text-center p-4">
-            <p class="text-muted mb-1">Confirmar eliminación de:</p>
-            <h3 class="fw-bold mb-3 text-dark">
+          <div class="modal-body text-center p-6">
+            <p class="text-gray-500 mb-1">Confirmar eliminación de:</p>
+            <h3 class="font-bold mb-4 text-gray-900">
               {{ $safeNavigationMigration(cardConfirmation()?.driver) | titlecase }}
             </h3>
-            <div class="badge bg-light text-primary border mb-2 fs-6">
+            <div class="badge bg-gray-100 text-blue-600 border mb-2 text-base">
               TERRITORIO
               {{
                 cardConfirmation()?.numberTerritory ||
@@ -261,14 +261,14 @@
         <div class="modal-footer">
           <button
             type="button"
-            class="btn btn-secondary"
+            class="bg-gray-600 text-white border border-gray-600 hover:bg-gray-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
             data-bs-dismiss="modal"
           >
             Cancelar
           </button>
           <button
             type="button"
-            class="btn btn-danger"
+            class="bg-red-600 text-white border border-red-600 hover:bg-red-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
             data-bs-dismiss="modal"
             (click)="cardDelete()"
           >

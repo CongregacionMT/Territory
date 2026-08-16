@@ -1,13 +1,13 @@
 <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
 
-<div class="container py-4">
-  <h2 class="text-center mb-4">Estadísticas de Salidas</h2>
+<div class="container py-6">
+  <h2 class="text-center mb-6">Estadísticas de Salidas</h2>
 
-  <div class="row g-4">
+  <div class="flex flex-wrap -mx-4 g-4">
     <!-- Participación de Conductores -->
-    <div class="col-12 col-md-6">
-      <div class="card shadow border-0 h-100">
-        <div class="card-header bg-primary text-white py-3">
+    <div class="w-12/12 md:w-6/12 px-4">
+      <div class="card shadow-md border-0 h-full">
+        <div class="card-header bg-blue-600 text-white py-4">
           <h5 class="card-title mb-0">🏆 Participación de Conductores</h5>
         </div>
         <div class="card-body">
@@ -24,12 +24,12 @@
                   <tr>
                     <td>{{ stat.name }}</td>
                     <td class="text-center">
-                      <span class="badge rounded-pill bg-info text-dark">{{ stat.count }}</span>
+                      <span class="badge rounded-full bg-info text-gray-900">{{ stat.count }}</span>
                     </td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="2" class="text-center text-muted">No hay datos suficientes</td>
+                    <td colspan="2" class="text-center text-gray-500">No hay datos suficientes</td>
                   </tr>
                 }
               </tbody>
@@ -40,9 +40,9 @@
     </div>
 
     <!-- Puntos de Encuentro -->
-    <div class="col-12 col-md-6">
-      <div class="card shadow border-0 h-100">
-        <div class="card-header bg-success text-white py-3">
+    <div class="w-12/12 md:w-6/12 px-4">
+      <div class="card shadow-md border-0 h-full">
+        <div class="card-header bg-green-600 text-white py-4">
           <h5 class="card-title mb-0">📍 Últimas Visitas a Puntos de Encuentro</h5>
         </div>
         <div class="card-body">
@@ -59,12 +59,12 @@
                   <tr>
                     <td>{{ point.name }}</td>
                     <td class="text-center">
-                      <span class="text-muted small">{{ getFormattedDate(point.lastDate) }}</span>
+                      <span class="text-gray-500 small">{{ getFormattedDate(point.lastDate) }}</span>
                     </td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="2" class="text-center text-muted">No hay datos suficientes</td>
+                    <td colspan="2" class="text-center text-gray-500">No hay datos suficientes</td>
                   </tr>
                 }
               </tbody>
@@ -75,22 +75,22 @@
     </div>
 
     <!-- Historial Resumido -->
-    <div class="col-12">
-      <div class="card shadow border-0">
-        <div class="card-header bg-dark text-white py-3">
+    <div class="w-12/12 px-4">
+      <div class="card shadow-md border-0">
+        <div class="card-header bg-gray-900 text-white py-4">
           <h5 class="card-title mb-0">📅 Historial de Semanas</h5>
         </div>
         <div class="card-body">
           <div class="list-group list-group-flush">
             @for (week of weeklyDepartures; track week.weekId) {
-              <div class="list-group-item d-flex justify-content-center align-items-center py-3">
+              <div class="list-group-item flex justify-center items-center py-4">
                 <div class="text-center">
                   <h6 class="mb-0">Semana del {{ getFormattedDate(week.weekId) }}</h6>
-                  <small class="text-muted">{{ week.departure.length }} salidas programadas</small>
+                  <small class="text-gray-500">{{ week.departure.length }} salidas programadas</small>
                 </div>
               </div>
             } @empty {
-              <p class="text-center text-muted my-3">Aún no se han guardado semanas en el historial</p>
+              <p class="text-center text-gray-500 my-4">Aún no se han guardado semanas en el historial</p>
             }
           </div>
         </div>

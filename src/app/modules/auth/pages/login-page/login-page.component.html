@@ -1,6 +1,6 @@
-<div style="max-width: 1280px" class="d-flex justify-content-center">
-  <div class="card mt-5 text-white bg-dark col-lg-6 col-md-8 col">
-    <div class="card-header text-center p-3" style="font-size: 1.5rem">
+<div style="max-width: 1280px" class="flex justify-center">
+  <div class="card mt-8 text-white bg-gray-900 lg:w-6/12 md:w-8/12 flex-1 px-4">
+    <div class="card-header text-center p-4" style="font-size: 1.5rem">
       Iniciar sesión
     </div>
     <div class="card-body">
@@ -9,7 +9,7 @@
           <label>Usuario</label>
           <input
             type="text"
-            class="form-control bg-dark text-white"
+            class="form-control bg-gray-900 text-white"
             placeholder="Escribe tu usuario"
             formControlName="user"
             id="user"
@@ -19,7 +19,7 @@
           <!-- Error  -->
           @if (User?.invalid && (User?.dirty || User?.touched)) {
             <div
-              class="alert alert-danger mt-3"
+              class="alert alert-danger mt-4"
               role="alert"
               style="border-radius: 3px; padding: 5px"
               >
@@ -29,18 +29,18 @@
             </div>
           }
 
-          <div class="form-group mt-3">
+          <div class="form-group mt-4">
             <label for="exampleInputPassword1">Contraseña</label>
             <div class="input-group">
               <input
                 [type]="passwordVisible()? 'text' : 'password'"
-                class="form-control bg-dark text-white me-2"
+                class="form-control bg-gray-900 text-white mr-2"
                 id="password-input"
                 placeholder="Escribe tu contraseña"
                 formControlName="password"
                 />
                 <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="button" (click)="togglePasswordVisibility()">
+                  <button class="btn-outline-secondary inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="togglePasswordVisibility()">
                     <i [ngClass]="passwordVisible()? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
                   </button>
                 </div>
@@ -49,7 +49,7 @@
             <!-- Error  -->
             @if (Password?.invalid && (Password?.dirty || Password?.touched)) {
               <div
-                class="alert alert-danger mt-3"
+                class="alert alert-danger mt-4"
                 role="alert"
                 style="border-radius: 3px; padding: 5px"
                 >
@@ -59,11 +59,11 @@
               </div>
             }
 
-            <div class="d-flex justify-content-center">
+            <div class="flex justify-center">
               <a>
                 <button
                   type="submit"
-                  class="btn btn-success mt-3 me-3 justify-content-center"
+                  class="bg-green-600 text-white border border-green-600 hover:bg-green-700 mt-4 mr-4 justify-center inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                   [disabled]="formLogin.invalid"
                   >
                   Iniciar Sesión
@@ -73,7 +73,7 @@
 
             <div
               #errorMessage
-              class="alert alert-danger mt-3"
+              class="alert alert-danger mt-4"
               role="alert"
               style="border-radius: 3px; padding: 5px; display: none"
               >

@@ -1,7 +1,7 @@
-<div class="departure-page-shell pt-4">
+<div class="departure-page-shell pt-6">
   <section class="container">
     <div class="departure-toolbar card border-0">
-      <div class="card-body p-3 p-lg-4">
+      <div class="card-body p-4 p-lg-4">
         <div class="toolbar-grid">
           <div class="toolbar-main">
             <div class="toolbar-week-label">Semana seleccionada</div>
@@ -22,7 +22,7 @@
             <div class="toolbar-input-block">
               <label class="toolbar-label">Cambiar semana</label>
               <div class="week-switch-row">
-                <button class="btn toolbar-btn" (click)="prevWeek()" title="Semana anterior">
+                <button class="toolbar-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="prevWeek()" title="Semana anterior">
                   <i class="fas fa-chevron-left"></i>
                 </button>
                 <input
@@ -30,7 +30,7 @@
                   class="form-control color-input"
                   [formControl]="dateDeparture"
                 />
-                <button class="btn toolbar-btn" (click)="nextWeek()" title="Semana siguiente">
+                <button class="toolbar-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="nextWeek()" title="Semana siguiente">
                   <i class="fas fa-chevron-right"></i>
                 </button>
               </div>
@@ -53,14 +53,14 @@
                 </select>
               </div>
               <div class="quick-actions-row">
-                <button class="btn btn-sm btn-outline-light toolbar-action-btn" type="button" (click)="createStandardWeek(false)">
-                  <i class="fas fa-calendar-plus me-1"></i>Plantilla
+                <button class="btn-sm btn-outline-light toolbar-action-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="createStandardWeek(false)">
+                  <i class="fas fa-calendar-plus mr-1"></i>Plantilla
                 </button>
-                <button class="btn btn-sm btn-outline-light toolbar-action-btn" type="button" (click)="createStandardWeek(true)">
-                  <i class="fas fa-copy me-1"></i>Duplicar
+                <button class="btn-sm btn-outline-light toolbar-action-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="createStandardWeek(true)">
+                  <i class="fas fa-copy mr-1"></i>Duplicar
                 </button>
-                <button class="btn btn-sm btn-primary toolbar-action-btn" type="button" (click)="saveAll()" [disabled]="!dateDeparture.value">
-                  <i class="fas fa-save me-1"></i>Guardar Salidas
+                <button class="btn-sm bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 toolbar-action-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="saveAll()" [disabled]="!dateDeparture.value">
+                  <i class="fas fa-save mr-1"></i>Guardar Salidas
                 </button>
               </div>
             </div>
@@ -71,9 +71,9 @@
   </section>
 
   @if (dataLoaded && isAdmin) {
-    <section class="container mt-3">
+    <section class="container mt-4">
       <div class="departure-panel card border-0">
-        <div class="card-body p-3 p-lg-4">
+        <div class="card-body p-4 p-lg-4">
           <div class="panel-header-row">
             <div>
               <div class="panel-kicker">Tarjetas</div>
@@ -91,8 +91,8 @@
             </div>
           </div>
 
-          <div class="mt-3 mb-3">
-            <button class="btn btn-sm btn-outline-light" (click)="isCardsCollapsed = !isCardsCollapsed">
+          <div class="mt-4 mb-4">
+            <button class="btn-sm btn-outline-light inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="isCardsCollapsed = !isCardsCollapsed">
               <i class="fas" [class.fa-chevron-up]="!isCardsCollapsed" [class.fa-chevron-down]="isCardsCollapsed"></i>
               {{ isCardsCollapsed ? 'Mostrar tarjetas' : 'Ocultar tarjetas' }}
             </button>
@@ -111,11 +111,11 @@
                       }
                     </div>
                     <div class="pending-actions">
-                      <button class="btn btn-sm btn-success" type="button" (click)="markAsReceivedQuick(departure)">
-                        <i class="fas fa-check me-1"></i>Recibida
+                      <button class="btn-sm bg-green-600 text-white border border-green-600 hover:bg-green-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="markAsReceivedQuick(departure)">
+                        <i class="fas fa-check mr-1"></i>Recibida
                       </button>
-                      <button class="btn btn-sm btn-outline-light" type="button" (click)="copyReminder(departure)">
-                        <i class="fas fa-clipboard me-1"></i>Recordatorio
+                      <button class="btn-sm btn-outline-light inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="copyReminder(departure)">
+                        <i class="fas fa-clipboard mr-1"></i>Recordatorio
                       </button>
                     </div>
                   </div>
@@ -134,9 +134,9 @@
   }
 
   @if (dataLoaded) {
-    <section class="container mt-3 pb-5">
+    <section class="container mt-4 pb-8">
       <div class="departure-panel card border-0">
-        <div class="card-body p-3 p-lg-4">
+        <div class="card-body p-4 p-lg-4">
           <app-form-edit-departures
             [formDepartureDataInput]="formDepartureData"
             [dateDepartureInput]="dateDeparture.value"

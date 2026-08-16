@@ -1,22 +1,22 @@
-<div class="container mt-3" style="max-width: 750px">
+<div class="container mt-4" style="max-width: 750px">
   <h1 class="text-center">Lista de Usuarios</h1>
   <div>
-    <ul class="list-group mt-3">
+    <ul class="list-group mt-4">
       @for (user of users(); track user.user) {
         <li class="list-group-item">
-          <div class="row">
+          <div class="flex flex-wrap -mx-4">
             <div>
-              <div class="d-flex align-items-center my-2">
+              <div class="flex items-center my-2">
                 <h5 class="my-0">Usuario:</h5>
-                <p class="mx-2 fs-5 my-0">{{ user.user }}</p>
+                <p class="mx-2 text-lg my-0">{{ user.user }}</p>
               </div>
-              <div class="d-flex align-items-center my-2">
+              <div class="flex items-center my-2">
                 <h5 class="my-0">Contraseña:</h5>
-                <p class="mx-2 fs-5 s-5 my-0">{{ user.password }}</p>
+                <p class="mx-2 text-lg s-5 my-0">{{ user.password }}</p>
               </div>
-              <div class="d-flex align-items-center my-2">
+              <div class="flex items-center my-2">
                 <h5 class="my-0">Rol:</h5>
-                <p class="mx-2 fs-5 s-5 my-0">{{ user.rol }}</p>
+                <p class="mx-2 text-lg s-5 my-0">{{ user.rol }}</p>
               </div>
               @if (user.rol !== "admin" && user.tokens?.length) {
                 <div class="mb-2">
@@ -36,7 +36,7 @@
           <div>
             <button
               type="button"
-              class="btn btn-danger"
+              class="bg-red-600 text-white border border-red-600 hover:bg-red-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
               (click)="deleteUser(user.user)"
             >
               Eliminar usuario
@@ -46,14 +46,14 @@
       }
     </ul>
   </div>
-  <div class="my-3">
+  <div class="my-4">
     <h1 class="text-center">Crear nuevo usuario</h1>
     <form [formGroup]="formUser" (ngSubmit)="createUser()">
-      <div class="input-group mb-3">
+      <div class="input-group mb-4">
         <span class="input-group-text">Usuario</span>
         <input type="text" class="form-control" formControlName="user" />
       </div>
-      <div class="input-group mb-3">
+      <div class="input-group mb-4">
         <span class="input-group-text">Contraseña</span>
         <input type="text" class="form-control" formControlName="password" />
       </div>
@@ -63,7 +63,7 @@
       </select>
       <div
         #errorMessage
-        class="alert alert-danger mt-3"
+        class="alert alert-danger mt-4"
         role="alert"
         style="border-radius: 3px; padding: 5px; display: none"
       >
@@ -71,7 +71,7 @@
           El usuario o contraseña no pueden estar vacios. Intentalo de nuevo.
         </div>
       </div>
-      <button class="btn btn-primary my-3">Crear usuario</button>
+      <button class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 my-4 inline-block px-4 py-2 text-center rounded transition cursor-pointer">Crear usuario</button>
     </form>
   </div>
 </div>

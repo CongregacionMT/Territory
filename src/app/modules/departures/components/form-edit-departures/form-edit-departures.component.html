@@ -1,16 +1,16 @@
 @for (group of groupKeys.sort(); track group) {
-  <div class="mb-4 departure-group-section" [class.departure-group-section--nested]="group > 0">
+  <div class="mb-6 departure-group-section" [class.departure-group-section--nested]="group > 0">
     <h3 class="departure-group-title text-center">{{ getGroupTitle(group) }}</h3>
-    <form [formGroup]="formDeparture" class="d-flex flex-column justify-center">
-      <div class="row g-3">
+    <form [formGroup]="formDeparture" class="flex flex-col justify-center">
+      <div class="flex flex-wrap -mx-4 g-3">
         @for (
           days of filterControlsByGroup(group);
           track days;
           let i = $index
         ) {
-          <div class="col-12">
+          <div class="w-12/12 px-4">
             <div class="card departure-entry-card shadow-sm border-0 mb-2">
-              <div class="card-body p-3">
+              <div class="card-body p-4">
                 <div class="departure-entry-top">
                   <div>
                     <div class="departure-entry-title">{{ getDepartureTitle($safeNavigationMigration(days.get('date')?.value), $safeNavigationMigration(days.get('schedule')?.value)) }}</div>
@@ -50,10 +50,10 @@
                     }
                     <button
                       type="button"
-                      class="btn btn-sm btn-outline-danger departure-action-btn"
+                      class="btn-sm btn-outline-danger departure-action-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                       (click)="deleteInputForm(i, group)"
                     >
-                      <i class="fas fa-trash-alt me-1"></i>Quitar
+                      <i class="fas fa-trash-alt mr-1"></i>Quitar
                     </button>
                   </div>
                 </div>
@@ -177,7 +177,7 @@
                     <div class="departure-territory-block">
                       <button
                         type="button"
-                        class="btn btn-sm btn-primary departure-territory-btn"
+                        class="btn-sm bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 departure-territory-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                         data-bs-toggle="modal"
                         [attr.data-bs-target]="'#territoryModal-' + i + '-' + group"
                         (click)="selectedTerritoryGroup = (group > 0 ? group : null)"
@@ -191,7 +191,7 @@
                             @for (t of getSuggestedTerritories(i, group); track t) {
                               <button
                                 type="button"
-                                class="btn btn-sm quick-suggestion-btn"
+                                class="btn-sm quick-suggestion-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                                 (click)="applySuggestedTerritory(i, group, t)"
                                 title="Asignar territorio y reutilizar el punto/mapa si están guardados"
                               >
@@ -227,7 +227,7 @@
                     />
                     @if (hasQuickMeetingSuggestions(i, group)) {
                       <div class="quick-meeting-hint">
-                        <i class="fas fa-lightbulb me-1"></i>
+                        <i class="fas fa-lightbulb mr-1"></i>
                         {{ getQuickSuggestionText(i, group) }}
                       </div>
                     }
@@ -256,9 +256,9 @@
                   <div
                     class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg"
                   >
-                    <div class="modal-content border-0 shadow-lg rounded-4">
-                      <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title fw-bold">
+                    <div class="modal-content border-0 shadow-lg rounded-lg">
+                      <div class="modal-header bg-blue-600 text-white">
+                        <h5 class="modal-title font-bold">
                           📋 Seleccionar territorios
                         </h5>
                         <button
@@ -270,7 +270,7 @@
                       </div>
 
                       <div class="modal-body">
-                        <div class="d-flex flex-column flex-md-row justify-content-between mb-3 gap-2">
+                        <div class="flex flex-col flex-md-row justify-between mb-4 gap-2">
                           <div class="form-check form-switch mb-0">
                             <input
                               class="form-check-input"
@@ -297,18 +297,18 @@
                           </div>
                           <!-- Filtro por grupo -->
                           @if (getAvailableGroupNumbers($safeNavigationMigration(days.get('location')?.value)).length > 0) {
-                            <div class="d-flex align-items-center gap-1">
-                              <span class="small text-muted">Grupo:</span>
+                            <div class="flex items-center gap-1">
+                              <span class="small text-gray-500">Grupo:</span>
                               <button
                                 type="button"
-                                class="btn btn-sm"
+                                class="btn-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                                 [class]="selectedTerritoryGroup === null ? 'btn-secondary' : 'btn-outline-secondary'"
                                 (click)="selectedTerritoryGroup = null"
                               >Todos</button>
                               @for (gn of getAvailableGroupNumbers($safeNavigationMigration(days.get('location')?.value)); track gn) {
                                 <button
                                   type="button"
-                                  class="btn btn-sm"
+                                  class="btn-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                                   [class]="selectedTerritoryGroup === gn ? 'btn-primary' : 'btn-outline-primary'"
                                   (click)="selectedTerritoryGroup = gn"
                                 >{{ gn }}</button>
@@ -317,7 +317,7 @@
                           }
                         </div>
                       <div
-                          class="row row-cols-1 g-2"
+                          class="flex flex-wrap -mx-4 row-cols-1 g-2"
                         >
                           @for (
                             num of getFilteredTerritoryList(
@@ -327,7 +327,7 @@
                             );
                             track num
                           ) {
-                            <div class="col">
+                            <div class="flex-1 px-4">
                               <div
                                 class="territory-row"
                                 [class]="'territory-row--' + getTerritoryPriorityColor(num, $safeNavigationMigration(days.get('location')?.value))"
@@ -371,7 +371,7 @@
                                   <a
                                     [href]="getTerritoryLink($safeNavigationMigration(days.get('location')?.value), num)"
                                     target="_blank"
-                                    class="btn btn-sm btn-outline-primary ms-2 d-flex align-items-center gap-1"
+                                    class="btn-sm text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white ml-2 flex items-center gap-1 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                                     style="position: relative; z-index: 2; pointer-events: auto; font-size: 0.75rem; border-radius: 999px;"
                                     (click)="$event.stopPropagation()"
                                     title="Abrir mapa del territorio en una nueva pestaña"
@@ -385,13 +385,13 @@
                         </div>
                       </div>
 
-                      <div class="modal-footer justify-content-between">
+                      <div class="modal-footer justify-between">
                         <span class="small"
                           >Podés seleccionar varios territorios</span
                         >
                         <button
                           type="button"
-                          class="btn btn-success fw-semibold"
+                          class="bg-green-600 text-white border border-green-600 hover:bg-green-700 fw-semibold inline-block px-4 py-2 text-center rounded transition cursor-pointer"
                           data-bs-dismiss="modal"
                         >
                           ✅ Guardar selección
@@ -405,54 +405,54 @@
           </div>
         }
       </div>
-      <div class="d-flex justify-content-end mt-2">
+      <div class="flex justify-end mt-2">
         <button
           type="button"
-          class="btn btn-sm btn-outline-secondary"
+          class="btn-sm btn-outline-secondary inline-block px-4 py-2 text-center rounded transition cursor-pointer"
           (click)="addInputForm(group)"
         >
-          <i class="fas fa-plus me-1"></i> Nueva salida +
+          <i class="fas fa-plus mr-1"></i> Nueva salida +
         </button>
       </div>
       <hr />
     </form>
   </div>
 }
-<div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-4">
+<div class="flex justify-between items-center pb-4 border-bottom mb-6">
   <button
     type="button"
-    class="btn btn-sm btn-outline-secondary"
+    class="btn-sm btn-outline-secondary inline-block px-4 py-2 text-center rounded transition cursor-pointer"
     (click)="addNewGroup()"
   >
-    <i class="fas fa-plus me-1"></i> Nuevo grupo
+    <i class="fas fa-plus mr-1"></i> Nuevo grupo
   </button>
   <button
     type="button"
-    class="btn btn-primary px-4 py-2"
+    class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 px-6 py-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
     (click)="requestSave.emit()"
   >
-    <i class="fas fa-save me-2"></i>Guardar Salidas
+    <i class="fas fa-save mr-2"></i>Guardar Salidas
   </button>
 </div>
 
 <!-- Panel de configuración: asignar territorios a grupos (solo admin) -->
 @if (isAdmin) {
-  <div class="card departure-config-panel border-0 shadow-sm mt-4">
-    <div class="card-header departure-config-panel__header d-flex justify-content-between align-items-center">
+  <div class="card departure-config-panel border-0 shadow-sm mt-6">
+    <div class="card-header departure-config-panel__header flex justify-between items-center">
       <span class="fw-semibold">⚙️ Asignar territorios a grupos de predicación</span>
     </div>
     <div class="card-body departure-config-panel__body">
-      <p class="small mb-3">
+      <p class="small mb-4">
         Asigná cada territorio al grupo que normalmente predica en él. Luego podés filtrar por grupo en la modal de selección.
         Dejá en blanco (sin grupo) para que aparezca en todos los grupos.
       </p>
       @for (loc of localities; track loc.key) {
         @if (loc.hasNumberedTerritories && getTerritoryList(loc.territoryPrefix).length > 0) {
-          <div class="mb-4">
-            <h6 class="fw-bold text-capitalize mb-2">{{ loc.name }}</h6>
-            <div class="row g-2">
+          <div class="mb-6">
+            <h6 class="font-bold text-capitalize mb-2">{{ loc.name }}</h6>
+            <div class="flex flex-wrap -mx-4 g-2">
               @for (num of getTerritoryList(loc.territoryPrefix); track num) {
-                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="w-6/12 col-sm-4 md:w-3/12 lg:w-2/12 px-4">
                   <div class="border rounded p-2 text-center">
                     <div class="fw-semibold small mb-1">{{ num }}</div>
                     <select
@@ -475,10 +475,10 @@
         }
       }
     </div>
-    <div class="card-header departure-config-panel__header d-flex justify-content-between align-items-center">
+    <div class="card-header departure-config-panel__header flex justify-between items-center">
       <button
         type="button"
-        class="btn btn-primary btn-sm"
+        class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 btn-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer"
         (click)="saveTerritoryGroups()"
       >
         💾 Guardar asignaciones

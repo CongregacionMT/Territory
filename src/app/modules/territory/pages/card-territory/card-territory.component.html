@@ -1,12 +1,12 @@
-<div class="container-fluid header pt-1">
+<div class="container mx-auto px-4 w-full header pt-1">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum()"></app-breadcrumb>
-  <h1 class="text-center pb-4">Tarjeta del mapa del territorio</h1>
+  <h1 class="text-center pb-6">Tarjeta del mapa del territorio</h1>
 </div>
 <div class="container">
   @if (card().revision) {
-    <h4 class="text-center text-danger">(Revisión de la tarjeta)</h4>
+    <h4 class="text-center text-red-600">(Revisión de la tarjeta)</h4>
   }
-  <div class="d-flex flex-column align-items-center my-4">
+  <div class="flex flex-col items-center my-6">
     <div class="">
       <h3>
         Localidad:&nbsp;&nbsp;<i>{{ card().location | titlecase }}</i>
@@ -18,22 +18,22 @@
       </h3>
     </div>
   </div>
-  <div class="w-100 d-flex justify-content-center">
+  <div class="w-full flex justify-center">
     <app-territory-map
       [collection]="path()"
       [congregationKey]="congregationKey">
     </app-territory-map>
   </div>
-  <div class="d-flex justify-content-center">
+  <div class="flex justify-center">
     @if (dataLoaded()) {
       <form
         appFocusInvalidInput
         [formGroup]="formCard()"
         (ngSubmit)="submitForm()"
-        class="d-flex flex-column"
-        class="my-4 form-card"
+        class="flex flex-col"
+        class="my-6 form-card"
       >
-        <label for="driver" class="fs-5">Conductor</label>
+        <label for="driver" class="text-lg">Conductor</label>
         @if (isConductorMode()) {
           <select class="form-select" id="driver" formControlName="driver">
             <option value="" disabled>Seleccionar conductor</option>
@@ -53,7 +53,7 @@
         <!-- Error  -->
         @if (driverError()) {
           <div
-            class="alert alert-danger mt-3"
+            class="alert alert-danger mt-4"
             role="alert"
             style="border-radius: 3px; padding: 5px"
           >
@@ -62,11 +62,11 @@
             </div>
           </div>
         }
-        <div class="bg-dark mt-4 p-2 rounded">
-          <div class="d-flex justify-content-center">
-            <label class="fs-3 fw-bold">Manzanas completadas</label>
+        <div class="bg-gray-900 mt-6 p-2 rounded">
+          <div class="flex justify-center">
+            <label class="text-2xl font-bold">Manzanas completadas</label>
           </div>
-          <div class="d-flex justify-content-around flex-wrap">
+          <div class="flex justify-around flex-wrap">
             @for (apple of card().applesData; track i; let i = $index) {
               <div>
                 <div class="form-check form-check-inline my-2">
@@ -79,7 +79,7 @@
                     (change)="onCheckboxChange($event)"
                   />
                   <label
-                    class="form-check-label fs-4 ms-3"
+                    class="form-check-label text-xl ml-4"
                     [for]="apple.name"
                     >{{ apple.name }}</label
                   >
@@ -88,9 +88,9 @@
             }
           </div>
         </div>
-        <div class="row">
-          <div class="col mt-3">
-            <label for="start" class="fs-5">Inicio</label>
+        <div class="flex flex-wrap -mx-4">
+          <div class="flex-1 px-4 mt-4">
+            <label for="start" class="text-lg">Inicio</label>
             <input
               id="start"
               type="date"
@@ -99,8 +99,8 @@
               formControlName="start"
             />
           </div>
-          <div class="col mt-3">
-            <label for="end" class="fs-5">Conclución</label>
+          <div class="flex-1 px-4 mt-4">
+            <label for="end" class="text-lg">Conclución</label>
             <input
               id="end"
               type="date"
@@ -112,7 +112,7 @@
         <!-- Error  -->
         @if (startError()) {
           <div
-            class="alert alert-danger mt-3"
+            class="alert alert-danger mt-4"
             role="alert"
             style="border-radius: 3px; padding: 5px"
           >
@@ -123,7 +123,7 @@
         }
         @if (endError()) {
           <div
-            class="alert alert-danger mt-3"
+            class="alert alert-danger mt-4"
             role="alert"
             style="border-radius: 3px; padding: 5px"
           >
@@ -132,7 +132,7 @@
             </div>
           </div>
         }
-        <div class="d-flex justify-content-center mt-4">
+        <div class="flex justify-center mt-6">
           <textarea
             name="comments"
             [value]="card().comments"
@@ -144,12 +144,12 @@
             formControlName="comments"
           ></textarea>
         </div>
-        <button class="btn btn-success mt-3 btn-lg" type="submit">
+        <button class="bg-green-600 text-white border border-green-600 hover:bg-green-700 mt-4 btn-lg inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="submit">
           Enviar tarjeta
         </button>
         <button
           type="button"
-          class="btn btn-secondary mt-3 ms-3 btn-lg"
+          class="bg-gray-600 text-white border border-gray-600 hover:bg-gray-700 mt-4 ml-4 btn-lg inline-block px-4 py-2 text-center rounded transition cursor-pointer"
           routerLink="../../registro-territorios"
         >
           Cancelar

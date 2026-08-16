@@ -1,14 +1,14 @@
-<div class="py-5 campaign-container px-4">
-  <div class="text-center mb-5 header-animate">
+<div class="py-8 campaign-container px-6">
+  <div class="text-center mb-8 header-animate">
     @if (campaignInProgress() && activeCampaign) {
       <div
-        class="badge bg-primary text-uppercase px-3 py-2 mb-3 tracking-widest fade-in"
+        class="badge bg-blue-600 uppercase px-4 py-2 mb-4 tracking-widest fade-in"
         style="font-size: 0.7rem; border-radius: 50px"
       >
         Campaña en curso
       </div>
       <h1
-        class="display-1 fw-bold title-gradient mb-2 active-campaign-title scale-in"
+        class="display-1 font-bold title-gradient mb-2 active-campaign-title scale-in"
       >
         {{ activeCampaign.name }}
       </h1>
@@ -16,7 +16,7 @@
         {{ activeCampaign.description }}
       </p>
     } @else {
-      <h1 class="display-3 fw-bold title-gradient">Centro de Campañas</h1>
+      <h1 class="display-3 font-bold title-gradient">Centro de Campañas</h1>
       <p class="lead text-white">
         Gestión de recursos, territorios y progreso de campaña.
       </p>
@@ -24,25 +24,25 @@
   </div>
 
   @if (daysLeft > 0) {
-    <div class="alert custom-alert text-center mb-5 shadow bounce-in">
-      <i class="bi bi-hourglass-split me-2"></i> Quedan
+    <div class="alert custom-alert text-center mb-8 shadow-md bounce-in">
+      <i class="bi bi-hourglass-split mr-2"></i> Quedan
       <strong>{{ daysLeft }}</strong> días para finalizar la campaña actual.
     </div>
   }
 
   <!-- Nueva campaña -->
   @if (!campaignInProgress()) {
-    <div class="card glass-card shadow-lg border-0 mb-5 fade-in">
-      <div class="card-body p-4">
-        <h4 class="text-white mb-4 fw-bold">
-          <i class="bi bi-rocket-takeoff text-primary me-2"></i> Iniciar Nueva
+    <div class="card glass-card shadow-lg border-0 mb-8 fade-in">
+      <div class="card-body p-6">
+        <h4 class="text-white mb-6 font-bold">
+          <i class="bi bi-rocket-takeoff text-blue-600 mr-2"></i> Iniciar Nueva
           Campaña
         </h4>
         <form
           (ngSubmit)="startCampaign()"
-          class="needs-validation row gx-4 gy-3"
+          class="needs-validation flex flex-wrap -mx-4 gx-4 gy-3"
         >
-          <div class="col-md-6 mb-3">
+          <div class="md:w-6/12 mb-4">
             <label for="campaignName" class="form-label text-white-50"
               >Nombre de la campaña</label
             >
@@ -58,14 +58,14 @@
               minlength="3"
             />
             @if (nameInvalid()) {
-              <div class="text-danger mt-2 small fade-in">
-                <i class="bi bi-exclamation-circle me-1"></i> Por favor, escriba
+              <div class="text-red-600 mt-2 small fade-in">
+                <i class="bi bi-exclamation-circle mr-1"></i> Por favor, escriba
                 un nombre válido.
               </div>
             }
           </div>
 
-          <div class="col-md-6 mb-3">
+          <div class="md:w-6/12 mb-4">
             <label for="campaignEnd" class="form-label text-white-50"
               >Fecha de finalización</label
             >
@@ -79,14 +79,14 @@
               required
             />
             @if (dateInvalid()) {
-              <div class="text-danger mt-2 small fade-in">
-                <i class="bi bi-exclamation-circle me-1"></i> Seleccioná una
+              <div class="text-red-600 mt-2 small fade-in">
+                <i class="bi bi-exclamation-circle mr-1"></i> Seleccioná una
                 fecha de finalización.
               </div>
             }
           </div>
 
-          <div class="col-12 mb-3">
+          <div class="w-12/12 mb-4 px-4">
             <label for="initialInvitations" class="form-label text-white-50"
               >Invitaciones Iniciales Planeadas</label
             >
@@ -99,13 +99,13 @@
               name="initialInvitations"
               placeholder="Ej. 5000"
             />
-            <small class="text-muted"
+            <small class="text-gray-500"
               >No es obligatorio. Útil para llevar la estadística al
               terminar.</small
             >
           </div>
 
-          <div class="col-12 mb-4">
+          <div class="w-12/12 mb-6 px-4">
             <label for="campaignDescription" class="form-label text-white-50"
               >Descripción / Notas</label
             >
@@ -120,10 +120,10 @@
             ></textarea>
           </div>
 
-          <div class="col-12 text-end">
+          <div class="w-12/12 text-right px-4">
             <button
               type="button"
-              class="btn btn-primary start-btn w-100 py-3 fw-bold"
+              class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 start-btn w-full py-4 font-bold inline-block px-4 py-2 text-center rounded transition cursor-pointer"
               data-bs-toggle="modal"
               data-bs-target="#confirmStartModal"
             >
@@ -137,21 +137,21 @@
 
   <!-- Progreso campaña en curso -->
   @if (campaignInProgress() && !showEndCampaignModal()) {
-    <div class="card glass-card shadow-lg border-0 mb-5 fade-in scale-in">
-      <div class="card-body p-4 p-md-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h3 class="fw-bold text-white mb-0">
-            <i class="bi bi-bar-chart-fill text-info me-2"></i> Progreso en
+    <div class="card glass-card shadow-lg border-0 mb-8 fade-in scale-in">
+      <div class="card-body p-6 p-md-5">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-bold text-white mb-0">
+            <i class="bi bi-bar-chart-fill text-cyan-500 mr-2"></i> Progreso en
             Tiempo Real
           </h3>
         </div>
 
         @if (statsGlobal) {
           <div
-            class="global-progress-wrapper text-center mb-5 p-4 rounded-4"
+            class="global-progress-wrapper text-center mb-8 p-6 rounded-lg"
             style="background: rgba(255, 255, 255, 0.03)"
           >
-            <h5 class="text-white-50 mb-3 text-uppercase tracking-wide">
+            <h5 class="text-white-50 mb-4 uppercase tracking-wide">
               Avance Global
             </h5>
             <div class="progress global-progress">
@@ -161,32 +161,32 @@
                 role="progressbar"
               ></div>
             </div>
-            <h2 class="display-5 fw-bold text-white mt-3">
-              {{ statsGlobal.percent }}<span class="fs-5 text-white-50">%</span>
+            <h2 class="display-5 font-bold text-white mt-4">
+              {{ statsGlobal.percent }}<span class="text-lg text-white-50">%</span>
             </h2>
           </div>
         }
 
         <div class="territories-grouped-list">
           @for (grupo of territoriosPorLocalidad(); track grupo.name) {
-            <div class="locality-group mb-5">
+            <div class="locality-group mb-8">
               <h5
-                class="text-white-50 mb-3 text-uppercase tracking-wide border-bottom border-white-10 pb-2"
+                class="text-white-50 mb-4 uppercase tracking-wide border-bottom border-white-10 pb-2"
               >
-                <i class="bi bi-geo-alt-fill text-info me-2"></i>
+                <i class="bi bi-geo-alt-fill text-cyan-500 mr-2"></i>
                 {{ grupo.name }}
               </h5>
 
-              <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+              <div class="flex flex-wrap -mx-4 row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                 @for (territorio of grupo.territories; track territorio.id) {
-                  <div class="col">
+                  <div class="flex-1 px-4">
                     <div
-                      class="territory-node card bg-darker border-0 p-3 h-100"
+                      class="territory-node card bg-darker border-0 p-4 h-full"
                     >
                       <div
-                        class="d-flex justify-content-between align-items-center mb-2"
+                        class="flex justify-between items-center mb-2"
                       >
-                        <span class="fw-bold text-white fs-6">{{
+                        <span class="font-bold text-white text-base">{{
                           territorio.nombre
                         }}</span>
                         <span
@@ -214,12 +214,12 @@
       </div>
     </div>
 
-    <div class="text-center mb-5 fade-in delay-2">
+    <div class="text-center mb-8 fade-in delay-2">
       <button
-        class="btn btn-danger btn-lg px-5 py-3 fw-bold finish-campaign-btn shadow"
+        class="bg-red-600 text-white border border-red-600 hover:bg-red-700 btn-lg px-8 py-4 font-bold finish-campaign-btn shadow-md inline-block px-4 py-2 text-center rounded transition cursor-pointer"
         (click)="openEndCampaignModal()"
       >
-        <i class="bi bi-stop-circle me-2"></i> FINALIZAR CAMPAÑA ACTUAL
+        <i class="bi bi-stop-circle mr-2"></i> FINALIZAR CAMPAÑA ACTUAL
       </button>
     </div>
   }
@@ -227,18 +227,18 @@
   <!-- Asistente de finalización (Modal Expandido embebido o fullscreen overlay) -->
   @if (showEndCampaignModal()) {
     <div
-      class="end-campaign-wizard glass-card p-4 p-md-5 rounded-4 shadow-lg mb-5 fade-in"
+      class="end-campaign-wizard glass-card p-6 p-md-5 rounded-lg shadow-lg mb-8 fade-in"
     >
-      <h2 class="text-white fw-bold mb-4 text-center text-md-start">
-        <i class="bi bi-flag-fill text-danger me-2"></i> Resumen Final de
+      <h2 class="text-white font-bold mb-6 text-center text-md-start">
+        <i class="bi bi-flag-fill text-red-600 mr-2"></i> Resumen Final de
         Campaña
       </h2>
 
-      <div class="row g-5">
+      <div class="flex flex-wrap -mx-4 g-5">
         <!-- Paso 1: Stock de invitaciones -->
-        <div class="col-lg-5 border-end-lg border-white-10">
-          <h4 class="text-white mb-3">1. Stock de Invitaciones</h4>
-          <p class="text-white-50 small mb-4">
+        <div class="lg:w-5/12 border-end-lg border-white-10">
+          <h4 class="text-white mb-4">1. Stock de Invitaciones</h4>
+          <p class="text-white-50 small mb-6">
             ¿Cuántas invitaciones quedaron al finalizar la campaña?
           </p>
 
@@ -253,7 +253,7 @@
               (ngModelChange)="leftoverInvitations.set($event)"
             />
             <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
+              class="btn-outline-light text-left p-4 wizard-option inline-block px-4 py-2 text-center rounded transition cursor-pointer"
               for="l-muchas"
               >📦 Sobraron <strong>Muchas</strong></label
             >
@@ -268,7 +268,7 @@
               (ngModelChange)="leftoverInvitations.set($event)"
             />
             <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
+              class="btn-outline-light text-left p-4 wizard-option inline-block px-4 py-2 text-center rounded transition cursor-pointer"
               for="l-algunas"
               >📦 Sobraron <strong>Algunas</strong></label
             >
@@ -283,7 +283,7 @@
               (ngModelChange)="leftoverInvitations.set($event)"
             />
             <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
+              class="btn-outline-light text-left p-4 wizard-option inline-block px-4 py-2 text-center rounded transition cursor-pointer"
               for="l-pocas"
               >📦 Sobraron <strong>Pocas</strong></label
             >
@@ -298,7 +298,7 @@
               (ngModelChange)="leftoverInvitations.set($event)"
             />
             <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
+              class="btn-outline-light text-left p-4 wizard-option inline-block px-4 py-2 text-center rounded transition cursor-pointer"
               for="l-ninguna"
               >🚫 No sobró <strong>Ninguna</strong></label
             >
@@ -313,14 +313,14 @@
               (ngModelChange)="leftoverInvitations.set($event)"
             />
             <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
+              class="btn-outline-light text-left p-4 wizard-option inline-block px-4 py-2 text-center rounded transition cursor-pointer"
               for="l-faltaron"
               >⚠️ <strong>Faltaron</strong> invitaciones</label
             >
 
             @if (leftoverInvitations() === 'faltaron') {
-              <div class="mt-2 p-3 bg-dark rounded border border-warning scale-in">
-                <label for="missingCount" class="form-label text-warning small mb-2 fw-bold"
+              <div class="mt-2 p-4 bg-gray-900 rounded border border-warning scale-in">
+                <label for="missingCount" class="form-label text-yellow-500 small mb-2 font-bold"
                   >¿Cuántas más recomendarías pedir para la próxima vez?</label
                 >
                 <input
@@ -338,16 +338,16 @@
         </div>
 
         <!-- Paso 2: Salidas (Departures) -->
-        <div class="col-lg-7">
-          <h4 class="text-white mb-3">2. Salidas Registradas</h4>
-          <p class="text-white-50 small mb-4">
+        <div class="lg:w-7/12">
+          <h4 class="text-white mb-4">2. Salidas Registradas</h4>
+          <p class="text-white-50 small mb-6">
             Marcá cuáles salidas se usaron para predicar esta campaña e indicá
             cuántos publicadores asistieron (Opcional).
           </p>
 
           @if (filteredDepartures().length === 0) {
             <div
-              class="alert bg-dark border-white-10 text-center text-white-50 p-4"
+              class="alert bg-gray-900 border-white-10 text-center text-white-50 p-6"
             >
               No se registraron salidas de grupo en las semanas que duró esta
               campaña.
@@ -355,17 +355,17 @@
           }
 
           <div
-            class="departures-list flex-column gap-3 mb-4"
+            class="departures-list flex-col gap-3 mb-6"
             style="max-height: 400px; overflow-y: auto; padding-right: 8px"
           >
             @for (dep of filteredDepartures(); track dep.id; let idx = $index) {
               <div
-                class="departure-item p-3 rounded border border-white-10 bg-dark d-flex flex-wrap align-items-center justify-content-between gap-3 shadow-sm"
+                class="departure-item p-4 rounded border border-white-10 bg-gray-900 flex flex-wrap items-center justify-between gap-3 shadow-sm"
                 [class.border-success]="dep.checked"
                 [style.background]="dep.checked ? 'rgba(25, 135, 84, 0.05)' : 'rgba(255,255,255,0.02)'"
               >
-                <div class="d-flex align-items-center gap-3 flex-grow-1">
-                  <div class="form-check form-switch custom-switch me-0">
+                <div class="flex items-center gap-3 flex-grow-1">
+                  <div class="form-check form-switch custom-switch mr-0">
                     <input
                       class="form-check-input"
                       type="checkbox"
@@ -380,15 +380,15 @@
                     class="form-check-label text-white cursor-pointer m-0 flex-grow-1"
                     [for]="'depCheck' + idx"
                   >
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                      <span class="fw-bold" style="font-size: 0.95rem; text-transform: capitalize;">{{ dep.dateLabel }}</span>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-bold" style="font-size: 0.95rem; text-transform: capitalize;">{{ dep.dateLabel }}</span>
                       @if (dep.locality) {
-                        <span class="badge bg-primary rounded-pill" style="font-size: 0.65rem;">{{ dep.locality }}</span>
+                        <span class="badge bg-blue-600 rounded-full" style="font-size: 0.65rem;">{{ dep.locality }}</span>
                       }
                     </div>
-                    <div class="d-flex flex-wrap gap-2 text-white-50" style="font-size: 0.8rem;">
-                      <span class="d-flex align-items-center"><i class="bi bi-geo-fill me-1 text-info"></i> {{ dep.point }}</span>
-                      <span class="d-flex align-items-center"><i class="bi bi-person-fill me-1 text-secondary"></i> {{ dep.driver }}</span>
+                    <div class="flex flex-wrap gap-2 text-white-50" style="font-size: 0.8rem;">
+                      <span class="flex items-center"><i class="bi bi-geo-fill mr-1 text-cyan-500"></i> {{ dep.point }}</span>
+                      <span class="flex items-center"><i class="bi bi-person-fill mr-1 text-gray-500"></i> {{ dep.driver }}</span>
                     </div>
                   </label>
                 </div>
@@ -400,10 +400,10 @@
       </div>
 
       <!-- Paso 3: Detalles Finales -->
-      <div class="row mt-5">
-        <div class="col-lg-4 mb-4 mb-lg-0 border-end-lg">
-          <h4 class="text-white mb-3">3. Fecha de Cierre</h4>
-          <p class="text-white-50 small mb-3">
+      <div class="flex flex-wrap -mx-4 mt-8">
+        <div class="lg:w-4/12 mb-6 mb-lg-0 border-end-lg">
+          <h4 class="text-white mb-4">3. Fecha de Cierre</h4>
+          <p class="text-white-50 small mb-4">
             Confirmá la fecha en la que terminó la campaña.
           </p>
           <input
@@ -413,13 +413,13 @@
             (ngModelChange)="finalEndDate.set($event)"
           />
         </div>
-        <div class="col-lg-8">
-          <h4 class="text-white mb-3">4. Comentarios Finales</h4>
-          <p class="text-white-50 small mb-3">
+        <div class="lg:w-8/12">
+          <h4 class="text-white mb-4">4. Comentarios Finales</h4>
+          <p class="text-white-50 small mb-4">
             Agregá cualquier observación o resumen de la campaña.
           </p>
           <textarea
-            class="form-control premium-input w-100"
+            class="form-control premium-input w-full"
             rows="3"
             placeholder="Ej: Se recomienda para la siguiente campaña pedir más invitaciones..."
             [ngModel]="finalComments()"
@@ -429,12 +429,12 @@
       </div>
 
       <!-- Advertencia Final -->
-      <div class="row mt-5">
-        <div class="col-12">
-          <div class="alert alert-danger-premium d-flex align-items-center gap-3 p-4 rounded-4 shadow-sm">
-            <i class="fas fa-exclamation-triangle fs-3"></i>
+      <div class="flex flex-wrap -mx-4 mt-8">
+        <div class="w-12/12 px-4">
+          <div class="alert alert-danger-premium flex items-center gap-3 p-6 rounded-lg shadow-sm">
+            <i class="fas fa-exclamation-triangle text-2xl"></i>
             <div>
-              <h5 class="fw-bold mb-1">¡Acción Definitiva!</h5>
+              <h5 class="font-bold mb-1">¡Acción Definitiva!</h5>
               <p class="mb-0 small" style="opacity: 0.9;">
                 Al finalizar esta campaña, se <strong>bloqueará todo cambio</strong> en los territorios asociados y los datos se archivarán permanentemente. Por favor, asegúrate de haber registrado todas las manzanas antes de confirmar.
               </p>
@@ -444,13 +444,13 @@
       </div>
 
       <div
-        class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top border-white-10"
+        class="flex justify-end gap-3 mt-8 pt-6 border-top border-white-10"
       >
-        <button class="btn btn-dark px-4 py-2" (click)="cancelEndCampaign()">
+        <button class="bg-gray-900 text-white border border-gray-900 hover:bg-gray-800 px-6 py-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="cancelEndCampaign()">
           Cancelar
         </button>
         <button
-          class="btn btn-success px-5 py-2 fw-bold shadow glow"
+          class="bg-green-600 text-white border border-green-600 hover:bg-green-700 px-8 py-2 font-bold shadow-md glow inline-block px-4 py-2 text-center rounded transition cursor-pointer"
           [disabled]="!leftoverInvitations() || (leftoverInvitations() === 'faltaron' && !missingInvitations())"
           (click)="confirmEndCampaign()"
         >
@@ -462,31 +462,31 @@
 
   <!-- Historial -->
   @if (campaignHistory().length > 0 && !showEndCampaignModal()) {
-    <div class="mb-5 fade-in delay-3">
-      <h3 class="fw-bold text-white mb-4 d-flex align-items-center">
-        <i class="bi bi-journal-album text-primary me-2"></i> Archivo de
+    <div class="mb-8 fade-in delay-3">
+      <h3 class="font-bold text-white mb-6 flex items-center">
+        <i class="bi bi-journal-album text-blue-600 mr-2"></i> Archivo de
         Campañas
       </h3>
-      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+      <div class="flex flex-wrap -mx-4 row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
         @for (history of campaignHistory(); track history) {
-          <div class="col">
+          <div class="flex-1 px-4">
             <div
-              class="card bg-darker border-white-10 shadow-sm history-card h-100"
+              class="card bg-darker border-white-10 shadow-sm history-card h-full"
               (click)="goToCampaignDetail(history.id)"
             >
-              <div class="card-body p-4 d-flex flex-column hover-effect">
-                <h5 class="text-white fw-bold text-truncate mb-2">
+              <div class="card-body p-6 flex flex-col hover-effect">
+                <h5 class="text-white font-bold text-truncate mb-2">
                   {{ history.nombre }}
                 </h5>
-                <p class="text-white-50 small mb-4 flex-grow-1">
+                <p class="text-white-50 small mb-6 flex-grow-1">
                   {{ history.descripcion || "Sin descripción." }}
                 </p>
                 <div
-                  class="d-flex justify-content-between align-items-end mt-auto"
+                  class="flex justify-between items-end mt-auto"
                 >
                   <span
-                    class="badge bg-secondary text-white-50 border border-white-10 fw-normal px-2 py-1"
-                    ><i class="bi bi-calendar3 me-1"></i> Fin:
+                    class="badge bg-gray-500 text-white-50 border border-white-10 font-normal px-2 py-1"
+                    ><i class="bi bi-calendar3 mr-1"></i> Fin:
                     {{ history.fecha }}</span
                   >
                   <div class="link-circle">
@@ -509,13 +509,13 @@
       @if (campaignError()) {
         <!-- Estado de Error -->
         <div class="loading-rocket">⚠️</div>
-        <h3 class="loading-title text-danger">Error al Finalizar</h3>
+        <h3 class="loading-title text-red-600">Error al Finalizar</h3>
         <p class="loading-subtitle text-white-50">{{ campaignError() }}</p>
         <button
-          class="btn btn-outline-light mt-3"
+          class="btn-outline-light mt-4 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
           (click)="window.location.reload()"
         >
-          <i class="bi bi-arrow-clockwise me-2"></i>Recargar Página
+          <i class="bi bi-arrow-clockwise mr-2"></i>Recargar Página
         </button>
       } @else {
         <!-- Estado Normal de Progreso -->
@@ -570,10 +570,10 @@
 <!-- Modal de confirmación al final de la raíz para evitar problemas de stacking context con el fondo oscuro -->
 <div class="modal fade" id="confirmStartModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content glass-modal text-white bg-dark">
+    <div class="modal-content glass-modal text-white bg-gray-900">
       <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="modal-title fw-bold text-warning">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <h5 class="modal-title font-bold text-yellow-500">
+          <i class="bi bi-exclamation-triangle-fill mr-2"></i>
           Atención requerida
         </h5>
         <button
@@ -596,12 +596,12 @@
         </p>
       </div>
       <div class="modal-footer border-top-0 pt-0">
-        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">
+        <button type="button" class="bg-gray-900 text-white border border-gray-900 hover:bg-gray-800 inline-block px-4 py-2 text-center rounded transition cursor-pointer" data-bs-dismiss="modal">
           Cancelar
         </button>
         <button
           type="button"
-          class="btn btn-warning fw-bold text-dark"
+          class="btn-warning font-bold text-gray-900 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
           (click)="confirmStartCampaign()"
           data-bs-dismiss="modal"
         >

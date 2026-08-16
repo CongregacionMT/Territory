@@ -1,86 +1,86 @@
 <div class="container">
-  <div class="d-flex justify-content-center">
-    <h1 class="my-4 text-center">Congregación {{ congregationName }}</h1>
+  <div class="flex justify-center">
+    <h1 class="my-6 text-center">Congregación {{ congregationName }}</h1>
   </div>
   @if (isDriver || isAdmin) {
-    <h2 class="text-center text-info">¡Bienvenido {{capitalizeFirstLetter(nameDriver)}}!</h2>
+    <h2 class="text-center text-cyan-500">¡Bienvenido {{capitalizeFirstLetter(nameDriver)}}!</h2>
   }
   @if (isDriver) {
-    <h2 class="text-center text-success">(Conductor)</h2>
+    <h2 class="text-center text-green-600">(Conductor)</h2>
   }
   @if (isAdmin) {
-    <h2 class="text-center text-danger">(Administrador)</h2>
+    <h2 class="text-center text-red-600">(Administrador)</h2>
   }
   <div class="card-container">
     <!-- Territorios -->
     <div class="card" routerLink="../territorios">
-      <div class="card-body d-flex flex-column align-items-center">
+      <div class="card-body flex flex-col items-center">
         <img src="../../../../../assets/img/map.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title text-white mt-3">Territorios</h2>
+        <h2 class="card-title text-white mt-4">Territorios</h2>
       </div>
     </div>
     <!-- Salidas -->
     <div class="card" routerLink="../salidas">
-      <div class="card-body d-flex flex-column align-items-center">
+      <div class="card-body flex flex-col items-center">
         <img src="../../../../../assets/img/salidas.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title text-white mt-3">Salidas</h2>
+        <h2 class="card-title text-white mt-4">Salidas</h2>
       </div>
     </div>
     
     <div class="card" routerLink="../carrito">
-      <div class="card-body d-flex flex-column align-items-center">
+      <div class="card-body flex flex-col items-center">
         <img src="../../../../../assets/img/carrito.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title text-white mt-3">Carrito</h2>
+        <h2 class="card-title text-white mt-4">Carrito</h2>
       </div>
     </div>
     <!-- Campaña -->
     @if (isAdmin) {
       <div class="card" routerLink="../campaign">
-        <div class="card-body d-flex flex-column align-items-center">
+        <div class="card-body flex flex-col items-center">
           <img src="../../../../../assets/img/campaign.png" alt="map" style="width: 10rem;">
-          <h2 class="card-title text-white mt-3 text-center">Campaña</h2>
+          <h2 class="card-title text-white mt-4 text-center">Campaña</h2>
         </div>
       </div>
     }
     <!-- Estadísticas -->
     @if (isAdmin) {
       <div class="card" routerLink="../statistics">
-        <div class="card-body d-flex flex-column align-items-center">
+        <div class="card-body flex flex-col items-center">
           <img src="../../../../../assets/img/statistics.png" alt="map" style="width: 10rem;">
-          <h2 class="card-title text-white mt-3 text-center">Estadísticas</h2>
+          <h2 class="card-title text-white mt-4 text-center">Estadísticas</h2>
         </div>
       </div>
     }
     <!-- Registro de asignación de territorios -->
     @if (isAdmin) {
       <div class="card" routerLink="../registro-territorios">
-        <div class="card-body d-flex flex-column align-items-center">
+        <div class="card-body flex flex-col items-center">
           <img src="../../../../../assets/img/asignacion.png" alt="map" style="width: 10rem;">
-          <h2 class="card-title text-white mt-3 text-center">Registro de territorios</h2>
+          <h2 class="card-title text-white mt-4 text-center">Registro de territorios</h2>
         </div>
       </div>
     }
     @if (isAdmin) {
       <div class="card" routerLink="../usuarios">
-        <div class="card-body d-flex flex-column align-items-center">
+        <div class="card-body flex flex-col items-center">
           <img src="../../../../../assets/img/group.png" alt="map" style="width: 10rem;">
-          <h2 class="card-title text-white mt-3 text-center">Usuarios</h2>
+          <h2 class="card-title text-white mt-4 text-center">Usuarios</h2>
         </div>
       </div>
     }
   </div>
-  <div class="d-flex justify-content-center auth">
+  <div class="flex justify-center auth">
     @if (btnLogin) {
-      <button class="btn btn-warning btn-lg" routerLink="/auth">Iniciar sesión</button>
+      <button class="btn-warning btn-lg inline-block px-4 py-2 text-center rounded transition cursor-pointer" routerLink="/auth">Iniciar sesión</button>
     }
     @if (btnLogin === false) {
-      <button class="btn btn-primary btn-lg mx-2" (click)="activeNotification()">Notificarme</button>
-      <button class="btn btn-danger btn-lg" (click)="logout()">Cerrar sesión</button>
+      <button class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 btn-lg mx-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="activeNotification()">Notificarme</button>
+      <button class="bg-red-600 text-white border border-red-600 hover:bg-red-700 btn-lg inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="logout()">Cerrar sesión</button>
     }
   </div>
-  <div class="d-flex justify-content-center">
+  <div class="flex justify-center">
     @if (btnPWA) {
-      <button class="btn btn-info btn-lg" (click)="installPWA()">Instalar App</button>
+      <button class="btn-info btn-lg inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="installPWA()">Instalar App</button>
     }
   </div>
 </div>

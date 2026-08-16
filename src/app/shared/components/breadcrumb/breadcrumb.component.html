@@ -6,11 +6,11 @@
       let c = $count;
       let i = $index
     ) {
-      <li class="breadcrumb-item d-flex">
+      <li class="breadcrumb-item flex">
         <a [routerLink]="returnBack.repeat(c - i)" class="route">{{
           route.route
         }}</a>
-        <p class="slash ms-3 me-2 my-0">/</p>
+        <p class="slash ml-4 mr-2 my-0">/</p>
       </li>
     }
     <li class="breadcrumb-item active" aria-current="page">

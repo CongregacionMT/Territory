@@ -1,12 +1,12 @@
-<div class="container-fluid px-4 py-3 assignment-record-container">
+<div class="container mx-auto px-4 w-full px-6 py-4 assignment-record-container">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum()"></app-breadcrumb>
 
   @if (filterDataListFull() && filterDataListFull().length > 0) {
     <!-- Toolbar Controls -->
-    <div class="toolbar-card my-4 p-3 rounded-4 shadow-sm">
-      <div class="row align-items-center g-3">
-        <div class="col-12 col-md-auto d-flex align-items-center gap-2">
-          <label for="select-filter-register" class="fw-semibold text-nowrap text-light mb-0">
+    <div class="toolbar-card my-6 p-4 rounded-lg shadow-sm">
+      <div class="flex flex-wrap -mx-4 items-center g-3">
+        <div class="w-12/12 col-md-auto flex items-center gap-2 px-4">
+          <label for="select-filter-register" class="fw-semibold text-nowrap text-gray-100 mb-0">
             🔍 Filtrar por:
           </label>
           <select
@@ -22,21 +22,21 @@
           </select>
         </div>
 
-        <div class="col-12 col-md d-flex flex-wrap align-items-center justify-content-md-end gap-2">
-          <button class="btn btn-outline-light btn-action shadow-sm" (click)="refreshData()" title="Refrescar datos">
+        <div class="w-12/12 col-md flex flex-wrap items-center justify-content-md-end gap-2 px-4">
+          <button class="btn-outline-light btn-action shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="refreshData()" title="Refrescar datos">
             🔄 Refrescar
           </button>
           
           @if (hasPendingChanges) {
-            <button class="btn btn-success btn-action shadow-sm" (click)="saveAllChanges()">
+            <button class="bg-green-600 text-white border border-green-600 hover:bg-green-700 btn-action shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="saveAllChanges()">
               💾 Guardar cambios
             </button>
-            <button class="btn btn-outline-warning btn-action shadow-sm" (click)="discardAllChanges()">
+            <button class="btn-outline-warning btn-action shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="discardAllChanges()">
               ❌ Descartar
             </button>
           }
           
-          <button class="btn btn-danger btn-action shadow-sm" (click)="downloadPDF()">
+          <button class="bg-red-600 text-white border border-red-600 hover:bg-red-700 btn-action shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="downloadPDF()">
             📄 Registro PDF
           </button>
         </div>
@@ -44,16 +44,16 @@
     </div>
 
     <!-- Main Territory Grid Table -->
-    <div class="table-responsive-wrapper rounded-4 shadow-lg">
+    <div class="table-responsive-wrapper rounded-lg shadow-lg">
       <table class="table table-dark table-hover align-middle mb-0 territory-grid-table">
         <thead>
           <tr>
             @for (item of territoriesNumber(); track item.territorio; let i = $index) {
-              <th scope="col" class="territory-header-cell text-center py-3">
-                <div class="d-flex align-items-center justify-content-between px-2">
+              <th scope="col" class="territory-header-cell text-center py-4">
+                <div class="flex items-center justify-between px-2">
                   <span class="header-title">Territorio {{ item.territorio }}</span>
                   <button 
-                    class="btn btn-sm btn-primary rounded-circle btn-add-cell shadow-sm" 
+                    class="btn-sm bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 rounded-full btn-add-cell shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" 
                     (click)="addCard(item.collection, i)" 
                     title="Añadir registro nuevo"
                   >
@@ -68,45 +68,45 @@
           <tr>
             @for (dataList of filterDataListFull(); track $index; let i = $index) {
               <td class="territory-column-cell align-top p-2">
-                <div class="d-flex flex-column gap-2">
+                <div class="flex flex-col gap-2">
                   @for (list of dataList; track list.id || list.start) {
                     @if (list.end) {
                       <div 
-                        class="assignment-card rounded-3 p-2 transition-all position-relative"
+                        class="assignment-card rounded-md p-2 transition-all relative"
                         [class.pending-change]="list.id && pendingChanges()[territoriesNumber()[i].collection + '_' + list.id] !== undefined"
                         [class.pending-delete]="list.id && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined"
                       >
                         <!-- Delete Overlay -->
                         @if (list.id && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined) {
-                          <div class="delete-overlay rounded-3 d-flex flex-column align-items-center justify-content-center p-2 z-3">
+                          <div class="delete-overlay rounded-md flex flex-col items-center justify-center p-2 z-3">
                             <span class="badge bg-danger mb-2">Marcado para eliminar</span>
-                            <button class="btn btn-sm btn-light shadow-sm" (click)="cancelDelete(list, territoriesNumber()[i].collection)">
+                            <button class="btn-sm bg-gray-100 text-gray-900 border border-gray-100 hover:bg-gray-200 shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="cancelDelete(list, territoriesNumber()[i].collection)">
                               ↩️ Deshacer
                             </button>
                           </div>
                         }
 
                         <!-- Driver Section -->
-                        <div class="driver-header mb-2 p-1 rounded-2">
+                        <div class="driver-header mb-2 p-1 rounded">
                           @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
-                            <div class="edit-driver-group d-flex align-items-center gap-1">
+                            <div class="edit-driver-group flex items-center gap-1">
                               <input 
                                 type="text" 
-                                class="form-control form-control-sm text-center fw-bold custom-input" 
+                                class="form-control form-control-sm text-center font-bold custom-input" 
                                 placeholder="Conductor"
                                 [ngModel]="editFormData().driver" 
                                 (ngModelChange)="updateEditData('driver', $event)"
                               >
-                              <button class="btn btn-sm btn-success rounded-circle px-2 py-1" (click)="applyEditLocally(list, territoriesNumber()[i].collection)" title="Confirmar">✔️</button>
-                              <button class="btn btn-sm btn-outline-light rounded-circle px-2 py-1" (click)="cancelEdit()" title="Cancelar">❌</button>
+                              <button class="btn-sm bg-green-600 text-white border border-green-600 hover:bg-green-700 rounded-full px-2 py-1 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="applyEditLocally(list, territoriesNumber()[i].collection)" title="Confirmar">✔️</button>
+                              <button class="btn-sm btn-outline-light rounded-full px-2 py-1 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="cancelEdit()" title="Cancelar">❌</button>
                             </div>
                           } @else {
-                            <div class="d-flex align-items-center justify-content-between position-relative px-2 py-1">
-                              <span class="driver-name fw-bold text-truncate me-2" [title]="list.driver || 'Sin Conductor'">
+                            <div class="flex items-center justify-between relative px-2 py-1">
+                              <span class="driver-name font-bold text-truncate mr-2" [title]="list.driver || 'Sin Conductor'">
                                 👤 {{ list.driver || 'Sin Conductor' }}
                               </span>
                               @if (list.id && !list.id.startsWith('Campaña-undefined')) {
-                                <div class="action-buttons d-flex gap-1">
+                                <div class="action-buttons flex gap-1">
                                   <button class="btn-icon btn-edit" (click)="startEdit(list, territoriesNumber()[i].collection)" title="Editar">✏️</button>
                                   <button class="btn-icon btn-delete" (click)="markForDelete(list, territoriesNumber()[i].collection)" title="Eliminar">🗑️</button>
                                 </div>
@@ -116,9 +116,9 @@
                         </div>
 
                         <!-- Dates Section -->
-                        <div class="dates-container p-2 rounded-2 border border-secondary border-opacity-25">
-                          <div class="row g-1 text-center align-items-center">
-                            <div class="col-6 border-end border-secondary border-opacity-25 pe-1">
+                        <div class="dates-container p-2 rounded border border-secondary border-opacity-25">
+                          <div class="flex flex-wrap -mx-4 g-1 text-center items-center">
+                            <div class="w-6/12 border-end border-secondary border-opacity-25 pr-1 px-4">
                               <div class="date-label">Entregó</div>
                               @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
                                 <input 
@@ -128,12 +128,12 @@
                                   (ngModelChange)="updateEditData('start', $event)"
                                 >
                               } @else {
-                                <div class="date-value fw-medium text-info">
+                                <div class="date-value font-medium text-cyan-500">
                                   {{ (list.start || $any(list.creation)?.toDate?.() || ($any(list.creation)?.seconds ? $any(list.creation).seconds * 1000 : list.creation)) | date: "dd/MM/yy" }}
                                 </div>
                               }
                             </div>
-                            <div class="col-6 ps-1">
+                            <div class="w-6/12 pl-1 px-4">
                               <div class="date-label">Devolvió</div>
                               @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
                                 <input 
@@ -143,7 +143,7 @@
                                   (ngModelChange)="updateEditData('end', $event)"
                                 >
                               } @else {
-                                <div class="date-value fw-medium text-success">
+                                <div class="date-value font-medium text-green-600">
                                   {{ list.end | date: "dd/MM/yyyy" }}
                                 </div>
                               }
@@ -162,10 +162,10 @@
       </table>
     </div>
   } @else {
-    <div class="empty-state-card alert alert-dark text-center my-5 p-5 rounded-4 shadow-sm border border-secondary border-opacity-25">
-      <div class="display-5 mb-3">📭</div>
-      <h4 class="alert-heading text-light">Sin datos disponibles</h4>
-      <p class="text-muted mb-0">No hay registros de territorios para mostrar en este momento.</p>
+    <div class="empty-state-card alert alert-dark text-center my-8 p-8 rounded-lg shadow-sm border border-secondary border-opacity-25">
+      <div class="display-5 mb-4">📭</div>
+      <h4 class="alert-heading text-gray-100">Sin datos disponibles</h4>
+      <p class="text-gray-500 mb-0">No hay registros de territorios para mostrar en este momento.</p>
     </div>
   }
 </div>

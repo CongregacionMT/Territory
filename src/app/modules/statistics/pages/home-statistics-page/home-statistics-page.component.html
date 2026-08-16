@@ -1,11 +1,11 @@
 <div class="container table-responsive">
   <app-breadcrumb [routerBreadcrum]="routerBreadcrum()"></app-breadcrumb>
-  <div class="d-flex justify-content-center">
-    <h1 class="mt-0 mb-3">Selecciona una localidad</h1>
+  <div class="flex justify-center">
+    <h1 class="mt-0 mb-4">Selecciona una localidad</h1>
   </div>
   
   <!-- Botones de localidades para estadísticas -->
-  <div class="card-container d-flex justify-content-center mb-3">
+  <div class="card-container flex justify-center mb-4">
     @for (group of CardButtonsStatistics(); track group) {
       <app-card-xl
         [mapName]="group.name"

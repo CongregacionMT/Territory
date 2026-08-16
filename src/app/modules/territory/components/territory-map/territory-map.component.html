@@ -5,9 +5,9 @@
   @if (error() && !useFallback() && !useOfflineViewer()) {
     <div class="map-error-overlay">
       <p>{{ error() }}</p>
-      <div class="d-flex flex-column gap-2">
-        <button class="btn btn-primary" (click)="retry()">Reintentar</button>
-        <button class="btn btn-secondary" (click)="switchToFallback()">Cargar mapa antiguo</button>
+      <div class="flex flex-col gap-2">
+        <button class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="retry()">Reintentar</button>
+        <button class="bg-gray-600 text-white border border-gray-600 hover:bg-gray-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="switchToFallback()">Cargar mapa antiguo</button>
       </div>
     </div>
   }
@@ -44,8 +44,8 @@
   </div>
 
   <div class="mt-2 text-center">
-    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="switchToFallback()">
-      <i class="fas fa-map-marked-alt me-1"></i> Cargar mapa antiguo
+    <button type="button" class="btn-sm btn-outline-secondary inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="switchToFallback()">
+      <i class="fas fa-map-marked-alt mr-1"></i> Cargar mapa antiguo
     </button>
   </div>
 }
