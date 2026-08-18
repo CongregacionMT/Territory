@@ -1,0 +1,7 @@
+allowBuilds:
+  '@firebase/util': false
+  '@parcel/watcher': false
+  esbuild: false
+  lmdb: false
+  msgpackr-extract: false
+  protobufjs: false

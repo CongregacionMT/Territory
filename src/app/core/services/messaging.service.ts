@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { getMessaging, getToken, onMessage, MessagePayload } from '@firebase/messaging';
+import { getMessaging, getToken, onMessage, MessagePayload } from '@angular/fire/messaging';
 
 @Injectable({
   providedIn: 'root'

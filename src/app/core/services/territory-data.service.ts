@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import {
   collection,
   collectionData,
@@ -16,7 +16,7 @@ import {
   runTransaction,
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, tap, of } from 'rxjs';
 import { SpinnerService } from './spinner.service';
 import { DataRural } from '@core/models/DataRural';
 import { CampaignService } from './campaign.service';
@@ -42,15 +42,29 @@ export class TerritoryDataService {
   private spinner = inject(SpinnerService);
   private campaignService = inject(CampaignService);
 
+  // Cached state via Signals to avoid relying on sessionStorage everywhere
+  private _cachedNumberTerritory = signal<any>(null);
+  private _cachedStatistics = signal<StatisticsButton | null>(null);
+
   // MAPAS
   getMaps(): Observable<MapData[]> {
     const mapRef = collection(this.firestore, 'MapsTerritory');
     return collectionData(mapRef) as Observable<MapData[]>;
   }
-  // NUMERO DE TERRITORIOS
+
+  // NUMERO DE TERRITORIOS (with caching)
   getNumberTerritory(): Observable<TerritoryNumberData[]> {
+    if (this._cachedNumberTerritory()) {
+      return of([this._cachedNumberTerritory()]); // Return as array to match signature
+    }
     const numberRef = collection(this.firestore, 'NumberTerritory');
-    return collectionData(numberRef) as Observable<TerritoryNumberData[]>;
+    return (collectionData(numberRef) as Observable<TerritoryNumberData[]>).pipe(
+      tap((numbers: TerritoryNumberData[]) => {
+        const mergedData = numbers.reduce((acc: any, curr: any) => ({ ...acc, ...curr }), {});
+        this._cachedNumberTerritory.set(mergedData);
+        sessionStorage.setItem("numberTerritory", JSON.stringify(mergedData));
+      })
+    );
   }
 
   // GRUPOS DE TERRITORIOS
@@ -423,8 +437,18 @@ export class TerritoryDataService {
   }
   // ESTADÍSTICAS
   getStatisticsButtons(): Observable<StatisticsButton[]> {
+    if (this._cachedStatistics()) {
+      return of([this._cachedStatistics()!]);
+    }
     const mapRef = collection(this.firestore, 'Statistics');
-    return collectionData(mapRef) as Observable<StatisticsButton[]>;
+    return (collectionData(mapRef) as Observable<StatisticsButton[]>).pipe(
+      tap((number: StatisticsButton[]) => {
+        if (number.length > 0) {
+          this._cachedStatistics.set(number[0]);
+          sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
+        }
+      })
+    );
   }
   // REGISTER
   getCardTerritorieRegisterTable(collectionParam: string): Observable<Card[]> {
