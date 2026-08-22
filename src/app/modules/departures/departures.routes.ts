@@ -1,25 +1,42 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { HomeDeparturePageComponent } from './pages/home-departure-page/home-departure-page.component';
-import { DeparturePageComponent } from './pages/departure-page/departure-page.component';
-import { TablePublishersPageComponent } from './pages/table-publishers-page/table-publishers-page.component';
-import { EditDeparturesComponent } from './pages/edit-departures/edit-departures.component';
-import { ManagePublishersComponent } from './pages/manage-publishers/manage-publishers.component';
+import { Routes } from '@angular/router';
 import { unsavedChangesGuard } from '@core/guards/unsaved-changes.guard';
 
 export const ROUTES: Routes = [
   {
     path: '',
     children: [
-      { path: '', component: HomeDeparturePageComponent },
-      { path: 'editar', component: EditDeparturesComponent, canDeactivate: [unsavedChangesGuard] },
-      { path: 'gestion-publicadores', component: ManagePublishersComponent },
-      { path: 'grupo/:number', component: DeparturePageComponent },
-      { path: 'publicadores', component: TablePublishersPageComponent },
-      { path: 'estadisticas', loadComponent: () => import('./pages/statistics-departures/statistics-departures.component').then(m => m.StatisticsDeparturesComponent) },
+      { 
+        path: '', 
+        loadComponent: () => import('./pages/home-departure-page/home-departure-page.component').then(m => m.HomeDeparturePageComponent) 
+      },
+      { 
+        path: 'editar', 
+        loadComponent: () => import('./pages/edit-departures/edit-departures.component').then(m => m.EditDeparturesComponent), 
+        canDeactivate: [unsavedChangesGuard],
+        data: { breadcrumb: 'Editar' }
+      },
+      { 
+        path: 'gestion-publicadores', 
+        loadComponent: () => import('./pages/manage-publishers/manage-publishers.component').then(m => m.ManagePublishersComponent),
+        data: { breadcrumb: 'Gestionar Publicadores' }
+      },
+      { 
+        path: 'grupo/:number', 
+        loadComponent: () => import('./pages/departure-page/departure-page.component').then(m => m.DeparturePageComponent),
+        data: { breadcrumb: 'Grupo' }
+      },
+      { 
+        path: 'publicadores', 
+        loadComponent: () => import('./pages/table-publishers-page/table-publishers-page.component').then(m => m.TablePublishersPageComponent),
+        data: { breadcrumb: 'Publicadores' }
+      },
+      { 
+        path: 'estadisticas', 
+        loadComponent: () => import('./pages/statistics-departures/statistics-departures.component').then(m => m.StatisticsDeparturesComponent),
+        data: { breadcrumb: 'Estadísticas' }
+      },
       { path: '**', redirectTo: '' },
     ],
   },
 ];
-
 

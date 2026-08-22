@@ -1,9 +1,8 @@
 <div class="container mx-auto px-4 w-full container-xl p-4 p-md-5">
-  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
 
   <div class="flex flex-col flex-md-row justify-between items-center mb-6 pb-4 border-bottom gap-3">
     <h2 class="font-bold m-0 h3 h2-md">Gestionar Publicadores</h2>
-    <button class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2 w-full w-md-auto py-2 px-4 fw-semibold shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="addGroup()">
+    <button class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2 w-full w-md-auto py-2 px-4 fw-semibold shadow-sm" (click)="addGroup()">
       <i class="fas fa-plus"></i> Agregar Grupo
     </button>
   </div>
@@ -15,7 +14,7 @@
           <div class="card-header bg-gray-100 flex justify-between items-center py-4">
             <h4 class="h5 m-0 font-bold text-truncate pr-2">{{ group.id }}</h4>
             <button 
-              class="btn-outline-danger btn-sm flex items-center justify-center inline-block px-4 py-2 text-center rounded transition cursor-pointer" 
+              class="btn-outline-danger btn-sm flex items-center justify-center" 
               style="width: 32px; height: 32px;"
               (click)="deleteGroup(group.id)"
               [disabled]="group.publishers.length > 0"
@@ -34,7 +33,7 @@
                 [(ngModel)]="newPublisherName[group.id]"
                 (keyup.enter)="addPublisher(group.id)">
               <button 
-                class="bg-green-600 text-white border border-green-600 hover:bg-green-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer" 
+                class="bg-green-600 text-white border border-green-600 hover:bg-green-700" 
                 (click)="addPublisher(group.id)">
                 <i class="fas fa-plus"></i>
               </button>
@@ -96,7 +95,7 @@
                       </select>
 
                       <button 
-                        class="btn-outline-danger btn-sm flex items-center justify-center p-0 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+                        class="btn-outline-danger btn-sm flex items-center justify-center p-0"
                         style="width: 28px; height: 28px;"
                         (click)="removePublisher(group.id, $index)"
                         (mousedown)="$event.stopPropagation()"

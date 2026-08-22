@@ -1,13 +1,11 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { CardService } from '@core/services/card.service';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { LocalityData } from '@core/models/LocalityData';
 import { MapData } from '@core/models/MapData';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { RouterLink } from '@angular/router';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
@@ -19,16 +17,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     templateUrl: './territory-page.component.html',
     styleUrls: ['./territory-page.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BreadcrumbComponent, CardXlComponent, RouterLink, CardSComponent]
+    imports: [CardXlComponent, RouterLink, CardSComponent]
 })
 export class TerritoryPageComponent implements OnInit {
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private destroyRef = inject(DestroyRef);
   cardService = inject(CardService);
-
-  routerBreadcrum: any = [];
   territorioMaps: CardButtonsData[] = [];
   
   // NUEVO: Datos agrupados por localidad
@@ -38,13 +33,9 @@ export class TerritoryPageComponent implements OnInit {
   isDriver: boolean = false;
   congregationName: string = environment.congregationName;
   localities: any[] = environment.localities || [];constructor() {
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
   }
 
   ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[0];
     
     if(localStorage.getItem("tokenAdmin")){
       this.isAdmin = true;

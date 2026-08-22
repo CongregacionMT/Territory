@@ -1,14 +1,12 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, OnInit, DOCUMENT, inject, signal, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { HttpClient } from '@angular/common/http';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, forkJoin, take } from 'rxjs';
 
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 import { DatePipe } from '@angular/common';
@@ -16,28 +14,22 @@ import { environment } from '@environments/environment';
 import { PdfService } from '@core/services/pdf.service';
 
 import { Card, CardApplesData } from '@core/models/Card';
-import { BreadcrumbItem } from '@core/models/Breadcrumb';
 
 @Component({
   selector: 'app-territory-assignment',
   templateUrl: './territory-assignment.component.html',
   styleUrls: ['./territory-assignment.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [BreadcrumbComponent, ReactiveFormsModule, FormsModule, DatePipe],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe],
 })
 export class TerritoryAssignmentComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-  private territoryDataService = inject(TerritoryDataService);
+  private destroyRef = inject(DestroyRef);  private territoryDataService = inject(TerritoryDataService);
   private territorieDataService = inject(TerritoryDataService);
   private http = inject(HttpClient);
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
   private document = inject<Document>(DOCUMENT);
-  private pdfService = inject(PdfService);
-
-  routerBreadcrum = signal<BreadcrumbItem[]>([]);
-  territoryPath = signal<string>('');
+  private pdfService = inject(PdfService);  territoryPath = signal<string>('');
   territoriesNumber = signal<TerritoryNumberData[]>([]);
   dataListFull = signal<Card[][]>([]);
   filterDataListFull = signal<Card[][]>([]);
@@ -54,10 +46,7 @@ export class TerritoryAssignmentComponent implements OnInit {
   pendingDeletes = signal<{ [compositeKey: string]: { collectionName: string, cardId: string } }>({});
 
   constructor() {
-    this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));
-    const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
-    this.routerBreadcrum.set(breadcrumData[3]);
-  }
+    this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));  }
 
   private getTerritoryPrefix(path: string): string {
     const locality = environment.localities.find((loc) => loc.key === path);

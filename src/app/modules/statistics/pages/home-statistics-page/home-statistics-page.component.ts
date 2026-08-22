@@ -4,25 +4,22 @@ import { CardButtonsData } from '@core/models/CardButtonsData';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
-import { LocalityData } from '@core/models/LocalityData';
 
 @Component({
     selector: 'app-home-statistics-page',
     templateUrl: './home-statistics-page.component.html',
     styleUrls: ['./home-statistics-page.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BreadcrumbComponent, CardXlComponent, RouterLink]
+    imports: [CardXlComponent, RouterLink]
 })
 export class HomeStatisticsPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
 
-  routerBreadcrum = signal<any>([]);
   CardButtonsStatistics = signal<CardButtonsData[]>([]);
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
   appleCount = signal<any>(null);

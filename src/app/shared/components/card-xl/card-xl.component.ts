@@ -4,7 +4,7 @@ import { SafeHtml } from '@angular/platform-browser';
 @Component({
     selector: 'app-card-xl',
     templateUrl: './card-xl.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     styleUrls: ['./card-xl.component.scss']
 })
 export class CardXlComponent implements OnInit {

@@ -1,30 +1,31 @@
-<div class="container table-responsive">
-  <app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
+<div class="container px-4">
+
   @if(groupKeys.length > 1){
     <div class="flex justify-center">
-      <h1 class="mt-0 mb-4">Selecciona tu grupo</h1>
+      <h1 class="text-3xl md:text-4xl font-bold text-white mt-2 mb-6">Selecciona tu grupo</h1>
     </div>
   }
+
   <!-- Print all groups button -->
   @if(groupKeys.length > 0) {
-    <div class="flex justify-center pb-2">
+    <div class="flex justify-center pb-4">
       <button
-        class="btn-sm text-white no-underline inline-flex items-center opacity-75 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700/60 hover:bg-gray-600 text-gray-300 hover:text-white text-sm font-medium transition-colors cursor-pointer"
         (click)="openPrintModal()"
         id="btn-print-all-departures"
       >
         <img
-          src="https://api.iconify.design/mdi:printer.svg?color=%23ffffff"
+          src="https://api.iconify.design/mdi:printer.svg?color=%23d1d5db"
           width="18"
           height="18"
-          class="mr-1"
           alt="Print"
         />
         Imprimir salidas
       </button>
     </div>
   }
-  <div class="card-container flex justify-center mb-4">
+
+  <div class="card-container flex justify-center mb-6">
     @for (group of groupKeys; track group) {
       <app-card-xl
         [mapName]="group.name"
@@ -33,119 +34,124 @@
       ></app-card-xl>
     }
   </div>
+
   @if(groupKeys.length > 1){
-    <div class="flex justify-center mb-6">
-      <button class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 btn-list-primary btn-lg inline-block px-4 py-2 text-center rounded transition cursor-pointer" routerLink="publicadores">No sé en qué grupo estoy 🤔</button>
+    <div class="flex justify-center mb-8">
+      <button
+        class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer"
+        routerLink="publicadores"
+      >No sé en qué grupo estoy 🤔</button>
     </div>
   }
 
-  
-  <!-- Button trigger modal -->
+  <!-- Admin actions -->
   @if (isAdmin) {
-    <div class="flex justify-center my-6">
+    <div class="flex flex-col items-center gap-4 my-8">
       <button
-      type="button"
-      class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 btn-list-primary btn-lg mw-100 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-      routerLink="editar"
+        type="button"
+        class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer w-full max-w-xs text-center"
+        routerLink="editar"
       >
-      Editar salidas
-    </button>
-  </div>
-  <div class="flex justify-center my-6">
-    <button
-    type="button"
-    class="bg-green-600 text-white border border-green-600 hover:bg-green-700 btn-list-primary btn-lg inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-    routerLink="gestion-publicadores"
-    >
-    Gestionar Publicadores
-  </button>
-</div>
-<div class="flex justify-center my-6">
-  <button
-  type="button"
-  class="btn-info btn-list-primary btn-lg text-white inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-  routerLink="/usuarios"
-  >
-  Gestionar Conductores
-</button>
-</div>
-}
+        Editar salidas
+      </button>
+
+      <button
+        type="button"
+        class="px-8 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer w-full max-w-xs text-center"
+        routerLink="gestion-publicadores"
+      >
+        Gestionar Publicadores
+      </button>
+
+      <button
+        type="button"
+        class="px-8 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer w-full max-w-xs text-center"
+        routerLink="/usuarios"
+      >
+        Gestionar Conductores
+      </button>
+    </div>
+  }
 </div>
 
 <!-- Print Modal -->
 @if (showPrintModal) {
   <!-- Backdrop -->
-  <div 
-    class="fixed top-0 left-0 w-full h-full bg-gray-900 animate__animated animate__fadeIn"
-    style="opacity: 0.7; z-index: 1040;"
+  <div
+    class="fixed inset-0 bg-black/70 z-[1040] animate__animated animate__fadeIn cursor-pointer"
     (click)="closePrintModal()"
   ></div>
 
   <!-- Modal Content -->
-  <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate__animated animate__zoomIn" style="width: 90%; max-width: 400px; z-index: 1050;">
-    <div class="card shadow-lg rounded-lg border-0 print-modal">
-      
+  <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1050] w-[90%] max-w-[400px] animate__animated animate__zoomIn">
+    <div class="bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden print-modal">
+
       <!-- Modal Header -->
-      <div class="card-header bg-white border-0 flex justify-between items-center pt-4 pb-2 rounded-t-lg">
-        <h5 class="mb-0 font-bold text-gray-900 flex items-center" style="font-size: 1.1rem;">
-          <img src="https://api.iconify.design/mdi:printer.svg?color=%230277bd" width="24" height="24" class="mr-2" alt="Print" />
+      <div class="px-6 pt-5 pb-3 flex justify-between items-center border-b border-gray-700">
+        <h5 class="text-lg font-bold text-white flex items-center gap-2 m-0">
+          <img src="https://api.iconify.design/mdi:printer.svg?color=%2393c5fd" width="24" height="24" alt="Print" />
           Imprimir salidas
         </h5>
-        <button type="button" class="btn-close" (click)="closePrintModal()" aria-label="Close"></button>
+        <button
+          type="button"
+          class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1"
+          (click)="closePrintModal()"
+          aria-label="Cerrar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
 
       <!-- Modal Body -->
-      <div class="card-body p-6 pt-2">
-        <p class="text-gray-500 mb-1" style="font-size: 0.85rem;">
-          Se generará un PDF con las salidas de <strong>todos los grupos</strong> en una misma hoja, optimizado para imprimir.
+      <div class="p-6">
+        <p class="text-gray-400 text-sm mb-2">
+          Se generará un PDF con las salidas de <strong class="text-gray-200">todos los grupos</strong> en una misma hoja, optimizado para imprimir.
         </p>
-        <p class="text-gray-500 mb-4" style="font-size: 0.8rem;">
-          <img src="https://api.iconify.design/mdi:information-outline.svg?color=%236c757d" width="14" height="14" class="mr-1" alt="Info" />
+        <p class="text-gray-500 text-xs mb-5 flex items-center gap-1">
+          <img src="https://api.iconify.design/mdi:information-outline.svg?color=%239ca3af" width="14" height="14" alt="Info" />
           El rango de impresión es de <strong>viernes a jueves</strong> para colocar en el tablero.
         </p>
 
         <div class="flex flex-col gap-3">
           <!-- B&W Button -->
-          <button 
-            class="btn-print-bw w-full py-4 rounded-md flex items-center justify-center gap-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+          <button
+            class="btn-print-bw w-full py-4 rounded-xl flex items-center justify-center gap-3 cursor-pointer text-base font-medium"
             (click)="printPdf('bw')"
             [disabled]="isPrintingPdf"
             id="btn-print-all-bw"
           >
-            <img src="https://api.iconify.design/mdi:printer-outline.svg?color=%23333333" width="22" height="22" alt="B&W" />
+            <img src="https://api.iconify.design/mdi:printer-outline.svg?color=%23333333" width="24" height="24" alt="B&W" />
             <div class="text-left">
-              <div class="font-bold" style="font-size: 0.95rem;">Blanco y negro</div>
-              <small class="opacity-75" style="font-size: 0.72rem;">Ahorra tinta</small>
+              <div class="font-bold">Blanco y negro</div>
+              <span class="text-xs opacity-70">Ahorra tinta</span>
             </div>
           </button>
 
           <!-- Color Button -->
-          <button 
-            class="btn-print-color w-full py-4 rounded-md flex items-center justify-center gap-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+          <button
+            class="btn-print-color w-full py-4 rounded-xl flex items-center justify-center gap-3 cursor-pointer text-base font-medium"
             (click)="printPdf('color')"
             [disabled]="isPrintingPdf"
             id="btn-print-all-color"
           >
-            <img src="https://api.iconify.design/mdi:palette.svg?color=%23ffffff" width="22" height="22" alt="Color" />
+            <img src="https://api.iconify.design/mdi:palette.svg?color=%23ffffff" width="24" height="24" alt="Color" />
             <div class="text-left">
-              <div class="font-bold" style="font-size: 0.95rem;">Imprimir en color</div>
-              <small class="opacity-75" style="font-size: 0.72rem;">Diseño completo</small>
+              <div class="font-bold">Imprimir en color</div>
+              <span class="text-xs opacity-70">Diseño completo</span>
             </div>
           </button>
         </div>
 
         @if (isPrintingPdf) {
-          <div class="text-center mt-4">
-            <div class="spinner-border spinner-border-sm text-blue-600" role="status">
-              <span class="visually-hidden">Generando PDF...</span>
-            </div>
-            <small class="text-gray-500 ml-2">Generando PDF...</small>
+          <div class="text-center mt-5 text-gray-400 flex items-center justify-center gap-2">
+            <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-sm">Generando PDF...</span>
           </div>
         }
         @if (pdfGenerated) {
-          <div class="text-center mt-4 text-green-600 animate__animated animate__fadeIn">
-            <img src="https://api.iconify.design/mdi:check-circle.svg?color=%23198754" width="20" height="20" class="mr-1" style="vertical-align: text-bottom;" alt="Success" />
-            <span class="font-bold" style="font-size: 0.9rem;">¡PDF generado con éxito!</span>
+          <div class="text-center mt-5 text-green-400 animate__animated animate__fadeIn flex items-center justify-center gap-2">
+            <img src="https://api.iconify.design/mdi:check-circle.svg?color=%234ade80" width="20" height="20" alt="Success" />
+            <span class="font-bold text-sm">¡PDF generado con éxito!</span>
           </div>
         }
       </div>

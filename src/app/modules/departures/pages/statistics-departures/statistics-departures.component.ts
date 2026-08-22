@@ -4,14 +4,12 @@ import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { WeeklyDeparture } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { formatWeekRange } from '@shared/utils/date-utils';
 
 @Component({
   selector: 'app-statistics-departures',
   standalone: true,
-  imports: [BreadcrumbComponent],
+  imports: [],
   templateUrl: './statistics-departures.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./statistics-departures.component.scss'],
@@ -20,10 +18,7 @@ export class StatisticsDeparturesComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-
   weeklyDepartures: WeeklyDeparture[] = [];
-  routerBreadcrum: any = [];
 
   // Estadísticas procesadas
   driverStats: { name: string; count: number }[] = [];
@@ -32,7 +27,6 @@ export class StatisticsDeparturesComponent implements OnInit {
   ngOnInit(): void {
     console.log('Cargando StatisticsDeparturesComponent...');
     this.spinner.cargarSpinner();
-    this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum()[13]; // Home > Salidas > Estadísticas
 
     this.territoryDataService.getWeeklyDepartures().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {

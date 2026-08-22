@@ -50,7 +50,7 @@
                     }
                     <button
                       type="button"
-                      class="btn-sm btn-outline-danger departure-action-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+                      class="btn-sm btn-outline-danger departure-action-btn"
                       (click)="deleteInputForm(i, group)"
                     >
                       <i class="fas fa-trash-alt mr-1"></i>Quitar
@@ -177,7 +177,7 @@
                     <div class="departure-territory-block">
                       <button
                         type="button"
-                        class="btn-sm bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 departure-territory-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+                        class="btn-sm bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 departure-territory-btn"
                         data-bs-toggle="modal"
                         [attr.data-bs-target]="'#territoryModal-' + i + '-' + group"
                         (click)="selectedTerritoryGroup = (group > 0 ? group : null)"
@@ -191,7 +191,7 @@
                             @for (t of getSuggestedTerritories(i, group); track t) {
                               <button
                                 type="button"
-                                class="btn-sm quick-suggestion-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+                                class="btn-sm quick-suggestion-btn"
                                 (click)="applySuggestedTerritory(i, group, t)"
                                 title="Asignar territorio y reutilizar el punto/mapa si están guardados"
                               >
@@ -301,14 +301,14 @@
                               <span class="small text-gray-500">Grupo:</span>
                               <button
                                 type="button"
-                                class="btn-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+                                class="btn-sm"
                                 [class]="selectedTerritoryGroup === null ? 'btn-secondary' : 'btn-outline-secondary'"
                                 (click)="selectedTerritoryGroup = null"
                               >Todos</button>
                               @for (gn of getAvailableGroupNumbers($safeNavigationMigration(days.get('location')?.value)); track gn) {
                                 <button
                                   type="button"
-                                  class="btn-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+                                  class="btn-sm"
                                   [class]="selectedTerritoryGroup === gn ? 'btn-primary' : 'btn-outline-primary'"
                                   (click)="selectedTerritoryGroup = gn"
                                 >{{ gn }}</button>
@@ -371,7 +371,7 @@
                                   <a
                                     [href]="getTerritoryLink($safeNavigationMigration(days.get('location')?.value), num)"
                                     target="_blank"
-                                    class="btn-sm text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white ml-2 flex items-center gap-1 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+                                    class="btn-sm text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white ml-2 flex items-center gap-1"
                                     style="position: relative; z-index: 2; pointer-events: auto; font-size: 0.75rem; border-radius: 999px;"
                                     (click)="$event.stopPropagation()"
                                     title="Abrir mapa del territorio en una nueva pestaña"
@@ -391,7 +391,7 @@
                         >
                         <button
                           type="button"
-                          class="bg-green-600 text-white border border-green-600 hover:bg-green-700 fw-semibold inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+                          class="bg-green-600 text-white border border-green-600 hover:bg-green-700 fw-semibold"
                           data-bs-dismiss="modal"
                         >
                           ✅ Guardar selección
@@ -408,7 +408,7 @@
       <div class="flex justify-end mt-2">
         <button
           type="button"
-          class="btn-sm btn-outline-secondary inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+          class="btn-sm btn-outline-secondary"
           (click)="addInputForm(group)"
         >
           <i class="fas fa-plus mr-1"></i> Nueva salida +
@@ -421,14 +421,14 @@
 <div class="flex justify-between items-center pb-4 border-bottom mb-6">
   <button
     type="button"
-    class="btn-sm btn-outline-secondary inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+    class="btn-sm btn-outline-secondary"
     (click)="addNewGroup()"
   >
     <i class="fas fa-plus mr-1"></i> Nuevo grupo
   </button>
   <button
     type="button"
-    class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 px-6 py-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+    class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 px-6 py-2"
     (click)="requestSave.emit()"
   >
     <i class="fas fa-save mr-2"></i>Guardar Salidas
@@ -478,7 +478,7 @@
     <div class="card-header departure-config-panel__header flex justify-between items-center">
       <button
         type="button"
-        class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 btn-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer"
+        class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 btn-sm"
         (click)="saveTerritoryGroups()"
       >
         💾 Guardar asignaciones

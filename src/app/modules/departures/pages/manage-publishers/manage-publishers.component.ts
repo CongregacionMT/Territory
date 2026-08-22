@@ -6,14 +6,13 @@ import { Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
-import { BreadcrumbComponent } from '@shared/components/breadcrumb/breadcrumb.component';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { Group, Publisher } from '@core/models/Group';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-manage-publishers',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule, BreadcrumbComponent],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './manage-publishers.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./manage-publishers.component.scss']
@@ -22,16 +21,12 @@ export class ManagePublishersComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
-  private router = inject(Router);
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-
-  routerBreadcrum: any = [];
-  groups: Group[] = [];
+  private router = inject(Router);  private authService = inject(AuthService);  groups: Group[] = [];
   newPublisherName: { [groupId: string]: string } = {};
 
   ngOnInit(): void {
     // Check admin access
-    if (!localStorage.getItem('tokenAdmin')) {
+    if (!this.authService.isAdmin()) {
       this.router.navigate(['/salidas']);
       return;
     }

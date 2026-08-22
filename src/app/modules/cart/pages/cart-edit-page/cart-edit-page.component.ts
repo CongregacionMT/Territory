@@ -3,7 +3,6 @@ import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '
 import { CartData, CartLocation } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { forkJoin } from 'rxjs';
 import { FormEditCartComponent } from '../../components/form-edit-cart/form-edit-cart.component';
 
@@ -15,24 +14,14 @@ import { FormEditCartComponent } from '../../components/form-edit-cart/form-edit
     imports: [FormEditCartComponent]
 })
 export class CartEditPageComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-  private cartDataService = inject(CartDataService);
+  private destroyRef = inject(DestroyRef);  private cartDataService = inject(CartDataService);
   private spinner = inject(SpinnerService);
 
-  dataLoaded: boolean = false;
-  routerBreadcrum: any = [];
-  formCartData: CartData[] = [] as CartData[];
-  formLocationsData: CartLocation[] = [] as CartLocation[];constructor(){
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-  }
+  dataLoaded: boolean = false;  formCartData: CartData[] = [] as CartData[];
+  formLocationsData: CartLocation[] = [] as CartLocation[];constructor(){  }
 
   ngOnInit(): void {
-    this.spinner.cargarSpinner();
-    this.routerBreadcrum = this.routerBreadcrum[14];
-
+    this.spinner.cargarSpinner();
     forkJoin({
       cartAssignment: this.cartDataService.getCartAssignment(),
       locations: this.cartDataService.getLocations()

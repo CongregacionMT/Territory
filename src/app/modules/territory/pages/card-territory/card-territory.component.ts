@@ -22,19 +22,16 @@ import { Timestamp } from '@angular/fire/firestore';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
 import { NetworkService } from '@core/services/network.service';
 import { ModalComponent } from '@shared/components/modal/modal.component';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
 import { ModalComponent as ModalComponent_1 } from '../../../../shared/components/modal/modal.component';
 import { CampaignService } from '@core/services/campaign.service';
 import { environment } from '@environments/environment';
 
 import { Card, CardApplesData } from '@core/models/Card';
-import { BreadcrumbItem } from '@core/models/Breadcrumb';
 import { User } from '@core/models/User';
 
 import { TerritoryMapComponent } from '../../components/territory-map/territory-map.component';
@@ -45,7 +42,6 @@ import { TerritoryMapComponent } from '../../components/territory-map/territory-
   styleUrls: ['./card-territory.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    BreadcrumbComponent,
     ReactiveFormsModule,
     FocusInvalidInputDirective,
     RouterLink,
@@ -56,7 +52,6 @@ import { TerritoryMapComponent } from '../../components/territory-map/territory-
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private fb = inject(FormBuilder);
   private territorieDataService = inject(TerritoryDataService);
   private cardService = inject(CardService);
@@ -83,7 +78,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
   congregationKey = environment.congregationKey;
   path = signal<string>('');
-  routerBreadcrum = signal<BreadcrumbItem[]>([]);
   formCard = signal<FormGroup>(this.createFormCard());
   driverError = signal<boolean>(false);
   startError = signal<boolean>(false);
@@ -219,8 +213,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
-    this.routerBreadcrum.set(breadcrumData[9]);
 
     this.loadDriversOptions();
   }

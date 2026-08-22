@@ -1,33 +1,25 @@
-.btn-list-primary {
-    --bs-btn-bg: #008fc9;
-    --bs-btn-hover-bg:#0575a1;
-}
-
 .date-pill {
     display: inline-flex;
     align-items: center;
-    background-color: #e0f2f1; /* Light teal/cyan tint */
     background: linear-gradient(to right, #e0f7fa, #e1f5fe);
     color: #0277bd;
-    padding: 0.5rem 1.5rem;
+    padding: 0.6rem 1.6rem;
     border-radius: 50rem;
     border: 1px solid #b3e5fc;
-    box-shadow: 0 2px 6px rgba(0, 143, 201, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 143, 201, 0.12);
     
     h2 {
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        color: #01579b;
+        letter-spacing: -0.3px;
     }
 }
 
 .nav-week-btn {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 1px solid #b3e5fc;
     background: linear-gradient(to right, #e0f7fa, #e1f5fe);
-    box-shadow: 0 2px 6px rgba(0, 143, 201, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 143, 201, 0.12);
     transition: all 0.2s ease;
 
     &:hover {
@@ -42,7 +34,6 @@
 }
 
 .relative-week-badge {
-    font-weight: 600;
     letter-spacing: 0.3px;
     display: inline-flex;
     align-items: center;
@@ -64,57 +55,6 @@
         background: linear-gradient(135deg, #616161, #757575);
         color: #ffffff;
         box-shadow: 0 4px 10px rgba(97, 97, 97, 0.2);
-    }
-}
-
-// Print modal styles
-.print-modal {
-    overflow: hidden;
-}
-
-.btn-print-bw {
-    background: #f8f9fa;
-    border: 2px solid #dee2e6;
-    color: #333;
-    transition: all 0.25s ease;
-
-    &:hover:not(:disabled) {
-        background: #e9ecef;
-        border-color: #adb5bd;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-}
-
-.btn-print-color {
-    background: linear-gradient(135deg, #0277bd, #0288d1);
-    border: 2px solid transparent;
-    color: #fff;
-    transition: all 0.25s ease;
-
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #01579b, #0277bd);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(2, 119, 189, 0.35);
-        color: #fff;
-    }
-
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
     }
 }
 
@@ -263,6 +203,17 @@
 }
 
 // Keyframes
+@keyframes pulseBadge {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 10px rgba(2, 136, 209, 0.25);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 6px 14px rgba(2, 136, 209, 0.4);
+    }
+}
+
 @keyframes mapFloat {
     0%, 100% {
         transform: translateY(0) scale(1);

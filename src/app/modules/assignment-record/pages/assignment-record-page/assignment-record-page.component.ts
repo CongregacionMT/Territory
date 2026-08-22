@@ -13,7 +13,6 @@ import { Card, CardApplesData } from '@core/models/Card';
 import { CardService } from '@core/services/card.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import {
   FormBuilder,
   FormGroup,
@@ -25,12 +24,10 @@ import {
   TerritoriesNumberData,
   TerritoryNumberData,
 } from '@core/models/TerritoryNumberData';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { environment } from '@environments/environment';
 import { CardButtonsData } from '@core/models/CardButtonsData';
-import { BreadcrumbItem } from '@core/models/Breadcrumb';
 import { Timestamp } from '@angular/fire/firestore';
 
 @Component({
@@ -39,7 +36,6 @@ import { Timestamp } from '@angular/fire/firestore';
   styleUrls: ['./assignment-record-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    BreadcrumbComponent,
     CardXlComponent,
     RouterLink,
     ReactiveFormsModule,
@@ -48,18 +44,14 @@ import { Timestamp } from '@angular/fire/firestore';
   ],
 })
 export class AssignmentRecordPageComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-  private territorieDataService = inject(TerritoryDataService);
+  private destroyRef = inject(DestroyRef);  private territorieDataService = inject(TerritoryDataService);
   private cardService = inject(CardService);
   private router = inject(Router);
   private spinner = inject(SpinnerService);
   private fb = inject(FormBuilder);
   private cdRef = inject(ChangeDetectorRef);
 
-  // Signals para el estado del componente
-  routerBreadcrum = signal<BreadcrumbItem[]>([]);
-  territorioMaps = signal<CardButtonsData[]>([]);
+  // Signals para el estado del componente  territorioMaps = signal<CardButtonsData[]>([]);
   allCardsReceived = signal<Card[]>([]);
   allCardsAssigned = signal<Card[]>([]);
   cardConfirmation = signal<Card | null>(null);
@@ -129,10 +121,7 @@ export class AssignmentRecordPageComponent implements OnInit {
     return returnDate;
   }
 
-  ngOnInit(): void {
-    const breadcrumData = this.routerBreadcrumMockService.getBreadcrum();
-    this.routerBreadcrum.set(breadcrumData[2]);
-
+  ngOnInit(): void {
     if (!sessionStorage.getItem('territorioMaps')) {
       this.spinner.cargarSpinner();
       this.territorieDataService.getMaps().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((map) => {

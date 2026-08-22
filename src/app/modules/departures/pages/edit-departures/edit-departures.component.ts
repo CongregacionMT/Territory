@@ -20,14 +20,14 @@ import {
 import { Departure } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { FormEditDeparturesComponent } from '../../components/form-edit-departures/form-edit-departures.component';
 import { CanComponentDeactivate } from '@core/guards/unsaved-changes.guard';
 import { WeeklyDeparture } from '@core/models/Departures';
 import { formatWeekRange, getWeekId } from '@shared/utils/date-utils';
 import { FormsModule } from '@angular/forms';
-import { take } from 'rxjs';
+import { catchError, take } from 'rxjs';
 import { environment } from '@environments/environment';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-edit-departures',
@@ -39,15 +39,12 @@ import { environment } from '@environments/environment';
 export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   private destroyRef = inject(DestroyRef);
   @ViewChild(FormEditDeparturesComponent)
-  formEditComponent!: FormEditDeparturesComponent;
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-  private territoryDataService = inject(TerritoryDataService);
+  formEditComponent!: FormEditDeparturesComponent;  private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private _snackBar = inject(MatSnackBar);
+  public authService = inject(AuthService);
 
-  dataLoaded: boolean = false;
-  routerBreadcrum: any = [];
-  dateDeparture: any = new FormControl('');
+  dataLoaded: boolean = false;  dateDeparture: any = new FormControl('');
   selectedWeekRange: string = '';
   formDepartureData: Departure[] = [] as Departure[];
   verticalPosition: MatSnackBarVerticalPosition = 'top';
@@ -66,15 +63,9 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     { offset: 5, schedule: '09:30', group: 0, color: 'success' },
     { offset: 6, schedule: '10:00', group: 1, color: 'info' },
     { offset: 6, schedule: '10:00', group: 2, color: 'info' },
-  ];constructor() {
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    this.isAdmin = !!localStorage.getItem('tokenAdmin');
+  ];constructor() {    this.isAdmin = this.authService.isAdmin();
   }
-  ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[11];
-
+  ngOnInit(): void {
     // Calcular el lunes de la semana actual para el badge y el botón "Volver a hoy"
     const todayMonday = this.getMonday(new Date());
     this.currentMondayStr = todayMonday.toISOString().split('T')[0];
@@ -194,58 +185,34 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     // reinicien el formulario mientras el usuario está editando
     this.territoryDataService
       .getWeeklyDeparture(weekId)
-      .pipe(take(1))
-      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: (weeklyData) => {
+      .pipe(
+        take(1),
+        catchError(() => this.territoryDataService.getDepartures().pipe(take(1))),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (data: any) => {
           if (loadId !== this.lastLoadId) return;
 
-          if (
-            weeklyData &&
-            weeklyData.departure &&
-            weeklyData.departure.length > 0
-          ) {
-            this.formDepartureData = weeklyData.departure;
+          if (data && data.departure && data.departure.length > 0) {
+            this.formDepartureData = data.departure;
             this.dataLoaded = true;
             this.spinner.cerrarSpinner();
           } else {
-            this.territoryDataService
-              .getDepartures()
-              .pipe(take(1))
-              .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                next: (masterData) => {
-                  if (loadId !== this.lastLoadId) return;
-                  this.formDepartureData = masterData?.departure || [];
-                  this.dataLoaded = true;
-                  this.spinner.cerrarSpinner();
-                },
-                error: () => {
-                  if (loadId !== this.lastLoadId) return;
-                  this.formDepartureData = [];
-                  this.dataLoaded = true;
-                  this.spinner.cerrarSpinner();
-                },
-              });
+            // If getWeeklyDeparture succeeds but has no departure data, fallback to master
+            this.territoryDataService.getDepartures().pipe(take(1)).subscribe((masterData) => {
+              if (loadId !== this.lastLoadId) return;
+              this.formDepartureData = masterData?.departure || [];
+              this.dataLoaded = true;
+              this.spinner.cerrarSpinner();
+            });
           }
         },
         error: () => {
           if (loadId !== this.lastLoadId) return;
-          this.territoryDataService
-            .getDepartures()
-            .pipe(take(1))
-            .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-              next: (masterData) => {
-                if (loadId !== this.lastLoadId) return;
-                this.formDepartureData = masterData?.departure || [];
-                this.dataLoaded = true;
-                this.spinner.cerrarSpinner();
-              },
-              error: () => {
-                if (loadId !== this.lastLoadId) return;
-                this.formDepartureData = [];
-                this.dataLoaded = true;
-                this.spinner.cerrarSpinner();
-              },
-            });
+          this.formDepartureData = [];
+          this.dataLoaded = true;
+          this.spinner.cerrarSpinner();
         },
       });
   }

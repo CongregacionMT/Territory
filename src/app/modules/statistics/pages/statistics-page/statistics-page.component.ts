@@ -25,8 +25,7 @@ export class StatisticsPageComponent implements OnInit {
   private rutaActiva = inject(ActivatedRoute);
 
   // Variables convertidas a signals
-  routerBreadcrum = signal<any>([]);
-  loadingData = signal<boolean>(false);
+    loadingData = signal<boolean>(false);
   territoryPath = signal<any>(null);
   territory = signal<TerritoryNumberData[]>([]);
   dataListFull = signal<any[]>([]);

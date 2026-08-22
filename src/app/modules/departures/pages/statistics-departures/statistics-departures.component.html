@@ -1,35 +1,34 @@
-<app-breadcrumb [routerBreadcrum]="routerBreadcrum"></app-breadcrumb>
 
-<div class="container py-6">
-  <h2 class="text-center mb-6">Estadísticas de Salidas</h2>
+<div class="container mx-auto px-4 py-6 w-full">
+  <h2 class="text-center text-2xl font-bold mb-6 text-gray-800">Estadísticas de Salidas</h2>
 
-  <div class="flex flex-wrap -mx-4 g-4">
+  <div class="flex flex-wrap -mx-4 gap-y-6">
     <!-- Participación de Conductores -->
-    <div class="w-12/12 md:w-6/12 px-4">
-      <div class="card shadow-md border-0 h-full">
-        <div class="card-header bg-blue-600 text-white py-4">
-          <h5 class="card-title mb-0">🏆 Participación de Conductores</h5>
+    <div class="w-full md:w-1/2 px-4">
+      <div class="bg-white rounded-lg shadow-md border-0 h-full flex flex-col">
+        <div class="bg-blue-600 rounded-t-lg text-white py-4 px-6">
+          <h5 class="text-lg font-semibold mb-0">🏆 Participación de Conductores</h5>
         </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
+        <div class="p-6 flex-1">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
               <thead>
-                <tr>
-                  <th>Conductor</th>
-                  <th class="text-center">Total Salidas</th>
+                <tr class="border-b border-gray-200 text-gray-700">
+                  <th class="py-3 px-4 font-semibold">Conductor</th>
+                  <th class="py-3 px-4 font-semibold text-center">Total Salidas</th>
                 </tr>
               </thead>
               <tbody>
                 @for (stat of driverStats; track stat.name) {
-                  <tr>
-                    <td>{{ stat.name }}</td>
-                    <td class="text-center">
-                      <span class="badge rounded-full bg-info text-gray-900">{{ stat.count }}</span>
+                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4">{{ stat.name }}</td>
+                    <td class="py-3 px-4 text-center">
+                      <span class="inline-block px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 font-semibold text-sm">{{ stat.count }}</span>
                     </td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="2" class="text-center text-gray-500">No hay datos suficientes</td>
+                    <td colspan="2" class="py-4 text-center text-gray-500 italic">No hay datos suficientes</td>
                   </tr>
                 }
               </tbody>
@@ -40,31 +39,31 @@
     </div>
 
     <!-- Puntos de Encuentro -->
-    <div class="w-12/12 md:w-6/12 px-4">
-      <div class="card shadow-md border-0 h-full">
-        <div class="card-header bg-green-600 text-white py-4">
-          <h5 class="card-title mb-0">📍 Últimas Visitas a Puntos de Encuentro</h5>
+    <div class="w-full md:w-1/2 px-4">
+      <div class="bg-white rounded-lg shadow-md border-0 h-full flex flex-col">
+        <div class="bg-green-600 rounded-t-lg text-white py-4 px-6">
+          <h5 class="text-lg font-semibold mb-0">📍 Últimas Visitas a Puntos de Encuentro</h5>
         </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
+        <div class="p-6 flex-1">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
               <thead>
-                <tr>
-                  <th>Punto</th>
-                  <th class="text-center">Última Vez</th>
+                <tr class="border-b border-gray-200 text-gray-700">
+                  <th class="py-3 px-4 font-semibold">Punto</th>
+                  <th class="py-3 px-4 font-semibold text-center">Última Vez</th>
                 </tr>
               </thead>
               <tbody>
                 @for (point of pointStats; track point.name) {
-                  <tr>
-                    <td>{{ point.name }}</td>
-                    <td class="text-center">
-                      <span class="text-gray-500 small">{{ getFormattedDate(point.lastDate) }}</span>
+                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4">{{ point.name }}</td>
+                    <td class="py-3 px-4 text-center">
+                      <span class="text-gray-500 text-sm">{{ getFormattedDate(point.lastDate) }}</span>
                     </td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="2" class="text-center text-gray-500">No hay datos suficientes</td>
+                    <td colspan="2" class="py-4 text-center text-gray-500 italic">No hay datos suficientes</td>
                   </tr>
                 }
               </tbody>
@@ -75,22 +74,22 @@
     </div>
 
     <!-- Historial Resumido -->
-    <div class="w-12/12 px-4">
-      <div class="card shadow-md border-0">
-        <div class="card-header bg-gray-900 text-white py-4">
-          <h5 class="card-title mb-0">📅 Historial de Semanas</h5>
+    <div class="w-full px-4 mt-2">
+      <div class="bg-white rounded-lg shadow-md border-0 flex flex-col">
+        <div class="bg-gray-900 rounded-t-lg text-white py-4 px-6">
+          <h5 class="text-lg font-semibold mb-0">📅 Historial de Semanas</h5>
         </div>
-        <div class="card-body">
-          <div class="list-group list-group-flush">
+        <div class="p-0">
+          <div class="flex flex-col w-full">
             @for (week of weeklyDepartures; track week.weekId) {
-              <div class="list-group-item flex justify-center items-center py-4">
+              <div class="flex justify-center items-center py-4 px-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
                 <div class="text-center">
-                  <h6 class="mb-0">Semana del {{ getFormattedDate(week.weekId) }}</h6>
-                  <small class="text-gray-500">{{ week.departure.length }} salidas programadas</small>
+                  <h6 class="font-medium text-gray-800 mb-1">Semana del {{ getFormattedDate(week.weekId) }}</h6>
+                  <span class="text-sm text-gray-500">{{ week.departure.length }} salidas programadas</span>
                 </div>
               </div>
             } @empty {
-              <p class="text-center text-gray-500 my-4">Aún no se han guardado semanas en el historial</p>
+              <p class="text-center text-gray-500 my-6 italic">Aún no se han guardado semanas en el historial</p>
             }
           </div>
         </div>

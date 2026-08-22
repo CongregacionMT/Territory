@@ -2,7 +2,6 @@ import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, e
 import { FormBuilder, FormControl, FormsModule } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { NetworkService } from '@core/services/network.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Departure, WeeklyDeparture } from '@core/models/Departures';
@@ -20,7 +19,6 @@ import { of } from 'rxjs';
   styleUrls: ['./departure-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    BreadcrumbComponent,
     DeparturesCardsComponent,
     RouterLink,
     FormsModule,
@@ -28,15 +26,13 @@ import { of } from 'rxjs';
   ],
 })
 export class DeparturePageComponent implements OnInit {
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-  private territoryDataService = inject(TerritoryDataService);
+    private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
   public networkService = inject(NetworkService);
 
   // Simple state
-  routerBreadcrum: any = [];
-  numberGroup: any = '0';
+    numberGroup: any = '0';
   titleGroup = signal('');
   
   dateDeparture = new FormControl(getWeekId(new Date()));
@@ -120,8 +116,7 @@ export class DeparturePageComponent implements OnInit {
 
   constructor() {
     this.spinner.cargarSpinner();
-    this.routerBreadcrum = this.routerBreadcrumMockService.getBreadcrum();
-    this.numberGroup = this.rutaActiva.snapshot.params;
+        this.numberGroup = this.rutaActiva.snapshot.params;
     if (this.numberGroup.number !== '0') {
       this.titleGroup.set(`(Grupo ${this.numberGroup.number})`);
     }
@@ -133,7 +128,6 @@ export class DeparturePageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[10];
     
     if (!this.networkService.isOnline()) {
       setTimeout(() => this.spinner.cerrarSpinner(), 1500);

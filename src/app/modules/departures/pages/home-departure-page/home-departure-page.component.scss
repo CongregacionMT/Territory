@@ -1,67 +1,63 @@
+/* Card container responsive layout (used by app-card-xl) */
 @media (max-width: 990px) {
-    .card-container{
-        flex-wrap: wrap;
-    }
+  .card-container {
+    flex-wrap: wrap;
+  }
 }
 @media (max-width: 768px) {
-    .card-container{
-        align-items: center;
-        flex-direction: column;
-    }
-}
-.btn-list-primary {
-    --bs-btn-bg: #008fc9;
-    --bs-btn-hover-bg:#0575a1;
+  .card-container {
+    align-items: center;
+    flex-direction: column;
+  }
 }
 
-// Print modal styles
+/* Print modal styles */
 .print-modal {
-    overflow: hidden;
+  overflow: hidden;
 }
 
 .btn-print-bw {
-    background: #f8f9fa;
-    border: 2px solid #dee2e6;
-    color: #333;
-    transition: all 0.25s ease;
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  color: #333;
+  transition: all 0.25s ease;
 
-    &:hover:not(:disabled) {
-        background: #e9ecef;
-        border-color: #adb5bd;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+  &:hover:not(:disabled) {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
 
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 .btn-print-color {
-    background: linear-gradient(135deg, #0277bd, #0288d1);
-    border: 2px solid transparent;
+  background: linear-gradient(135deg, #0277bd, #0288d1);
+  border: 2px solid transparent;
+  color: #fff;
+  transition: all 0.25s ease;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #01579b, #0277bd);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(2, 119, 189, 0.35);
     color: #fff;
-    transition: all 0.25s ease;
+  }
 
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #01579b, #0277bd);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(2, 119, 189, 0.35);
-        color: #fff;
-    }
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
 
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
-

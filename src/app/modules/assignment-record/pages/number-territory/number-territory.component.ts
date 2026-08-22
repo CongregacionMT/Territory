@@ -1,43 +1,33 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { DatePipe } from '@angular/common';
 
 import { Card, CardApplesData } from '@core/models/Card';
-import { BreadcrumbItem } from '@core/models/Breadcrumb';
 
 @Component({
     selector: 'app-number-territory',
     templateUrl: './number-territory.component.html',
     styleUrls: ['./number-territory.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BreadcrumbComponent, DatePipe]
+    imports: [DatePipe]
 })
 export class NumberTerritoryComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
   private activatedRoute = inject(ActivatedRoute);
   private territorieDataService = inject(TerritoryDataService);
-  private router = inject(Router);
   private spinner = inject(SpinnerService);
 
-  routerBreadcrum: BreadcrumbItem[] = [];
   path: string = "";
   dataList: Card[] = [];
   numberTerritory: number = 0;
   appleCount: number = 0;
   cardSubscription: Subscription;constructor() {
-      const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
       this.spinner.cargarSpinner();
       this.cardSubscription = Subscription.EMPTY;
-      const breadcrumbs = routerBreadcrumMockService.getBreadcrum();
-      this.routerBreadcrum = breadcrumbs[6];
     }
 
   ngOnInit(): void {
@@ -67,7 +57,5 @@ export class NumberTerritoryComponent implements OnInit {
         });
       }
     });
-  }
-  ngOnDestroy(): void {
   }
 }

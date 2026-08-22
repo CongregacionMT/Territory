@@ -32,6 +32,7 @@ import { User } from '@core/models/User';
 import { WeeklyDeparture } from '../../../../core/models/Departures';
 import { take } from 'rxjs';
 import { Card } from '@core/models/Card';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-form-edit-departures',
@@ -46,6 +47,7 @@ export class FormEditDeparturesComponent implements OnInit {
   private fb = inject(FormBuilder);
   private spinner = inject(SpinnerService);
   private _snackBar = inject(MatSnackBar);
+  public authService = inject(AuthService);
 
   numberGroup: number = 0;
   formDeparture: FormGroup;
@@ -87,7 +89,7 @@ export class FormEditDeparturesComponent implements OnInit {
   };
 
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';constructor() {
-    this.isAdmin = !!localStorage.getItem('tokenAdmin');
+    this.isAdmin = this.authService.isAdmin();
     this.formDeparture = this.fb.group({
       departure0: new FormArray([]),
     });

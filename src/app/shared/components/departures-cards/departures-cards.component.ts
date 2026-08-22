@@ -7,7 +7,7 @@ import { environment } from '@environments/environment';
   selector: 'app-departures-cards',
   templateUrl: './departures-cards.component.html',
   styleUrls: ['./departures-cards.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
 })
 export class DeparturesCardsComponent implements OnInit {

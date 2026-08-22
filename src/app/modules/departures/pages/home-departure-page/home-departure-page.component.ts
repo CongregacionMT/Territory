@@ -1,10 +1,8 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Router, RouterLink } from '@angular/router';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { Group } from '@core/models/Group';
 import { Departure, WeeklyDeparture } from '@core/models/Departures';
@@ -17,37 +15,27 @@ import { forkJoin, take } from 'rxjs';
   templateUrl: './home-departure-page.component.html',
   styleUrls: ['./home-departure-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [BreadcrumbComponent, CardXlComponent, RouterLink],
+  imports: [CardXlComponent, RouterLink],
 })
 export class HomeDeparturePageComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-  private territoryDataService = inject(TerritoryDataService);
+  private destroyRef = inject(DestroyRef);  private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private router = inject(Router);
   private pdfService = inject(DeparturePdfService);
 
-  isAdmin: boolean = false;
-  routerBreadcrum: any = [];
-  groupKeys: any[] = [];
+  isAdmin: boolean = false;  groupKeys: any[] = [];
   groups: Group[] = [];
 
   // Print state
   showPrintModal: boolean = false;
   isPrintingPdf: boolean = false;
-  pdfGenerated: boolean = false;constructor() {
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    localStorage.getItem('tokenAdmin')
+  pdfGenerated: boolean = false;constructor() {    localStorage.getItem('tokenAdmin')
       ? (this.isAdmin = true)
       : (this.isAdmin = false);
   }
 
   ngOnInit(): void {
-    this.spinner.cargarSpinner();
-    this.routerBreadcrum = this.routerBreadcrum[1];
-
+    this.spinner.cargarSpinner();
     this.territoryDataService.getGroupList().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((groups: Group[]) => {
       this.groupKeys = [];
       this.groups = groups;

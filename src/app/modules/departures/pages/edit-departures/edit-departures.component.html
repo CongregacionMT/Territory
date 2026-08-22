@@ -22,7 +22,7 @@
             <div class="toolbar-input-block">
               <label class="toolbar-label">Cambiar semana</label>
               <div class="week-switch-row">
-                <button class="toolbar-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="prevWeek()" title="Semana anterior">
+                <button class="toolbar-btn" (click)="prevWeek()" title="Semana anterior">
                   <i class="fas fa-chevron-left"></i>
                 </button>
                 <input
@@ -30,7 +30,7 @@
                   class="form-control color-input"
                   [formControl]="dateDeparture"
                 />
-                <button class="toolbar-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="nextWeek()" title="Semana siguiente">
+                <button class="toolbar-btn" (click)="nextWeek()" title="Semana siguiente">
                   <i class="fas fa-chevron-right"></i>
                 </button>
               </div>
@@ -53,13 +53,13 @@
                 </select>
               </div>
               <div class="quick-actions-row">
-                <button class="btn-sm btn-outline-light toolbar-action-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="createStandardWeek(false)">
+                <button class="btn-sm btn-outline-light toolbar-action-btn" type="button" (click)="createStandardWeek(false)">
                   <i class="fas fa-calendar-plus mr-1"></i>Plantilla
                 </button>
-                <button class="btn-sm btn-outline-light toolbar-action-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="createStandardWeek(true)">
+                <button class="btn-sm btn-outline-light toolbar-action-btn" type="button" (click)="createStandardWeek(true)">
                   <i class="fas fa-copy mr-1"></i>Duplicar
                 </button>
-                <button class="btn-sm bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 toolbar-action-btn inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="saveAll()" [disabled]="!dateDeparture.value">
+                <button class="btn-sm bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 toolbar-action-btn" type="button" (click)="saveAll()" [disabled]="!dateDeparture.value">
                   <i class="fas fa-save mr-1"></i>Guardar Salidas
                 </button>
               </div>
