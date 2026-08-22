@@ -1,85 +1,176 @@
-<div class="container mx-auto px-4 w-full">
-  <div class="flex justify-center">
-    <h1 class="my-6 text-center">Congregación {{ congregationName }}</h1>
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+  <!-- Title -->
+  <div class="flex justify-center mb-4">
+    <h1 class="text-3xl md:text-5xl font-extrabold text-white text-center tracking-tight m-0">
+      Congregación {{ congregationName }}
+    </h1>
   </div>
 
+  <!-- Welcome / Role info -->
   @if (authService.isDriver() || authService.isAdmin()) {
-    <h2 class="text-center text-cyan-500">¡Bienvenido {{ authService.driverName() | titlecase }}!</h2>
-  }
-  @if (authService.isDriver()) {
-    <h2 class="text-center text-green-600">(Conductor)</h2>
-  }
-  @if (authService.isAdmin()) {
-    <h2 class="text-center text-red-600">(Administrador)</h2>
+    <div class="flex flex-col items-center gap-2 mb-8 animate__animated animate__fadeIn">
+      <h2 class="text-lg md:text-2xl font-medium text-cyan-300 m-0 text-center">
+        ¡Bienvenido {{ authService.driverName() | titlecase }}!
+      </h2>
+      <div class="flex items-center gap-2 flex-wrap justify-center">
+        @if (authService.isDriver()) {
+          <span class="px-3.5 py-1 text-xs md:text-sm font-semibold rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 shadow-xs">
+            Conductor
+          </span>
+        }
+        @if (authService.isAdmin()) {
+          <span class="px-3.5 py-1 text-xs md:text-sm font-semibold rounded-full bg-rose-900/60 text-rose-300 border border-rose-500/40 shadow-xs">
+            Administrador
+          </span>
+        }
+      </div>
+    </div>
   }
 
-  <div class="flex justify-center flex-wrap items-center md:flex-row flex-col">
+  <!-- Navigation Cards Grid -->
+  <div class="flex justify-center flex-wrap items-stretch gap-6 my-6">
     <!-- Territorios -->
-    <div class="w-72 bg-[#454b4f] m-4 hover:shadow-2xl hover:cursor-pointer transition-shadow duration-300" routerLink="../territorios">
-      <div class="card-body flex flex-col items-center p-4">
-        <img src="../../../../../assets/img/map.png" alt="map" class="w-40">
-        <h2 class="card-title text-white mt-4">Territorios</h2>
+    <a
+      class="w-72 bg-gray-700/80 rounded-2xl overflow-hidden border border-gray-600/40 shadow-lg hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col no-underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-blue-400"
+      routerLink="../territorios"
+    >
+      <div class="flex flex-col items-center p-6 flex-1 justify-center">
+        <img src="../../../../../assets/img/map.png" alt="Territorios" class="w-36 h-36 object-contain">
+        <h2 class="text-xl md:text-2xl font-bold text-white mt-5 mb-0 text-center">Territorios</h2>
       </div>
-    </div>
+    </a>
+
     <!-- Salidas -->
-    <div class="w-72 bg-[#454b4f] m-4 hover:shadow-2xl hover:cursor-pointer transition-shadow duration-300" routerLink="../salidas">
-      <div class="card-body flex flex-col items-center p-4">
-        <img src="../../../../../assets/img/salidas.png" alt="map" class="w-40">
-        <h2 class="card-title text-white mt-4">Salidas</h2>
+    <a
+      class="w-72 bg-gray-700/80 rounded-2xl overflow-hidden border border-gray-600/40 shadow-lg hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col no-underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-blue-400"
+      routerLink="../salidas"
+    >
+      <div class="flex flex-col items-center p-6 flex-1 justify-center">
+        <img src="../../../../../assets/img/salidas.png" alt="Salidas" class="w-36 h-36 object-contain">
+        <h2 class="text-xl md:text-2xl font-bold text-white mt-5 mb-0 text-center">Salidas</h2>
       </div>
-    </div>
+    </a>
+
     <!-- Carrito -->
-    <div class="w-72 bg-[#454b4f] m-4 hover:shadow-2xl hover:cursor-pointer transition-shadow duration-300" routerLink="../carrito">
-      <div class="card-body flex flex-col items-center p-4">
-        <img src="../../../../../assets/img/carrito.png" alt="map" class="w-40">
-        <h2 class="card-title text-white mt-4">Carrito</h2>
+    <a
+      class="w-72 bg-gray-700/80 rounded-2xl overflow-hidden border border-gray-600/40 shadow-lg hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col no-underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-blue-400"
+      routerLink="../carrito"
+    >
+      <div class="flex flex-col items-center p-6 flex-1 justify-center">
+        <img src="../../../../../assets/img/carrito.png" alt="Carrito" class="w-36 h-36 object-contain">
+        <h2 class="text-xl md:text-2xl font-bold text-white mt-5 mb-0 text-center">Carrito</h2>
       </div>
-    </div>
+    </a>
 
     @if (authService.isAdmin()) {
       <!-- Campaña -->
-      <div class="w-72 bg-[#454b4f] m-4 hover:shadow-2xl hover:cursor-pointer transition-shadow duration-300" routerLink="../campaign">
-        <div class="card-body flex flex-col items-center p-4">
-          <img src="../../../../../assets/img/campaign.png" alt="map" class="w-40">
-          <h2 class="card-title text-white mt-4 text-center">Campaña</h2>
+      <a
+        class="w-72 bg-gray-700/80 rounded-2xl overflow-hidden border border-gray-600/40 shadow-lg hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col no-underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-blue-400"
+        routerLink="../campaign"
+      >
+        <div class="flex flex-col items-center p-6 flex-1 justify-center">
+          <img src="../../../../../assets/img/campaign.png" alt="Campaña" class="w-36 h-36 object-contain">
+          <h2 class="text-xl md:text-2xl font-bold text-white mt-5 mb-0 text-center">Campaña</h2>
         </div>
-      </div>
+      </a>
+
       <!-- Estadísticas -->
-      <div class="w-72 bg-[#454b4f] m-4 hover:shadow-2xl hover:cursor-pointer transition-shadow duration-300" routerLink="../statistics">
-        <div class="card-body flex flex-col items-center p-4">
-          <img src="../../../../../assets/img/statistics.png" alt="map" class="w-40">
-          <h2 class="card-title text-white mt-4 text-center">Estadísticas</h2>
+      <a
+        class="w-72 bg-gray-700/80 rounded-2xl overflow-hidden border border-gray-600/40 shadow-lg hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col no-underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-blue-400"
+        routerLink="../statistics"
+      >
+        <div class="flex flex-col items-center p-6 flex-1 justify-center">
+          <img src="../../../../../assets/img/statistics.png" alt="Estadísticas" class="w-36 h-36 object-contain">
+          <h2 class="text-xl md:text-2xl font-bold text-white mt-5 mb-0 text-center">Estadísticas</h2>
         </div>
-      </div>
+      </a>
+
       <!-- Registro de asignación de territorios -->
-      <div class="w-72 bg-[#454b4f] m-4 hover:shadow-2xl hover:cursor-pointer transition-shadow duration-300" routerLink="../registro-territorios">
-        <div class="card-body flex flex-col items-center p-4">
-          <img src="../../../../../assets/img/asignacion.png" alt="map" class="w-40">
-          <h2 class="card-title text-white mt-4 text-center">Registro de territorios</h2>
+      <a
+        class="w-72 bg-gray-700/80 rounded-2xl overflow-hidden border border-gray-600/40 shadow-lg hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col no-underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-blue-400"
+        routerLink="../registro-territorios"
+      >
+        <div class="flex flex-col items-center p-6 flex-1 justify-center">
+          <img src="../../../../../assets/img/asignacion.png" alt="Registro de territorios" class="w-36 h-36 object-contain">
+          <h2 class="text-xl md:text-2xl font-bold text-white mt-5 mb-0 text-center leading-tight">Registro de territorios</h2>
         </div>
-      </div>
+      </a>
+
       <!-- Usuarios -->
-      <div class="w-72 bg-[#454b4f] m-4 hover:shadow-2xl hover:cursor-pointer transition-shadow duration-300" routerLink="../usuarios">
-        <div class="card-body flex flex-col items-center p-4">
-          <img src="../../../../../assets/img/group.png" alt="map" class="w-40">
-          <h2 class="card-title text-white mt-4 text-center">Usuarios</h2>
+      <a
+        class="w-72 bg-gray-700/80 rounded-2xl overflow-hidden border border-gray-600/40 shadow-lg hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col no-underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-blue-400"
+        routerLink="../usuarios"
+      >
+        <div class="flex flex-col items-center p-6 flex-1 justify-center">
+          <img src="../../../../../assets/img/group.png" alt="Usuarios" class="w-36 h-36 object-contain">
+          <h2 class="text-xl md:text-2xl font-bold text-white mt-5 mb-0 text-center">Usuarios</h2>
         </div>
-      </div>
+      </a>
     }
   </div>
 
-  <div class="flex justify-center mt-8 mb-12">
+  <!-- Session & Notification Actions -->
+  <div class="flex justify-center flex-wrap gap-4 mt-10 mb-6">
     @if (authService.showLoginButton()) {
-      <button class="bg-yellow-500 text-black hover:bg-yellow-600 text-lg mx-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer" routerLink="/auth">Iniciar sesión</button>
+      <a
+        class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-base md:text-lg shadow-lg hover:shadow-amber-500/20 active:scale-98 transition-all cursor-pointer no-underline hover:no-underline"
+        routerLink="/auth"
+      >
+        <img
+          src="https://api.iconify.design/mdi:login.svg?color=%230a0a0a"
+          width="22"
+          height="22"
+          alt="Login"
+        />
+        <span>Iniciar sesión</span>
+      </a>
     } @else {
-      <button class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 text-lg mx-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="activeNotification()">Notificarme</button>
-      <button class="bg-red-600 text-white border border-red-600 hover:bg-red-700 text-lg mx-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="authService.logout()">Cerrar sesión</button>
+      <button
+        type="button"
+        class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base md:text-lg shadow-lg hover:shadow-blue-500/20 active:scale-98 transition-all cursor-pointer"
+        (click)="activeNotification()"
+      >
+        <img
+          src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=white"
+          width="22"
+          height="22"
+          alt="Bell"
+        />
+        <span>Notificarme</span>
+      </button>
+
+      <button
+        type="button"
+        class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-semibold text-base md:text-lg shadow-lg hover:shadow-rose-500/20 active:scale-98 transition-all cursor-pointer"
+        (click)="authService.logout()"
+      >
+        <img
+          src="https://api.iconify.design/mdi:logout.svg?color=white"
+          width="22"
+          height="22"
+          alt="Logout"
+        />
+        <span>Cerrar sesión</span>
+      </button>
     }
   </div>
 
-  <div class="flex justify-center">
-    @if (pwaService.showInstallButton()) {
-      <button class="bg-cyan-500 text-white hover:bg-cyan-600 text-lg inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="pwaService.installPWA()">Instalar App</button>
-    }
-  </div>
+  <!-- PWA Install Action -->
+  @if (pwaService.showInstallButton()) {
+    <div class="flex justify-center mt-4 mb-8">
+      <button
+        type="button"
+        class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold text-base md:text-lg shadow-lg hover:shadow-cyan-500/20 active:scale-98 transition-all cursor-pointer"
+        (click)="pwaService.installPWA()"
+      >
+        <img
+          src="https://api.iconify.design/mdi:download.svg?color=white"
+          width="22"
+          height="22"
+          alt="Install"
+        />
+        <span>Instalar App</span>
+      </button>
+    </div>
+  }
 </div>
