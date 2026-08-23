@@ -4,7 +4,7 @@ import { FormBuilder } from '@angular/forms';
 import { CartData, CartDataArray } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
-import { TableCartAssignmentComponent } from '../../../../shared/components/table-cart-assignment/table-cart-assignment.component';
+import { CartAssignmentCardsComponent } from '../../../../shared/components/cart-assignment-cards/cart-assignment-cards.component';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -12,7 +12,7 @@ import { RouterLink } from '@angular/router';
     templateUrl: './cart-page.component.html',
     styleUrls: ['./cart-page.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [TableCartAssignmentComponent, RouterLink]
+    imports: [CartAssignmentCardsComponent, RouterLink]
 })
 export class CartPageComponent implements OnInit{
   private cartDataService = inject(CartDataService);

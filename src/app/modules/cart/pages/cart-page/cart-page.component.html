@@ -10,10 +10,10 @@
 
   <!-- Cart Data or Empty State -->
   @if (cartData$.length > 0) {
-    <div class="w-full overflow-x-auto rounded-2xl">
-      <app-table-cart-assignment
+    <div class="w-full">
+      <app-cart-assignment-cards
         [cartData]="cartData$"
-      ></app-table-cart-assignment>
+      ></app-cart-assignment-cards>
     </div>
   } @else {
     <div class="flex flex-col items-center justify-center py-16 px-4 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 mt-8 shadow-xl max-w-3xl mx-auto text-center">
