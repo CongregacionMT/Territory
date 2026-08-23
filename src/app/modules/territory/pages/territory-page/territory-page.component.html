@@ -1,34 +1,30 @@
-<div class="container">
+<div class="container mx-auto px-4 py-8 max-w-6xl text-slate-200">
+  <div class="max-w-4xl mx-auto">
 
-  <div class="flex justify-center">
-    <h1 class="mt-0 mb-4">Seleccioná una localidad</h1>
-  </div>
+    <h1 class="text-2xl font-extrabold text-white text-center mb-4">Seleccioná una localidad</h1>
 
-  <!-- Botones de localidades (vienen de Firebase con los links correctos) -->
-  <div class="card-container">
-    @for (terr of territorioMaps; track terr) {
-      <app-card-xl
-        mapSRC="{{ terr.src }}"
-        mapName="{{ terr.name }}"
-        [routerLink]="terr.link"
-      ></app-card-xl>
-    }
-  </div>
+    <!-- Botones de localidades -->
+    <div class="flex flex-wrap justify-center gap-4 mb-6">
+      @for (terr of territorioMaps; track terr) {
+        <app-card-xl
+          mapSRC="{{ terr.src }}"
+          mapName="{{ terr.name }}"
+          [routerLink]="terr.link"
+        ></app-card-xl>
+      }
+    </div>
 
-  <hr />
+    <hr />
 
-  <!-- Territorios agrupados por localidad -->
-  @if (isAdmin || isDriver) {
-    <div>
+    <!-- Territorios agrupados por localidad -->
+    @if (isAdmin || isDriver) {
       @for (locality of localitiesWithTerritories; track locality.key) {
         <div class="mb-6">
-          <div class="flex justify-center">
-            <h2 class="my-2 text-center">
-              Territorios de {{ locality.name }} por Número
-            </h2>
-          </div>
+          <h2 class="text-lg font-bold text-white text-center mb-3">
+            Territorios de {{ locality.name }} por Número
+          </h2>
 
-          <div class="card-s-container">
+          <div class="flex flex-wrap justify-center gap-3">
             @for (item of locality.territories; track item) {
               <app-card-s
                 [terrNumber]="item"
@@ -40,6 +36,7 @@
           </div>
         </div>
       }
-    </div>
-  }
+    }
+
+  </div>
 </div>
