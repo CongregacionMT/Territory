@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -24,7 +24,7 @@ export interface LocalityGroup {
 
 @Component({
   selector: 'app-campaign-detail',
-  imports: [DatePipe],
+  imports: [DatePipe, NgClass],
   templateUrl: './campaign-detail.component.html',
   styleUrl: './campaign-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
