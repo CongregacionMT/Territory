@@ -52,6 +52,7 @@ export class CampaignPageComponent implements OnInit {
 
   // End Campaign Modal State
   showEndCampaignModal = signal(false);
+  showStartConfirmModal = signal(false);
   leftoverInvitations = signal<'muchas' | 'algunas' | 'pocas' | 'ninguna' | 'faltaron' | ''>(
     '',
   );
@@ -419,6 +420,7 @@ export class CampaignPageComponent implements OnInit {
   }
 
   async confirmStartCampaign() {
+    this.showStartConfirmModal.set(false);
     this.nameInvalid.set(false);
     this.dateInvalid.set(false);
 
