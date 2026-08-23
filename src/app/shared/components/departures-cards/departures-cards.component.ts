@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, input, effect, ChangeDetectionStrategy } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { Departure } from '@core/models/Departures';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
@@ -8,7 +9,7 @@ import { environment } from '@environments/environment';
   templateUrl: './departures-cards.component.html',
   styleUrls: ['./departures-cards.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, NgClass],
 })
 export class DeparturesCardsComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -126,5 +127,17 @@ export class DeparturesCardsComponent implements OnInit {
       '-' +
       territory.replace(/\D/g, '')
     );
+  }
+
+  getTailwindColor(color: string): { bg: string; border: string; text: string } {
+    switch (color) {
+      case 'primary': return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800' };
+      case 'success': return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800' };
+      case 'warning': return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800' };
+      case 'danger': return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800' };
+      case 'info': return { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-800' };
+      case 'secondary': return { bg: 'bg-slate-100', border: 'border-slate-300', text: 'text-slate-800' };
+      default: return { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-800' };
+    }
   }
 }
