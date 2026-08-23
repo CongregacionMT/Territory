@@ -1,170 +1,254 @@
-<div class="container mx-auto px-4 w-full px-6 py-4 assignment-record-container">
-
+<div class="max-w-[100vw] px-4 py-8 relative">
   @if (filterDataListFull() && filterDataListFull().length > 0) {
     <!-- Toolbar Controls -->
-    <div class="toolbar-card my-6 p-4 rounded-lg shadow-sm">
-      <div class="flex flex-wrap -mx-4 items-center g-3">
-        <div class="w-12/12 col-md-auto flex items-center gap-2 px-4">
-          <label for="select-filter-register" class="fw-semibold text-nowrap text-gray-100 mb-0">
-            🔍 Filtrar por:
-          </label>
-          <select
-            id="select-filter-register"
-            class="form-select form-select-md custom-select shadow-sm"
-            [(ngModel)]="selectedValueFilter"
-            (ngModelChange)="sortByDate($event)"
-          >
-            <option value="1">Últimos 6 meses</option>
-            <option value="2">Último año</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-          </select>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Filter -->
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
         </div>
+        <select
+          class="bg-slate-800 border border-slate-700 text-white font-bold rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all cursor-pointer shadow-sm w-full md:w-auto"
+          [(ngModel)]="selectedValueFilter"
+          (ngModelChange)="sortByDate($event)"
+        >
+          <option value="1">Últimos 6 meses</option>
+          <option value="2">Último año</option>
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+        </select>
+      </div>
 
-        <div class="w-12/12 col-md flex flex-wrap items-center justify-content-md-end gap-2 px-4">
-          <button class="btn-outline-light btn-action shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="refreshData()" title="Refrescar datos">
-            🔄 Refrescar
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+        <button 
+          class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2" 
+          (click)="refreshData()" 
+          title="Refrescar datos"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 22v-6h6"/></svg>
+          Refrescar
+        </button>
+        
+        @if (hasPendingChanges) {
+          <button 
+            class="bg-emerald-600 hover:bg-emerald-500 border border-transparent text-white px-5 py-2.5 rounded-xl font-bold transition-all cursor-pointer shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2" 
+            (click)="saveAllChanges()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Guardar cambios
           </button>
           
-          @if (hasPendingChanges) {
-            <button class="bg-green-600 text-white border border-green-600 hover:bg-green-700 btn-action shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="saveAllChanges()">
-              💾 Guardar cambios
-            </button>
-            <button class="btn-outline-warning btn-action shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="discardAllChanges()">
-              ❌ Descartar
-            </button>
-          }
-          
-          <button class="bg-red-600 text-white border border-red-600 hover:bg-red-700 btn-action shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="downloadPDF()">
-            📄 Registro PDF
+          <button 
+            class="bg-rose-900/50 hover:bg-rose-800/80 border border-rose-800 text-rose-300 hover:text-white px-4 py-2.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2" 
+            (click)="discardAllChanges()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Descartar
           </button>
-        </div>
+        }
+        
+        <button 
+          class="bg-rose-600 hover:bg-rose-500 border border-transparent text-white px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer shadow-lg hover:shadow-rose-500/25 flex items-center gap-2" 
+          (click)="downloadPDF()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          PDF
+        </button>
       </div>
     </div>
 
-    <!-- Main Territory Grid Table -->
-    <div class="table-responsive-wrapper rounded-lg shadow-lg">
-      <table class="table table-dark table-hover align-middle mb-0 territory-grid-table">
-        <thead>
-          <tr>
-            @for (item of territoriesNumber(); track item.territorio; let i = $index) {
-              <th scope="col" class="territory-header-cell text-center py-4">
-                <div class="flex items-center justify-between px-2">
-                  <span class="header-title">Territorio {{ item.territorio }}</span>
-                  <button 
-                    class="btn-sm bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 rounded-full btn-add-cell shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" 
-                    (click)="addCard(item.collection, i)" 
-                    title="Añadir registro nuevo"
-                  >
-                    ➕
-                  </button>
-                </div>
-              </th>
-            }
-          </tr>
-        </thead>
-        <tbody class="table-group-divider">
-          <tr>
-            @for (dataList of filterDataListFull(); track $index; let i = $index) {
-              <td class="territory-column-cell align-top p-2">
-                <div class="flex flex-col gap-2">
-                  @for (list of dataList; track list.id || list.start) {
-                    @if (list.end) {
-                      <div 
-                        class="assignment-card rounded-md p-2 transition-all relative"
-                        [class.pending-change]="list.id && pendingChanges()[territoriesNumber()[i].collection + '_' + list.id] !== undefined"
-                        [class.pending-delete]="list.id && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined"
+    <!-- Main Territory Grid (Kanban style) -->
+    <div class="flex overflow-x-auto gap-6 pb-8 snap-x" style="scrollbar-width: thin;">
+      @for (item of territoriesNumber(); track item.territorio; let i = $index) {
+        <div class="flex flex-col min-w-[340px] max-w-[340px] flex-shrink-0 snap-start">
+          
+          <!-- Column Header -->
+          <div class="bg-slate-900 border-t-4 border-t-sky-500 border-x border-b border-slate-800 rounded-t-2xl p-4 flex items-center justify-between shadow-sm sticky top-0 z-20">
+            <h3 class="font-extrabold text-xl text-white tracking-wide">
+              Territorio {{ item.territorio }}
+            </h3>
+            <button 
+              class="w-10 h-10 bg-sky-900/30 text-sky-400 hover:bg-sky-500 hover:text-white rounded-full flex justify-center items-center transition-all border border-sky-800 hover:border-sky-400 hover:shadow-lg hover:shadow-sky-500/20 cursor-pointer"
+              (click)="addCard(item.collection, i)" 
+              title="Añadir registro nuevo"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+          
+          <!-- Column Body (Cards) -->
+          <div class="bg-slate-950/50 border-x border-b border-slate-800 rounded-b-2xl p-4 flex flex-col gap-4 min-h-[200px]">
+            @for (list of filterDataListFull()[i]; track list.id || list.start) {
+              @if (list.end) {
+                <div 
+                  class="bg-slate-900 rounded-xl p-4 border shadow-sm relative overflow-hidden group transition-all"
+                  [ngClass]="{
+                    'border-slate-700': !list.id || (pendingChanges()[territoriesNumber()[i].collection + '_' + list.id] === undefined && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] === undefined),
+                    'border-amber-500 shadow-amber-900/20': list.id && pendingChanges()[territoriesNumber()[i].collection + '_' + list.id] !== undefined,
+                    'border-red-600 opacity-75 grayscale': list.id && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined
+                  }"
+                >
+                  
+                  <!-- Pending Change Indicator -->
+                  @if (list.id && pendingChanges()[territoriesNumber()[i].collection + '_' + list.id] !== undefined) {
+                    <div class="absolute top-0 right-0 w-12 h-12 overflow-hidden z-10 pointer-events-none">
+                      <div class="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold py-1 w-16 text-center transform rotate-45 translate-x-4 -translate-y-1 shadow-md">
+                        EDIT
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Delete Overlay -->
+                  @if (list.id && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined) {
+                    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-xl p-4 border border-red-900/50">
+                      <div class="text-red-400 font-extrabold uppercase tracking-widest text-xs mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                        Para Eliminar
+                      </div>
+                      <button 
+                        class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors cursor-pointer w-full"
+                        (click)="cancelDelete(list, territoriesNumber()[i].collection)"
                       >
-                        <!-- Delete Overlay -->
-                        @if (list.id && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined) {
-                          <div class="delete-overlay rounded-md flex flex-col items-center justify-center p-2 z-3">
-                            <span class="badge bg-danger mb-2">Marcado para eliminar</span>
-                            <button class="btn-sm bg-gray-100 text-gray-900 border border-gray-100 hover:bg-gray-200 shadow-sm inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="cancelDelete(list, territoriesNumber()[i].collection)">
-                              ↩️ Deshacer
+                        Deshacer
+                      </button>
+                    </div>
+                  }
+
+                  <!-- Driver Header -->
+                  <div class="mb-4">
+                    @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
+                      <!-- Editing Mode -->
+                      <div class="bg-slate-950 rounded-lg p-3 border border-sky-900/50">
+                        <label class="block text-xs font-bold text-slate-400 mb-1">Publicador</label>
+                        <input 
+                          type="text" 
+                          class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all mb-3" 
+                          placeholder="Nombre del conductor"
+                          [ngModel]="editFormData().driver" 
+                          (ngModelChange)="updateEditData('driver', $event)"
+                        >
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                          <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1">Entregó</label>
+                            <input 
+                              type="date" 
+                              class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 outline-none transition-all" 
+                              [ngModel]="editFormData().start" 
+                              (ngModelChange)="updateEditData('start', $event)"
+                            >
+                          </div>
+                          <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1">Devolvió</label>
+                            <input 
+                              type="date" 
+                              class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 outline-none transition-all" 
+                              [ngModel]="editFormData().end" 
+                              (ngModelChange)="updateEditData('end', $event)"
+                            >
+                          </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                          <button 
+                            class="flex-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg py-2 font-bold text-sm transition-colors flex justify-center items-center gap-1 cursor-pointer"
+                            (click)="applyEditLocally(list, territoriesNumber()[i].collection)"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Confirmar
+                          </button>
+                          <button 
+                            class="w-10 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg flex justify-center items-center transition-colors cursor-pointer"
+                            (click)="cancelEdit()"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                          </button>
+                        </div>
+                      </div>
+                    } @else {
+                      <!-- View Mode -->
+                      <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2 max-w-[75%]">
+                          <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                          </div>
+                          <span class="font-extrabold text-white text-lg leading-tight break-words" [title]="list.driver || 'Sin Conductor'">
+                            {{ list.driver || 'Sin Conductor' }}
+                          </span>
+                        </div>
+                        
+                        @if (list.id && !list.id.startsWith('Campaña-undefined')) {
+                          <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              class="w-8 h-8 rounded-full bg-slate-800 hover:bg-sky-900/40 text-slate-400 hover:text-sky-400 flex justify-center items-center transition-colors cursor-pointer border border-transparent hover:border-sky-800"
+                              (click)="startEdit(list, territoriesNumber()[i].collection)" 
+                              title="Editar"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            </button>
+                            <button 
+                              class="w-8 h-8 rounded-full bg-slate-800 hover:bg-red-900/30 text-slate-400 hover:text-red-400 flex justify-center items-center transition-colors cursor-pointer border border-transparent hover:border-red-800/50"
+                              (click)="markForDelete(list, territoriesNumber()[i].collection)" 
+                              title="Eliminar"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             </button>
                           </div>
                         }
-
-                        <!-- Driver Section -->
-                        <div class="driver-header mb-2 p-1 rounded">
-                          @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
-                            <div class="edit-driver-group flex items-center gap-1">
-                              <input 
-                                type="text" 
-                                class="form-control form-control-sm text-center font-bold custom-input" 
-                                placeholder="Conductor"
-                                [ngModel]="editFormData().driver" 
-                                (ngModelChange)="updateEditData('driver', $event)"
-                              >
-                              <button class="btn-sm bg-green-600 text-white border border-green-600 hover:bg-green-700 rounded-full px-2 py-1 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="applyEditLocally(list, territoriesNumber()[i].collection)" title="Confirmar">✔️</button>
-                              <button class="btn-sm btn-outline-light rounded-full px-2 py-1 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="cancelEdit()" title="Cancelar">❌</button>
-                            </div>
-                          } @else {
-                            <div class="flex items-center justify-between relative px-2 py-1">
-                              <span class="driver-name font-bold text-truncate mr-2" [title]="list.driver || 'Sin Conductor'">
-                                👤 {{ list.driver || 'Sin Conductor' }}
-                              </span>
-                              @if (list.id && !list.id.startsWith('Campaña-undefined')) {
-                                <div class="action-buttons flex gap-1">
-                                  <button class="btn-icon btn-edit" (click)="startEdit(list, territoriesNumber()[i].collection)" title="Editar">✏️</button>
-                                  <button class="btn-icon btn-delete" (click)="markForDelete(list, territoriesNumber()[i].collection)" title="Eliminar">🗑️</button>
-                                </div>
-                              }
-                            </div>
-                          }
-                        </div>
-
-                        <!-- Dates Section -->
-                        <div class="dates-container p-2 rounded border border-secondary border-opacity-25">
-                          <div class="flex flex-wrap -mx-4 g-1 text-center items-center">
-                            <div class="w-6/12 border-end border-secondary border-opacity-25 pr-1 px-4">
-                              <div class="date-label">Entregó</div>
-                              @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
-                                <input 
-                                  type="date" 
-                                  class="form-control form-control-sm custom-date-input mt-1" 
-                                  [ngModel]="editFormData().start" 
-                                  (ngModelChange)="updateEditData('start', $event)"
-                                >
-                              } @else {
-                                <div class="date-value font-medium text-cyan-500">
-                                  {{ (list.start || $any(list.creation)?.toDate?.() || ($any(list.creation)?.seconds ? $any(list.creation).seconds * 1000 : list.creation)) | date: "dd/MM/yy" }}
-                                </div>
-                              }
-                            </div>
-                            <div class="w-6/12 pl-1 px-4">
-                              <div class="date-label">Devolvió</div>
-                              @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
-                                <input 
-                                  type="date" 
-                                  class="form-control form-control-sm custom-date-input mt-1" 
-                                  [ngModel]="editFormData().end" 
-                                  (ngModelChange)="updateEditData('end', $event)"
-                                >
-                              } @else {
-                                <div class="date-value font-medium text-green-600">
-                                  {{ list.end | date: "dd/MM/yyyy" }}
-                                </div>
-                              }
-                            </div>
-                          </div>
-                        </div>
-
                       </div>
                     }
+                  </div>
+
+                  <!-- Dates Section -->
+                  @if (editingCardKey() !== (territoriesNumber()[i].collection + '_' + list.id)) {
+                    <div class="grid grid-cols-2 gap-3 bg-slate-950/50 p-3 rounded-lg border border-slate-800/50">
+                      <div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Entregó</div>
+                        <div class="font-bold text-sky-400 text-sm">
+                          {{ (list.start || $any(list.creation)?.toDate?.() || ($any(list.creation)?.seconds ? $any(list.creation).seconds * 1000 : list.creation)) | date: "dd/MM/yy" }}
+                        </div>
+                      </div>
+                      <div class="pl-3 border-l border-slate-800">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Devolvió</div>
+                        <div class="font-bold text-emerald-400 text-sm">
+                          {{ list.end | date: "dd/MM/yyyy" }}
+                        </div>
+                      </div>
+                    </div>
                   }
                 </div>
-              </td>
+              }
             }
-          </tr>
-        </tbody>
-      </table>
+
+            @if (filterDataListFull()[i] && filterDataListFull()[i].length === 0) {
+              <div class="flex-1 flex flex-col items-center justify-center py-8 opacity-40">
+                <div class="w-12 h-12 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
+                <span class="text-xs font-bold text-slate-500">Sin historial</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
   } @else {
-    <div class="empty-state-card alert alert-dark text-center my-8 p-8 rounded-lg shadow-sm border border-secondary border-opacity-25">
-      <div class="display-5 mb-4">📭</div>
-      <h4 class="alert-heading text-gray-100">Sin datos disponibles</h4>
-      <p class="text-gray-500 mb-0">No hay registros de territorios para mostrar en este momento.</p>
+    <div class="max-w-2xl mx-auto my-16 bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center shadow-2xl">
+      <div class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-600 shadow-inner">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 22v-6h6"/></svg>
+      </div>
+      <h4 class="text-3xl font-extrabold text-white mb-4">Sin datos disponibles</h4>
+      <p class="text-slate-400 text-lg mb-8">No hay registros de territorios para mostrar en este momento.</p>
+      
+      <button 
+        class="bg-sky-600 hover:bg-sky-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-sky-500/25 inline-flex items-center gap-3 cursor-pointer"
+        (click)="refreshData()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 22v-6h6"/></svg>
+        Recargar datos
+      </button>
     </div>
   }
 </div>
