@@ -1,38 +1,52 @@
-<div class="container">
-  <div class="flex justify-center">
-    <h1 class="my-6 text-center">Congregación {{ congregationName }}</h1>
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="mb-10 text-center">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-2">Congregación {{ congregationName }}</h1>
+    <h2 class="text-2xl font-bold text-sky-400">¡Bienvenidos {{ (overseerData$ | async)?.name || 'Esteban y Natalia' }}!</h2>
   </div>
-  <h2 class="text-center text-cyan-500">¡Bienvenidos {{ (overseerData$ | async)?.name || 'Esteban y Natalia' }}!</h2>
-  
+
   @if (isAdmin) {
-    <div class="flex justify-center my-4">
-      <div class="input-group w-auto">
-        <input type="text" class="form-control" placeholder="Nuevo nombre" [(ngModel)]="newName">
-        <button class="text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white inline-block px-4 py-2 text-center rounded transition cursor-pointer" type="button" (click)="saveName()">Guardar</button>
+    <div class="flex justify-center my-8">
+      <div class="flex items-center w-full max-w-sm bg-slate-900/50 rounded-xl overflow-hidden border border-slate-700 shadow-sm focus-within:ring-2 focus-within:ring-sky-500 transition-all">
+        <input 
+          type="text" 
+          class="w-full bg-transparent text-white px-4 py-3 outline-none placeholder:text-slate-500" 
+          placeholder="Nuevo nombre del superintendente." 
+          [(ngModel)]="newName"
+        >
+        <button 
+          class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-6 py-3 transition-colors shrink-0" 
+          type="button" 
+          (click)="saveName()"
+        >
+          Guardar
+        </button>
       </div>
     </div>
   }
-  <div class="card-container">
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 max-w-5xl mx-auto">
     <!-- Ubicaciones -->
-    <div class="card" routerLink="../territorios/ubications-overseer">
-      <div class="card-body flex flex-col items-center">
-        <img src="https://i.postimg.cc/5XbRCwC8/mt.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title text-center text-white mt-4">Ubicaciones</h2>
+    <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-sm flex flex-col items-center justify-center p-8 transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-500/20 cursor-pointer" routerLink="../territorios/ubications-overseer">
+      <div class="bg-slate-900 rounded-full w-32 h-32 flex flex-col items-center justify-center p-4 shadow-inner mb-6 border border-slate-700">
+        <img src="https://i.postimg.cc/5XbRCwC8/mt.png" alt="map" class="w-full h-auto object-contain drop-shadow-md">
       </div>
+      <h3 class="text-2xl font-extrabold text-white text-center">Ubicaciones</h3>
     </div>
+    
     <!-- Territorios -->
-    <div class="card" routerLink="../territorios">
-      <div class="card-body flex flex-col items-center">
-        <img src="../../../../../assets/img/map.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title text-white mt-4">Territorios</h2>
+    <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-sm flex flex-col items-center justify-center p-8 transition-all duration-300 animate-[fadeInUp_0.6s_ease_backwards] hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/20 cursor-pointer" routerLink="../territorios">
+      <div class="bg-slate-900 rounded-full w-32 h-32 flex flex-col items-center justify-center p-4 shadow-inner mb-6 border border-slate-700">
+        <img src="../../../../../assets/img/map.png" alt="map" class="w-full h-auto object-contain drop-shadow-md">
       </div>
+      <h3 class="text-2xl font-extrabold text-white text-center">Territorios</h3>
     </div>
+    
     <!-- Salidas -->
-    <div class="card" routerLink="../salidas">
-      <div class="card-body flex flex-col items-center">
-        <img src="../../../../../assets/img/salidas.png" alt="map" style="width: 10rem;">
-        <h2 class="card-title text-white mt-4">Salidas</h2>
+    <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-sm flex flex-col items-center justify-center p-8 transition-all duration-300 animate-[fadeInUp_0.7s_ease_backwards] hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/20 cursor-pointer" routerLink="../salidas">
+      <div class="bg-slate-900 rounded-full w-32 h-32 flex flex-col items-center justify-center p-4 shadow-inner mb-6 border border-slate-700">
+        <img src="../../../../../assets/img/salidas.png" alt="map" class="w-full h-auto object-contain drop-shadow-md">
       </div>
+      <h3 class="text-2xl font-extrabold text-white text-center">Salidas</h3>
     </div>
   </div>
 </div>
