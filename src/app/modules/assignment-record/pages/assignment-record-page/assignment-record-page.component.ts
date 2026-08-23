@@ -6,8 +6,9 @@ import {
   ChangeDetectorRef,
   signal,
   computed,
-  ChangeDetectionStrategy
-, DestroyRef} from '@angular/core';
+  ChangeDetectionStrategy,
+  DestroyRef
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Card, CardApplesData } from '@core/models/Card';
 import { CardService } from '@core/services/card.service';
@@ -25,7 +26,7 @@ import {
   TerritoryNumberData,
 } from '@core/models/TerritoryNumberData';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
-import { DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe, TitleCasePipe, NgClass } from '@angular/common';
 import { environment } from '@environments/environment';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { Timestamp } from '@angular/fire/firestore';
@@ -41,20 +42,24 @@ import { Timestamp } from '@angular/fire/firestore';
     ReactiveFormsModule,
     DatePipe,
     TitleCasePipe,
+    NgClass
   ],
 })
 export class AssignmentRecordPageComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);  private territorieDataService = inject(TerritoryDataService);
+  private destroyRef = inject(DestroyRef);
+  private territorieDataService = inject(TerritoryDataService);
   private cardService = inject(CardService);
   private router = inject(Router);
   private spinner = inject(SpinnerService);
   private fb = inject(FormBuilder);
   private cdRef = inject(ChangeDetectorRef);
 
-  // Signals para el estado del componente  territorioMaps = signal<CardButtonsData[]>([]);
+  // Signals para el estado del componente
+  territorioMaps = signal<CardButtonsData[]>([]);
   allCardsReceived = signal<Card[]>([]);
   allCardsAssigned = signal<Card[]>([]);
   cardConfirmation = signal<Card | null>(null);
+  isCreationModalOpen = signal(false);
   formCard = signal<FormGroup>(this.createFormCard());
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>(
     {} as TerritoriesNumberData,
@@ -71,7 +76,9 @@ export class AssignmentRecordPageComponent implements OnInit {
   // Computed signals (opcional, para valores derivados)
   hasCardsReceived = computed(() => this.allCardsReceived().length > 0);
   hasCardsAssigned = computed(() => this.allCardsAssigned().length > 0);
-  hasTerritoryMaps = computed(() => this.territorioMaps().length > 0);constructor() {
+  hasTerritoryMaps = computed(() => this.territorioMaps().length > 0);
+
+  constructor() {
     this.spinner.cargarSpinner();
 
     // get tarjetas asignadas esta semana
@@ -82,7 +89,6 @@ export class AssignmentRecordPageComponent implements OnInit {
     // get tarjetas a revisión
     this.territorieDataService.getRevisionCardTerritorie().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((card) => {
       this.allCardsReceived.set(card);
-      this.cardConfirmation.set(JSON.parse(JSON.stringify(card)));
       this.spinner.cerrarSpinner();
     });
   }
@@ -121,7 +127,7 @@ export class AssignmentRecordPageComponent implements OnInit {
     return returnDate;
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void {
     if (!sessionStorage.getItem('territorioMaps')) {
       this.spinner.cargarSpinner();
       this.territorieDataService.getMaps().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((map) => {
@@ -242,6 +248,7 @@ export class AssignmentRecordPageComponent implements OnInit {
       date: new Date().toISOString().substring(0, 10),
     });
     this.updateAvailableTerritories();
+    this.closeModals();
   }
 
   async deleteCardAssigned(card: Card) {
@@ -262,6 +269,12 @@ export class AssignmentRecordPageComponent implements OnInit {
     const card = this.cardConfirmation();
     if (card) {
       this.territorieDataService.deleteCardTerritorie(card);
+      this.closeModals();
     }
+  }
+
+  closeModals() {
+    this.cardConfirmation.set(null);
+    this.isCreationModalOpen.set(false);
   }
 }
