@@ -81,7 +81,7 @@ export class HomeStatisticsPageComponent implements OnInit {
             // Filtrar manzanas vacías o sin check
             card.forEach((list: any, index: number) => {
               let count = 0;
-              list.applesData.forEach((apple: any) => {
+              (list.applesData || []).forEach((apple: any) => {
                 if (apple.checked === true) {
                   count++;
                 }
@@ -98,7 +98,7 @@ export class HomeStatisticsPageComponent implements OnInit {
             
             // Filtrar listas vacías de forma segura
             const filteredCard = card.filter((list: any) => {
-              const checkedCount = list.applesData.filter((a: any) => a.checked).length;
+              const checkedCount = (list.applesData || []).filter((a: any) => a.checked).length;
               return checkedCount > 0;
             });
 

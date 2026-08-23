@@ -1,4 +1,4 @@
-<div class="py-8 px-6 min-h-screen bg-slate-950">
+<div class="min-h-screen p-4 sm:p-6 lg:p-8">
   <!-- Acciones -->
   <div class="flex justify-end mb-6 print-hide">
     <button class="bg-slate-800 hover:bg-slate-700 text-white font-medium px-6 py-2 rounded-full shadow-sm border border-slate-700 transition-colors flex items-center gap-2" onclick="window.print()">
@@ -287,8 +287,8 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
           @for (territorio of grupo.territories; track territorio.id) {
-            <div class="bg-slate-900 border rounded-xl p-5 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-lg"
-                 [ngClass]="territorio.porcentaje === 100 ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-slate-800'">
+            <div class="border rounded-xl p-5 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-lg"
+                 [ngClass]="territorio.porcentaje === 100 ? 'border-emerald-500/30 bg-emerald-900/20' : 'border-slate-800 bg-slate-900'">
               
               <div class="flex justify-between items-center mb-6">
                 <h6 class="font-bold text-white text-lg truncate pr-2">
