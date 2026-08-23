@@ -1,16 +1,16 @@
 <div class="container mx-auto px-4 py-6 max-w-5xl">
 
-  <div class="header-section text-center mb-6 mt-2">
-    @if (titleGroup()) {
-      <h2 class="text-cyan-400 font-bold text-lg md:text-xl mb-1">{{ titleGroup() }}</h2>
-    }
+  <div class="text-center mb-6 mt-2">
     <h1 class="text-3xl md:text-4xl font-bold text-white mb-5 tracking-tight">Salidas a predicar</h1>
+    @if (titleGroup()) {
+      <h2 class="text-cyan-400 font-bold text-2xl md:text-3xl mb-5">{{ titleGroup() }}</h2>
+    }
 
     <!-- Week Selector Navigation -->
     <div class="flex items-center justify-center gap-3 mb-3">
       <button
         type="button"
-        class="nav-week-btn rounded-full flex items-center justify-center cursor-pointer select-none"
+        class="w-11 h-11 p-0 rounded-full flex items-center justify-center cursor-pointer select-none border border-sky-200 bg-gradient-to-r from-cyan-50 to-sky-50 shadow-sm transition-all hover:bg-sky-200 hover:border-sky-600 hover:scale-105 active:scale-95"
         (click)="navigateWeek(-1)"
         title="Semana anterior"
         aria-label="Semana anterior"
@@ -23,22 +23,22 @@
         />
       </button>
 
-      <div class="date-pill select-none">
+      <div class="inline-flex items-center bg-gradient-to-r from-cyan-50 to-sky-50 text-sky-700 px-6 py-2.5 rounded-full border border-sky-200 shadow-sm select-none">
         <img
           src="https://api.iconify.design/mdi:calendar-month.svg?color=%230277bd"
           width="24"
           height="24"
-          class="mr-2 flex-shrink-0"
+          class="mr-2 shrink-0"
           alt="Calendar"
         />
-        <h2 class="text-base md:text-lg font-bold text-[#01579b] m-0 leading-snug">
+        <h2 class="text-lg md:text-xl font-bold text-sky-700 m-0 leading-snug tracking-tight">
           {{ getFormattedDate(selectedWeekId()) }}
         </h2>
       </div>
 
       <button
         type="button"
-        class="nav-week-btn rounded-full flex items-center justify-center cursor-pointer select-none"
+        class="w-11 h-11 p-0 rounded-full flex items-center justify-center cursor-pointer select-none border border-sky-200 bg-gradient-to-r from-cyan-50 to-sky-50 shadow-sm transition-all hover:bg-sky-200 hover:border-sky-600 hover:scale-105 active:scale-95"
         (click)="navigateWeek(1)"
         title="Semana siguiente"
         aria-label="Semana siguiente"
@@ -56,7 +56,7 @@
     @if (getRelativeWeekInfo(); as relInfo) {
       <div class="mb-4">
         <span
-          class="relative-week-badge rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold animate__animated animate__fadeIn animate__faster shadow-sm"
+          class="inline-flex items-center rounded-full px-4 py-1.5 text-sm md:text-base font-semibold text-white shadow-sm tracking-wide transition-all duration-300"
           [ngClass]="relInfo.badgeClass"
         >
           <img
@@ -75,13 +75,13 @@
     <div class="flex justify-center mt-2">
       <button
         type="button"
-        class="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-700/60 hover:bg-gray-600 text-gray-200 hover:text-white text-sm font-medium transition-colors shadow-sm cursor-pointer"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-700/60 hover:bg-gray-600 text-gray-200 hover:text-white text-base md:text-lg font-medium transition-colors shadow-sm cursor-pointer"
         (click)="showHistory.set(true)"
       >
         <img
           src="https://api.iconify.design/mdi:history.svg?color=%23d1d5db"
-          width="18"
-          height="18"
+          width="20"
+          height="20"
           alt="History"
         />
         <span>Ver historial</span>
@@ -92,12 +92,12 @@
     @if (showHistory()) {
       <!-- Backdrop -->
       <div 
-        class="fixed inset-0 bg-black/75 z-[1040] animate__animated animate__fadeIn cursor-pointer backdrop-blur-xs"
+        class="fixed inset-0 bg-black/75 z-[1040] cursor-pointer backdrop-blur-sm"
         (click)="showHistory.set(false)"
       ></div>
 
       <!-- Modal Content -->
-      <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1050] w-[92%] max-w-md animate__animated animate__zoomIn text-left">
+      <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1050] w-[92%] max-w-md text-left">
         <div class="bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
           
           <!-- Modal Header -->
@@ -126,7 +126,7 @@
               [ngClass]="isCurrentWeek() ? 'bg-blue-900/40 border-blue-500/60 text-blue-100 shadow-md' : 'bg-gray-700/40 border-gray-600/50 hover:bg-gray-700 text-gray-200'"
               (click)="selectWeek('actual')"
             >
-              <span class="text-2xl flex-shrink-0">📅</span>
+              <span class="text-2xl shrink-0">📅</span>
               <div class="flex-1 min-w-0">
                 <div class="font-bold text-sm md:text-base">Semana actual</div>
                 <div class="text-xs text-gray-400 mt-0.5">Volver a la semana en curso</div>
@@ -263,7 +263,7 @@
   <!-- Link to Publishers list button -->
   <div class="flex justify-center my-8">
     <button
-      class="inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-base md:text-lg font-semibold transition-all shadow-lg hover:shadow-blue-500/20 active:scale-98 cursor-pointer"
+      class="inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-base md:text-lg font-semibold transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95 cursor-pointer"
       routerLink="/salidas/publicadores"
     >
       <img
