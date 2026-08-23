@@ -1,10 +1,9 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, inject, OnInit, signal, viewChild, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { NgClass } from '@angular/common';
 import { User } from '@core/models/User';
 
 @Component({
@@ -12,7 +11,7 @@ import { User } from '@core/models/User';
     templateUrl: './login-page.component.html',
     styleUrls: ['./login-page.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ReactiveFormsModule, NgClass]
+    imports: [ReactiveFormsModule]
 })
 export class LoginPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
@@ -21,8 +20,7 @@ export class LoginPageComponent implements OnInit {
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
 
-
-  readonly errorMessage = viewChild<any>('errorMessage');
+  loginError = signal(false);
 
   formLogin: FormGroup;
   user = "";
@@ -47,7 +45,7 @@ export class LoginPageComponent implements OnInit {
 
   async loginWhitUser(){
     this.spinner.cargarSpinner();
-    const messageError = this.errorMessage().nativeElement;
+    this.loginError.set(false);
     this.territoryDataService.loginUser(
       this.formLogin.value.user,
       this.formLogin.value.password
@@ -64,14 +62,16 @@ export class LoginPageComponent implements OnInit {
         this.spinner.cerrarSpinner();
       } else {
         // Error handling
-        messageError.style.display = 'block';
+        this.loginError.set(true);
         this.spinner.cerrarSpinner();
       }
     })
   }
+
   togglePasswordVisibility(): void {
     this.passwordVisible.set(!this.passwordVisible())
   }
+
   get User(){return this.formLogin.get('user');}
   get Password(){return this.formLogin.get('password');}
 }
