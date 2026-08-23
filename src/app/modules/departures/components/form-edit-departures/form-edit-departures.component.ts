@@ -8,8 +8,10 @@ import {
   effect,
   Output,
   EventEmitter,
-  ChangeDetectionStrategy
-, DestroyRef} from '@angular/core';
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  DestroyRef
+} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -18,6 +20,7 @@ import {
   FormGroup,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { NgClass } from '@angular/common';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure } from '../../../../core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -38,8 +41,8 @@ import { AuthService } from '@core/services/auth.service';
   selector: 'app-form-edit-departures',
   templateUrl: './form-edit-departures.component.html',
   styleUrls: ['./form-edit-departures.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.Default,
+  imports: [ReactiveFormsModule, NgClass],
 })
 export class FormEditDeparturesComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
@@ -48,6 +51,7 @@ export class FormEditDeparturesComponent implements OnInit {
   private spinner = inject(SpinnerService);
   private _snackBar = inject(MatSnackBar);
   public authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
   numberGroup: number = 0;
   formDeparture: FormGroup;
@@ -66,6 +70,14 @@ export class FormEditDeparturesComponent implements OnInit {
   territoryOptionsMap: { [key: string]: string[] } = {};
   isSaved: boolean = false;
   isAdmin: boolean = false;
+  activeModal: { dayIndex: number; groupKey: number } | null = null;
+  
+  get activeModalDays(): AbstractControl | null {
+    if (!this.activeModal) return null;
+    const controls = this.filterControlsByGroup(this.activeModal.groupKey);
+    return controls[this.activeModal.dayIndex] || null;
+  }
+
   personalAssignments: Card[] = [];
   showPersonalTerritories: boolean = false;
   sortByAge: boolean = true;
@@ -608,17 +620,32 @@ export class FormEditDeparturesComponent implements OnInit {
   getCardStatusClass(dayGroup: AbstractControl): string {
     const isEvent = dayGroup.get('isEvent')?.value;
     if (isEvent) 
-      return 'bg-secondary text-light';
+      return 'bg-slate-500/20 text-slate-300 border border-slate-500/30';
     const status = dayGroup.get('cardStatus')?.value;
     if (status === 'received') 
-      return 'bg-success text-light';
-    return 'bg-warning text-dark';
+      return 'bg-green-500/20 text-green-300 border border-green-500/30';
+    return 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
   }
 
 
   isBeforeTrackingStart(dateStr: string): boolean {
     if (!dateStr) return false;
     return dateStr < this.CARD_TRACKING_START_DATE;
+  }
+
+  openModal(dayIndex: number, groupKey: number) {
+    this.activeModal = { dayIndex, groupKey };
+    this.selectedTerritoryGroup = groupKey > 0 ? groupKey : null;
+    this.cdr.detectChanges();
+  }
+
+  closeModal() {
+    this.activeModal = null;
+    this.cdr.detectChanges();
+  }
+
+  isModalOpen(dayIndex: number, groupKey: number): boolean {
+    return this.activeModal?.dayIndex === dayIndex && this.activeModal?.groupKey === groupKey;
   }
 
   /**
@@ -673,6 +700,22 @@ export class FormEditDeparturesComponent implements OnInit {
     if (days >= 43) return 'warning';
     if (days >= 29) return 'primary';
     return 'success';
+  }
+
+  getPriorityColorClass(num: string, locationPrefix: string): string {
+    const color = this.getTerritoryPriorityColor(num, locationPrefix);
+    switch (color) {
+      case 'danger':
+        return 'border-l-[6px] border-l-red-500 border-red-500/30 bg-red-500/10 hover:bg-red-500/20';
+      case 'warning':
+        return 'border-l-[6px] border-l-amber-500 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20';
+      case 'primary':
+        return 'border-l-[6px] border-l-sky-500 border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20';
+      case 'success':
+        return 'border-l-[6px] border-l-emerald-500 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20';
+      default:
+        return 'border-l-[6px] border-l-slate-500 border-slate-700/50 bg-slate-800/80 hover:bg-slate-700/80';
+    }
   }
 
   getCurrentDepartureControl(index: number, group: number): AbstractControl | null {

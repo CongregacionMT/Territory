@@ -7,6 +7,7 @@ import {
   HostListener,
   ChangeDetectionStrategy
 , DestroyRef} from '@angular/core';
+import { NgClass } from '@angular/common';
 import {
   FormBuilder,
   FormControl,
@@ -34,12 +35,12 @@ import { AuthService } from '@core/services/auth.service';
   templateUrl: './edit-departures.component.html',
   styleUrls: ['./edit-departures.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, FormEditDeparturesComponent, FormsModule],
+  imports: [ReactiveFormsModule, FormEditDeparturesComponent, FormsModule, NgClass],
 })
 export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   private destroyRef = inject(DestroyRef);
   @ViewChild(FormEditDeparturesComponent)
-  formEditComponent!: FormEditDeparturesComponent;  private territoryDataService = inject(TerritoryDataService);
+  formEditComponent!: FormEditDeparturesComponent;  private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private _snackBar = inject(MatSnackBar);
   public authService = inject(AuthService);
