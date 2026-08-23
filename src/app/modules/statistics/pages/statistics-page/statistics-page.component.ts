@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { SortBy } from '@core/pipes/sort-by.pipe';
 import { environment } from '@environments/environment';
 import { Card } from '@core/models/Card';
@@ -16,7 +16,7 @@ import { Card } from '@core/models/Card';
   templateUrl: './statistics-page.component.html',
   styleUrls: ['./statistics-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, SortBy],
+  imports: [ReactiveFormsModule, DatePipe, DecimalPipe, SortBy, NgClass],
 })
 export class StatisticsPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);

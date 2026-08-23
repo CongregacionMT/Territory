@@ -1,330 +1,322 @@
-<div class="container py-6">
-  <div
-    class="flex flex-col flex-md-row justify-between items-start align-items-md-center mb-6 gap-3 w-full"
-  >
-    <h1 class="h2 mb-0 text-break text-2xl fs-md-2">
-      Estadísticas de {{ nameTitleTerritory() }}
-    </h1>
+<div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-slate-950">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Header y Filtros -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 w-full">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400 mb-0 tracking-tight break-words">
+        Estadísticas de {{ nameTitleTerritory() }}
+      </h1>
 
-    <div
-      class="flex items-center gap-2 overflow-x-auto overflow-y-hidden w-full w-md-auto pb-1"
-      style="scrollbar-width: thin; -webkit-overflow-scrolling: touch"
-    >
-      <button
-        type="button"
-        class="btn-outline-secondary shadow-sm flex-shrink-0 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-        (click)="refreshData()"
-        title="Refrescar datos"
-      >
-        <i class="fas fa-sync-alt" [class.fa-spin]="!loadingData()"></i>
-      </button>
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <button
+          type="button"
+          class="bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 shadow-sm flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors cursor-pointer"
+          (click)="refreshData()"
+          title="Refrescar datos"
+        >
+          <i class="fas fa-sync-alt" [class.fa-spin]="!loadingData()"></i>
+        </button>
 
-      <div
-        class="btn-group shadow-sm flex-shrink-0"
-        role="group"
-        aria-label="Filtro de tiempo"
-      >
-        <button
-          type="button"
-          class="text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-          [class.active]="timeRange() === 1"
-          (click)="setTimeRange(1)"
-        >
-          1 Mes
-        </button>
-        <button
-          type="button"
-          class="text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-          [class.active]="timeRange() === 3"
-          (click)="setTimeRange(3)"
-        >
-          3 Meses
-        </button>
-        <button
-          type="button"
-          class="text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-          [class.active]="timeRange() === 6"
-          (click)="setTimeRange(6)"
-        >
-          6 Meses
-        </button>
-        <button
-          type="button"
-          class="text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-          [class.active]="timeRange() === 12"
-          (click)="setTimeRange(12)"
-        >
-          1 Año
-        </button>
-        <button
-          type="button"
-          class="text-blue-600 border border-blue-600 hover:bg-blue-600 hover:text-white inline-block px-4 py-2 text-center rounded transition cursor-pointer"
-          [class.active]="timeRange() === 0"
-          (click)="setTimeRange(120)"
-        >
-          Histórico
-        </button>
+        <div class="flex rounded-lg shadow-sm overflow-x-auto border border-slate-700 bg-slate-900" role="group">
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors border-r border-slate-700 last:border-r-0 whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 1"
+            [class.text-white]="timeRange() === 1"
+            [class.text-slate-400]="timeRange() !== 1"
+            [class.hover:bg-slate-800]="timeRange() !== 1"
+            [class.hover:text-slate-300]="timeRange() !== 1"
+            (click)="setTimeRange(1)"
+          >
+            1 Mes
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors border-r border-slate-700 last:border-r-0 whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 3"
+            [class.text-white]="timeRange() === 3"
+            [class.text-slate-400]="timeRange() !== 3"
+            [class.hover:bg-slate-800]="timeRange() !== 3"
+            [class.hover:text-slate-300]="timeRange() !== 3"
+            (click)="setTimeRange(3)"
+          >
+            3 Meses
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors border-r border-slate-700 last:border-r-0 whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 6"
+            [class.text-white]="timeRange() === 6"
+            [class.text-slate-400]="timeRange() !== 6"
+            [class.hover:bg-slate-800]="timeRange() !== 6"
+            [class.hover:text-slate-300]="timeRange() !== 6"
+            (click)="setTimeRange(6)"
+          >
+            6 Meses
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors border-r border-slate-700 last:border-r-0 whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 12"
+            [class.text-white]="timeRange() === 12"
+            [class.text-slate-400]="timeRange() !== 12"
+            [class.hover:bg-slate-800]="timeRange() !== 12"
+            [class.hover:text-slate-300]="timeRange() !== 12"
+            (click)="setTimeRange(12)"
+          >
+            1 Año
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 0"
+            [class.text-white]="timeRange() === 0"
+            [class.text-slate-400]="timeRange() !== 0"
+            [class.hover:bg-slate-800]="timeRange() !== 0"
+            [class.hover:text-slate-300]="timeRange() !== 0"
+            (click)="setTimeRange(120)"
+          >
+            Histórico
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Summary Cards Section -->
-  <div class="flex flex-wrap -mx-4 g-3 mb-6">
-    <div class="w-12/12 col-sm-6 lg:w-3/12 px-4">
-      <div class="stats-card bg-glass border-0 shadow-sm p-4 h-full rounded-lg">
-        <div class="flex items-center mb-2">
-          <div class="icon-shape bg-soft-primary rounded-md mr-4">
-            <i class="fas fa-map-marked-alt text-blue-600"></i>
+    <!-- Summary Cards Section -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Card 1 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow hover:-translate-y-1 duration-200">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center mr-4">
+            <i class="fas fa-map-marked-alt text-xl"></i>
           </div>
-          <span class="text-gray-500 small font-bold uppercase ls-1"
-            >Territorios</span
-          >
+          <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">Territorios</span>
         </div>
-        <h3 class="mb-0 font-bold">{{ summaryStats().totalTerritories }}</h3>
-        <p class="text-gray-500 small mb-0">Total en localidad</p>
+        <h3 class="text-3xl font-black text-white mb-1">{{ summaryStats().totalTerritories }}</h3>
+        <p class="text-slate-500 text-sm mb-0">Total en localidad</p>
       </div>
-    </div>
-    <div class="w-12/12 col-sm-6 lg:w-3/12 px-4">
-      <div class="stats-card bg-glass border-0 shadow-sm p-4 h-full rounded-lg">
-        <div class="flex items-center mb-2">
-          <div class="icon-shape bg-soft-success rounded-md mr-4">
-            <i class="fas fa-flag-checkered text-green-600"></i>
-          </div>
-          <span class="text-gray-500 small font-bold uppercase ls-1"
-            >Completados</span
-          >
-        </div>
-        <h3 class="mb-0 font-bold">{{ summaryStats().completedInPeriod }}</h3>
-        <p class="text-gray-500 small mb-0">Territorios finalizados</p>
-      </div>
-    </div>
-    <div class="w-12/12 col-sm-6 lg:w-3/12 px-4">
-      <div class="stats-card bg-glass border-0 shadow-sm p-4 h-full rounded-lg">
-        <div class="flex items-center mb-2">
-          <div class="icon-shape bg-soft-warning rounded-md mr-4">
-            <i class="fas fa-th text-yellow-500"></i>
-          </div>
-          <span class="text-gray-500 small font-bold uppercase ls-1"
-            >Cobertura</span
-          >
-        </div>
-        <h3 class="mb-0 font-bold">
-          {{ summaryStats().percentCompleted | number: "1.0-1" }}%
-        </h3>
-        <p class="text-gray-500 small mb-0">Manzanas recorridas</p>
-      </div>
-    </div>
-    <div class="w-12/12 col-sm-6 lg:w-3/12 px-4">
-      <div class="stats-card bg-glass border-0 shadow-sm p-4 h-full rounded-lg">
-        <div class="flex items-center mb-2">
-          <div class="icon-shape bg-soft-info rounded-md mr-4">
-            <i class="fas fa-history text-cyan-500"></i>
-          </div>
-          <span class="text-gray-500 small font-bold uppercase ls-1"
-            >Manzanas</span
-          >
-        </div>
-        <h3 class="mb-0 font-bold">{{ summaryStats().totalApples }}</h3>
-        <p class="text-gray-500 small mb-0">Total recorridos en periodo</p>
-      </div>
-    </div>
-  </div>
 
-  @if (loadingData()) {
-    <div class="rounded-lg shadow-sm bg-glass mb-6 overflow-hidden">
-      <div class="table-responsive border-0">
-        <table
-          class="table table-dark table-hover mb-0"
-          id="mi-tabla"
-          style="min-width: 700px"
-        >
-          <thead>
-            <tr style="cursor: pointer">
-              <th
-                (click)="sortTable('numberTerritory')"
-                class="pl-6 border-0 text-gray-500 small uppercase font-bold"
-              >
-                Territorio
-                <i
-                  [class]="getIcon('numberTerritory')"
-                  aria-hidden="true"
-                  class="ml-1"
-                ></i>
-              </th>
-              <th
-                (click)="sortTable('applesData')"
-                class="border-0 text-gray-500 small uppercase font-bold"
-              >
-                Manzanas
-                <i
-                  [class]="getIcon('applesData')"
-                  aria-hidden="true"
-                  class="ml-1"
-                ></i>
-              </th>
-              <th
-                (click)="sortTable('end')"
-                class="pr-6 border-0 text-gray-500 small uppercase font-bold text-right"
-              >
-                Última vez completado
-                <i [class]="getIcon('end')" aria-hidden="true" class="ml-1"></i>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="border-top-0">
-            @for (
-              dataList of dataListFull() | sortBy: path() : order();
-              track dataList
-            ) {
-              <tr class="align-middle" [class]="'row-' + paintRow(dataList)">
-                <td class="pl-6 border-0">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="fw-semibold"
-                      >Número {{ dataList[0].numberTerritory }}</span
-                    >
-                    @if (isPersonalTerritory(dataList[0].numberTerritory)) {
-                      <span
-                        class="badge personal-territory-badge"
-                        [title]="
-                          'Publicador: ' +
-                          (getPersonalEntry(dataList[0].numberTerritory)
-                            ?.publisher || '')
-                        "
-                      >
-                        🏠 Territorio Personal
+      <!-- Card 2 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow hover:-translate-y-1 duration-200">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mr-4">
+            <i class="fas fa-flag-checkered text-xl"></i>
+          </div>
+          <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">Completados</span>
+        </div>
+        <h3 class="text-3xl font-black text-white mb-1">{{ summaryStats().completedInPeriod }}</h3>
+        <p class="text-slate-500 text-sm mb-0">Territorios finalizados</p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow hover:-translate-y-1 duration-200">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center mr-4">
+            <i class="fas fa-th text-xl"></i>
+          </div>
+          <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">Cobertura</span>
+        </div>
+        <h3 class="text-3xl font-black text-white mb-1">{{ summaryStats().percentCompleted | number: "1.0-1" }}%</h3>
+        <p class="text-slate-500 text-sm mb-0">Manzanas recorridas</p>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow hover:-translate-y-1 duration-200">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mr-4">
+            <i class="fas fa-history text-xl"></i>
+          </div>
+          <span class="text-slate-400 text-xs font-bold uppercase tracking-wider">Manzanas</span>
+        </div>
+        <h3 class="text-3xl font-black text-white mb-1">{{ summaryStats().totalApples }}</h3>
+        <p class="text-slate-500 text-sm mb-0">Total recorridos en periodo</p>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    @if (loadingData()) {
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm mb-8 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr class="bg-slate-950/50 border-b border-slate-800">
+                <th
+                  (click)="sortTable('numberTerritory')"
+                  class="pl-6 py-4 text-slate-400 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-800/50 transition-colors"
+                >
+                  <div class="flex items-center gap-2">
+                    Territorio
+                    <i [class]="getIcon('numberTerritory')" class="text-sky-500"></i>
+                  </div>
+                </th>
+                <th
+                  (click)="sortTable('applesData')"
+                  class="py-4 text-slate-400 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-800/50 transition-colors"
+                >
+                  <div class="flex items-center gap-2">
+                    Manzanas
+                    <i [class]="getIcon('applesData')" class="text-sky-500"></i>
+                  </div>
+                </th>
+                <th
+                  (click)="sortTable('end')"
+                  class="pr-6 py-4 text-slate-400 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-800/50 transition-colors text-right"
+                >
+                  <div class="flex items-center justify-end gap-2">
+                    Última vez completado
+                    <i [class]="getIcon('end')" class="text-sky-500"></i>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/50">
+              @for (
+                dataList of dataListFull() | sortBy: path() : order();
+                track dataList
+              ) {
+                <tr 
+                  class="transition-colors hover:bg-slate-800/30"
+                  [ngClass]="{
+                    'bg-emerald-900/10 border-l-4 border-l-emerald-500': paintRow(dataList) === 'success',
+                    'bg-sky-900/10 border-l-4 border-l-sky-500': paintRow(dataList) === 'primary',
+                    'bg-amber-900/10 border-l-4 border-l-amber-500': paintRow(dataList) === 'warning',
+                    'bg-rose-900/10 border-l-4 border-l-rose-500': paintRow(dataList) === 'danger'
+                  }"
+                >
+                  <td class="pl-6 py-4">
+                    <div class="flex items-center gap-3 flex-wrap">
+                      <span class="font-semibold text-slate-200">
+                        Número {{ dataList[0].numberTerritory }}
                       </span>
-                    }
-                  </div>
-                </td>
-                <td class="border-0">
-                  @if (
-                    dataList[0].applesData && dataList[0].applesData.length > 0
-                  ) {
-                    <span
-                      class="badge bg-soft-secondary text-gray-100 border border-secondary border-opacity-25 rounded-full px-4"
-                    >
-                      {{ dataList[0].applesData.length }} manzanas
-                    </span>
-                  } @else {
-                    <span class="text-gray-500 smaller italic">Sin actividad</span>
-                  }
-                </td>
-                <td class="pr-6 border-0 text-right">
-                  <div class="flex flex-col items-end">
-                    <span class="font-medium">
-                      @let lastEnd =
-                        dataList[0]?.end ||
-                        dataList[1]?.end ||
-                        dataList[2]?.end ||
-                        dataList[3]?.end ||
-                        dataList[4]?.end ||
-                        dataList[5]?.end;
-                      @if (lastEnd) {
-                        {{ lastEnd | date: "dd/MM/yyyy" }}
-                      } @else {
-                        <span class="badge bg-danger rounded-full px-4"
-                          >NUNCA</span
+                      @if (isPersonalTerritory(dataList[0].numberTerritory)) {
+                        <span
+                          class="px-2.5 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-bold rounded-md flex items-center gap-1"
+                          [title]="'Publicador: ' + (getPersonalEntry(dataList[0].numberTerritory)?.publisher || '')"
                         >
+                          <i class="fas fa-home"></i> Territorio Personal
+                        </span>
                       }
-                    </span>
-                    <span class="text-gray-500 smaller">
-                      {{
-                        dataList[0].driver && dataList[0].driver !== "Nadie"
-                          ? "Por " + dataList[0].driver
-                          : "Sin asignar"
-                      }}
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="3" class="text-center py-8">
-                  <i class="fas fa-folder-open fa-3x text-gray-500 mb-4"></i>
-                  <p class="text-gray-500">
-                    No hay actividad registrada en este periodo
-                  </p>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+                    </div>
+                  </td>
+                  <td class="py-4">
+                    @if (dataList[0].applesData && dataList[0].applesData.length > 0) {
+                      <span class="px-3 py-1 bg-slate-800 text-slate-300 border border-slate-700 text-xs font-medium rounded-full">
+                        {{ dataList[0].applesData.length }} manzanas
+                      </span>
+                    } @else {
+                      <span class="text-slate-500 text-xs italic">Sin actividad</span>
+                    }
+                  </td>
+                  <td class="pr-6 py-4 text-right">
+                    <div class="flex flex-col items-end">
+                      <span class="font-medium text-slate-200">
+                        @let lastEnd =
+                          dataList[0]?.end ||
+                          dataList[1]?.end ||
+                          dataList[2]?.end ||
+                          dataList[3]?.end ||
+                          dataList[4]?.end ||
+                          dataList[5]?.end;
+                        @if (lastEnd) {
+                          {{ lastEnd | date: "dd/MM/yyyy" }}
+                        } @else {
+                          <span class="px-3 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-bold rounded-full">NUNCA</span>
+                        }
+                      </span>
+                      <span class="text-slate-500 text-xs mt-1">
+                        {{
+                          dataList[0].driver && dataList[0].driver !== "Nadie"
+                            ? "Por " + dataList[0].driver
+                            : "Sin asignar"
+                        }}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="text-center py-12">
+                    <div class="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i class="fas fa-folder-open text-2xl text-slate-500"></i>
+                    </div>
+                    <p class="text-slate-400 font-medium">
+                      No hay actividad registrada en este periodo
+                    </p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  }
+    }
 
-  <div
-    class="legend-section p-4 p-md-4 rounded-lg border border-secondary border-opacity-10 shadow-sm"
-  >
-    <h5 class="mb-6 flex items-center text-base fs-md-5">
-      <i class="fas fa-info-circle mr-2 text-blue-600"></i>
-      Leyenda de Actividad (Días desde completado)
-    </h5>
-    <div class="flex flex-wrap -mx-4 g-3 g-md-4">
-      <div class="w-12/12 col-sm-6 lg:w-3/12 px-4">
-        <div class="p-4 rounded-md row-success border h-full">
-          <div class="font-bold mb-2">Reciente</div>
-          <div class="input-group input-group-sm mb-2" style="width: 110px">
+    <!-- Leyenda -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm mb-8">
+      <h5 class="mb-6 flex items-center text-lg font-bold text-white">
+        <i class="fas fa-info-circle mr-3 text-sky-500"></i>
+        Leyenda de Actividad (Días desde completado)
+      </h5>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        
+        <!-- Reciente -->
+        <div class="bg-emerald-900/10 border border-emerald-500/20 rounded-xl p-5 border-l-4 border-l-emerald-500">
+          <div class="font-bold text-emerald-400 mb-3">Reciente</div>
+          <div class="flex items-center mb-3">
             <input
               [formControl]="green"
-              class="form-control text-center bg-gray-900 text-white border-secondary"
+              class="w-20 bg-slate-950 border border-slate-700 text-slate-200 rounded-l-md px-3 py-1.5 text-center text-sm focus:outline-none focus:border-sky-500"
               type="number"
             />
-            <span class="input-group-text bg-gray-500 text-white border-0"
-              >días</span
-            >
+            <span class="bg-slate-800 border border-slate-700 border-l-0 text-slate-400 px-3 py-1.5 text-sm rounded-r-md">días</span>
           </div>
-          <div class="small text-gray-500">Aún se considera vigente</div>
+          <div class="text-xs text-slate-500">Aún se considera vigente</div>
         </div>
-      </div>
-      <div class="w-12/12 col-sm-6 lg:w-3/12 px-4">
-        <div class="p-4 rounded-md row-primary border h-full">
-          <div class="font-bold mb-2">Pendiente</div>
-          <div class="input-group input-group-sm mb-2" style="width: 110px">
+
+        <!-- Pendiente -->
+        <div class="bg-sky-900/10 border border-sky-500/20 rounded-xl p-5 border-l-4 border-l-sky-500">
+          <div class="font-bold text-sky-400 mb-3">Pendiente</div>
+          <div class="flex items-center mb-3">
             <input
               [formControl]="blue"
-              class="form-control text-center bg-gray-900 text-white border-secondary"
+              class="w-20 bg-slate-950 border border-slate-700 text-slate-200 rounded-l-md px-3 py-1.5 text-center text-sm focus:outline-none focus:border-sky-500"
               type="number"
             />
-            <span class="input-group-text bg-gray-500 text-white border-0"
-              >días</span
-            >
+            <span class="bg-slate-800 border border-slate-700 border-l-0 text-slate-400 px-3 py-1.5 text-sm rounded-r-md">días</span>
           </div>
-          <div class="small text-gray-500">Vencimiento próximo</div>
+          <div class="text-xs text-slate-500">Vencimiento próximo</div>
         </div>
-      </div>
-      <div class="w-12/12 col-sm-6 lg:w-3/12 px-4">
-        <div class="p-4 rounded-md row-warning border h-full">
-          <div class="font-bold mb-2">Necesario</div>
-          <div class="input-group input-group-sm mb-2" style="width: 110px">
+
+        <!-- Necesario -->
+        <div class="bg-amber-900/10 border border-amber-500/20 rounded-xl p-5 border-l-4 border-l-amber-500">
+          <div class="font-bold text-amber-400 mb-3">Necesario</div>
+          <div class="flex items-center mb-3">
             <input
               [formControl]="yellow"
-              class="form-control text-center bg-gray-900 text-white border-secondary"
+              class="w-20 bg-slate-950 border border-slate-700 text-slate-200 rounded-l-md px-3 py-1.5 text-center text-sm focus:outline-none focus:border-sky-500"
               type="number"
             />
-            <span class="input-group-text bg-gray-500 text-white border-0"
-              >días</span
-            >
+            <span class="bg-slate-800 border border-slate-700 border-l-0 text-slate-400 px-3 py-1.5 text-sm rounded-r-md">días</span>
           </div>
-          <div class="small text-gray-500">Prioridad media</div>
+          <div class="text-xs text-slate-500">Prioridad media</div>
         </div>
-      </div>
-      <div class="w-12/12 col-sm-6 lg:w-3/12 px-4">
-        <div class="p-4 rounded-md row-danger border h-full">
-          <div class="font-bold mb-2">Urgente</div>
-          <div class="input-group input-group-sm mb-2" style="width: 110px">
+
+        <!-- Urgente -->
+        <div class="bg-rose-900/10 border border-rose-500/20 rounded-xl p-5 border-l-4 border-l-rose-500">
+          <div class="font-bold text-rose-400 mb-3">Urgente</div>
+          <div class="flex items-center mb-3">
             <input
               [formControl]="red"
-              class="form-control text-center bg-gray-900 text-white border-secondary"
+              class="w-20 bg-slate-950 border border-slate-700 text-slate-200 rounded-l-md px-3 py-1.5 text-center text-sm focus:outline-none focus:border-sky-500"
               type="number"
             />
-            <span class="input-group-text bg-gray-500 text-white border-0"
-              >días</span
-            >
+            <span class="bg-slate-800 border border-slate-700 border-l-0 text-slate-400 px-3 py-1.5 text-sm rounded-r-md">días</span>
           </div>
-          <div class="small text-gray-500">Hace más de este tiempo</div>
+          <div class="text-xs text-slate-500">Hace más de este tiempo</div>
         </div>
+
       </div>
     </div>
+
   </div>
 </div>
