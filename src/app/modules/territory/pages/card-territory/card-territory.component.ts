@@ -9,7 +9,7 @@ import {
   computed,
   ChangeDetectionStrategy
 , DestroyRef} from '@angular/core';
-import { TitleCasePipe } from '@angular/common';
+import { TitleCasePipe, NgClass } from '@angular/common';
 import {
   FormBuilder,
   FormGroup,
@@ -47,6 +47,7 @@ import { TerritoryMapComponent } from '../../components/territory-map/territory-
     RouterLink,
     ModalComponent_1,
     TitleCasePipe,
+    NgClass,
     TerritoryMapComponent,
   ],
 })
