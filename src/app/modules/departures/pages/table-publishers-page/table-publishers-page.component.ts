@@ -9,7 +9,7 @@ import { NgClass } from '@angular/common';
     templateUrl: './table-publishers-page.component.html',
     styleUrls: ['./table-publishers-page.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgClass]
+    imports: []
 })
 export class TablePublishersPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
