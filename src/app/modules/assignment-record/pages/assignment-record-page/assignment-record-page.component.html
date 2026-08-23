@@ -22,7 +22,7 @@
   <div class="flex flex-wrap justify-center items-center gap-6">
     @for (card of allCardsReceived(); track card) {
       <div
-        class="relative bg-slate-900 rounded-2xl p-5 border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer overflow-hidden group"
+        class="relative bg-slate-900 rounded-2xl p-5 border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer overflow-hidden w-full max-w-[20rem] group"
         [ngClass]="card.revisionComplete ? 'border-emerald-700 shadow-emerald-900/20' : 'border-amber-700 shadow-amber-900/20'"
         (click)="cardReceived(card)"
       >
@@ -87,7 +87,7 @@
   <div class="flex flex-wrap justify-center items-center gap-6">
     @for (card of allCardsAssigned(); track card) {
       <div
-        class="bg-slate-900 rounded-2xl p-5 border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer flex flex-col relative overflow-hidden"
+        class="bg-slate-900 rounded-2xl p-5 border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer flex flex-col relative overflow-hidden w-full max-w-[20rem]"
         [ngClass]="isOverdue(card.creation) ? 'border-red-700 shadow-red-900/20' : 'border-slate-700'"
       >
         <div class="flex justify-between items-start mb-3 relative z-10">
