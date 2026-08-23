@@ -1,6 +1,6 @@
 <div class="container mx-auto px-4 py-6 max-w-5xl">
 
-  <div class="flex flex-col items-center mb-8 mt-2">
+  <div class="flex flex-col items-center mb-6 mt-2">
     <!-- Header Titles -->
     <div class="flex flex-col items-center gap-1.5 mb-6 text-center">
       <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight m-0 leading-tight">Salidas a predicar</h1>
@@ -9,81 +9,55 @@
       }
     </div>
 
-    <!-- Relative Week Info Badge -->
-    @if (getRelativeWeekInfo(); as relInfo) {
-      <div class="mb-3">
-        <span
-          class="inline-flex items-center rounded-full px-4 py-1.5 text-sm md:text-base font-semibold text-white shadow-sm tracking-wide transition-all duration-300"
-          [ngClass]="relInfo.badgeClass"
-        >
-          <img
-            [src]="relInfo.icon"
-            width="16"
-            height="16"
-            class="mr-1.5 align-text-bottom inline-block"
-            alt="Icon"
-          />
-          {{ relInfo.label }}
-        </span>
-      </div>
-    }
-
     <!-- Week Selector Navigation & History Trigger -->
-    <div class="flex items-center justify-center gap-2 md:gap-3 w-full">
+    <div class="bg-white rounded-[2rem] p-2 flex items-center justify-between w-full max-w-[24rem] mx-auto shadow-sm border border-slate-100 mb-2">
+      
+      <!-- Previous Week Button -->
       <button
         type="button"
-        class="w-11 h-11 p-0 rounded-full flex items-center justify-center cursor-pointer select-none border border-sky-200 bg-gradient-to-r from-cyan-50 to-sky-50 shadow-sm transition-all hover:bg-sky-200 hover:border-sky-600 hover:scale-105 active:scale-95 shrink-0"
+        class="w-14 h-14 md:w-16 md:h-16 flex-shrink-0 bg-[#1c4b78] hover:bg-[#13385c] rounded-[1.25rem] flex items-center justify-center text-white cursor-pointer select-none transition-transform hover:scale-105 active:scale-95 shadow-sm"
         (click)="navigateWeek(-1)"
         title="Semana anterior"
         aria-label="Semana anterior"
       >
         <img
-          src="https://api.iconify.design/mdi:chevron-left.svg?color=%230277bd"
-          width="26"
-          height="26"
+          src="https://api.iconify.design/mdi:chevron-left.svg?color=white"
+          width="32"
+          height="32"
           alt="Anterior"
         />
       </button>
 
-      <!-- Date Pill (Clickable for History) -->
+      <!-- Date Display (Clickable for History) -->
       <button
         type="button"
-        class="inline-flex items-center justify-between gap-2 md:gap-3 bg-gradient-to-r from-cyan-50 to-sky-50 text-sky-700 px-4 md:px-6 py-2.5 rounded-full border border-sky-200 shadow-sm select-none cursor-pointer hover:bg-sky-100 hover:border-sky-400 hover:shadow-md active:scale-95 transition-all duration-200 group"
+        class="flex flex-col items-center justify-center flex-1 px-2 py-1 cursor-pointer select-none group"
         (click)="showHistory.set(true)"
         title="Ver historial de semanas"
       >
-        <div class="flex items-center">
-          <img
-            src="https://api.iconify.design/mdi:calendar-month.svg?color=%230277bd"
-            width="22"
-            height="22"
-            class="mr-2 shrink-0 group-hover:scale-110 transition-transform"
-            alt="Calendar"
-          />
-          <h2 class="text-base md:text-xl font-bold text-sky-800 m-0 leading-snug tracking-tight">
-            {{ getFormattedDate(selectedWeekId()) }}
-          </h2>
-        </div>
-        <img
-          src="https://api.iconify.design/mdi:chevron-down.svg?color=%230277bd"
-          width="22"
-          height="22"
-          class="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
-          alt="Desplegar"
-        />
+        <h2 class="text-base md:text-[1.35rem] font-extrabold text-[#1c4b78] m-0 leading-tight tracking-tight group-hover:text-sky-600 transition-colors text-center">
+          {{ getFormattedDate(selectedWeekId()) }}
+        </h2>
+        
+        @if (getRelativeWeekInfo(); as relInfo) {
+          <span class="text-sm md:text-base text-slate-500 font-medium mt-1 group-hover:text-slate-700 transition-colors">
+            {{ relInfo.label }}
+          </span>
+        }
       </button>
 
+      <!-- Next Week Button -->
       <button
         type="button"
-        class="w-11 h-11 p-0 rounded-full flex items-center justify-center cursor-pointer select-none border border-sky-200 bg-gradient-to-r from-cyan-50 to-sky-50 shadow-sm transition-all hover:bg-sky-200 hover:border-sky-600 hover:scale-105 active:scale-95 shrink-0"
+        class="w-14 h-14 md:w-16 md:h-16 flex-shrink-0 bg-[#1c4b78] hover:bg-[#13385c] rounded-[1.25rem] flex items-center justify-center text-white cursor-pointer select-none transition-transform hover:scale-105 active:scale-95 shadow-sm"
         (click)="navigateWeek(1)"
         title="Semana siguiente"
         aria-label="Semana siguiente"
       >
         <img
-          src="https://api.iconify.design/mdi:chevron-right.svg?color=%230277bd"
-          width="26"
-          height="26"
+          src="https://api.iconify.design/mdi:chevron-right.svg?color=white"
+          width="32"
+          height="32"
           alt="Siguiente"
         />
       </button>

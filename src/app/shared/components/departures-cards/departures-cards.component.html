@@ -1,4 +1,4 @@
-<div class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-6 p-2">
+<div class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-6">
   @for (departure of departures(); track departure) {
     @if (currentPath === departure.group || departure.group === 0) {
       <div class="bg-white rounded-2xl border border-black/5 shadow-sm flex flex-col relative transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl departure-card" 
