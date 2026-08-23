@@ -13,6 +13,7 @@ import {
   where,
   Timestamp,
 } from '@angular/fire/firestore';
+import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CampaignService } from '@core/services/campaign.service';
@@ -28,7 +29,7 @@ export interface LocalityGroup {
 
 @Component({
   selector: 'app-campaign-page',
-  imports: [FormsModule],
+  imports: [FormsModule, NgClass],
   templateUrl: './campaign-page.component.html',
   styleUrl: './campaign-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
