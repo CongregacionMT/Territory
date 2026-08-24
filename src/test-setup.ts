@@ -1,4 +1,30 @@
 import '@analogjs/vitest-angular/setup-zone';
+import { vi, beforeEach } from 'vitest';
+import { of } from 'rxjs';
+
+vi.mock('@angular/fire/firestore', () => {
+  return {
+    collection: vi.fn(),
+    doc: vi.fn(),
+    collectionData: vi.fn(() => of([])),
+    docData: vi.fn(() => of({})),
+    getDocs: vi.fn(),
+    getDoc: vi.fn(),
+    addDoc: vi.fn(),
+    updateDoc: vi.fn(),
+    setDoc: vi.fn(),
+    deleteDoc: vi.fn(),
+    query: vi.fn(),
+    where: vi.fn(),
+    orderBy: vi.fn(),
+    Timestamp: {
+      now: vi.fn(() => ({ seconds: 12345, nanoseconds: 0 })),
+      fromDate: vi.fn(() => ({ seconds: 12345, nanoseconds: 0 })),
+    },
+    runTransaction: vi.fn(),
+    Firestore: class Firestore {},
+  };
+});
 
 import {
   BrowserDynamicTestingModule,
@@ -47,10 +73,27 @@ import { of } from 'rxjs';
 (globalThis as any).window.bootstrap = { Modal: vi.fn() };
 (globalThis as any).window.matchMedia = vi.fn().mockReturnValue({ matches: false });
 
+const storageMock = () => {
+  let storage: Record<string, string> = {};
+  return {
+    getItem: (key: string) => (key in storage ? storage[key] : null),
+    setItem: (key: string, value: string) => (storage[key] = value || ''),
+    removeItem: (key: string) => delete storage[key],
+    clear: () => (storage = {}),
+  };
+};
+
+Object.defineProperty(window, 'localStorage', { value: storageMock() });
+Object.defineProperty(window, 'sessionStorage', { value: storageMock() });
+
+
+import { provideRouter } from '@angular/router';
+
 beforeEach(() => {
   TestBed.configureTestingModule({
     imports: [ServiceWorkerModule.register('', { enabled: false })],
     providers: [
+      provideRouter([]),
       provideHttpClient(),
       provideHttpClientTesting(),
       { provide: SwUpdate, useValue: { isEnabled: false, versionUpdates: of({}) } },

@@ -52,7 +52,7 @@ export class LoginPageComponent implements OnInit {
       .get('user')
       ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
-        const lower = value;
+        const lower = value.toLowerCase();
         if (value !== lower) {
           this.formLogin.get('user')?.setValue(lower, { emitEvent: false });
         }

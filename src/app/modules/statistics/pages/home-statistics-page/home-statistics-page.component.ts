@@ -52,7 +52,7 @@ export class HomeStatisticsPageComponent implements OnInit {
 
     // Cargar estadísticas para cada localidad
     this.territoryNumberOfLocalStorage.set(
-      JSON.parse(sessionStorage.getItem('numberTerritory') as string),
+      JSON.parse(sessionStorage.getItem('numberTerritory') as string) || {},
     );
 
     const promises: Promise<void>[] = [];

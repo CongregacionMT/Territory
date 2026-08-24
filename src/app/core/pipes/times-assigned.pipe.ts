@@ -9,19 +9,16 @@ export class TimesAssigned implements PipeTransform {
   transform(dataList: Card[], time: boolean): number {
     this.dataFilter = JSON.parse(JSON.stringify(dataList)) as Card[];
     if (this.dataFilter.length !== 0) {
-      // Eliminar listas base (vacias)
-      this.dataFilter.forEach((list: Card, index: number) => {
-        this.appleCount = 0;
+      this.dataFilter = this.dataFilter.filter((list: Card) => {
+        let count = 0;
         if (list.applesData) {
           list.applesData.forEach((apple: CardApplesData) => {
             if (apple.checked === true) {
-              this.appleCount += 1;
+              count += 1;
             }
           });
         }
-        if (this.appleCount === 0) {
-          this.dataFilter.splice(index, 1);
-        }
+        return count > 0;
       });
       // Calculo de fechas
       // console.log("fecha: ", this.dataFilter);

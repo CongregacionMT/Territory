@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TableCartAssignmentComponent } from './table-cart-assignment.component';
+import { CartAssignmentCardsComponent } from './cart-assignment-cards.component';
 
-describe('TableCartAssignmentComponent', () => {
-  let component: TableCartAssignmentComponent;
-  let fixture: ComponentFixture<TableCartAssignmentComponent>;
+describe('CartAssignmentCardsComponent', () => {
+  let component: CartAssignmentCardsComponent;
+  let fixture: ComponentFixture<CartAssignmentCardsComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [TableCartAssignmentComponent],
+      imports: [CartAssignmentCardsComponent],
     });
-    fixture = TestBed.createComponent(TableCartAssignmentComponent);
+    fixture = TestBed.createComponent(CartAssignmentCardsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
