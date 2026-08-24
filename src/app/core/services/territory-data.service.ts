@@ -26,12 +26,7 @@ import { Group } from '@core/models/Group';
 import { StatisticsButton } from '@core/models/StatisticsButton';
 import { User } from '@core/models/User';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import {
-  DateDeparture,
-  Departure,
-  DepartureData,
-  WeeklyDeparture,
-} from '@core/models/Departures';
+import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
 
 @Injectable({
   providedIn: 'root',
@@ -62,8 +57,8 @@ export class TerritoryDataService {
       tap((numbers: TerritoryNumberData[]) => {
         const mergedData = numbers.reduce((acc: any, curr: any) => ({ ...acc, ...curr }), {});
         this._cachedNumberTerritory.set(mergedData);
-        sessionStorage.setItem("numberTerritory", JSON.stringify(mergedData));
-      })
+        sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
+      }),
     );
   }
 
@@ -78,20 +73,13 @@ export class TerritoryDataService {
     await setDoc(docRef, data);
   }
   // TARJETAS DE CONDUCTORES
-  getCardTerritorie(
-    collectionParam: string,
-    months: number = 12,
-  ): Observable<Card[]> {
+  getCardTerritorie(collectionParam: string, months: number = 12): Observable<Card[]> {
     const cardRef = collection(this.firestore, collectionParam);
     // Limitar por defecto a los últimos X meses para evitar traer datos muy antiguos
     const fromDate = Timestamp.fromDate(
       new Date(new Date().setMonth(new Date().getMonth() - months)),
     );
-    const q = query(
-      cardRef,
-      where('creation', '>=', fromDate),
-      orderBy('creation', 'desc'),
-    );
+    const q = query(cardRef, where('creation', '>=', fromDate), orderBy('creation', 'desc'));
     return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
   }
 
@@ -114,9 +102,7 @@ export class TerritoryDataService {
     }
 
     if (!collectionName?.trim()) {
-      console.error(
-        '[TerritoryDataService] postCardTerritorie: collectionName is empty',
-      );
+      console.error('[TerritoryDataService] postCardTerritorie: collectionName is empty');
       return;
     }
 
@@ -131,7 +117,8 @@ export class TerritoryDataService {
     try {
       const activeCampaign = this.campaignService.getCachedCampaign();
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
-      const campaignIdValid = (activeCampaign?.id && activeCampaign.id !== 'undefined') ? activeCampaign.id : null;
+      const campaignIdValid =
+        activeCampaign?.id && activeCampaign.id !== 'undefined' ? activeCampaign.id : null;
       const isInCampaignMode = campaignIdValid != null;
 
       if (countFalseApples === 0) {
@@ -145,10 +132,7 @@ export class TerritoryDataService {
         // ✅ Solo usar ID personalizado si estamos en modo campaña
         if (isInCampaignMode) {
           const completedId = `Campaña-${campaignIdValid}-${Date.now()}-completed`;
-          await setDoc(
-            doc(this.firestore, collectionName, completedId),
-            completedCard,
-          );
+          await setDoc(doc(this.firestore, collectionName, completedId), completedCard);
           await this.incrementSalidasTx(activeCampaign.id, territorioKey);
         } else {
           // Usar ID auto-generado de Firebase
@@ -186,10 +170,7 @@ export class TerritoryDataService {
         // ✅ Solo usar ID personalizado si estamos en modo campaña
         if (isInCampaignMode) {
           const cardId = `Campaña-${campaignIdValid}-${Date.now()}`;
-          await setDoc(
-            doc(this.firestore, collectionName, cardId),
-            partialCard,
-          );
+          await setDoc(doc(this.firestore, collectionName, cardId), partialCard);
           await this.incrementSalidasTx(activeCampaign.id, territorioKey);
         } else {
           // Usar ID auto-generado de Firebase
@@ -312,11 +293,7 @@ export class TerritoryDataService {
     return docData(departuresRef) as Observable<DepartureData>;
   }
   getDateDepartures(): Observable<DateDeparture> {
-    const dateDeparturesRef = doc(
-      this.firestore,
-      'Departures',
-      'dateDeparture',
-    );
+    const dateDeparturesRef = doc(this.firestore, 'Departures', 'dateDeparture');
     return docData(dateDeparturesRef) as Observable<DateDeparture>;
   }
   putDepartures(departures: DepartureData) {
@@ -328,11 +305,7 @@ export class TerritoryDataService {
     updateDoc(departuresRef, { ...date });
   }
 
-  createDepartureId(
-    weekId: string,
-    departure: Departure,
-    index: number = 0,
-  ): string {
+  createDepartureId(weekId: string, departure: Departure, index: number = 0): string {
     const raw = [
       weekId,
       departure.date || 'sin-fecha',
@@ -354,8 +327,7 @@ export class TerritoryDataService {
     weekId: string,
     index: number,
   ): Departure {
-    const departureId =
-      departure.departureId || this.createDepartureId(weekId, departure, index);
+    const departureId = departure.departureId || this.createDepartureId(weekId, departure, index);
 
     if (departure.isEvent) {
       return {
@@ -381,29 +353,20 @@ export class TerritoryDataService {
   getWeeklyDepartures(): Observable<WeeklyDeparture[]> {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
     const q = query(departuresRef, orderBy('weekId', 'desc'));
-    return collectionData(q, { idField: 'id' }) as Observable<
-      WeeklyDeparture[]
-    >;
+    return collectionData(q, { idField: 'id' }) as Observable<WeeklyDeparture[]>;
   }
 
   getWeeklyDeparture(weekId: string): Observable<WeeklyDeparture | undefined> {
     const departuresRef = doc(this.firestore, 'WeeklyDepartures', weekId);
-    return docData(departuresRef, { idField: 'id' }) as Observable<
-      WeeklyDeparture | undefined
-    >;
+    return docData(departuresRef, { idField: 'id' }) as Observable<WeeklyDeparture | undefined>;
   }
 
   async postWeeklyDeparture(weeklyDeparture: WeeklyDeparture) {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
     // Usamos weekId como ID del documento para que sea único por semana y sea fácil de actualizar si se vuelve a guardar
     const docRef = doc(departuresRef, weeklyDeparture.weekId);
-    const normalizedDepartures = (weeklyDeparture.departure || []).map(
-      (departure, index) =>
-        this.normalizeDepartureForCardTracking(
-          departure,
-          weeklyDeparture.weekId,
-          index,
-        ),
+    const normalizedDepartures = (weeklyDeparture.departure || []).map((departure, index) =>
+      this.normalizeDepartureForCardTracking(departure, weeklyDeparture.weekId, index),
     );
     await setDoc(docRef, {
       ...weeklyDeparture,
@@ -420,9 +383,7 @@ export class TerritoryDataService {
   // RURAL
   getTerritorieRural(): Observable<DataRural[]> {
     const collectionRef = collection(this.firestore, 'TerritorioRural');
-    return collectionData(collectionRef, { idField: 'id' }) as Observable<
-      DataRural[]
-    >;
+    return collectionData(collectionRef, { idField: 'id' }) as Observable<DataRural[]>;
   }
   postNewRoad(road: DataRural) {
     const cardRef = collection(this.firestore, 'TerritorioRural');
@@ -445,9 +406,9 @@ export class TerritoryDataService {
       tap((number: StatisticsButton[]) => {
         if (number.length > 0) {
           this._cachedStatistics.set(number[0]);
-          sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
+          sessionStorage.setItem('territorioStatistics', JSON.stringify(number[0]));
         }
-      })
+      }),
     );
   }
   // REGISTER
@@ -488,11 +449,7 @@ export class TerritoryDataService {
   }
   loginUser(user: string, password: string): Observable<User[]> {
     const userRef = collection(this.firestore, 'users');
-    const q = query(
-      userRef,
-      where('user', '==', user),
-      where('password', '==', password),
-    );
+    const q = query(userRef, where('user', '==', user), where('password', '==', password));
     return collectionData(q) as Observable<User[]>;
   }
   updateUser(user: string, dataUser: User) {

@@ -7,8 +7,9 @@ import {
   signal,
   viewChild,
   computed,
-  ChangeDetectionStrategy
-, DestroyRef} from '@angular/core';
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { TitleCasePipe, NgClass } from '@angular/common';
 import {
   FormBuilder,
@@ -95,15 +96,11 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   readonly modalComponent = viewChild(ModalComponent);
 
   isRevisionMode = computed(() => this.card().revision === true);
-  hasValidDriver = computed(
-    () => this.formCard().get('driver')?.valid ?? false,
-  );
+  hasValidDriver = computed(() => this.formCard().get('driver')?.valid ?? false);
   hasValidStart = computed(() => this.formCard().get('start')?.valid ?? false);
   totalApples = computed(() => this.card().applesData?.length ?? 0);
   checkedApples = computed(
-    () =>
-      this.card().applesData?.filter((apple: CardApplesData) => apple.checked)
-        ?.length ?? 0,
+    () => this.card().applesData?.filter((apple: CardApplesData) => apple.checked)?.length ?? 0,
   );
 
   constructor() {
@@ -125,9 +122,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
       this.card().applesData?.map((apple: CardApplesData) => {
         const applesData: FormArray = form.get('applesData') as FormArray;
-        applesData.push(
-          new FormControl({ name: apple.name, checked: apple.checked }),
-        );
+        applesData.push(new FormControl({ name: apple.name, checked: apple.checked }));
       });
       this.dataLoaded.set(true);
       this.spinner.cerrarSpinner();
@@ -136,7 +131,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       this.path.set(this.activatedRoute.snapshot.params['collection']);
       const subscription = this.territorieDataService
         .getCardTerritorie(this.path())
-        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
           next: (cards) => {
             // Buscar la primera card completa (con applesData).
             // Si no hay ninguna completa, usar la primera y normalizar.
@@ -164,9 +160,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
             applesData.clear();
 
             this.card().applesData?.map((apple: CardApplesData) => {
-              applesData.push(
-                new FormControl({ name: apple.name, checked: apple.checked }),
-              );
+              applesData.push(new FormControl({ name: apple.name, checked: apple.checked }));
               if (apple.checked === true) {
                 this.countTrueApples.update((count) => count + 1);
               }
@@ -185,10 +179,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
             console.error('Error fetching card:', err);
             this.spinner.cerrarSpinner();
             this.dataLoaded.set(true);
-          }
+          },
         });
       this.cardSubscription.set(subscription);
-      
+
       // Si estamos offline y firebase se queda colgado buscando en la red sin caché,
       // forzamos el cierre del spinner después de un breve delay para que se vea el mapa.
       if (!this.networkService.isOnline()) {
@@ -214,7 +208,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-
     this.loadDriversOptions();
   }
 
@@ -320,10 +313,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       // Validar campaña desde cache
       const activeCampaign = this.campaignService.getCachedCampaign();
       if (activeCampaign) {
-        this.campaignService.updateCampaignStats(
-          activeCampaign.id,
-          currentCard,
-        );
+        this.campaignService.updateCampaignStats(activeCampaign.id, currentCard);
       }
     } else {
       const updatedCard = {
@@ -347,14 +337,17 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   private loadDriversOptions(): void {
     if (!this.isConductorMode()) return;
 
-    this.territorieDataService.getUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((users) => {
-      const available = (users || [])
-        .filter((user) => user.rol !== 'admin')
-        .sort((a, b) => a.user.localeCompare(b.user));
+    this.territorieDataService
+      .getUsers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((users) => {
+        const available = (users || [])
+          .filter((user) => user.rol !== 'admin')
+          .sort((a, b) => a.user.localeCompare(b.user));
 
-      this.availableDrivers.set(available);
-      this.applyDriverDefaultIfNeeded();
-    });
+        this.availableDrivers.set(available);
+        this.applyDriverDefaultIfNeeded();
+      });
   }
 
   private applyDriverDefaultIfNeeded(): void {

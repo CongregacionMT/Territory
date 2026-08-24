@@ -7,10 +7,8 @@ export const ROUTES: Routes = [
   {
     path: '',
     children: [
-      { path: '', component: CartPageComponent},
+      { path: '', component: CartPageComponent },
       { path: 'editar', component: CartEditPageComponent, data: { breadcrumb: 'Editar' } },
     ],
-  }
+  },
 ];
-
-

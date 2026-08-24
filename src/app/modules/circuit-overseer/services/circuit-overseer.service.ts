@@ -7,7 +7,7 @@ export interface CircuitOverseerData {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CircuitOverseerService {
   private firestore = inject(Firestore);

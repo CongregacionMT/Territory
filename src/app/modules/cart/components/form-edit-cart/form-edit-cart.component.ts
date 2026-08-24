@@ -1,16 +1,23 @@
 import { Component, OnInit, inject, input, ChangeDetectionStrategy } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { CartData, CartLocation } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { NgClass } from '@angular/common';
 
 @Component({
-    selector: 'app-form-edit-cart',
-    templateUrl: './form-edit-cart.component.html',
-    styleUrls: ['./form-edit-cart.component.scss'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ReactiveFormsModule, NgClass]
+  selector: 'app-form-edit-cart',
+  templateUrl: './form-edit-cart.component.html',
+  styleUrls: ['./form-edit-cart.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, NgClass],
 })
 export class FormEditCartComponent implements OnInit {
   private cartDataService = inject(CartDataService);
@@ -23,7 +30,8 @@ export class FormEditCartComponent implements OnInit {
   selectedColor: string = 'primary';
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formCartDataInput = input<CartData[]>([] as CartData[]);
-  readonly formLocationsDataInput = input<CartLocation[]>([] as CartLocation[]);constructor() {
+  readonly formLocationsDataInput = input<CartLocation[]>([] as CartLocation[]);
+  constructor() {
     this.formCart = this.fb.group({
       cart: this.fb.array([]),
     });
@@ -96,7 +104,7 @@ export class FormEditCartComponent implements OnInit {
     const input = e.target as HTMLInputElement | HTMLSelectElement;
     const control = this.cartFormArray.at(indexChange);
     if (key === 'location') {
-      const selectedLocation = this.locations.find(location => location.name === input.value);
+      const selectedLocation = this.locations.find((location) => location.name === input.value);
       if (selectedLocation) {
         control.get(key)?.setValue(selectedLocation);
       }
@@ -125,7 +133,7 @@ export class FormEditCartComponent implements OnInit {
         schedule: '',
         location: { name: '', linkMap: '' },
         color: 'secondary',
-      } as CartData)
+      } as CartData),
     );
   }
 
@@ -134,7 +142,7 @@ export class FormEditCartComponent implements OnInit {
       this.createLocationGroup({
         name: '',
         linkMap: '',
-      } as CartLocation)
+      } as CartLocation),
     );
   }
 
@@ -164,15 +172,24 @@ export class FormEditCartComponent implements OnInit {
 
   getColorSelectClasses(color: string): string {
     switch (color) {
-      case 'primary': return 'bg-blue-900/50 text-blue-300 border-blue-700/50';
-      case 'success': return 'bg-emerald-900/50 text-emerald-300 border-emerald-700/50';
-      case 'warning': return 'bg-amber-900/50 text-amber-300 border-amber-700/50';
-      case 'danger': return 'bg-red-900/50 text-red-300 border-red-700/50';
-      case 'info': return 'bg-cyan-900/50 text-cyan-300 border-cyan-700/50';
-      case 'secondary': return 'bg-slate-800 text-slate-300 border-slate-600';
-      case 'light': return 'bg-slate-100 text-slate-900 border-slate-300';
-      case 'dark': return 'bg-slate-950 text-slate-300 border-slate-700';
-      default: return 'bg-slate-900 text-white border-slate-700';
+      case 'primary':
+        return 'bg-blue-900/50 text-blue-300 border-blue-700/50';
+      case 'success':
+        return 'bg-emerald-900/50 text-emerald-300 border-emerald-700/50';
+      case 'warning':
+        return 'bg-amber-900/50 text-amber-300 border-amber-700/50';
+      case 'danger':
+        return 'bg-red-900/50 text-red-300 border-red-700/50';
+      case 'info':
+        return 'bg-cyan-900/50 text-cyan-300 border-cyan-700/50';
+      case 'secondary':
+        return 'bg-slate-800 text-slate-300 border-slate-600';
+      case 'light':
+        return 'bg-slate-100 text-slate-900 border-slate-300';
+      case 'dark':
+        return 'bg-slate-950 text-slate-300 border-slate-700';
+      default:
+        return 'bg-slate-900 text-white border-slate-700';
     }
   }
 }

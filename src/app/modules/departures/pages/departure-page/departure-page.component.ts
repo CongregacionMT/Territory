@@ -1,4 +1,12 @@
-import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, effect } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  effect,
+} from '@angular/core';
 import { FormBuilder, FormControl, FormsModule } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
@@ -18,23 +26,18 @@ import { of } from 'rxjs';
   templateUrl: './departure-page.component.html',
   styleUrls: ['./departure-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DeparturesCardsComponent,
-    RouterLink,
-    FormsModule,
-    NgClass,
-  ],
+  imports: [DeparturesCardsComponent, RouterLink, FormsModule, NgClass],
 })
 export class DeparturePageComponent implements OnInit {
-    private territoryDataService = inject(TerritoryDataService);
+  private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
   public networkService = inject(NetworkService);
 
   // Simple state
-    numberGroup: any = '0';
+  numberGroup: any = '0';
   titleGroup = signal('');
-  
+
   dateDeparture = new FormControl(getWeekId(new Date()));
   showHistory = signal(false);
 
@@ -48,33 +51,35 @@ export class DeparturePageComponent implements OnInit {
   departures$ = toSignal(
     toObservable(this.selectedWeekId).pipe(
       tap(() => this.spinner.cargarSpinner()),
-      switchMap(weekId => 
+      switchMap((weekId) =>
         this.territoryDataService.getWeeklyDeparture(weekId).pipe(
           map((weeklyData: any) => {
             let deps = weeklyData?.departure || [];
             deps.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
             return deps;
           }),
-          catchError(() => 
+          catchError(() =>
             this.territoryDataService.getDepartures().pipe(
               map((masterData: any) => {
                 let deps = masterData?.departure || [];
-                deps.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                deps.sort(
+                  (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+                );
                 return deps;
               }),
-              catchError(() => of([]))
-            )
-          )
-        )
+              catchError(() => of([])),
+            ),
+          ),
+        ),
       ),
       tap(() => {
         this.spinner.cerrarSpinner();
         if (!this.networkService.isOnline()) {
           setTimeout(() => this.spinner.cerrarSpinner(), 1500);
         }
-      })
+      }),
     ),
-    { initialValue: [] }
+    { initialValue: [] },
   );
 
   pastWeeks = computed(() => {
@@ -107,7 +112,7 @@ export class DeparturePageComponent implements OnInit {
         nextThreeWeeks.push({
           id: `virtual-${weekId}`,
           weekId: weekId,
-          departure: []
+          departure: [],
         });
       }
     }
@@ -116,7 +121,7 @@ export class DeparturePageComponent implements OnInit {
 
   constructor() {
     this.spinner.cargarSpinner();
-        this.numberGroup = this.rutaActiva.snapshot.params;
+    this.numberGroup = this.rutaActiva.snapshot.params;
     if (this.numberGroup.number !== '0') {
       this.titleGroup.set(`(Grupo ${this.numberGroup.number})`);
     }
@@ -128,7 +133,6 @@ export class DeparturePageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    
     if (!this.networkService.isOnline()) {
       setTimeout(() => this.spinner.cerrarSpinner(), 1500);
     }

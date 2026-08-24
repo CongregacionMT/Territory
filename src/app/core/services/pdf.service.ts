@@ -5,22 +5,21 @@ import { environment } from '@environments/environment';
 import { Card } from '@core/models/Card';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PdfService {
-
   async generateTerritoryAssignmentPDF(
     s13JPG: ArrayBuffer,
     territoriesNumber: TerritoryNumberData[],
     filterDataListFull: Card[][],
-    territoryPath: string
+    territoryPath: string,
   ): Promise<void> {
     const pdfDoc = await PDFDocument.create();
 
     // Constant layout values
     const TERRITORIES_PER_PAGE = 20; // Adjusted to fit the page typically
     const ASSIGNMENTS_PER_PAGE = 4;
-    
+
     // Cargar imagen S-13
     const jpgImage = await pdfDoc.embedJpg(s13JPG);
     const jpgDims = jpgImage.scale(1);
@@ -51,11 +50,11 @@ export class PdfService {
 
     // Calculate vertical chunks (territories)
     const totalTerritories = territoriesNumber.length;
-    
+
     // Calculate layout parameters
     const startY_Territory = jpgDims.height - 345;
     const rowHeight = 65;
-    
+
     const startY_Assignment = jpgDims.height - 360;
     const colWidth = jpgDims.width * 0.18;
 
@@ -66,13 +65,12 @@ export class PdfService {
 
       // Analyze max assignments in this chunk to determine horizontal pages needed
       const maxAssignmentsInChunk = Math.max(
-        0, 
-        ...dataChunk.map(dl => dl.filter((item: any) => item.end).length)
+        0,
+        ...dataChunk.map((dl) => dl.filter((item: any) => item.end).length),
       );
 
-      const horizontalPagesNeeded = maxAssignmentsInChunk > 0 
-        ? Math.ceil(maxAssignmentsInChunk / ASSIGNMENTS_PER_PAGE) 
-        : 1;
+      const horizontalPagesNeeded =
+        maxAssignmentsInChunk > 0 ? Math.ceil(maxAssignmentsInChunk / ASSIGNMENTS_PER_PAGE) : 1;
 
       // Generate pages for this vertical chunk
       for (let hPage = 0; hPage < horizontalPagesNeeded; hPage++) {
@@ -97,7 +95,7 @@ export class PdfService {
         dataChunk.forEach((rowAssignments, rowIndex) => {
           // Filter only completed assignments
           const completedAssignments = rowAssignments.filter((item: any) => item.end);
-          
+
           // Get the slice for this page
           const assignmentsForPage = completedAssignments.slice(startIndex, endIndex);
 
@@ -105,7 +103,7 @@ export class PdfService {
             const xDriver = jpgDims.width * 0.26 + colIndex * colWidth;
             const xStart = xDriver - 30;
             const xEnd = xDriver + 80;
-            
+
             // Adjust Y for the specific row in the chunk
             const yAdjusted = startY_Assignment - rowIndex * rowHeight;
 
@@ -115,8 +113,8 @@ export class PdfService {
             const textWidth = helveticaFont.widthOfTextAtSize(driverName, fontSize);
 
             // Center Name
-            const centerX = xDriver + (colWidth / 2);
-            const xCentered = centerX - (textWidth / 2);
+            const centerX = xDriver + colWidth / 2;
+            const xCentered = centerX - textWidth / 2;
 
             // Conductor
             page.drawText(driverName, {
@@ -128,7 +126,7 @@ export class PdfService {
             });
 
             // Fecha inicio
-            const dateStart = item.start.split(" ")[0].split("-").reverse().join("-");
+            const dateStart = item.start.split(' ')[0].split('-').reverse().join('-');
             page.drawText(dateStart, {
               x: xStart,
               y: yAdjusted,
@@ -138,7 +136,7 @@ export class PdfService {
             });
 
             // Fecha fin
-            const dateEnd = item.end.split(" ")[0].split("-").reverse().join("-");
+            const dateEnd = item.end.split(' ')[0].split('-').reverse().join('-');
             page.drawText(dateEnd, {
               x: xEnd,
               y: yAdjusted,
@@ -148,7 +146,6 @@ export class PdfService {
             });
           });
         });
-
       }
     }
 
@@ -159,7 +156,7 @@ export class PdfService {
 
     // Obtener nombre de la localidad actual
     const currentPath = territoryPath;
-    const locality = environment.localities.find(loc => loc.key === currentPath);
+    const locality = environment.localities.find((loc) => loc.key === currentPath);
     const localityName = locality?.name || 'Territorio';
 
     // Descargar el archivo PDF

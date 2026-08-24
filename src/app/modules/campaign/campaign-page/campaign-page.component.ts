@@ -6,13 +6,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import {
-  Firestore,
-  getDocs,
-  query,
-  where,
-  Timestamp,
-} from '@angular/fire/firestore';
+import { Firestore, getDocs, query, where, Timestamp } from '@angular/fire/firestore';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -54,9 +48,7 @@ export class CampaignPageComponent implements OnInit {
   // End Campaign Modal State
   showEndCampaignModal = signal(false);
   showStartConfirmModal = signal(false);
-  leftoverInvitations = signal<'muchas' | 'algunas' | 'pocas' | 'ninguna' | 'faltaron' | ''>(
-    '',
-  );
+  leftoverInvitations = signal<'muchas' | 'algunas' | 'pocas' | 'ninguna' | 'faltaron' | ''>('');
   missingInvitations = signal<number | null>(null);
   finalComments = signal('');
   finalEndDate = signal('');
@@ -81,9 +73,9 @@ export class CampaignPageComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   territoriosPorLocalidad = signal<LocalityGroup[]>([]);
-  campaignHistory = signal<
-    { nombre: string; descripcion: string; fecha: string; id: string }[]
-  >([]);
+  campaignHistory = signal<{ nombre: string; descripcion: string; fecha: string; id: string }[]>(
+    [],
+  );
 
   statsGlobal: any = null;
 
@@ -96,14 +88,9 @@ export class CampaignPageComponent implements OnInit {
       this.campaignInProgress.set(true);
 
       // Actualizar la caché local con los datos frescos de Firestore
-      localStorage.setItem(
-        'activeCampaign',
-        JSON.stringify(this.activeCampaign),
-      );
+      localStorage.setItem('activeCampaign', JSON.stringify(this.activeCampaign));
 
-      const stats = await this.campaignService.getCampaignStats(
-        this.activeCampaign.id,
-      );
+      const stats = await this.campaignService.getCampaignStats(this.activeCampaign.id);
 
       this.statsGlobal = stats.global || null;
 
@@ -116,9 +103,7 @@ export class CampaignPageComponent implements OnInit {
         id: c.id!,
         nombre: c.name,
         descripcion: c.description,
-        fecha: c.dateEnd
-          ? new Date((c.dateEnd as any).seconds * 1000).toLocaleDateString()
-          : '',
+        fecha: c.dateEnd ? new Date((c.dateEnd as any).seconds * 1000).toLocaleDateString() : '',
       })),
     );
     this.spinner.cerrarSpinner();
@@ -194,138 +179,141 @@ export class CampaignPageComponent implements OnInit {
     // Load departures within campaign dates
     // take(1) is critical: without it, every Firestore update re-triggers this
     // subscriber, causing the end-campaign modal and save flow to loop infinitely.
-    this.territoryService.getWeeklyDepartures().pipe(take(1)).subscribe((departures) => {
-      // Extraer fecha de inicio de forma robusta
-      let initTime = 0;
-      const dInit = this.activeCampaign.dateInit;
-      if (typeof dInit === 'string') {
-        // Usar T12:00:00 para asegurar interpretación local y evitar desfasajes por zona horaria
-        const dateObj = new Date(dInit.includes('T') ? dInit : dInit + 'T12:00:00');
-        initTime = dateObj.getTime();
-      } else if (dInit?.toDate) {
-        initTime = dInit.toDate().getTime();
-      } else if (dInit?.seconds) {
-        initTime = dInit.seconds * 1000;
-      } else {
-        initTime = new Date(dInit).getTime();
-      }
-
-      // Calcular fecha fin (límite superior)
-      let endTime = Infinity;
-      const dEnd = this.activeCampaign.dateEnd;
-      if (dEnd) {
-        let endDate: Date;
-        if (typeof dEnd === 'string') {
-          // Importante: Usamos T12:00:00 primero para que el navegador lo tome como hora local.
-          // Si usáramos T23:59:59 directamente, algunos navegadores podrían interpretarlo como UTC.
-          endDate = new Date(dEnd.includes('T') ? dEnd : dEnd + 'T12:00:00');
-        } else if (dEnd?.toDate) {
-          endDate = dEnd.toDate();
-        } else if (dEnd?.seconds) {
-          endDate = new Date(dEnd.seconds * 1000);
+    this.territoryService
+      .getWeeklyDepartures()
+      .pipe(take(1))
+      .subscribe((departures) => {
+        // Extraer fecha de inicio de forma robusta
+        let initTime = 0;
+        const dInit = this.activeCampaign.dateInit;
+        if (typeof dInit === 'string') {
+          // Usar T12:00:00 para asegurar interpretación local y evitar desfasajes por zona horaria
+          const dateObj = new Date(dInit.includes('T') ? dInit : dInit + 'T12:00:00');
+          initTime = dateObj.getTime();
+        } else if (dInit?.toDate) {
+          initTime = dInit.toDate().getTime();
+        } else if (dInit?.seconds) {
+          initTime = dInit.seconds * 1000;
         } else {
-          endDate = new Date(dEnd);
+          initTime = new Date(dInit).getTime();
         }
-        // Forzamos al último milisegundo del día en hora LOCAL
-        endDate.setHours(23, 59, 59, 999);
-        endTime = endDate.getTime();
-      }
 
-      // Ajustar initTime al lunes de esa semana para no perder la semana de inicio
-      // Usamos mediodía para el cálculo del lunes también para asegurar consistencia
-      const startDate = new Date(initTime);
-      const day = startDate.getDay();
-      const diffToMonday = day === 0 ? 6 : day - 1;
-      const mondayOfStartWeek = new Date(startDate);
-      mondayOfStartWeek.setDate(startDate.getDate() - diffToMonday);
-      mondayOfStartWeek.setHours(12, 0, 0, 0); 
-      const startCompareTime = mondayOfStartWeek.getTime();
+        // Calcular fecha fin (límite superior)
+        let endTime = Infinity;
+        const dEnd = this.activeCampaign.dateEnd;
+        if (dEnd) {
+          let endDate: Date;
+          if (typeof dEnd === 'string') {
+            // Importante: Usamos T12:00:00 primero para que el navegador lo tome como hora local.
+            // Si usáramos T23:59:59 directamente, algunos navegadores podrían interpretarlo como UTC.
+            endDate = new Date(dEnd.includes('T') ? dEnd : dEnd + 'T12:00:00');
+          } else if (dEnd?.toDate) {
+            endDate = dEnd.toDate();
+          } else if (dEnd?.seconds) {
+            endDate = new Date(dEnd.seconds * 1000);
+          } else {
+            endDate = new Date(dEnd);
+          }
+          // Forzamos al último milisegundo del día en hora LOCAL
+          endDate.setHours(23, 59, 59, 999);
+          endTime = endDate.getTime();
+        }
 
-      console.log('--- [DEBUG] Finalizando Campaña ---');
-      console.log('Rango Campaña:', {
-        inicio: new Date(initTime).toLocaleString(),
-        finLimit: endTime === Infinity ? 'Sin límite' : new Date(endTime).toLocaleString(),
-        lunesSemanaInicio: mondayOfStartWeek.toLocaleString()
-      });
-      console.log('Total semanas recuperadas de DB:', departures.length);
+        // Ajustar initTime al lunes de esa semana para no perder la semana de inicio
+        // Usamos mediodía para el cálculo del lunes también para asegurar consistencia
+        const startDate = new Date(initTime);
+        const day = startDate.getDay();
+        const diffToMonday = day === 0 ? 6 : day - 1;
+        const mondayOfStartWeek = new Date(startDate);
+        mondayOfStartWeek.setDate(startDate.getDate() - diffToMonday);
+        mondayOfStartWeek.setHours(12, 0, 0, 0);
+        const startCompareTime = mondayOfStartWeek.getTime();
 
-      const inRangeWeeks = departures.filter((d) => {
-        const dDate = new Date(d.weekId + 'T12:00:00').getTime();
-        return dDate >= startCompareTime;
-      });
+        console.log('--- [DEBUG] Finalizando Campaña ---');
+        console.log('Rango Campaña:', {
+          inicio: new Date(initTime).toLocaleString(),
+          finLimit: endTime === Infinity ? 'Sin límite' : new Date(endTime).toLocaleString(),
+          lunesSemanaInicio: mondayOfStartWeek.toLocaleString(),
+        });
+        console.log('Total semanas recuperadas de DB:', departures.length);
 
-      console.log('Semanas filtradas (>= lunes inicio):', inRangeWeeks.map(w => w.weekId));
+        const inRangeWeeks = departures.filter((d) => {
+          const dDate = new Date(d.weekId + 'T12:00:00').getTime();
+          return dDate >= startCompareTime;
+        });
 
-      // Aplanamos todas las salidas individuales de cada semana
-      const allIndividualDepartures: any[] = [];
-      inRangeWeeks.forEach((week) => {
-        if (week.departure && Array.isArray(week.departure)) {
-          week.departure.forEach((dep, idx) => {
-            const depDate = new Date(dep.date + 'T12:00:00').getTime(); // noon precision
-            
-            const isAfterInit = depDate >= initTime;
-            const isBeforeEnd = depDate <= endTime;
+        console.log(
+          'Semanas filtradas (>= lunes inicio):',
+          inRangeWeeks.map((w) => w.weekId),
+        );
 
-            console.log(`Verificando salida ${dep.date}:`, {
-              driver: dep.driver,
-              point: dep.point,
-              isAfterInit,
-              isBeforeEnd,
-              incluida: isAfterInit && isBeforeEnd
-            });
+        // Aplanamos todas las salidas individuales de cada semana
+        const allIndividualDepartures: any[] = [];
+        inRangeWeeks.forEach((week) => {
+          if (week.departure && Array.isArray(week.departure)) {
+            week.departure.forEach((dep, idx) => {
+              const depDate = new Date(dep.date + 'T12:00:00').getTime(); // noon precision
 
-            // Filtrar cada salida individual por el rango exacto de la campaña
-            if (isAfterInit && isBeforeEnd) {
-              // Resolver nombre amigable de la localidad
-              let localityName: string | undefined;
-              if (dep.location && environment.localities?.length) {
-                const sortedLoc = [...environment.localities].sort(
-                  (a, b) => b.territoryPrefix.length - a.territoryPrefix.length,
-                );
-                const match = sortedLoc.find((loc) =>
-                  dep.location.startsWith(loc.territoryPrefix),
-                );
-                localityName = match?.name;
+              const isAfterInit = depDate >= initTime;
+              const isBeforeEnd = depDate <= endTime;
+
+              console.log(`Verificando salida ${dep.date}:`, {
+                driver: dep.driver,
+                point: dep.point,
+                isAfterInit,
+                isBeforeEnd,
+                incluida: isAfterInit && isBeforeEnd,
+              });
+
+              // Filtrar cada salida individual por el rango exacto de la campaña
+              if (isAfterInit && isBeforeEnd) {
+                // Resolver nombre amigable de la localidad
+                let localityName: string | undefined;
+                if (dep.location && environment.localities?.length) {
+                  const sortedLoc = [...environment.localities].sort(
+                    (a, b) => b.territoryPrefix.length - a.territoryPrefix.length,
+                  );
+                  const match = sortedLoc.find((loc) =>
+                    dep.location.startsWith(loc.territoryPrefix),
+                  );
+                  localityName = match?.name;
+                }
+
+                // Formatear fecha en español
+                const parsedDate = new Date(dep.date + 'T12:00:00'); // noon para evitar desfase de timezone
+                const dateLabel = parsedDate.toLocaleDateString('es-AR', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                });
+
+                allIndividualDepartures.push({
+                  id: `${week.weekId}-${idx}`,
+                  date: dep.date,
+                  dateLabel,
+                  driver: dep.driver || 'Sin conductor',
+                  locality: localityName || null,
+                  point: dep.point || 'Sin punto de encuentro',
+                  checked: false,
+                });
               }
+            });
+          }
+        });
 
-              // Formatear fecha en español
-              const parsedDate = new Date(dep.date + 'T12:00:00'); // noon para evitar desfase de timezone
-              const dateLabel = parsedDate.toLocaleDateString('es-AR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-              });
-              
-              allIndividualDepartures.push({
-                id: `${week.weekId}-${idx}`,
-                date: dep.date,
-                dateLabel,
-                driver: dep.driver || 'Sin conductor',
-                locality: localityName || null,
-                point: dep.point || 'Sin punto de encuentro',
-                checked: false,
-              });
-            }
-          });
-        }
+        // Ordenar por fecha cronológicamente
+        allIndividualDepartures.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        );
+
+        console.log('[CampaignStats] Individual departures in range:', allIndividualDepartures);
+
+        this.filteredDepartures.set(allIndividualDepartures);
+
+        this.leftoverInvitations.set('');
+        this.showEndCampaignModal.set(true);
+        this.spinner.cerrarSpinner();
       });
-
-      // Ordenar por fecha cronológicamente
-      allIndividualDepartures.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-      );
-
-      console.log(
-        '[CampaignStats] Individual departures in range:',
-        allIndividualDepartures,
-      );
-
-      this.filteredDepartures.set(allIndividualDepartures);
-
-      this.leftoverInvitations.set('');
-      this.showEndCampaignModal.set(true);
-      this.spinner.cerrarSpinner();
-    });
   }
 
   cancelEndCampaign() {
@@ -335,13 +323,15 @@ export class CampaignPageComponent implements OnInit {
   toggleDepartureCheck(index: number) {
     const list = [...this.filteredDepartures()];
     list[index].checked = !list[index].checked;
-    console.log(`[DEBUG] Toggled Departure: ${list[index].date} - ${list[index].point}. Checked: ${list[index].checked}`);
+    console.log(
+      `[DEBUG] Toggled Departure: ${list[index].date} - ${list[index].point}. Checked: ${list[index].checked}`,
+    );
     this.filteredDepartures.set(list);
   }
 
   async confirmEndCampaign() {
     const isConfirmed = window.confirm(
-      '¿Estás seguro de que quieres finalizar la campaña? Ya NO podrás hacer más cambios en los territorios ni salidas una vez confirmada esta acción.'
+      '¿Estás seguro de que quieres finalizar la campaña? Ya NO podrás hacer más cambios en los territorios ni salidas una vez confirmada esta acción.',
     );
     if (!isConfirmed) return;
 
@@ -490,9 +480,7 @@ export class CampaignPageComponent implements OnInit {
 
       // Buscar si el key empieza con algún prefijo conocido
       if (sortedLocalities.length > 0) {
-        const match = sortedLocalities.find((loc) =>
-          key.startsWith(loc.territoryPrefix),
-        );
+        const match = sortedLocalities.find((loc) => key.startsWith(loc.territoryPrefix));
         if (match) {
           matchedPrefix = match.territoryPrefix;
         }

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* You can add global styles to this file, and also import other style files */
-@import "@angular/material/prebuilt-themes/indigo-pink.css";
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
 body {
   background-color: #343a40;
   color: white;
@@ -23,7 +23,7 @@ body {
 }
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
 /* Import Bootstrap utility replacements */

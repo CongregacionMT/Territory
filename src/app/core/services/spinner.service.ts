@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SpinnerService {
   isLoading = signal<boolean>(false);
@@ -13,4 +13,4 @@ export class SpinnerService {
   cerrarSpinner() {
     this.isLoading.set(false);
   }
-}
+}

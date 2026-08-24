@@ -18,4 +18,3 @@ export interface CartDataArray {
 export interface LocationsData {
   locations: CartLocation[];
 }
-

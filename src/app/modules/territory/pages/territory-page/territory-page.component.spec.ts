@@ -8,9 +8,8 @@ describe('TerritoryPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TerritoryPageComponent]
-})
-    .compileComponents();
+      imports: [TerritoryPageComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

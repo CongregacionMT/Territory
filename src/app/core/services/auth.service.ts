@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private router = inject(Router);
@@ -16,7 +16,7 @@ export class AuthService {
   isAdmin = computed(() => this._isAdmin());
   isDriver = computed(() => this._isDriver());
   driverName = computed(() => this._driverName());
-  
+
   // Login button logic based on exact same rules
   showLoginButton = computed(() => !(this._isAdmin() || this._isDriver()));
 

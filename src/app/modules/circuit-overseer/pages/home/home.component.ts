@@ -10,7 +10,7 @@ import { CircuitOverseerService } from '../../services/circuit-overseer.service'
   imports: [RouterLink, AsyncPipe, FormsModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
   congregationName = environment.congregationName;

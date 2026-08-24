@@ -33,10 +33,7 @@ export class CampaignService {
   private firestore = inject(Firestore);
 
   async getActiveCampaign(): Promise<Campaign | null> {
-    const q = query(
-      collection(this.firestore, 'campaigns'),
-      where('active', '==', true),
-    );
+    const q = query(collection(this.firestore, 'campaigns'), where('active', '==', true));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
       return {
@@ -60,10 +57,7 @@ export class CampaignService {
     if (environment.localities && environment.localities.length > 0) {
       environment.localities.forEach((locality) => {
         if (numberTerritory[locality.key]) {
-          allTerritories = [
-            ...allTerritories,
-            ...numberTerritory[locality.key],
-          ];
+          allTerritories = [...allTerritories, ...numberTerritory[locality.key]];
         }
       });
     } else {
@@ -87,8 +81,7 @@ export class CampaignService {
 
     // Obtener TODOS los territorios de TODAS las localidades
     const allTerritories = this.getAllTerritoriesFromAllLocalities();
-    const totalTerritories =
-      allTerritories.length > 0 ? allTerritories.length : TERRITORY_COUNT;
+    const totalTerritories = allTerritories.length > 0 ? allTerritories.length : TERRITORY_COUNT;
 
     const campaignDoc = await addDoc(campaignRef, {
       name: data.name,
@@ -106,10 +99,7 @@ export class CampaignService {
     if (allTerritories.length > 0) {
       // Procesar de a uno para poder reportar progreso
       for (let i = 0; i < allTerritories.length; i++) {
-        await this.resetTerritoryByCollection(
-          allTerritories[i].collection,
-          campaignDoc.id,
-        );
+        await this.resetTerritoryByCollection(allTerritories[i].collection, campaignDoc.id);
         onProgress?.(i + 1, allTerritories.length);
       }
     } else {
@@ -159,9 +149,7 @@ export class CampaignService {
   async resetTerritoryByCollection(collectionName: string, campaignId: string) {
     // Guard: evitar error de Firebase si la colección está vacía
     if (!collectionName?.trim()) {
-      console.warn(
-        '[CampaignService] resetTerritoryByCollection: collectionName vacío, saltando.',
-      );
+      console.warn('[CampaignService] resetTerritoryByCollection: collectionName vacío, saltando.');
       return;
     }
 
@@ -223,9 +211,7 @@ export class CampaignService {
 
   getCampaign(): Observable<Campaign[]> {
     const campaignRef = collection(this.firestore, 'campaigns');
-    return collectionData(campaignRef, { idField: 'id' }) as Observable<
-      Campaign[]
-    >;
+    return collectionData(campaignRef, { idField: 'id' }) as Observable<Campaign[]>;
   }
 
   async updateCampaignStats(campaignId: string, card: Card) {
@@ -250,10 +236,7 @@ export class CampaignService {
     let statKey = card.link;
 
     if (!statKey || statKey === 'undefined') {
-      statKey =
-        card.territory && card.territory !== 'undefined'
-          ? card.territory
-          : undefined;
+      statKey = card.territory && card.territory !== 'undefined' ? card.territory : undefined;
     }
 
     if (!statKey) {
@@ -306,8 +289,7 @@ export class CampaignService {
       if (t.percent === 100) completedTerritories++;
     });
 
-    const globalPercent =
-      globalTotal > 0 ? Math.round((globalDone / globalTotal) * 100) : 0;
+    const globalPercent = globalTotal > 0 ? Math.round((globalDone / globalTotal) * 100) : 0;
 
     // Histórico de progreso
     const today = new Date().toISOString().split('T')[0];
@@ -316,11 +298,7 @@ export class CampaignService {
     const existingHistory = stats.global?.progressHistory || [];
     const lastEntry = existingHistory[existingHistory.length - 1];
 
-    if (
-      !lastEntry ||
-      lastEntry.percent !== globalPercent ||
-      lastEntry.date !== today
-    ) {
+    if (!lastEntry || lastEntry.percent !== globalPercent || lastEntry.date !== today) {
       existingHistory.push(progressEntry);
     }
 
@@ -358,12 +336,8 @@ export class CampaignService {
     return {
       id: snap.id,
       ...data,
-      dateInit: data['dateInit']?.toDate
-        ? data['dateInit'].toDate()
-        : data['dateInit'],
-      dateEnd: data['dateEnd']?.toDate
-        ? data['dateEnd'].toDate()
-        : data['dateEnd'],
+      dateInit: data['dateInit']?.toDate ? data['dateInit'].toDate() : data['dateInit'],
+      dateEnd: data['dateEnd']?.toDate ? data['dateEnd'].toDate() : data['dateEnd'],
       stats: data['stats'] || {},
     };
   }
@@ -411,9 +385,7 @@ export class CampaignService {
     let collectionsToReset: string[] = [];
 
     if (allTerritories.length > 0) {
-      collectionsToReset = allTerritories
-        .map((t) => t.collection)
-        .filter((c) => !!c?.trim());
+      collectionsToReset = allTerritories.map((t) => t.collection).filter((c) => !!c?.trim());
     }
 
     if (collectionsToReset.length === 0) {
@@ -438,18 +410,14 @@ export class CampaignService {
               .filter((c: string) => !!c?.trim());
           }
         } catch {
-          console.warn(
-            '[CampaignService] localStorage numberTerritory no parseable',
-          );
+          console.warn('[CampaignService] localStorage numberTerritory no parseable');
         }
       }
     }
 
     // Último fallback: usar prefix legacy + números del 1 al TERRITORY_COUNT
     if (collectionsToReset.length === 0) {
-      console.warn(
-        '[CampaignService] Sin territorios en storage, usando fallback numérico',
-      );
+      console.warn('[CampaignService] Sin territorios en storage, usando fallback numérico');
       for (let n = 1; n <= TERRITORY_COUNT; n++) {
         collectionsToReset.push(`${environment.territoryPrefix}-${n}`);
       }
@@ -474,11 +442,7 @@ export class CampaignService {
         try {
           await this.resetTerritoryAfterCampaignByCollection(col, batch);
         } catch (err) {
-          console.error(
-            '[CampaignService] Error preparando reset para:',
-            col,
-            err,
-          );
+          console.error('[CampaignService] Error preparando reset para:', col, err);
         }
         onProgress?.(i + 1, total);
       }),
@@ -512,10 +476,7 @@ export class CampaignService {
     return this.resetTerritoryAfterCampaignByCollection(collectionName);
   }
 
-  async resetTerritoryAfterCampaignByCollection(
-    collectionName: string,
-    batch?: WriteBatch,
-  ) {
+  async resetTerritoryAfterCampaignByCollection(collectionName: string, batch?: WriteBatch) {
     // Guard: evitar error de Firebase si la colección está vacía
     if (!collectionName?.trim()) {
       console.warn(
@@ -572,10 +533,7 @@ export class CampaignService {
   }
 
   async getAllCampaigns(): Promise<Campaign[]> {
-    const q = query(
-      collection(this.firestore, 'campaigns'),
-      orderBy('dateInit', 'desc'),
-    );
+    const q = query(collection(this.firestore, 'campaigns'), orderBy('dateInit', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(
       (doc) =>
@@ -591,9 +549,7 @@ export class CampaignService {
     let collectionsToCheck: string[] = [];
 
     if (allTerritories.length > 0) {
-      collectionsToCheck = allTerritories
-        .map((t) => t.collection)
-        .filter((c) => !!c?.trim());
+      collectionsToCheck = allTerritories.map((t) => t.collection).filter((c) => !!c?.trim());
     }
 
     // Fallback si storage está vacío
@@ -613,10 +569,7 @@ export class CampaignService {
             });
           }
         } catch (e) {
-          console.warn(
-            '[CampaignService] cleanup error parsing local storage',
-            e,
-          );
+          console.warn('[CampaignService] cleanup error parsing local storage', e);
         }
       }
     }
@@ -640,23 +593,23 @@ export class CampaignService {
         if (!collectionName?.trim()) return;
         const colRef = collection(this.firestore, collectionName);
 
-      const snapshot = await getDocs(colRef);
+        const snapshot = await getDocs(colRef);
 
-      const deletes = snapshot.docs
-        .filter((d) => d.id.startsWith(`Campaña-${campaignId}`)) // 👈 match exacto
-        .filter((d) => {
-          const data = d.data();
-          const apples = data['applesData'] || [];
-          const hasActivity = apples.some((a: any) => a.checked === true);
-          // Omitir el borrado si la tarjeta tiene actividad (fue completada)
-          return !hasActivity; 
-        })
-        .map((d) => deleteDoc(doc(this.firestore, collectionName, d.id)));
+        const deletes = snapshot.docs
+          .filter((d) => d.id.startsWith(`Campaña-${campaignId}`)) // 👈 match exacto
+          .filter((d) => {
+            const data = d.data();
+            const apples = data['applesData'] || [];
+            const hasActivity = apples.some((a: any) => a.checked === true);
+            // Omitir el borrado si la tarjeta tiene actividad (fue completada)
+            return !hasActivity;
+          })
+          .map((d) => deleteDoc(doc(this.firestore, collectionName, d.id)));
 
-      if (deletes.length > 0) {
-        await Promise.all(deletes);
-        // console.log(`🗑️ Eliminados ${deletes.length} docs de ${collectionName}`);
-      }
+        if (deletes.length > 0) {
+          await Promise.all(deletes);
+          // console.log(`🗑️ Eliminados ${deletes.length} docs de ${collectionName}`);
+        }
         // Query eficiente por ID del documento
         const q = query(
           colRef,

@@ -6,22 +6,23 @@ import { FormRuralComponent } from '../form-rural/form-rural.component';
 declare var window: any;
 
 @Component({
-    selector: 'app-modal-form-rural',
-    templateUrl: './modal-form-rural.component.html',
-    styleUrls: ['./modal-form-rural.component.scss'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [FormRuralComponent]
+  selector: 'app-modal-form-rural',
+  templateUrl: './modal-form-rural.component.html',
+  styleUrls: ['./modal-form-rural.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FormRuralComponent],
 })
 export class ModalFormRuralComponent implements OnInit {
   private router = inject(Router);
 
   modalElement: any;
   stateModal: 'open' | 'close' = 'close';
-  title: string = 'Crear camino'
-  editionForm: DataRural | undefined;constructor() { }
+  title: string = 'Crear camino';
+  editionForm: DataRural | undefined;
+  constructor() {}
 
   ngOnInit(): void {
-    let modalID = document.getElementById("modalID");
+    let modalID = document.getElementById('modalID');
     this.modalElement = new window.bootstrap.Modal(modalID);
     modalID?.addEventListener('hidden.bs.modal', (event: any) => {
       this.stateModal = 'close';
@@ -29,21 +30,20 @@ export class ModalFormRuralComponent implements OnInit {
     });
   }
 
-  openModalCreation(){
+  openModalCreation() {
     this.modalElement.show();
     this.title = 'Crear camino';
     this.stateModal = 'open';
   }
 
-  openModalEdition(form: DataRural | undefined){
+  openModalEdition(form: DataRural | undefined) {
     this.modalElement.show();
     this.title = 'Editar camino';
     this.editionForm = form;
     this.stateModal = 'open';
   }
 
-  hideModal(){
+  hideModal() {
     this.modalElement.hide();
   }
-
 }

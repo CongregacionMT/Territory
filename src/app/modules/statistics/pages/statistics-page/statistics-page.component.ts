@@ -1,5 +1,13 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { take } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -25,7 +33,7 @@ export class StatisticsPageComponent implements OnInit {
   private rutaActiva = inject(ActivatedRoute);
 
   // Variables convertidas a signals
-    loadingData = signal<boolean>(false);
+  loadingData = signal<boolean>(false);
   territoryPath = signal<any>(null);
   territory = signal<TerritoryNumberData[]>([]);
   dataListFull = signal<any[]>([]);
@@ -65,19 +73,14 @@ export class StatisticsPageComponent implements OnInit {
   green: FormControl;
   blue: FormControl;
   yellow: FormControl;
-  red: FormControl;constructor() {
+  red: FormControl;
+  constructor() {
     // Obtener el parámetro de la URL (ej: 'mariaTeresa', 'christophersen', 'rural')
-    this.territoryPath.set(
-      this.rutaActiva.snapshot.paramMap.get('locality') || '',
-    );
+    this.territoryPath.set(this.rutaActiva.snapshot.paramMap.get('locality') || '');
 
     // Buscar el nombre bonito en la configuración si existe
-    const localityConfig = environment.localities?.find(
-      (l) => l.key === this.territoryPath(),
-    );
-    const title = localityConfig
-      ? localityConfig.name
-      : this.capitalize(this.territoryPath());
+    const localityConfig = environment.localities?.find((l) => l.key === this.territoryPath());
+    const title = localityConfig ? localityConfig.name : this.capitalize(this.territoryPath());
 
     this.nameTitleTerritory.set(title);
 
@@ -93,9 +96,7 @@ export class StatisticsPageComponent implements OnInit {
       const locality = params.get('locality');
       if (locality && locality !== this.territoryPath()) {
         this.territoryPath.set(locality);
-        const localityConfig = environment.localities?.find(
-          (l) => l.key === locality,
-        );
+        const localityConfig = environment.localities?.find((l) => l.key === locality);
         this.nameTitleTerritory.set(
           localityConfig ? localityConfig.name : this.capitalize(locality),
         );
@@ -112,7 +113,8 @@ export class StatisticsPageComponent implements OnInit {
       .pipe(take(1)) // Solo necesitamos este stream una vez para las stats, o dejarlo abierto para tiempo real?
       // El usuario recargará usualmente, pero mejor dejarlo abierto para tiempo real si no causa problemas.
       // Sin embargo, para evitar duplicados si hay un error en el pipe, take(1) es seguro.
-      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((entries) => {
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((entries) => {
         this.allPersonalEntries.set(entries);
       });
   }
@@ -130,15 +132,12 @@ export class StatisticsPageComponent implements OnInit {
     const path = this.territoryPath();
     if (!path) return;
 
-    const suffix =
-      path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
+    const suffix = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
     const storageKey = `statisticData${suffix}_${this.timeRange()}`;
 
     if (!forceRefresh && sessionStorage.getItem(storageKey)) {
       const storedStatisticData = sessionStorage.getItem(storageKey);
-      this.dataListFull.set(
-        storedStatisticData ? JSON.parse(storedStatisticData) : [],
-      );
+      this.dataListFull.set(storedStatisticData ? JSON.parse(storedStatisticData) : []);
       this.calculateSummary();
       this.loadingData.set(true);
       return;
@@ -150,9 +149,7 @@ export class StatisticsPageComponent implements OnInit {
 
     // Need to get territories for this locality first
     const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
-    const numberTerritory = storedNumberTerritory
-      ? JSON.parse(storedNumberTerritory)
-      : {};
+    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : {};
     const localityTerritories = numberTerritory[path] || [];
 
     if (localityTerritories.length === 0) {
@@ -169,7 +166,8 @@ export class StatisticsPageComponent implements OnInit {
           this.territorieDataService
             .getCardTerritorie(t.collection, 120)
             .pipe(take(1)) // EVITAR DUPLICADOS SI EL STREAM EMITE MÁS DE UNA VEZ
-            .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((allCards) => {
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((allCards) => {
               const blueprintCard = allCards[0];
 
               // Filtramos localmente por el rango de tiempo seleccionado
@@ -180,7 +178,7 @@ export class StatisticsPageComponent implements OnInit {
               const periodCards = allCards.filter((c) => {
                 const creation = c.creation as any;
                 let cardDate: Date;
-                
+
                 if (creation && typeof creation.toDate === 'function') {
                   cardDate = creation.toDate();
                 } else if (creation && typeof creation.seconds === 'number') {
@@ -188,14 +186,16 @@ export class StatisticsPageComponent implements OnInit {
                 } else {
                   cardDate = new Date(creation);
                 }
-                
+
                 return !isNaN(cardDate.getTime()) && cardDate >= fromDateLimit;
               });
 
               // Consideramos actividad si hay manzanas marcadas o si son hitos de PostCampaña
-              const activityCards = periodCards.filter((c) =>
-                (c.applesData || []).some((a: any) => a.checked) ||
-                (c.id && (c.id.startsWith('PostCampaña') || c.id.startsWith('Campaña-undefined'))),
+              const activityCards = periodCards.filter(
+                (c) =>
+                  (c.applesData || []).some((a: any) => a.checked) ||
+                  (c.id &&
+                    (c.id.startsWith('PostCampaña') || c.id.startsWith('Campaña-undefined'))),
               );
 
               if (activityCards.length > 0) {
@@ -248,11 +248,11 @@ export class StatisticsPageComponent implements OnInit {
           if (c.isPlaceholder) return;
           const apples = c.applesData || [];
           const checkedCount = apples.filter((a: any) => a.checked).length;
-          
+
           if (checkedCount > maxCheckedInPeriod) {
-             maxCheckedInPeriod = checkedCount;
+            maxCheckedInPeriod = checkedCount;
           }
-          
+
           if (apples.length > 0 && checkedCount === apples.length) {
             wasFullyCompleted = true;
           }
@@ -269,9 +269,7 @@ export class StatisticsPageComponent implements OnInit {
       totalApples: completedApplesInPeriod,
       percentCompleted:
         totalApplesInLocality > 0
-          ? Math.round(
-              (completedApplesInPeriod / totalApplesInLocality) * 1000,
-            ) / 10
+          ? Math.round((completedApplesInPeriod / totalApplesInLocality) * 1000) / 10
           : 0,
     });
   }
@@ -282,11 +280,7 @@ export class StatisticsPageComponent implements OnInit {
 
   paintRow(dataList: any) {
     const today = new Date();
-    const dateToday = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
+    const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     const lastEnd =
       dataList[0]?.end ||
@@ -320,9 +314,7 @@ export class StatisticsPageComponent implements OnInit {
 
   getIcon(prop: string): string {
     if (this.path() !== prop) return 'fa fa-sort opacity-50';
-    return this.order() === -1
-      ? 'fa fa-sort-down text-primary'
-      : 'fa fa-sort-up text-primary';
+    return this.order() === -1 ? 'fa fa-sort-down text-primary' : 'fa fa-sort-up text-primary';
   }
 
   /** Retorna true si el número de territorio está actualmente asignado como personal */

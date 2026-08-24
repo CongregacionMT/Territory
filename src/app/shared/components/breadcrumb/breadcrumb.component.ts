@@ -11,6 +11,6 @@ import { BreadcrumbService } from '@core/services/breadcrumb.service';
 })
 export class BreadcrumbComponent {
   private breadcrumbService = inject(BreadcrumbService);
-  
+
   readonly breadcrumbItems = this.breadcrumbService.breadcrumbs;
 }

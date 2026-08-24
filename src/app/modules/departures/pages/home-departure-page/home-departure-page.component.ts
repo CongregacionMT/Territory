@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Router, RouterLink } from '@angular/router';
@@ -18,69 +18,75 @@ import { forkJoin, take } from 'rxjs';
   imports: [CardXlComponent, RouterLink],
 })
 export class HomeDeparturePageComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);  private territoryDataService = inject(TerritoryDataService);
+  private destroyRef = inject(DestroyRef);
+  private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private router = inject(Router);
   private pdfService = inject(DeparturePdfService);
 
-  isAdmin: boolean = false;  groupKeys: any[] = [];
+  isAdmin: boolean = false;
+  groupKeys: any[] = [];
   groups: Group[] = [];
 
   // Print state
   showPrintModal: boolean = false;
   isPrintingPdf: boolean = false;
-  pdfGenerated: boolean = false;constructor() {    localStorage.getItem('tokenAdmin')
-      ? (this.isAdmin = true)
-      : (this.isAdmin = false);
+  pdfGenerated: boolean = false;
+  constructor() {
+    localStorage.getItem('tokenAdmin') ? (this.isAdmin = true) : (this.isAdmin = false);
   }
 
   ngOnInit(): void {
-    this.spinner.cargarSpinner();
-    this.territoryDataService.getGroupList().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((groups: Group[]) => {
-      this.groupKeys = [];
-      this.groups = groups;
+    this.spinner.cargarSpinner();
 
-      if (groups && groups.length > 0) {
-        // Sort groups by number (id is typically "Grupo 1", "Grupo 2", etc.)
-        const sortedGroups = groups.sort((a, b) => {
-          const numA = parseInt(a.id.replace('Grupo ', '')) || 0;
-          const numB = parseInt(b.id.replace('Grupo ', '')) || 0;
-          return numA - numB;
-        });
+    this.territoryDataService
+      .getGroupList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((groups: Group[]) => {
+        this.groupKeys = [];
+        this.groups = groups;
 
-        sortedGroups.forEach((group) => {
-          const groupNum = parseInt(group.id.replace('Grupo ', '')) || 0;
-          this.groupKeys.push({
-            name: group.id,
-            src: '../../../assets/img/group.png',
-            link: `grupo/${groupNum}`,
-            number: groupNum,
+        if (groups && groups.length > 0) {
+          // Sort groups by number (id is typically "Grupo 1", "Grupo 2", etc.)
+          const sortedGroups = groups.sort((a, b) => {
+            const numA = parseInt(a.id.replace('Grupo ', '')) || 0;
+            const numB = parseInt(b.id.replace('Grupo ', '')) || 0;
+            return numA - numB;
           });
-        });
-      } else {
-        // No groups defined, show general departures
-        this.groupKeys.push({
-          name: 'Salidas generales',
-          src: '../../../assets/img/group.png',
-          link: `grupo/0`,
-          number: 0,
-        });
-      }
 
-      this.spinner.cerrarSpinner();
-
-      // If only one option, automatically redirect unless the user is an admin
-      if (this.groupKeys.length === 1) {
-        if (
-          !localStorage.getItem('tokenAdmin') &&
-          !sessionStorage.getItem('redirectedToGroup0')
-        ) {
-          sessionStorage.setItem('redirectedToGroup0', 'true');
-          const targetLink = this.groupKeys[0].link;
-          this.router.navigate(['/salidas/' + targetLink]);
+          sortedGroups.forEach((group) => {
+            const groupNum = parseInt(group.id.replace('Grupo ', '')) || 0;
+            this.groupKeys.push({
+              name: group.id,
+              src: '../../../assets/img/group.png',
+              link: `grupo/${groupNum}`,
+              number: groupNum,
+            });
+          });
+        } else {
+          // No groups defined, show general departures
+          this.groupKeys.push({
+            name: 'Salidas generales',
+            src: '../../../assets/img/group.png',
+            link: `grupo/0`,
+            number: 0,
+          });
         }
-      }
-    });
+
+        this.spinner.cerrarSpinner();
+
+        // If only one option, automatically redirect unless the user is an admin
+        if (this.groupKeys.length === 1) {
+          if (
+            !localStorage.getItem('tokenAdmin') &&
+            !sessionStorage.getItem('redirectedToGroup0')
+          ) {
+            sessionStorage.setItem('redirectedToGroup0', 'true');
+            const targetLink = this.groupKeys[0].link;
+            this.router.navigate(['/salidas/' + targetLink]);
+          }
+        }
+      });
   }
 
   // ==========================================
@@ -110,62 +116,64 @@ export class HomeDeparturePageComponent implements OnInit {
         current: this.territoryDataService.getWeeklyDeparture(currentWeekId).pipe(take(1)),
         next: this.territoryDataService.getWeeklyDeparture(nextWeekId).pipe(take(1)),
         master: this.territoryDataService.getDepartures().pipe(take(1)),
-      }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: async (result: any) => {
-          try {
-            let currentDepartures: Departure[] = [];
-            let nextDepartures: Departure[] = [];
+      })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: async (result: any) => {
+            try {
+              let currentDepartures: Departure[] = [];
+              let nextDepartures: Departure[] = [];
 
-            // Use weekly data if available, fallback to master
-            if (result.current?.departure?.length > 0) {
-              currentDepartures = result.current.departure;
-            } else if (result.master?.departure?.length > 0) {
-              currentDepartures = result.master.departure;
+              // Use weekly data if available, fallback to master
+              if (result.current?.departure?.length > 0) {
+                currentDepartures = result.current.departure;
+              } else if (result.master?.departure?.length > 0) {
+                currentDepartures = result.master.departure;
+              }
+
+              if (result.next?.departure?.length > 0) {
+                nextDepartures = result.next.departure;
+              }
+
+              // Compose the Fri–Thu departures (all groups, unfiltered)
+              const printDepartures = this.pdfService.getDeparturesForPrintWeek(
+                currentDepartures,
+                nextDepartures,
+                currentWeekId,
+              );
+
+              // Get all group numbers
+              const groupNumbers = this.groupKeys.map((g: any) => g.number);
+
+              const pdfBytes = await this.pdfService.generateAllGroupsPdf(
+                printDepartures,
+                printRange.label,
+                mode,
+                groupNumbers,
+              );
+
+              const modeLabel = mode === 'color' ? 'color' : 'bn';
+              const filename = `salidas_${currentWeekId}_todos_${modeLabel}.pdf`;
+              this.pdfService.downloadPdf(pdfBytes, filename);
+
+              this.isPrintingPdf = false;
+              this.pdfGenerated = true;
+
+              setTimeout(() => {
+                this.showPrintModal = false;
+                this.pdfGenerated = false;
+              }, 3000);
+            } catch (error) {
+              console.error('Error generating PDF:', error);
+            } finally {
+              this.isPrintingPdf = false;
             }
-
-            if (result.next?.departure?.length > 0) {
-              nextDepartures = result.next.departure;
-            }
-
-            // Compose the Fri–Thu departures (all groups, unfiltered)
-            const printDepartures = this.pdfService.getDeparturesForPrintWeek(
-              currentDepartures,
-              nextDepartures,
-              currentWeekId
-            );
-
-            // Get all group numbers
-            const groupNumbers = this.groupKeys.map((g: any) => g.number);
-
-            const pdfBytes = await this.pdfService.generateAllGroupsPdf(
-              printDepartures,
-              printRange.label,
-              mode,
-              groupNumbers
-            );
-
-            const modeLabel = mode === 'color' ? 'color' : 'bn';
-            const filename = `salidas_${currentWeekId}_todos_${modeLabel}.pdf`;
-            this.pdfService.downloadPdf(pdfBytes, filename);
-
+          },
+          error: (error: any) => {
+            console.error('Error fetching departures for PDF:', error);
             this.isPrintingPdf = false;
-            this.pdfGenerated = true;
-            
-            setTimeout(() => {
-              this.showPrintModal = false;
-              this.pdfGenerated = false;
-            }, 3000);
-          } catch (error) {
-            console.error('Error generating PDF:', error);
-          } finally {
-            this.isPrintingPdf = false;
-          }
-        },
-        error: (error: any) => {
-          console.error('Error fetching departures for PDF:', error);
-          this.isPrintingPdf = false;
-        },
-      });
+          },
+        });
     } catch (error) {
       console.error('Error generating PDF:', error);
       this.isPrintingPdf = false;

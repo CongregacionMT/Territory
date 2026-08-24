@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { getMessaging, getToken, onMessage, MessagePayload } from '@angular/fire/messaging';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MessagingService {
   constructor() {}
 
   requestPermission(): Promise<string> {
-    const messaging = getMessaging()
+    const messaging = getMessaging();
     let token = getToken(messaging);
     return token;
   }

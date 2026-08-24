@@ -3,14 +3,15 @@ import { Router } from '@angular/router';
 import { Card } from '@core/models/Card';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CardService {
   private router = inject(Router);
 
-  dataCard: Card;constructor() { 
+  dataCard: Card;
+  constructor() {
     this.dataCard = {
-      id: "0",
+      id: '0',
       location: '',
       numberTerritory: 0,
       iframe: '',
@@ -21,16 +22,16 @@ export class CardService {
       link: '',
       applesData: [],
       revision: false,
-      revisionComplete: false
-    }
+      revisionComplete: false,
+    };
   }
-  rollbackCard(){
+  rollbackCard() {
     this.dataCard.revision = false;
   }
 
-  goRevisionCard(card: Card){
+  goRevisionCard(card: Card) {
     card.revision = true;
     this.dataCard = card;
-    this.router.navigate([`territorios/${card.link}`])
+    this.router.navigate([`territorios/${card.link}`]);
   }
 }

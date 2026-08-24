@@ -2,7 +2,13 @@ import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/cor
 import { TerritoryDataService } from '../../../core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { DialogService } from '@core/services/dialog.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { User } from '@core/models/User';
@@ -26,10 +32,8 @@ export class UsersPageComponent {
   showError = signal<boolean>(false);
 
   users = toSignal(
-    this.territoryDataService.getUsers().pipe(
-      tap(() => this.spinner.cerrarSpinner())
-    ),
-    { initialValue: [] as User[] }
+    this.territoryDataService.getUsers().pipe(tap(() => this.spinner.cerrarSpinner())),
+    { initialValue: [] as User[] },
   );
 
   formUser: FormGroup;
@@ -70,10 +74,7 @@ export class UsersPageComponent {
   }
 
   createUser() {
-    if (
-      this.formUser.controls?.['user'].invalid ||
-      this.formUser.controls?.['password'].invalid
-    ) {
+    if (this.formUser.controls?.['user'].invalid || this.formUser.controls?.['password'].invalid) {
       this.showError.set(true);
     } else {
       this.territoryDataService.postUser(this.formUser.value);
@@ -86,13 +87,15 @@ export class UsersPageComponent {
   }
 
   deleteUser(idUser: string) {
-    this.dialogService.openDialog(
-      { title: 'Eliminar usuario', message: '¿Estás seguro de eliminar este usuario?' },
-      ConfirmDialogComponent
-    ).subscribe((confirmed) => {
-      if (confirmed) {
-        this.territoryDataService.deleteUser(idUser);
-      }
-    });
+    this.dialogService
+      .openDialog(
+        { title: 'Eliminar usuario', message: '¿Estás seguro de eliminar este usuario?' },
+        ConfirmDialogComponent,
+      )
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.territoryDataService.deleteUser(idUser);
+        }
+      });
   }
 }

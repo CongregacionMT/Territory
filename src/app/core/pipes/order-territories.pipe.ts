@@ -2,10 +2,12 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'orderTerritories',
-  standalone: true
+  standalone: true,
 })
 export class OrderTerritoriesPipe implements PipeTransform {
-  transform(territorios: { nombre: string; porcentaje: number }[]): { nombre: string; porcentaje: number }[] {
+  transform(
+    territorios: { nombre: string; porcentaje: number }[],
+  ): { nombre: string; porcentaje: number }[] {
     if (!territorios) return [];
     return [...territorios].sort((a, b) => {
       const numA = parseInt(a.nombre.replace('Territorio ', ''), 10);

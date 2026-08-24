@@ -64,7 +64,11 @@ export class TerritoryMapService {
     return this.map;
   }
 
-  async loadKml(map: any, kmlUrl: string, markerOverrides?: Record<string, MarkerOverride>): Promise<void> {
+  async loadKml(
+    map: any,
+    kmlUrl: string,
+    markerOverrides?: Record<string, MarkerOverride>,
+  ): Promise<void> {
     try {
       const response = await fetch(kmlUrl);
       if (!response.ok) {
@@ -77,14 +81,10 @@ export class TerritoryMapService {
       const geoJson = toGeoJSON.kml(kmlDom);
 
       // Separate Point features from Polygon/LineString features
-      const pointFeatures = geoJson.features.filter(
-        (f: any) => f.geometry.type === 'Point'
-      );
+      const pointFeatures = geoJson.features.filter((f: any) => f.geometry.type === 'Point');
       const nonPointFeatures = {
         ...geoJson,
-        features: geoJson.features.filter(
-          (f: any) => f.geometry.type !== 'Point'
-        ),
+        features: geoJson.features.filter((f: any) => f.geometry.type !== 'Point'),
       };
 
       // Add polygons/lines to map.data
@@ -112,7 +112,7 @@ export class TerritoryMapService {
 
       // Create AdvancedMarkerElements for Point features
       const { AdvancedMarkerElement, PinElement } = (await google.maps.importLibrary(
-        'marker'
+        'marker',
       )) as any;
 
       const infoWindow = new google.maps.InfoWindow();
@@ -134,7 +134,7 @@ export class TerritoryMapService {
           // Automagically extract number from name (e.g. "Punto 2" -> "2", "1" -> "1")
           const numberMatch = name.match(/\d+/);
           const defaultGlyph = numberMatch ? numberMatch[0] : undefined;
-          
+
           // Use a friendly blue color for numbered markers if no override is provided, otherwise fallback to KML color
           const bg = override?.color ?? (defaultGlyph ? '#1a73e8' : iconColor);
 
@@ -159,7 +159,7 @@ export class TerritoryMapService {
         marker.addListener('click', () => {
           if (name) {
             infoWindow.setContent(
-              `<div style="padding:4px 8px;"><strong style="font-size:14px;">${name}</strong></div>`
+              `<div style="padding:4px 8px;"><strong style="font-size:14px;">${name}</strong></div>`,
             );
             infoWindow.open(map, marker);
           }
@@ -173,7 +173,7 @@ export class TerritoryMapService {
         const name = event.feature.getProperty('name');
         if (name) {
           infoWindow.setContent(
-            `<div style="padding:4px 8px;"><strong style="font-size:14px;">${name}</strong></div>`
+            `<div style="padding:4px 8px;"><strong style="font-size:14px;">${name}</strong></div>`,
           );
           infoWindow.setPosition(event.latLng);
           infoWindow.open(map);
@@ -239,9 +239,7 @@ export class TerritoryMapService {
 
     if (!this.map) return;
 
-    const { AdvancedMarkerElement } = (await google.maps.importLibrary(
-      'marker'
-    )) as any;
+    const { AdvancedMarkerElement } = (await google.maps.importLibrary('marker')) as any;
 
     // Create pulsing blue dot element
     this.userLocationDot = this.createUserLocationElement();
@@ -271,7 +269,7 @@ export class TerritoryMapService {
         enableHighAccuracy: true,
         maximumAge: 10000,
         timeout: 5000,
-      }
+      },
     );
   }
 

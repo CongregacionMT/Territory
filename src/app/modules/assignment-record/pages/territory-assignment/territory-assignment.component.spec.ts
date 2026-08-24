@@ -8,8 +8,8 @@ describe('TerritoryAssignmentComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [TerritoryAssignmentComponent]
-});
+      imports: [TerritoryAssignmentComponent],
+    });
     fixture = TestBed.createComponent(TerritoryAssignmentComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

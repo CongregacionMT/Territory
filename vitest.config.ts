@@ -15,9 +15,9 @@ export default defineConfig({
     },
     server: {
       deps: {
-        inline: ['rxfire', '@angular/fire', 'firebase']
-      }
-    }
+        inline: ['rxfire', '@angular/fire', 'firebase'],
+      },
+    },
   },
   resolve: {
     alias: {

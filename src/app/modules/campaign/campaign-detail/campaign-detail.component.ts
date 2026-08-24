@@ -1,11 +1,5 @@
 import { DatePipe, NgClass } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TerritorioStats } from '@core/models/TerritorioStats';
 import { CampaignService } from '@core/services/campaign.service';
@@ -46,7 +40,7 @@ export class CampaignDetailComponent implements OnInit {
   missingInvitations: number | null = null;
   departuresCount = 0;
   finalComments = '';
-  
+
   territoriosPorLocalidad = signal<LocalityGroup[]>([]);
 
   constructor(
@@ -82,15 +76,36 @@ export class CampaignDetailComponent implements OnInit {
 
           if (sortedLocalities.length > 0) {
             sortedLocalities.forEach((loc) => {
-              gruposMap.set(loc.territoryPrefix, { name: loc.name, territories: [], completed: 0, total: 0, percent: 0, applesDone: 0, applesTotal: 0 });
+              gruposMap.set(loc.territoryPrefix, {
+                name: loc.name,
+                territories: [],
+                completed: 0,
+                total: 0,
+                percent: 0,
+                applesDone: 0,
+                applesTotal: 0,
+              });
             });
           } else {
             gruposMap.set(environment.territoryPrefix, {
               name: environment.congregationName,
-              territories: [], completed: 0, total: 0, percent: 0, applesDone: 0, applesTotal: 0
+              territories: [],
+              completed: 0,
+              total: 0,
+              percent: 0,
+              applesDone: 0,
+              applesTotal: 0,
             });
           }
-          gruposMap.set('OTROS', { name: 'Otros Territorios', territories: [], completed: 0, total: 0, percent: 0, applesDone: 0, applesTotal: 0 });
+          gruposMap.set('OTROS', {
+            name: 'Otros Territorios',
+            territories: [],
+            completed: 0,
+            total: 0,
+            percent: 0,
+            applesDone: 0,
+            applesTotal: 0,
+          });
 
           const territoriosMapped = Object.keys(stats)
             .filter((k) => k !== 'global' && !k.includes('undefined'))
@@ -116,14 +131,15 @@ export class CampaignDetailComponent implements OnInit {
                 const match = sortedLocalities.find((loc) => k.startsWith(loc.territoryPrefix));
                 if (match) matchedPrefix = match.territoryPrefix;
               } else {
-                if (k.startsWith(environment.territoryPrefix)) matchedPrefix = environment.territoryPrefix;
+                if (k.startsWith(environment.territoryPrefix))
+                  matchedPrefix = environment.territoryPrefix;
               }
 
               const group = gruposMap.get(matchedPrefix);
               if (group) {
                 group.territories.push(t);
-                group.applesDone += (stats[k].done || 0);
-                group.applesTotal += (stats[k].total || 0);
+                group.applesDone += stats[k].done || 0;
+                group.applesTotal += stats[k].total || 0;
               }
 
               return t;
@@ -148,8 +164,11 @@ export class CampaignDetailComponent implements OnInit {
               });
               group.completed = group.territories.filter((t: any) => t.porcentaje === 100).length;
               group.total = group.territories.length;
-              group.percent = group.applesTotal > 0 ? Math.round((group.applesDone / group.applesTotal) * 100) : 0;
-              
+              group.percent =
+                group.applesTotal > 0
+                  ? Math.round((group.applesDone / group.applesTotal) * 100)
+                  : 0;
+
               this.manzanasCompletadas += group.applesDone;
               this.manzanasTotales += group.applesTotal;
 
@@ -163,13 +182,11 @@ export class CampaignDetailComponent implements OnInit {
           this.territoriosCompletados = territoriosMapped.filter(
             (t) => t.porcentaje === 100,
           ).length;
-          this.territorioPercent = this.manzanasTotales > 0 
-            ? Math.round((this.manzanasCompletadas / this.manzanasTotales) * 100) 
-            : 0;
-          this.salidasTotales = territoriosMapped.reduce(
-            (acc, t) => acc + t.salidas,
-            0,
-          );
+          this.territorioPercent =
+            this.manzanasTotales > 0
+              ? Math.round((this.manzanasCompletadas / this.manzanasTotales) * 100)
+              : 0;
+          this.salidasTotales = territoriosMapped.reduce((acc, t) => acc + t.salidas, 0);
         }
       }
     } finally {

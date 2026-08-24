@@ -1,17 +1,30 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, inject, OnInit, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { User } from '@core/models/User';
 
 @Component({
-    selector: 'app-login-page',
-    templateUrl: './login-page.component.html',
-    styleUrls: ['./login-page.component.scss'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ReactiveFormsModule]
+  selector: 'app-login-page',
+  templateUrl: './login-page.component.html',
+  styleUrls: ['./login-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule],
 })
 export class LoginPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
@@ -23,55 +36,68 @@ export class LoginPageComponent implements OnInit {
   loginError = signal(false);
 
   formLogin: FormGroup;
-  user = "";
-  password = "";
+  user = '';
+  password = '';
   passwordVisible = signal(false);
 
   constructor() {
     this.formLogin = this.fb.group({
       user: new FormControl('', [Validators.required]),
-      password: new FormControl('', [Validators.required])
+      password: new FormControl('', [Validators.required]),
     });
   }
 
   ngOnInit(): void {
-    this.formLogin.get('user')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => {
-      const lower = value;
-      if (value !== lower) {
-        this.formLogin.get('user')?.setValue(lower, { emitEvent: false });
-      }
-    });
+    this.formLogin
+      .get('user')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        const lower = value;
+        if (value !== lower) {
+          this.formLogin.get('user')?.setValue(lower, { emitEvent: false });
+        }
+      });
   }
 
-  async loginWhitUser(){
+  async loginWhitUser() {
     this.spinner.cargarSpinner();
     this.loginError.set(false);
-    this.territoryDataService.loginUser(
-      this.formLogin.value.user,
-      this.formLogin.value.password
-    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user: User[]) => {
-      if(user.length !== 0){
-        if(user[0].rol === "admin"){
-          localStorage.setItem("tokenAdmin", "lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa");
+    this.territoryDataService
+      .loginUser(this.formLogin.value.user, this.formLogin.value.password)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user: User[]) => {
+        if (user.length !== 0) {
+          if (user[0].rol === 'admin') {
+            localStorage.setItem(
+              'tokenAdmin',
+              'lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa',
+            );
+          } else {
+            localStorage.setItem(
+              'tokenConductor',
+              'ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk',
+            );
+          }
+          localStorage.setItem(user[0].user, JSON.stringify(user[0]));
+          localStorage.setItem('nombreConductor', user[0].user);
+          this.router.navigate(['home']);
+          this.spinner.cerrarSpinner();
         } else {
-          localStorage.setItem("tokenConductor", "ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk");
+          // Error handling
+          this.loginError.set(true);
+          this.spinner.cerrarSpinner();
         }
-        localStorage.setItem(user[0].user, JSON.stringify(user[0]));
-        localStorage.setItem('nombreConductor', user[0].user);
-        this.router.navigate(['home']);
-        this.spinner.cerrarSpinner();
-      } else {
-        // Error handling
-        this.loginError.set(true);
-        this.spinner.cerrarSpinner();
-      }
-    })
+      });
   }
 
   togglePasswordVisibility(): void {
-    this.passwordVisible.set(!this.passwordVisible())
+    this.passwordVisible.set(!this.passwordVisible());
   }
 
-  get User(){return this.formLogin.get('user');}
-  get Password(){return this.formLogin.get('password');}
+  get User() {
+    return this.formLogin.get('user');
+  }
+  get Password() {
+    return this.formLogin.get('password');
+  }
 }

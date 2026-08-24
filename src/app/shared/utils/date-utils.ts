@@ -15,7 +15,7 @@ export function getWeekId(date: Date): string {
 
 export function formatWeekRange(dateString: string): string {
   if (!dateString) return '';
-  
+
   let date: Date;
   if (dateString === 'actual') {
     date = new Date();
@@ -31,8 +31,18 @@ export function formatWeekRange(dateString: string): string {
   sunday.setDate(monday.getDate() + 6);
 
   const months = [
-    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
   ];
 
   return `${monday.getDate()} de ${months[monday.getMonth()]} al ${sunday.getDate()} de ${months[sunday.getMonth()]}`;

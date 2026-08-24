@@ -5,13 +5,14 @@
     size: A4 portrait;
     margin: 5mm;
   }
-  
-  body, html {
+
+  body,
+  html {
     background: white !important;
     color: black !important;
     font-size: 12px !important;
   }
-  
+
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;

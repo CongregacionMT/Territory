@@ -10,17 +10,39 @@ export const ROUTES: Routes = [
     children: [
       { path: '', component: AssignmentRecordPageComponent },
       { path: 'urbano', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Urbano' } },
-      { path: 'wheelwright', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Wheelwright' } },
+      {
+        path: 'wheelwright',
+        component: TerritoryAssignmentComponent,
+        data: { breadcrumb: 'Wheelwright' },
+      },
       { path: 'hughes', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Hughes' } },
-      { path: 'labordeboy', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Labordeboy' } },
-      { path: 'villa-estela', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Villa Estela' } },
+      {
+        path: 'labordeboy',
+        component: TerritoryAssignmentComponent,
+        data: { breadcrumb: 'Labordeboy' },
+      },
+      {
+        path: 'villa-estela',
+        component: TerritoryAssignmentComponent,
+        data: { breadcrumb: 'Villa Estela' },
+      },
       { path: 'arias', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Arias' } },
-      { path: 'mariaTeresa', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Maria Teresa' } },
-      { path: 'christophersen', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Christophersen' } },
+      {
+        path: 'mariaTeresa',
+        component: TerritoryAssignmentComponent,
+        data: { breadcrumb: 'Maria Teresa' },
+      },
+      {
+        path: 'christophersen',
+        component: TerritoryAssignmentComponent,
+        data: { breadcrumb: 'Christophersen' },
+      },
       { path: 'rural', component: TerritoryAssignmentComponent, data: { breadcrumb: 'Rural' } },
-      { path: 'urbano/:collection', component: NumberTerritoryComponent, data: { breadcrumb: 'Territorio' } }
+      {
+        path: 'urbano/:collection',
+        component: NumberTerritoryComponent,
+        data: { breadcrumb: 'Territorio' },
+      },
     ],
-  }
+  },
 ];
-
-

@@ -10,7 +10,4 @@ export const ROUTES: Routes = [
       { path: '**', redirectTo: '' },
     ],
   },
-
 ];
-
-

@@ -6,7 +6,7 @@ import { filter, switchMap } from 'rxjs';
 import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PwaService {
   private swUpdate = inject(SwUpdate);
@@ -40,7 +40,7 @@ export class PwaService {
           });
           return snack.onAction();
         }),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.swUpdate.activateUpdate().then(() => window.location.reload());
@@ -55,8 +55,9 @@ export class PwaService {
     this._isIos.set(/iphone|ipad|ipod/.test(userAgent));
 
     // Check if standalone (installed)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         ((window.navigator as any).standalone === true);
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
 
     if (isStandalone) {
       this._btnPWA.set(false);
@@ -78,23 +79,27 @@ export class PwaService {
 
   installPWA(): void {
     if (this._isIos()) {
-      this._snackBar.open('Para instalar en iOS: Presiona "Compartir" y de las opciones elige "Agregar a Inicio" 📲', 'Ok', {
-        duration: 8000,
-        verticalPosition: 'bottom',
-        horizontalPosition: 'center'
-      });
+      this._snackBar.open(
+        'Para instalar en iOS: Presiona "Compartir" y de las opciones elige "Agregar a Inicio" 📲',
+        'Ok',
+        {
+          duration: 8000,
+          verticalPosition: 'bottom',
+          horizontalPosition: 'center',
+        },
+      );
       return;
     }
 
     if (!this.deferredPrompt) {
       this._snackBar.open(
-        'Para instalar la app: busca la opción "Instalar aplicación" o "Añadir a pantalla de inicio" en el menú de tu navegador (⋮).', 
-        'Ok', 
+        'Para instalar la app: busca la opción "Instalar aplicación" o "Añadir a pantalla de inicio" en el menú de tu navegador (⋮).',
+        'Ok',
         {
           duration: 8000,
           verticalPosition: 'bottom',
-          horizontalPosition: 'center'
-        }
+          horizontalPosition: 'center',
+        },
       );
       return;
     }

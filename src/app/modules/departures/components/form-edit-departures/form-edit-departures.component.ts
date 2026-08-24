@@ -10,7 +10,7 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  DestroyRef
+  DestroyRef,
 } from '@angular/core';
 import {
   AbstractControl,
@@ -24,10 +24,7 @@ import { NgClass } from '@angular/common';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Departure } from '../../../../core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
-import {
-  MatSnackBar,
-  MatSnackBarVerticalPosition,
-} from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
@@ -71,7 +68,7 @@ export class FormEditDeparturesComponent implements OnInit {
   isSaved: boolean = false;
   isAdmin: boolean = false;
   activeModal: { dayIndex: number; groupKey: number } | null = null;
-  
+
   get activeModalDays(): AbstractControl | null {
     if (!this.activeModal) return null;
     const controls = this.filterControlsByGroup(this.activeModal.groupKey);
@@ -100,7 +97,8 @@ export class FormEditDeparturesComponent implements OnInit {
     dark: '#0f172a',
   };
 
-  private readonly CARD_TRACKING_START_DATE = '2026-05-11';constructor() {
+  private readonly CARD_TRACKING_START_DATE = '2026-05-11';
+  constructor() {
     this.isAdmin = this.authService.isAdmin();
     this.formDeparture = this.fb.group({
       departure0: new FormArray([]),
@@ -174,9 +172,7 @@ export class FormEditDeparturesComponent implements OnInit {
       }
 
       // Normalizar location
-      const locality = this.localities.find(
-        (l) => l.key === departure.location,
-      );
+      const locality = this.localities.find((l) => l.key === departure.location);
       const normalizedLocation = locality
         ? locality.territoryPrefix
         : departure.location || 'Seleccionar localidad';
@@ -197,9 +193,7 @@ export class FormEditDeparturesComponent implements OnInit {
           isEvent: new FormControl(departure.isEvent || false),
           title: new FormControl(departure.title || ''),
           cardStatus: new FormControl(
-            departure.isEvent
-              ? 'not_required'
-              : departure.cardStatus || 'pending',
+            departure.isEvent ? 'not_required' : departure.cardStatus || 'pending',
           ),
         }),
       );
@@ -216,7 +210,8 @@ export class FormEditDeparturesComponent implements OnInit {
     } else {
       this.territoryDataService
         .getNumberTerritory()
-        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((numbers: TerritoryNumberData[]) => {
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((numbers: TerritoryNumberData[]) => {
           const mergedData = numbers.reduce((acc: any, curr: any) => {
             return { ...acc, ...curr };
           }, {});
@@ -231,20 +226,14 @@ export class FormEditDeparturesComponent implements OnInit {
         const rawData = data[loc.key] || [];
         const numbers = rawData
           .map((item: any) => {
-            if (
-              typeof item === 'object' &&
-              item !== null &&
-              'territorio' in item
-            ) {
+            if (typeof item === 'object' && item !== null && 'territorio' in item) {
               return item.territorio;
             }
             return item;
           })
           .filter((n: any) => typeof n === 'number' || !isNaN(Number(n)));
 
-        const sorted = numbers.sort(
-          (a: number, b: number) => Number(a) - Number(b),
-        );
+        const sorted = numbers.sort((a: number, b: number) => Number(a) - Number(b));
         const options = sorted.map((n: number) => `N°${n}`);
 
         this.territoryOptionsMap[loc.territoryPrefix] = options;
@@ -282,7 +271,9 @@ export class FormEditDeparturesComponent implements OnInit {
     for (const loc of this.localities) {
       if (loc.hasNumberedTerritories) {
         const rawData = data[loc.key] || [];
-        const territories = rawData.filter((t: any) => t && typeof t === 'object' && t.collection && t.territorio);
+        const territories = rawData.filter(
+          (t: any) => t && typeof t === 'object' && t.collection && t.territorio,
+        );
         if (territories.length > 0) {
           promises.push(this.loadTerritoryCompletionData(loc, territories));
         }
@@ -299,8 +290,12 @@ export class FormEditDeparturesComponent implements OnInit {
 
     const path = loc.key;
     const suffix = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
-    
-    const storageKeys = [`statisticData${suffix}_6`, `statisticData${suffix}_12`, `statisticData${suffix}_24`];
+
+    const storageKeys = [
+      `statisticData${suffix}_6`,
+      `statisticData${suffix}_12`,
+      `statisticData${suffix}_24`,
+    ];
     for (const key of storageKeys) {
       const cachedData = sessionStorage.getItem(key);
       if (cachedData) {
@@ -320,7 +315,11 @@ export class FormEditDeparturesComponent implements OnInit {
                 }
                 if (lastEnd) {
                   const today = new Date();
-                  const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                  const dateToday = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    today.getDate(),
+                  );
                   let dateCard: Date;
                   if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
                     dateCard = new Date(lastEnd);
@@ -350,71 +349,86 @@ export class FormEditDeparturesComponent implements OnInit {
       }
     }
 
-    const promises = territories.map((t: any) =>
-      new Promise<void>((resolve) => {
-        this.territoryDataService.getCardTerritorie(t.collection, 120).pipe(take(1)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(cards => {
-          let lastEnd = null;
-          for (const c of cards) {
-            if (c.end) {
-              lastEnd = c.end;
-              break;
-            }
-          }
-          if (lastEnd) {
-            const today = new Date();
-            const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            let dateCard: Date;
-            if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
-              dateCard = new Date(lastEnd);
-            } else if (lastEnd && typeof (lastEnd as any).toDate === 'function') {
-              dateCard = (lastEnd as any).toDate();
-            } else if (lastEnd && typeof (lastEnd as any).seconds === 'number') {
-              dateCard = new Date((lastEnd as any).seconds * 1000);
-            } else {
-              dateCard = new Date(lastEnd);
-            }
+    const promises = territories.map(
+      (t: any) =>
+        new Promise<void>((resolve) => {
+          this.territoryDataService
+            .getCardTerritorie(t.collection, 120)
+            .pipe(take(1))
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((cards) => {
+              let lastEnd = null;
+              for (const c of cards) {
+                if (c.end) {
+                  lastEnd = c.end;
+                  break;
+                }
+              }
+              if (lastEnd) {
+                const today = new Date();
+                const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                let dateCard: Date;
+                if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
+                  dateCard = new Date(lastEnd);
+                } else if (lastEnd && typeof (lastEnd as any).toDate === 'function') {
+                  dateCard = (lastEnd as any).toDate();
+                } else if (lastEnd && typeof (lastEnd as any).seconds === 'number') {
+                  dateCard = new Date((lastEnd as any).seconds * 1000);
+                } else {
+                  dateCard = new Date(lastEnd);
+                }
 
-            if (!isNaN(dateCard.getTime())) {
-              const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
-              const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-              this.territoryLastCompletedDays[locationPrefix][t.territorio] = days;
-            } else {
-              this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
-            }
-          } else {
-            this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
-          }
-          resolve();
-        });
-      })
+                if (!isNaN(dateCard.getTime())) {
+                  const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
+                  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                  this.territoryLastCompletedDays[locationPrefix][t.territorio] = days;
+                } else {
+                  this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
+                }
+              } else {
+                this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
+              }
+              resolve();
+            });
+        }),
     );
     await Promise.all(promises);
   }
 
   loadDrivers() {
-    this.territoryDataService.getUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((users) => {
-      this.drivers.set(users.sort((a, b) => a.user.localeCompare(b.user)));
-    });
+    this.territoryDataService
+      .getUsers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((users) => {
+        this.drivers.set(users.sort((a, b) => a.user.localeCompare(b.user)));
+      });
   }
 
   loadPersonalAssignments() {
     this.territoryDataService
       .getCardAssigned()
-      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((cards) => (this.personalAssignments = cards || []));
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((cards) => (this.personalAssignments = cards || []));
   }
 
   loadWeeklyHistory() {
-    this.territoryDataService.getWeeklyDepartures().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((history) => {
-      this.weeklyHistory = history;
-    });
+    this.territoryDataService
+      .getWeeklyDepartures()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((history) => {
+        this.weeklyHistory = history;
+      });
   }
 
   loadTerritoryGroups() {
-    this.territoryDataService.getTerritoryGroups().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data: any) => {
-      if (!data) return;
-      // data shape: { [locationPrefix]: { [territoryNum]: groupNumber } }
-      this.territoryGroupsMap = data;
-    });
+    this.territoryDataService
+      .getTerritoryGroups()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: any) => {
+        if (!data) return;
+        // data shape: { [locationPrefix]: { [territoryNum]: groupNumber } }
+        this.territoryGroupsMap = data;
+      });
   }
 
   async saveTerritoryGroups() {
@@ -430,9 +444,9 @@ export class FormEditDeparturesComponent implements OnInit {
     if (locMap && locMap[n] !== undefined) return locMap[n];
     // fallback: check by alternate location names
     for (const loc of this.localities) {
-      const names = [loc.territoryPrefix, loc.key, loc.name].map(s => s?.toLowerCase());
+      const names = [loc.territoryPrefix, loc.key, loc.name].map((s) => s?.toLowerCase());
       const locationNames = this.getLocationNames(locationPrefix);
-      if (locationNames.some(name => names.includes(name))) {
+      if (locationNames.some((name) => names.includes(name))) {
         const altMap = this.territoryGroupsMap[loc.territoryPrefix];
         if (altMap && altMap[n] !== undefined) return altMap[n];
       }
@@ -460,17 +474,15 @@ export class FormEditDeparturesComponent implements OnInit {
    */
   getAvailableGroupNumbers(locationPrefix: string): number[] {
     const locMap = this.territoryGroupsMap[locationPrefix] || {};
-    const nums = new Set<number>(Object.values(locMap).filter(v => v > 0));
+    const nums = new Set<number>(Object.values(locMap).filter((v) => v > 0));
     return Array.from(nums).sort((a, b) => a - b);
   }
 
   getTerritoryList(locationPrefix: string): string[] {
-    if (!locationPrefix || locationPrefix === 'Seleccionar localidad')
-      return [];
+    if (!locationPrefix || locationPrefix === 'Seleccionar localidad') return [];
 
     // If exact match found
-    if (this.territoryOptionsMap[locationPrefix])
-      return this.territoryOptionsMap[locationPrefix];
+    if (this.territoryOptionsMap[locationPrefix]) return this.territoryOptionsMap[locationPrefix];
 
     // Fallback: search by checking against all prefixes if logic is complex,
     // but here we just return empty or default.
@@ -480,11 +492,7 @@ export class FormEditDeparturesComponent implements OnInit {
     return [];
   }
 
-  getFilteredTerritoryList(
-    locationPrefix: string,
-    index: number,
-    group: number,
-  ): string[] {
+  getFilteredTerritoryList(locationPrefix: string, index: number, group: number): string[] {
     return this.getTerritoryList(locationPrefix)
       .filter((num) => {
         // Always show already-checked territories
@@ -495,7 +503,8 @@ export class FormEditDeparturesComponent implements OnInit {
           if (assignedGroup > 0 && assignedGroup !== this.selectedTerritoryGroup) return false;
         }
         // Filter personal territories
-        if (!this.showPersonalTerritories && this.isPersonalTerritory(num, locationPrefix)) return false;
+        if (!this.showPersonalTerritories && this.isPersonalTerritory(num, locationPrefix))
+          return false;
         return true;
       })
       .sort((a, b) => {
@@ -505,8 +514,14 @@ export class FormEditDeparturesComponent implements OnInit {
         if (aUsed !== bUsed) return aUsed - bUsed;
 
         // Territorios personales — al final (antes de los ya elegidos)
-        const aPersonal = this.isPersonalTerritory(a, locationPrefix) && !this.isTerritoryChecked(a, index, group) ? 1 : 0;
-        const bPersonal = this.isPersonalTerritory(b, locationPrefix) && !this.isTerritoryChecked(b, index, group) ? 1 : 0;
+        const aPersonal =
+          this.isPersonalTerritory(a, locationPrefix) && !this.isTerritoryChecked(a, index, group)
+            ? 1
+            : 0;
+        const bPersonal =
+          this.isPersonalTerritory(b, locationPrefix) && !this.isTerritoryChecked(b, index, group)
+            ? 1
+            : 0;
         if (aPersonal !== bPersonal) return aPersonal - bPersonal;
 
         if (this.sortByAge) {
@@ -577,9 +592,7 @@ export class FormEditDeparturesComponent implements OnInit {
         if (group === currentGroup && index === currentIndex) return false;
         const controlLocation = String(control.get('location')?.value || '');
         const controlLocationNames = this.getLocationNames(controlLocation);
-        const sameLocation = locationNames.some((name) =>
-          controlLocationNames.includes(name),
-        );
+        const sameLocation = locationNames.some((name) => controlLocationNames.includes(name));
         if (!sameLocation) return false;
 
         return this.getTerritories(control).some(
@@ -619,14 +632,11 @@ export class FormEditDeparturesComponent implements OnInit {
 
   getCardStatusClass(dayGroup: AbstractControl): string {
     const isEvent = dayGroup.get('isEvent')?.value;
-    if (isEvent) 
-      return 'bg-slate-500/20 text-slate-300 border border-slate-500/30';
+    if (isEvent) return 'bg-slate-500/20 text-slate-300 border border-slate-500/30';
     const status = dayGroup.get('cardStatus')?.value;
-    if (status === 'received') 
-      return 'bg-green-500/20 text-green-300 border border-green-500/30';
+    if (status === 'received') return 'bg-green-500/20 text-green-300 border border-green-500/30';
     return 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
   }
-
 
   isBeforeTrackingStart(dateStr: string): boolean {
     if (!dateStr) return false;
@@ -658,15 +668,21 @@ export class FormEditDeparturesComponent implements OnInit {
 
     let foundDays = Infinity;
 
-    if (this.territoryLastCompletedDays[locationPrefix] && 
-        this.territoryLastCompletedDays[locationPrefix][territoryNumber] !== undefined) {
+    if (
+      this.territoryLastCompletedDays[locationPrefix] &&
+      this.territoryLastCompletedDays[locationPrefix][territoryNumber] !== undefined
+    ) {
       foundDays = this.territoryLastCompletedDays[locationPrefix][territoryNumber];
     } else {
       for (const loc of this.localities) {
-        if (locationNames.includes(loc.territoryPrefix.toLowerCase()) || 
-            locationNames.includes(loc.key.toLowerCase())) {
-          if (this.territoryLastCompletedDays[loc.territoryPrefix] && 
-              this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber] !== undefined) {
+        if (
+          locationNames.includes(loc.territoryPrefix.toLowerCase()) ||
+          locationNames.includes(loc.key.toLowerCase())
+        ) {
+          if (
+            this.territoryLastCompletedDays[loc.territoryPrefix] &&
+            this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber] !== undefined
+          ) {
             foundDays = this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber];
             break;
           }
@@ -720,9 +736,7 @@ export class FormEditDeparturesComponent implements OnInit {
 
   getCurrentDepartureControl(index: number, group: number): AbstractControl | null {
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     return departureFormArrayItem?.at(index) ?? null;
   }
 
@@ -843,9 +857,7 @@ export class FormEditDeparturesComponent implements OnInit {
 
   onToggleCardReceived(index: number, group: number, checked: boolean): void {
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     const control = departureFormArrayItem?.at(index);
     if (!control) return;
 
@@ -858,7 +870,7 @@ export class FormEditDeparturesComponent implements OnInit {
       const departureGroupKey = `departure${group}`;
       const groupArray = this.formDeparture.get(departureGroupKey) as FormArray;
       if (!groupArray) continue;
-      
+
       for (let i = 0; i < groupArray.length; i++) {
         const control = groupArray.at(i);
         if (
@@ -911,9 +923,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   filterControlsByGroup(group: number) {
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     return departureFormArrayItem?.controls || [];
   }
   getGroupTitle(group: number | 'generales'): string {
@@ -927,14 +937,12 @@ export class FormEditDeparturesComponent implements OnInit {
 
   getDepartureTitle(dateStr: string, scheduleStr: string): string {
     if (!dateStr) return 'Salida sin fecha';
-    
+
     // Parse date (add time to prevent timezone shifts)
     const date = new Date(dateStr + 'T00:00:00');
     if (isNaN(date.getTime())) return 'Fecha inválida';
 
-    const daysOfWeek = [
-      'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
-    ];
+    const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const dayName = daysOfWeek[date.getDay()];
 
     let timeLabel = '';
@@ -957,9 +965,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   onChangeInput(e: any, key: string, index: number, group: number) {
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     const control = departureFormArrayItem.at(index);
 
     if (control) {
@@ -976,9 +982,7 @@ export class FormEditDeparturesComponent implements OnInit {
   onChangeColor(event: any, index: number, group: number) {
     this.isSaved = false;
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     const control = departureFormArrayItem.at(index);
     if (control) {
       control.get('color')?.setValue(event.target.value);
@@ -987,9 +991,7 @@ export class FormEditDeparturesComponent implements OnInit {
   onChangeCheckbox(e: any, key: string, index: number, group: number) {
     this.isSaved = false;
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     const control = departureFormArrayItem.at(index);
     if (control) {
       if (key === 'isEvent') {
@@ -1065,9 +1067,7 @@ export class FormEditDeparturesComponent implements OnInit {
         this.formDeparture.setControl(departureGroupKey, this.fb.array([]));
       }
 
-      const departureFormArrayItem = this.formDeparture.get(
-        departureGroupKey,
-      ) as FormArray;
+      const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
 
       departureFormArrayItem.push(
         this.fb.group({
@@ -1085,9 +1085,7 @@ export class FormEditDeparturesComponent implements OnInit {
           isEvent: new FormControl(departure.isEvent || false),
           title: new FormControl(departure.title || ''),
           cardStatus: new FormControl(
-            departure.isEvent
-              ? 'not_required'
-              : departure.cardStatus || 'pending',
+            departure.isEvent ? 'not_required' : departure.cardStatus || 'pending',
           ),
         }),
       );
@@ -1164,10 +1162,7 @@ export class FormEditDeparturesComponent implements OnInit {
         return;
       }
       const date = new Date(d.date + 'T00:00:00');
-      if (
-        isNaN(date.getTime()) ||
-        (date >= targetMonday && date <= targetSunday)
-      ) {
+      if (isNaN(date.getTime()) || (date >= targetMonday && date <= targetSunday)) {
         weeklyOnly.push(d);
       } else {
         // Esta salida pertenece a otra semana: calcular su lunes
@@ -1207,16 +1202,15 @@ export class FormEditDeparturesComponent implements OnInit {
       this.territoryDataService
         .getWeeklyDeparture(otherWeekId)
         .pipe(take(1))
-        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((existing) => {
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((existing) => {
           const existingDepartures = existing?.departure || [];
           // Combinar sin duplicar (evitar agregar si ya existe)
           const merged = [...existingDepartures];
           newDepartures.forEach((nd) => {
             const alreadyExists = existingDepartures.some(
               (ed: Departure) =>
-                ed.date === nd.date &&
-                ed.driver === nd.driver &&
-                ed.schedule === nd.schedule,
+                ed.date === nd.date && ed.driver === nd.driver && ed.schedule === nd.schedule,
             );
             if (!alreadyExists) {
               merged.push(nd);

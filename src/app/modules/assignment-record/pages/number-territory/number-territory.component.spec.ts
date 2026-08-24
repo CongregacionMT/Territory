@@ -8,9 +8,8 @@ describe('NumberTerritoryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [NumberTerritoryComponent]
-})
-    .compileComponents();
+      imports: [NumberTerritoryComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

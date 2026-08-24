@@ -1,9 +1,14 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import {
+  CdkDragDrop,
+  DragDropModule,
+  moveItemInArray,
+  transferArrayItem,
+} from '@angular/cdk/drag-drop';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { Group, Publisher } from '@core/models/Group';
@@ -15,13 +20,15 @@ import { AuthService } from '@core/services/auth.service';
   imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './manage-publishers.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ['./manage-publishers.component.scss']
+  styleUrls: ['./manage-publishers.component.scss'],
 })
 export class ManagePublishersComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
-  private router = inject(Router);  private authService = inject(AuthService);  groups: Group[] = [];
+  private router = inject(Router);
+  private authService = inject(AuthService);
+  groups: Group[] = [];
   newPublisherName: { [groupId: string]: string } = {};
 
   ngOnInit(): void {
@@ -33,44 +40,47 @@ export class ManagePublishersComponent implements OnInit {
 
     // Initialize groups as empty array to prevent iterator errors
     this.groups = [];
-    
+
     this.loadGroups();
   }
 
   loadGroups(): void {
     this.spinner.cargarSpinner();
-    this.territoryDataService.getGroupList().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data: Group[]) => {
-        // Firestore returns an array of documents with id field
-        if (Array.isArray(data)) {
-          this.groups = data.map(group => ({
-            id: group.id,
-            publishers: Array.isArray(group.publishers) ? group.publishers : []
-          }));
-        } else {
+    this.territoryDataService
+      .getGroupList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data: Group[]) => {
+          // Firestore returns an array of documents with id field
+          if (Array.isArray(data)) {
+            this.groups = data.map((group) => ({
+              id: group.id,
+              publishers: Array.isArray(group.publishers) ? group.publishers : [],
+            }));
+          } else {
+            this.groups = [];
+          }
+
+          // Sort groups by number
+          this.groups.sort((a, b) => {
+            const numA = parseInt(a.id.replace('Grupo ', '')) || 0;
+            const numB = parseInt(b.id.replace('Grupo ', '')) || 0;
+            return numA - numB;
+          });
+
+          this.spinner.cerrarSpinner();
+        },
+        error: (err) => {
           this.groups = [];
-        }
-        
-        // Sort groups by number
-        this.groups.sort((a, b) => {
-          const numA = parseInt(a.id.replace('Grupo ', '')) || 0;
-          const numB = parseInt(b.id.replace('Grupo ', '')) || 0;
-          return numA - numB;
-        });
-        
-        this.spinner.cerrarSpinner();
-      },
-      error: (err) => {
-        this.groups = [];
-        this.spinner.cerrarSpinner();
-      }
-    });
+          this.spinner.cerrarSpinner();
+        },
+      });
   }
 
   addGroup(): void {
     const nextNumber = this.getNextGroupNumber();
     const newGroupId = `Grupo ${nextNumber}`;
-    
+
     this.territoryDataService.setGroup(newGroupId, { publishers: [] }).then(() => {
       this.loadGroups();
     });
@@ -78,8 +88,10 @@ export class ManagePublishersComponent implements OnInit {
 
   getNextGroupNumber(): number {
     if (this.groups.length === 0) return 1;
-    
-    const numbers = this.groups.map(g => parseInt(g.id.replace('Grupo ', ''))).sort((a, b) => a - b);
+
+    const numbers = this.groups
+      .map((g) => parseInt(g.id.replace('Grupo ', '')))
+      .sort((a, b) => a - b);
     return numbers[numbers.length - 1] + 1;
   }
 
@@ -95,7 +107,7 @@ export class ManagePublishersComponent implements OnInit {
     const name = this.newPublisherName[groupId]?.trim();
     if (!name) return;
 
-    const group = this.groups.find(g => g.id === groupId);
+    const group = this.groups.find((g) => g.id === groupId);
     if (!group) return;
 
     group.publishers.push({ name, assignment: '' });
@@ -104,7 +116,7 @@ export class ManagePublishersComponent implements OnInit {
   }
 
   removePublisher(groupId: string, index: number): void {
-    const group = this.groups.find(g => g.id === groupId);
+    const group = this.groups.find((g) => g.id === groupId);
     if (!group) return;
 
     group.publishers.splice(index, 1);
@@ -117,21 +129,21 @@ export class ManagePublishersComponent implements OnInit {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
       // Only save if the order actually changed
       if (event.previousIndex !== event.currentIndex) {
-        const targetGroup = this.groups.find(g => g.id === targetGroupId);
+        const targetGroup = this.groups.find((g) => g.id === targetGroupId);
         if (targetGroup) this.saveGroup(targetGroup);
       }
     } else {
       // Move between groups
       const sourceGroupId = event.previousContainer.id;
-      const sourceGroup = this.groups.find(g => g.id === sourceGroupId);
-      const targetGroup = this.groups.find(g => g.id === targetGroupId);
-      
+      const sourceGroup = this.groups.find((g) => g.id === sourceGroupId);
+      const targetGroup = this.groups.find((g) => g.id === targetGroupId);
+
       if (sourceGroup && targetGroup) {
         transferArrayItem(
           event.previousContainer.data,
           event.container.data,
           event.previousIndex,
-          event.currentIndex
+          event.currentIndex,
         );
         this.saveGroup(sourceGroup);
         this.saveGroup(targetGroup);
@@ -140,7 +152,7 @@ export class ManagePublishersComponent implements OnInit {
   }
 
   updateAssignment(groupId: string, publisherIndex: number, assignment: string): void {
-    const group = this.groups.find(g => g.id === groupId);
+    const group = this.groups.find((g) => g.id === groupId);
     if (!group || !group.publishers[publisherIndex]) return;
 
     group.publishers[publisherIndex].assignment = assignment as 'Superintendente' | 'Auxiliar' | '';

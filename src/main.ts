@@ -10,7 +10,11 @@ import {
 import { environment } from './environments/environment';
 import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideMessaging, getMessaging } from '@angular/fire/messaging';
-import { provideFirestore, initializeFirestore, persistentLocalCache } from '@angular/fire/firestore';
+import {
+  provideFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+} from '@angular/fire/firestore';
 import { MatDialogModule } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
@@ -23,7 +27,6 @@ import localeEs from '@angular/common/locales/es';
 import { registerLocaleData } from '@angular/common';
 
 registerLocaleData(localeEs, 'es');
-
 
 if (environment.production) {
   enableProdMode();
@@ -42,13 +45,17 @@ bootstrapApplication(AppComponent, {
         registrationStrategy: 'registerWhenStable:30000',
       }),
     ),
-    provideRouter(routes, withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
+    ),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideMessaging(() => getMessaging(getApp())),
     provideFirestore(() => {
       const app = getApp();
       return initializeFirestore(app, {
-        localCache: persistentLocalCache()
+        localCache: persistentLocalCache(),
       });
     }),
     importProvidersFrom(MatDialogModule),

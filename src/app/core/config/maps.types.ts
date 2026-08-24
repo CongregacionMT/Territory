@@ -13,15 +13,18 @@ export interface MarkerOverride {
 }
 
 export interface MapConfig {
-  maps: Record<string, {
-    kmlUrl?: string;
-    iframeHtml?: string;
-    center?: { lat: number; lng: number };
-    zoom?: number;
+  maps: Record<
+    string,
+    {
+      kmlUrl?: string;
+      iframeHtml?: string;
+      center?: { lat: number; lng: number };
+      zoom?: number;
 
-    /** Key = exact Placemark name in the KML. Value = override config. */
-    markerOverrides?: Record<string, MarkerOverride>;
-  }>;
+      /** Key = exact Placemark name in the KML. Value = override config. */
+      markerOverrides?: Record<string, MarkerOverride>;
+    }
+  >;
 }
 
 export const MAP_CONFIG = new InjectionToken<MapConfig>('MAP_CONFIG');

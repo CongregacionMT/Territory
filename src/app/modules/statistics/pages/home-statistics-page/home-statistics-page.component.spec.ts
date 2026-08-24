@@ -8,8 +8,8 @@ describe('HomeStatisticsPageComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [HomeStatisticsPageComponent]
-});
+      imports: [HomeStatisticsPageComponent],
+    });
     fixture = TestBed.createComponent(HomeStatisticsPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

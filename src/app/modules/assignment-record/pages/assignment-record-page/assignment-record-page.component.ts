@@ -7,7 +7,7 @@ import {
   signal,
   computed,
   ChangeDetectionStrategy,
-  DestroyRef
+  DestroyRef,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Card, CardApplesData } from '@core/models/Card';
@@ -21,10 +21,7 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
-import {
-  TerritoriesNumberData,
-  TerritoryNumberData,
-} from '@core/models/TerritoryNumberData';
+import { TerritoriesNumberData, TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { DatePipe, TitleCasePipe, NgClass } from '@angular/common';
 import { environment } from '@environments/environment';
@@ -36,14 +33,7 @@ import { Timestamp } from '@angular/fire/firestore';
   templateUrl: './assignment-record-page.component.html',
   styleUrls: ['./assignment-record-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [
-    CardXlComponent,
-    RouterLink,
-    ReactiveFormsModule,
-    DatePipe,
-    TitleCasePipe,
-    NgClass
-  ],
+  imports: [CardXlComponent, RouterLink, ReactiveFormsModule, DatePipe, TitleCasePipe, NgClass],
 })
 export class AssignmentRecordPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
@@ -61,9 +51,7 @@ export class AssignmentRecordPageComponent implements OnInit {
   cardConfirmation = signal<Card | null>(null);
   isCreationModalOpen = signal(false);
   formCard = signal<FormGroup>(this.createFormCard());
-  territoryNumberOfLocalStorage = signal<TerritoriesNumberData>(
-    {} as TerritoriesNumberData,
-  );
+  territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
   appleCount = signal<number>(0);
   congregationName = environment.congregationName;
   congregationKey = environment.congregationKey;
@@ -82,15 +70,21 @@ export class AssignmentRecordPageComponent implements OnInit {
     this.spinner.cargarSpinner();
 
     // get tarjetas asignadas esta semana
-    this.territorieDataService.getCardAssigned().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((card) => {
-      this.allCardsAssigned.set(card);
-    });
+    this.territorieDataService
+      .getCardAssigned()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((card) => {
+        this.allCardsAssigned.set(card);
+      });
 
     // get tarjetas a revisión
-    this.territorieDataService.getRevisionCardTerritorie().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((card) => {
-      this.allCardsReceived.set(card);
-      this.spinner.cerrarSpinner();
-    });
+    this.territorieDataService
+      .getRevisionCardTerritorie()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((card) => {
+        this.allCardsReceived.set(card);
+        this.spinner.cerrarSpinner();
+      });
   }
 
   private createFormCard(): FormGroup {
@@ -98,9 +92,7 @@ export class AssignmentRecordPageComponent implements OnInit {
       location: new FormControl(this.congregationName, [Validators.required]),
       publisher: new FormControl('', [Validators.required]),
       territory: new FormControl(null, [Validators.required]),
-      date: new FormControl(new Date().toISOString().substring(0, 10), [
-        Validators.required,
-      ]),
+      date: new FormControl(new Date().toISOString().substring(0, 10), [Validators.required]),
     });
   }
 
@@ -108,9 +100,7 @@ export class AssignmentRecordPageComponent implements OnInit {
     if (!assignmentDate) return false;
 
     // Handle both string and Firebase Timestamp
-    const date = assignmentDate.toDate
-      ? assignmentDate.toDate()
-      : new Date(assignmentDate);
+    const date = assignmentDate.toDate ? assignmentDate.toDate() : new Date(assignmentDate);
     const returnDate = new Date(date);
     returnDate.setMonth(returnDate.getMonth() + 2);
 
@@ -119,9 +109,7 @@ export class AssignmentRecordPageComponent implements OnInit {
 
   getReturnDate(assignmentDate: any): Date | null {
     if (!assignmentDate) return null;
-    const date = assignmentDate.toDate
-      ? assignmentDate.toDate()
-      : new Date(assignmentDate);
+    const date = assignmentDate.toDate ? assignmentDate.toDate() : new Date(assignmentDate);
     const returnDate = new Date(date);
     returnDate.setMonth(returnDate.getMonth() + 2);
     return returnDate;
@@ -130,22 +118,23 @@ export class AssignmentRecordPageComponent implements OnInit {
   ngOnInit(): void {
     if (!sessionStorage.getItem('territorioMaps')) {
       this.spinner.cargarSpinner();
-      this.territorieDataService.getMaps().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((map) => {
-        const maps = map[0].maps.map((m: CardButtonsData) => {
-          if (m.name === 'urbano') {
-            return { ...m, name: this.congregationName };
-          }
-          return m;
+      this.territorieDataService
+        .getMaps()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((map) => {
+          const maps = map[0].maps.map((m: CardButtonsData) => {
+            if (m.name === 'urbano') {
+              return { ...m, name: this.congregationName };
+            }
+            return m;
+          });
+          sessionStorage.setItem('territorioMaps', JSON.stringify(maps));
+          this.territorioMaps.set(maps);
+          this.spinner.cerrarSpinner();
         });
-        sessionStorage.setItem('territorioMaps', JSON.stringify(maps));
-        this.territorioMaps.set(maps);
-        this.spinner.cerrarSpinner();
-      });
     } else {
       const storedTerritorioMaps = sessionStorage.getItem('territorioMaps');
-      this.territorioMaps.set(
-        storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [],
-      );
+      this.territorioMaps.set(storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : []);
     }
 
     // Cargar números de territorio y actualizar lista disponible
@@ -159,20 +148,23 @@ export class AssignmentRecordPageComponent implements OnInit {
       this.territoryNumberOfLocalStorage.set(JSON.parse(stored));
       this.updateAvailableTerritories();
     } else {
-      this.territorieDataService.getNumberTerritory().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
-        if (data && data.length > 0) {
-          const mapped: TerritoriesNumberData = {};
-          data.forEach((entry: any) => {
-            // El documento de NumberTerritory tiene claves por localidad
-            Object.keys(entry).forEach((k) => {
-              if (k !== 'id') mapped[k] = entry[k];
+      this.territorieDataService
+        .getNumberTerritory()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((data) => {
+          if (data && data.length > 0) {
+            const mapped: TerritoriesNumberData = {};
+            data.forEach((entry: any) => {
+              // El documento de NumberTerritory tiene claves por localidad
+              Object.keys(entry).forEach((k) => {
+                if (k !== 'id') mapped[k] = entry[k];
+              });
             });
-          });
-          sessionStorage.setItem('numberTerritory', JSON.stringify(mapped));
-          this.territoryNumberOfLocalStorage.set(mapped);
-          this.updateAvailableTerritories();
-        }
-      });
+            sessionStorage.setItem('numberTerritory', JSON.stringify(mapped));
+            this.territoryNumberOfLocalStorage.set(mapped);
+            this.updateAvailableTerritories();
+          }
+        });
     }
   }
 
@@ -188,9 +180,7 @@ export class AssignmentRecordPageComponent implements OnInit {
         location.toLowerCase().includes(k.toLowerCase()),
     );
 
-    const territories: TerritoryNumberData[] = matchKey
-      ? allNumbers[matchKey]
-      : [];
+    const territories: TerritoryNumberData[] = matchKey ? allNumbers[matchKey] : [];
     this.availableTerritoryNumbers.set(territories);
 
     // Resetear el valor del territorio cuando cambia la localidad
@@ -210,8 +200,7 @@ export class AssignmentRecordPageComponent implements OnInit {
   async postCardAssigned() {
     // ⚠️ IMPORTANTE: capturar todos los valores ANTES de cualquier await,
     // porque el modal de Bootstrap puede cerrar/resetear el formulario mientras se espera.
-    const locationDisplay: string =
-      this.formCard().get('location')?.value || '';
+    const locationDisplay: string = this.formCard().get('location')?.value || '';
     const publisher: string = this.formCard().get('publisher')?.value || '';
     const territory: string | number = this.formCard().get('territory')?.value;
     const dateStr: string = this.formCard().get('date')?.value || '';
@@ -226,9 +215,7 @@ export class AssignmentRecordPageComponent implements OnInit {
     const localityConfig = (environment.localities || []).find(
       (l) => l.name?.toLowerCase() === locationDisplay.toLowerCase(),
     );
-    const localityKey = localityConfig
-      ? localityConfig.key
-      : locationDisplay.toLowerCase();
+    const localityKey = localityConfig ? localityConfig.key : locationDisplay.toLowerCase();
 
     // Guardar tarjeta en la colección Assigned
     const cardData = {

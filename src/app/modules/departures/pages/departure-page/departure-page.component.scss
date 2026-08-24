@@ -147,7 +147,8 @@
 
 // Keyframes
 @keyframes pulseBadge {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 4px 10px rgba(2, 136, 209, 0.25);
   }
@@ -158,25 +159,51 @@
 }
 
 @keyframes mapFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-5px) scale(1.04); }
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.04);
+  }
 }
 
 @keyframes magnifyScan {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(-12px, 8px) rotate(-10deg); }
-  50% { transform: translate(-20px, -6px) rotate(15deg); }
-  75% { transform: translate(-6px, 12px) rotate(-5deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(-12px, 8px) rotate(-10deg);
+  }
+  50% {
+    transform: translate(-20px, -6px) rotate(15deg);
+  }
+  75% {
+    transform: translate(-6px, 12px) rotate(-5deg);
+  }
 }
 
 @keyframes radarExpand {
-  0% { width: 70px; height: 70px; opacity: 0.9; }
-  100% { width: 190px; height: 190px; opacity: 0; }
+  0% {
+    width: 70px;
+    height: 70px;
+    opacity: 0.9;
+  }
+  100% {
+    width: 190px;
+    height: 190px;
+    opacity: 0;
+  }
 }
 
 @keyframes orbitRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes statusPulse {

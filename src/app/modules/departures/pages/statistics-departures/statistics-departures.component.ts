@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, OnInit, inject, ChangeDetectionStrategy , DestroyRef} from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { WeeklyDeparture } from '@core/models/Departures';
@@ -28,14 +28,17 @@ export class StatisticsDeparturesComponent implements OnInit {
     console.log('Cargando StatisticsDeparturesComponent...');
     this.spinner.cargarSpinner();
 
-    this.territoryDataService.getWeeklyDepartures().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data) => {
-        this.weeklyDepartures = data;
-        this.processStats();
-        this.spinner.cerrarSpinner();
-      },
-      error: () => this.spinner.cerrarSpinner(),
-    });
+    this.territoryDataService
+      .getWeeklyDepartures()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.weeklyDepartures = data;
+          this.processStats();
+          this.spinner.cerrarSpinner();
+        },
+        error: () => this.spinner.cerrarSpinner(),
+      });
   }
 
   processStats() {

@@ -10,14 +10,20 @@ const { execSync } = require('child_process');
 // ejecutar script: node scripts/deploy.js
 
 function loadEnvironmentConfig(congregationFileName) {
-  const envPath = path.join(__dirname, '..', 'src', 'environments', `environment.${congregationFileName}.ts`);
-  
+  const envPath = path.join(
+    __dirname,
+    '..',
+    'src',
+    'environments',
+    `environment.${congregationFileName}.ts`,
+  );
+
   if (!fs.existsSync(envPath)) {
     return null;
   }
 
   const content = fs.readFileSync(envPath, 'utf8');
-  
+
   // Extraer projectId usando regex
   const projectIdMatch = content.match(/projectId:\s*['"]([^'"]+)['"]/);
   const projectId = projectIdMatch ? projectIdMatch[1] : null;
@@ -28,7 +34,7 @@ function loadEnvironmentConfig(congregationFileName) {
 
   return {
     projectId,
-    hostingSite
+    hostingSite,
   };
 }
 
@@ -38,11 +44,17 @@ function loadEnvironmentConfig(congregationFileName) {
 function findAvailableCongregations() {
   const envDir = path.join(__dirname, '..', 'src', 'environments');
   const files = fs.readdirSync(envDir);
-  
+
   const congregations = files
-    .filter(file => file.startsWith('environment.') && file.endsWith('.ts') && file !== 'environment.prod.ts' && file !== 'environment.ts')
-    .map(file => file.replace('environment.', '').replace('.ts', ''));
-  
+    .filter(
+      (file) =>
+        file.startsWith('environment.') &&
+        file.endsWith('.ts') &&
+        file !== 'environment.prod.ts' &&
+        file !== 'environment.ts',
+    )
+    .map((file) => file.replace('environment.', '').replace('.ts', ''));
+
   return congregations;
 }
 
@@ -51,7 +63,7 @@ async function main() {
 
   // 1. Buscar congregaciones disponibles
   const availableCongregations = findAvailableCongregations();
-  
+
   if (availableCongregations.length === 0) {
     console.error('❌ No se encontraron configuraciones de congregación en src/environments/');
     process.exit(1);
@@ -64,15 +76,17 @@ async function main() {
       type: 'list',
       name: 'selectedCongregation',
       message: 'Selecciona la congregación para desplegar:',
-      choices: availableCongregations
-    }
+      choices: availableCongregations,
+    },
   ]);
 
   // 2. Obtener configuración
   const config = loadEnvironmentConfig(selectedCongregation);
-  
+
   if (!config || !config.projectId) {
-    console.error(`❌ Error: No se pudo obtener el 'projectId' de environment.${selectedCongregation}.ts`);
+    console.error(
+      `❌ Error: No se pudo obtener el 'projectId' de environment.${selectedCongregation}.ts`,
+    );
     console.log('Asegúrate de que la propiedad firebase.projectId esté definida en el archivo.');
     process.exit(1);
   }
@@ -87,8 +101,8 @@ async function main() {
       type: 'confirm',
       name: 'confirm',
       message: `¿Configurar el entorno, construir y desplegar para ${selectedCongregation}?`,
-      default: false
-    }
+      default: false,
+    },
   ]);
 
   if (!confirm) {
@@ -97,11 +111,11 @@ async function main() {
   }
 
   try {
-     // 4. Configurar firebase.json dinámicamente
+    // 4. Configurar firebase.json dinámicamente
     console.log('\n📝 Actualizando configuración de firebase.json...');
     const firebaseJsonPath = path.join(__dirname, '..', 'firebase.json');
     let firebaseJson;
-    
+
     try {
       firebaseJson = JSON.parse(fs.readFileSync(firebaseJsonPath, 'utf8'));
     } catch (e) {
@@ -111,7 +125,9 @@ async function main() {
 
     // Validar estructura simple de hosting
     if (Array.isArray(firebaseJson.hosting)) {
-      console.error('❌ Error: El script espera un objeto simple en "hosting", pero encontró un array.');
+      console.error(
+        '❌ Error: El script espera un objeto simple en "hosting", pero encontró un array.',
+      );
       process.exit(1);
     }
 
@@ -128,21 +144,20 @@ async function main() {
     // 5. Build de Angular
     console.log('\n🔨 Construyendo la aplicación (Angular Build)...');
     console.log(`> ng build --configuration=${selectedCongregation}`);
-    
+
     execSync(`npx ng build --configuration=${selectedCongregation}`, { stdio: 'inherit' });
-    
+
     // 6. Deploy a Firebase
     console.log('\n🔥 Desplegando a Firebase Hosting...');
-    
+
     // Ya no necesitamos flags especiales porque el target está en firebase.json
     const deployCmd = `npx firebase deploy --project ${config.projectId}`;
 
     console.log(`> ${deployCmd}`);
-    
+
     execSync(deployCmd, { stdio: 'inherit' });
 
     console.log('\n✅ ¡Despliegue completado con éxito!');
-
   } catch (error) {
     console.error('\n❌ Error durante el proceso de despliegue.');
     // El error ya se habrá mostrado en stdio: inherit
@@ -150,7 +165,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('Error:', error);
   process.exit(1);
 });

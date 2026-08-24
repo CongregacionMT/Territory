@@ -13,9 +13,11 @@
     "analyze": "npm run build:stats && webpack-bundle-analyzer dist/territory/stats.json",
     "watch": "ng build --watch --configuration development",
     "test": "vitest",
-    "lint": "ng lint",
+    "lint": "eslint \"src/**/*.ts\"",
     "deploy": "node scripts/deploy.js",
-    "test-congregation": "ng serve --configuration=test-congregation"
+    "test-congregation": "ng serve --configuration=test-congregation",
+    "format": "prettier --write .",
+    "prepare": "husky"
   },
   "private": true,
   "dependencies": {
@@ -45,14 +47,10 @@
     "@analogjs/vitest-angular": "^2.7.0",
     "@angular-devkit/core": "^22.1.4",
     "@angular-devkit/schematics": "^22.1.4",
-    "@angular-eslint/builder": "22.1.0",
-    "@angular-eslint/eslint-plugin": "22.1.0",
-    "@angular-eslint/eslint-plugin-template": "22.1.0",
-    "@angular-eslint/schematics": "^22.1.0",
-    "@angular-eslint/template-parser": "22.1.0",
     "@angular/build": "^22.1.4",
     "@angular/cli": "~22.1.4",
     "@angular/compiler-cli": "^22.1.2",
+    "@eslint/js": "^10.0.1",
     "@schematics/angular": "^20.1.1",
     "@types/geojson": "^7946.0.16",
     "@types/leaflet": "^1.9.22",
@@ -60,15 +58,30 @@
     "@types/xmldom": "^0.1.34",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
+    "angular-eslint": "^22.1.0",
     "autoprefixer": "^10.5.4",
     "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "husky": "^9.1.7",
     "istanbul-lib-instrument": "^6.0.3",
     "jsdom": "^30.0.1",
+    "lint-staged": "^17.3.0",
     "postcss": "^8.5.26",
+    "prettier": "^3.9.6",
     "tailwindcss": "^3.4.19",
     "typescript": "~6.0.3",
+    "typescript-eslint": "^8.67.0",
     "vite": "^6.0.0",
     "vitest": "^4.1.10",
     "webpack-bundle-analyzer": "^4.8.0"
+  },
+  "lint-staged": {
+    "*.{ts,js,html,json,scss,css,md}": [
+      "prettier --write"
+    ],
+    "*.ts": [
+      "eslint --fix"
+    ]
   }
 }

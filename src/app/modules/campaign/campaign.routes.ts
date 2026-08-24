@@ -4,11 +4,12 @@ import { CampaignDetailComponent } from './campaign-detail/campaign-detail.compo
 
 export const ROUTES: Routes = [
   {
-    path: '', component: CampaignPageComponent,
+    path: '',
+    component: CampaignPageComponent,
   },
   {
-    path: ':id', component: CampaignDetailComponent, data: { breadcrumb: 'Detalle' }
-  }
+    path: ':id',
+    component: CampaignDetailComponent,
+    data: { breadcrumb: 'Detalle' },
+  },
 ];
-
-

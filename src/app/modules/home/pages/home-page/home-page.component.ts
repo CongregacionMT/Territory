@@ -1,5 +1,12 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
 import { CampaignService } from '@core/services/campaign.service';
@@ -16,7 +23,7 @@ import { TitleCasePipe } from '@angular/common';
   selector: 'app-home-page',
   templateUrl: './home-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TitleCasePipe]
+  imports: [RouterLink, TitleCasePipe],
 })
 export class HomePageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
@@ -26,7 +33,7 @@ export class HomePageComponent implements OnInit {
   private messagingService = inject(MessagingService);
   private cartDataService = inject(CartDataService);
   private _snackBar = inject(MatSnackBar);
-  
+
   public authService = inject(AuthService);
   public pwaService = inject(PwaService);
 
@@ -36,15 +43,21 @@ export class HomePageComponent implements OnInit {
 
   ngOnInit() {
     this.spinner.cargarSpinner();
-    
-    this.territorieDataService.getNumberTerritory().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    this.territorieDataService.getStatisticsButtons().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
 
-    if(sessionStorage.getItem("redirectedToGroup0")){
-      sessionStorage.removeItem("redirectedToGroup0");
+    this.territorieDataService
+      .getNumberTerritory()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+    this.territorieDataService
+      .getStatisticsButtons()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+
+    if (sessionStorage.getItem('redirectedToGroup0')) {
+      sessionStorage.removeItem('redirectedToGroup0');
     }
 
-    this.campaignService.getActiveCampaign().then(activeCampaign => {
+    this.campaignService.getActiveCampaign().then((activeCampaign) => {
       if (activeCampaign) {
         localStorage.setItem('activeCampaign', JSON.stringify(activeCampaign));
         this.campaignInProgress.set(true);
@@ -54,20 +67,23 @@ export class HomePageComponent implements OnInit {
       this.spinner.cerrarSpinner();
     });
 
-    this.cartDataService.getCartAssignment().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (cartArray) => {
-        this.hasCartData.set(cartArray.cart.length > 0);
-      }
-    });
+    this.cartDataService
+      .getCartAssignment()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (cartArray) => {
+          this.hasCartData.set(cartArray.cart.length > 0);
+        },
+      });
   }
 
   activeNotification() {
     this.messagingService.requestPermission().then((token) => {
       const driverName = this.authService.driverName();
       if (!driverName) return;
-      
+
       let userData = JSON.parse(localStorage.getItem(driverName) as string);
-      if(!userData.tokens.includes(token)){
+      if (!userData.tokens.includes(token)) {
         userData.tokens.push(token);
         this.territorieDataService.updateUser(userData.user, userData);
         localStorage.setItem(userData.user, JSON.stringify(userData));

@@ -16,14 +16,16 @@
       height: 16px;
       border-radius: 50%;
       background-color: #fff;
-      box-shadow: 32px 0 #fff, -32px 0 #fff;
+      box-shadow:
+        32px 0 #fff,
+        -32px 0 #fff;
       position: relative;
       animation: flash 0.8s ease-in infinite alternate;
       -webkit-animation: flash 0.8s ease-in infinite alternate;
     }
     .loader::before,
     .loader::after {
-      content: "";
+      content: '';
       position: absolute;
       left: -64px;
       top: 0;
@@ -51,24 +53,30 @@
       0%,
       100% {
         background-color: rgba(255, 255, 255, 0.25);
-        box-shadow: 32px 0 rgba(255, 255, 255, 0.25),
+        box-shadow:
+          32px 0 rgba(255, 255, 255, 0.25),
           -32px 0 rgba(255, 255, 255, 0.25);
       }
       25% {
         background-color: rgba(255, 255, 255, 0.25);
-        box-shadow: 32px 0 rgba(255, 255, 255, 0.25), -32px 0 rgba(255, 255, 255, 1);
+        box-shadow:
+          32px 0 rgba(255, 255, 255, 0.25),
+          -32px 0 rgba(255, 255, 255, 1);
       }
       50% {
         background-color: rgba(255, 255, 255, 1);
-        box-shadow: 32px 0 rgba(255, 255, 255, 0.25),
+        box-shadow:
+          32px 0 rgba(255, 255, 255, 0.25),
           -32px 0 rgba(255, 255, 255, 0.25);
       }
       75% {
         background-color: rgba(255, 255, 255, 0.25);
-        box-shadow: 32px 0 rgba(255, 255, 255, 1), -32px 0 rgba(255, 255, 255, 0.25);
+        box-shadow:
+          32px 0 rgba(255, 255, 255, 1),
+          -32px 0 rgba(255, 255, 255, 0.25);
       }
     }
-    
+
     @keyframes hitL {
       0% {
         transform: rotate(45deg);
@@ -80,7 +88,7 @@
         background-color: rgba(255, 255, 255, 0.25);
       }
     }
-    
+
     @keyframes hitR {
       0%,
       75% {
@@ -94,5 +102,3 @@
     }
   }
 }
-
-

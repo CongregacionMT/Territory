@@ -1,4 +1,11 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+  OnDestroy,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({

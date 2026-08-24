@@ -7,11 +7,9 @@ export const ROUTES: Routes = [
   {
     path: '',
     children: [
-      { path: '', component: HomeStatisticsPageComponent},
+      { path: '', component: HomeStatisticsPageComponent },
       { path: ':locality', component: StatisticsPageComponent, data: { breadcrumb: 'Localidad' } },
-      {path: '**', redirectTo: ''},
+      { path: '**', redirectTo: '' },
     ],
-  }
+  },
 ];
-
-

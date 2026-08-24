@@ -1,49 +1,55 @@
 import { Component, OnInit, inject, input, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { DataRural } from '@core/models/DataRural';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 
 @Component({
-    selector: 'app-form-rural',
-    templateUrl: './form-rural.component.html',
-    styleUrls: ['./form-rural.component.scss'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ReactiveFormsModule]
+  selector: 'app-form-rural',
+  templateUrl: './form-rural.component.html',
+  styleUrls: ['./form-rural.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule],
 })
 export class FormRuralComponent implements OnInit {
   private spinner = inject(SpinnerService);
   private territorieDataService = inject(TerritoryDataService);
   private fb = inject(FormBuilder);
 
-
   formRoad: FormGroup;
-  readonly editionForm = input<DataRural>();constructor() {
+  readonly editionForm = input<DataRural>();
+  constructor() {
     this.formRoad = this.fb.group({
-      title: new FormControl("", [Validators.required]),
-      distance: new FormControl("", [Validators.required]),
-      vehicle: new FormControl("", [Validators.required]),
-      time: new FormControl("", [Validators.required]),
-      lastDate: new FormControl(""),
+      title: new FormControl('', [Validators.required]),
+      distance: new FormControl('', [Validators.required]),
+      vehicle: new FormControl('', [Validators.required]),
+      time: new FormControl('', [Validators.required]),
+      lastDate: new FormControl(''),
     });
   }
 
   ngOnInit(): void {
     const editionForm = this.editionForm();
-    if(editionForm !== undefined){
-      this.formRoad.patchValue({title: editionForm.title});
-      this.formRoad.patchValue({distance: editionForm.distance});
-      this.formRoad.patchValue({vehicle: editionForm.vehicle});
-      this.formRoad.patchValue({time: editionForm.time});
-      this.formRoad.patchValue({lastDate: editionForm.lastDate});
+    if (editionForm !== undefined) {
+      this.formRoad.patchValue({ title: editionForm.title });
+      this.formRoad.patchValue({ distance: editionForm.distance });
+      this.formRoad.patchValue({ vehicle: editionForm.vehicle });
+      this.formRoad.patchValue({ time: editionForm.time });
+      this.formRoad.patchValue({ lastDate: editionForm.lastDate });
     } else {
       this.formRoad.reset();
     }
   }
-  postForm(roadId?: string){
+  postForm(roadId?: string) {
     this.spinner.cargarSpinner();
-    if(roadId === null) roadId = undefined;
-    if(roadId === undefined){
+    if (roadId === null) roadId = undefined;
+    if (roadId === undefined) {
       this.territorieDataService.postNewRoad(this.formRoad.value);
     } else {
       this.territorieDataService.putNewRoad(this.formRoad.value, roadId);
