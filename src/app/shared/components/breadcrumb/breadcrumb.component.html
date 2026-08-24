@@ -1,16 +1,16 @@
 <nav aria-label="breadcrumb" class="mt-6 mb-4">
-  <ol class="flex items-center gap-1 bg-gray-800/80 rounded-xl px-5 py-3 text-sm list-none m-0">
+  <ol class="flex flex-wrap items-center gap-1 bg-gray-800/80 rounded-xl px-3 py-2 text-base list-none m-0">
     @for (item of breadcrumbItems(); track item.route; let isLast = $last) {
       @if (!isLast) {
         <li class="flex items-center">
           <a
             [routerLink]="item.route"
-            class="text-green-400 hover:text-blue-400 hover:underline no-underline transition-colors"
+            class="block px-3 py-2 rounded-lg text-green-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors no-underline"
           >{{ item.name }}</a>
-          <span class="text-gray-600 mx-2 select-none">/</span>
+          <span class="text-gray-600 mx-1 select-none">/</span>
         </li>
       } @else {
-        <li class="text-gray-300 font-medium" aria-current="page">
+        <li class="text-gray-300 font-medium px-3 py-2" aria-current="page">
           {{ item.name }}
         </li>
       }
