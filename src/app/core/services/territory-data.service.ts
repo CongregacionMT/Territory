@@ -192,8 +192,8 @@ export class TerritoryDataService {
       await runTransaction(this.firestore, async (tx) => {
         const snap = await tx.get(ref);
         const exists = snap.exists();
-        const data = exists ? (snap.data() as any) : {};
-        const stats = data?.stats ?? {};
+        const data = exists ? (snap.data() as Card) : {};
+        const stats = (data as Record<string, any>)?.[`stats`] ?? {};
         const allKeys = Object.keys(stats || {});
         const territorio = stats[territorioKey] ?? {};
         const current = Number(territorio?.salidas ?? 0);
@@ -215,8 +215,8 @@ export class TerritoryDataService {
 
       // Read-after-write verification (outside transaction)
       const verifySnap = await (await import('firebase/firestore')).getDoc(ref);
-      const verifyData = verifySnap.exists() ? (verifySnap.data() as any) : {};
-      const verifyStats = verifyData?.stats ?? {};
+      const verifyData = verifySnap.exists() ? (verifySnap.data() as Card) : {};
+      const verifyStats = (verifyData as Record<string, any>)?.[`stats`] ?? {};
 
       const verifyValue = Number(verifyStats?.[territorioKey]?.salidas ?? 0);
     } catch (err: any) {

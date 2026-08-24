@@ -17,7 +17,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { SortBy } from '@core/pipes/sort-by.pipe';
 import { environment } from '@environments/environment';
-import { Card } from '@core/models/Card';
+import { Card, CardApplesData } from '@core/models/Card';
 
 @Component({
   selector: 'app-statistics-page',
@@ -158,9 +158,9 @@ export class StatisticsPageComponent implements OnInit {
       return;
     }
 
-    const fetchedData: any[] = [];
+    const fetchedData: Card[][] = [];
     const promises = localityTerritories.map(
-      (t: any) =>
+      (t: TerritoryNumberData) =>
         new Promise<void>((resolve) => {
           // Obtenemos el histórico para tener la estructura del territorio (blueprint)
           this.territorieDataService
@@ -176,7 +176,7 @@ export class StatisticsPageComponent implements OnInit {
               fromDateLimit.setMonth(fromDateLimit.getMonth() - filterMonths);
 
               const periodCards = allCards.filter((c) => {
-                const creation = c.creation as any;
+                const creation = c.creation as { toDate?: () => Date; seconds?: number };
                 let cardDate: Date;
 
                 if (creation && typeof creation.toDate === 'function') {
@@ -184,7 +184,7 @@ export class StatisticsPageComponent implements OnInit {
                 } else if (creation && typeof creation.seconds === 'number') {
                   cardDate = new Date(creation.seconds * 1000);
                 } else {
-                  cardDate = new Date(creation);
+                  cardDate = new Date(creation as unknown as string);
                 }
 
                 return !isNaN(cardDate.getTime()) && cardDate >= fromDateLimit;
@@ -193,7 +193,7 @@ export class StatisticsPageComponent implements OnInit {
               // Consideramos actividad si hay manzanas marcadas o si son hitos de PostCampaña
               const activityCards = periodCards.filter(
                 (c) =>
-                  (c.applesData || []).some((a: any) => a.checked) ||
+                  (c.applesData || []).some((a: CardApplesData) => a.checked) ||
                   (c.id &&
                     (c.id.startsWith('PostCampaña') || c.id.startsWith('Campaña-undefined'))),
               );
@@ -207,7 +207,7 @@ export class StatisticsPageComponent implements OnInit {
                     numberTerritory: t.territorio,
                     applesData: blueprintCard?.applesData || [],
                     driver: 'Sin asignar',
-                    end: null,
+                    end: '',
                     isPlaceholder: true,
                   },
                 ]);
@@ -244,10 +244,10 @@ export class StatisticsPageComponent implements OnInit {
         let maxCheckedInPeriod = 0;
         let wasFullyCompleted = false;
 
-        territoryCards.forEach((c: any) => {
+        territoryCards.forEach((c: Card) => {
           if (c.isPlaceholder) return;
           const apples = c.applesData || [];
-          const checkedCount = apples.filter((a: any) => a.checked).length;
+          const checkedCount = apples.filter((a: CardApplesData) => a.checked).length;
 
           if (checkedCount > maxCheckedInPeriod) {
             maxCheckedInPeriod = checkedCount;
@@ -278,7 +278,7 @@ export class StatisticsPageComponent implements OnInit {
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
   }
 
-  paintRow(dataList: any) {
+  paintRow(dataList: Card[]) {
     const today = new Date();
     const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -318,7 +318,7 @@ export class StatisticsPageComponent implements OnInit {
   }
 
   /** Retorna true si el número de territorio está actualmente asignado como personal */
-  isPersonalTerritory(number: any): boolean {
+  isPersonalTerritory(number: string | number): boolean {
     const searchNum = parseInt(String(number), 10);
     return this.personalTerritories().some(
       (e: Card) => parseInt(String(e.territory), 10) === searchNum,
@@ -326,7 +326,7 @@ export class StatisticsPageComponent implements OnInit {
   }
 
   /** Obtiene la entrada personal para un territorio dado (para mostrar el publicador) */
-  getPersonalEntry(number: any): Card | undefined {
+  getPersonalEntry(number: string | number): Card | undefined {
     const searchNum = parseInt(String(number), 10);
     return this.personalTerritories().find(
       (e: Card) => parseInt(String(e.territory), 10) === searchNum,

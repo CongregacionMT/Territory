@@ -81,7 +81,7 @@ export class MapasComponent implements OnInit {
         .getTerritorieRural()
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: (road: any) => {
+          next: (road: DataRural[]) => {
             this.dataRural = road;
             this.showRural = true;
             this.spinner.cerrarSpinner();

@@ -103,7 +103,7 @@ export class CampaignPageComponent implements OnInit {
         id: c.id!,
         nombre: c.name,
         descripcion: c.description,
-        fecha: c.dateEnd ? new Date((c.dateEnd as any).seconds * 1000).toLocaleDateString() : '',
+        fecha: c.dateEnd ? new Date((c.dateEnd as { seconds: number }).seconds * 1000).toLocaleDateString() : '',
       })),
     );
     this.spinner.cerrarSpinner();

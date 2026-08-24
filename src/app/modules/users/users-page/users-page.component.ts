@@ -48,7 +48,7 @@ export class UsersPageComponent {
     });
   }
 
-  async copyToClipboard(token: any): Promise<void> {
+  async copyToClipboard(token: string | string[]): Promise<void> {
     const textToCopy = Array.isArray(token) ? token.join(', ') : String(token);
     try {
       if (navigator?.clipboard?.writeText) {

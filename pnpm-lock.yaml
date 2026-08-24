@@ -99,6 +99,9 @@ importers:
       '@types/geojson':
         specifier: ^7946.0.16
         version: 7946.0.16
+      '@types/google.maps':
+        specifier: ^3.65.5
+        version: 3.65.5
       '@types/leaflet':
         specifier: ^1.9.22
         version: 1.9.22
@@ -2400,6 +2403,9 @@ packages:
 
   '@types/geojson@7946.0.16':
     resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
+
+  '@types/google.maps@3.65.5':
+    resolution: {integrity: sha512-oR9Hq/WaKGzIguZEwoCuyQ0ofDhCbefmS9RrjLUZ5scMziwTE6xA90drJYt2ZsyUCYmCqnxQcDpfGqeRE/Zgog==}
 
   '@types/jsesc@2.5.1':
     resolution: {integrity: sha512-9VN+6yxLOPLOav+7PwjZbxiID2bVaeq0ED4qSQmdQTdjnXJSaCVKTR58t15oqH1H5t8Ng2ZX1SabJVoN9Q34bw==}
@@ -6376,6 +6382,8 @@ snapshots:
   '@types/gensync@1.0.5': {}
 
   '@types/geojson@7946.0.16': {}
+
+  '@types/google.maps@3.65.5': {}
 
   '@types/jsesc@2.5.1': {}
 

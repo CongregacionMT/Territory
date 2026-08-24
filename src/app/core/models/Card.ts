@@ -12,6 +12,7 @@ export class Card {
   driver?: string;
   start?: string;
   end?: string;
+  isPlaceholder?: boolean;
   comments?: string;
   link?: string;
   applesData: CardApplesData[];

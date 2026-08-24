@@ -14,6 +14,7 @@ import {
 import { environment } from '@environments/environment';
 import { TerritoryMapService } from '../../services/territory-map.service';
 import { mapConfig } from '@core/config/maps.config';
+import { TerritoryMapConfig } from '@core/config/maps.types';
 import { NetworkService } from '@core/services/network.service';
 import { OfflineMapViewerComponent } from '../offline-map-viewer/offline-map-viewer.component';
 
@@ -102,7 +103,7 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
     }
   }
 
-  private fallbackToIframeOrOffline(config: any): void {
+  private fallbackToIframeOrOffline(config: TerritoryMapConfig): void {
     console.log(
       '[TerritoryMapComponent] fallbackToIframeOrOffline invocado. Online:',
       this.networkService.isOnline(),
@@ -180,24 +181,32 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   }
 
   toggleFullscreen(): void {
-    const elem = this.mapContainer().nativeElement;
+    const elem = this.mapContainer().nativeElement as HTMLElement & {
+      webkitRequestFullscreen?: () => void;
+      msRequestFullscreen?: () => void;
+    };
+
+    const doc = document as Document & {
+      webkitExitFullscreen?: () => void;
+      msExitFullscreen?: () => void;
+    };
 
     if (!document.fullscreenElement) {
       if (elem.requestFullscreen) {
         elem.requestFullscreen();
-      } else if ((elem as any).webkitRequestFullscreen) {
-        (elem as any).webkitRequestFullscreen();
-      } else if ((elem as any).msRequestFullscreen) {
-        (elem as any).msRequestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
       }
       this.isFullscreen.set(true);
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
-      } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen();
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
       }
       this.isFullscreen.set(false);
     }

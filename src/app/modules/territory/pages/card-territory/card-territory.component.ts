@@ -211,12 +211,13 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     this.loadDriversOptions();
   }
 
-  onCheckboxChange(e: any): void {
+  onCheckboxChange(e: { target: { value: string | undefined; checked: boolean } }): void {
+    const target = e.target;
     const form = this.formCard();
     const applesData: FormArray = form.get('applesData') as FormArray;
-    applesData.controls.forEach((item: any) => {
-      if (item.value.name === e.target.value) {
-        item.value.checked = e.target.checked;
+    applesData.controls.forEach((item) => {
+      if (item.value.name === target.value) {
+        item.patchValue({ ...item.value, checked: target.checked });
       }
     });
   }
@@ -237,7 +238,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     }
   }
 
-  verifyUniqueCheck(arr: any[]): any[] {
+  verifyUniqueCheck(arr: CardApplesData[]): CardApplesData[] {
     const checkbox = new Set();
     const result = [];
 
@@ -283,7 +284,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     }
     if (form.controls?.['end'].value === '') {
       this.countFalseApples.set(0);
-      form.value.applesData?.map((apple: any) => {
+      form.value.applesData?.map((apple: CardApplesData) => {
         if (apple.checked === false) {
           this.countFalseApples.update((count) => count + 1);
         }

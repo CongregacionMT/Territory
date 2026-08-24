@@ -16,6 +16,21 @@ export interface LocalityGroup {
   applesTotal: number;
 }
 
+export interface CampaignData {
+  id?: string;
+  name?: string;
+  description?: string;
+  dateInit?: any;
+  dateEnd?: any;
+  active?: boolean;
+  initialInvitations?: number;
+  leftoverInvitations?: string;
+  missingInvitations?: number;
+  finalComments?: string;
+  departuresInfo?: { checkedCount: number };
+  stats?: any;
+}
+
 @Component({
   selector: 'app-campaign-detail',
   imports: [DatePipe, NgClass],
@@ -24,7 +39,7 @@ export interface LocalityGroup {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CampaignDetailComponent implements OnInit {
-  campaign = signal<any | null>(null);
+  campaign = signal<CampaignData>({} as CampaignData);
   territorios = signal<TerritorioStats[]>([]);
   private spinner = inject(SpinnerService);
 
@@ -53,10 +68,9 @@ export class CampaignDetailComponent implements OnInit {
 
     try {
       const id = this.route.snapshot.paramMap.get('id')!;
-      const data: any = await this.campaignService.getCampaignById(id);
-      this.campaign.set(data);
-
+      const data = await this.campaignService.getCampaignById(id) as CampaignData | null;
       if (data) {
+        this.campaign.set(data);
         this.initialInvitations = data.initialInvitations || 0;
         this.leftoverInvitations = data.leftoverInvitations || '';
         this.missingInvitations = data.missingInvitations || null;
@@ -67,7 +81,7 @@ export class CampaignDetailComponent implements OnInit {
         }
 
         if (data.stats) {
-          const stats: any = data.stats;
+          const stats = data.stats as Record<string, { percent: number; total: number; salidas: number; done: number; }>;
           const gruposMap = new Map<string, LocalityGroup>();
 
           const sortedLocalities = [...(environment.localities || [])].sort(
@@ -123,7 +137,7 @@ export class CampaignDetailComponent implements OnInit {
                 porcentaje: stats[k].percent || 0,
                 total: stats[k].total || 0,
                 salidas: stats[k].salidas || 0,
-              } as any;
+              } as TerritorioStats;
 
               // Asignar al grupo correcto
               let matchedPrefix = 'OTROS';
@@ -157,12 +171,12 @@ export class CampaignDetailComponent implements OnInit {
           const localityGroups = Array.from(gruposMap.values())
             .filter((group) => group.territories.length > 0)
             .map((group) => {
-              group.territories.sort((a: any, b: any) => {
+              group.territories.sort((a: TerritorioStats, b: TerritorioStats) => {
                 const numA = parseInt(a.nombre.replace(/\D/g, ''), 10) || 0;
                 const numB = parseInt(b.nombre.replace(/\D/g, ''), 10) || 0;
                 return numA - numB;
               });
-              group.completed = group.territories.filter((t: any) => t.porcentaje === 100).length;
+              group.completed = group.territories.filter((t: TerritorioStats) => t.porcentaje === 100).length;
               group.total = group.territories.length;
               group.percent =
                 group.applesTotal > 0

@@ -32,7 +32,7 @@ export class TerritoryPageComponent implements OnInit {
   isAdmin: boolean = false;
   isDriver: boolean = false;
   congregationName: string = environment.congregationName;
-  localities: any[] = environment.localities || [];
+  localities: { name: string; key: string; territoryPrefix: string; storageKey: string; hasMap?: boolean; hasPreaching?: boolean; hasNumberedTerritories?: boolean; }[] = environment.localities || [];
   constructor() {}
 
   ngOnInit(): void {
@@ -72,7 +72,7 @@ export class TerritoryPageComponent implements OnInit {
   /**
    * Agrupa los territorios por localidad basándose en el prefijo de la colección
    */
-  groupTerritoriesByLocality(numberTerritory: any): void {
+  groupTerritoriesByLocality(numberTerritory: Record<string, TerritoryNumberData[]>): void {
     this.localitiesWithTerritories = this.localities
       .filter((locality) => locality.hasNumberedTerritories)
       .map((locality) => {

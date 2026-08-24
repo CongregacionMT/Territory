@@ -323,10 +323,10 @@ export class FormEditDeparturesComponent implements OnInit {
                   let dateCard: Date;
                   if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
                     dateCard = new Date(lastEnd);
-                  } else if (lastEnd && typeof (lastEnd as any).toDate === 'function') {
-                    dateCard = (lastEnd as any).toDate();
-                  } else if (lastEnd && typeof (lastEnd as any).seconds === 'number') {
-                    dateCard = new Date((lastEnd as any).seconds * 1000);
+                  } else if (lastEnd && typeof (lastEnd as { toDate?: () => Date }).toDate === 'function') {
+                    dateCard = (lastEnd as { toDate: () => Date }).toDate();
+                  } else if (lastEnd && typeof (lastEnd as { seconds?: number }).seconds === 'number') {
+                    dateCard = new Date((lastEnd as { seconds: number }).seconds * 1000);
                   } else {
                     dateCard = new Date(lastEnd);
                   }
@@ -370,10 +370,10 @@ export class FormEditDeparturesComponent implements OnInit {
                 let dateCard: Date;
                 if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
                   dateCard = new Date(lastEnd);
-                } else if (lastEnd && typeof (lastEnd as any).toDate === 'function') {
-                  dateCard = (lastEnd as any).toDate();
-                } else if (lastEnd && typeof (lastEnd as any).seconds === 'number') {
-                  dateCard = new Date((lastEnd as any).seconds * 1000);
+                } else if (lastEnd && typeof (lastEnd as { toDate?: () => Date }).toDate === 'function') {
+                  dateCard = (lastEnd as { toDate: () => Date }).toDate();
+                } else if (lastEnd && typeof (lastEnd as { seconds?: number }).seconds === 'number') {
+                  dateCard = new Date((lastEnd as { seconds: number }).seconds * 1000);
                 } else {
                   dateCard = new Date(lastEnd);
                 }

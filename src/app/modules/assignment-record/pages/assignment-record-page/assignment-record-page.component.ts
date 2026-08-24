@@ -100,7 +100,9 @@ export class AssignmentRecordPageComponent implements OnInit {
     if (!assignmentDate) return false;
 
     // Handle both string and Firebase Timestamp
-    const date = assignmentDate.toDate ? assignmentDate.toDate() : new Date(assignmentDate);
+    const date = (assignmentDate as { toDate?: () => Date }).toDate 
+      ? (assignmentDate as { toDate: () => Date }).toDate() 
+      : new Date(assignmentDate as string | Date);
     const returnDate = new Date(date);
     returnDate.setMonth(returnDate.getMonth() + 2);
 
@@ -109,7 +111,9 @@ export class AssignmentRecordPageComponent implements OnInit {
 
   getReturnDate(assignmentDate: any): Date | null {
     if (!assignmentDate) return null;
-    const date = assignmentDate.toDate ? assignmentDate.toDate() : new Date(assignmentDate);
+    const date = (assignmentDate as { toDate?: () => Date }).toDate 
+      ? (assignmentDate as { toDate: () => Date }).toDate() 
+      : new Date(assignmentDate as string | Date);
     const returnDate = new Date(date);
     returnDate.setMonth(returnDate.getMonth() + 2);
     return returnDate;
@@ -154,7 +158,7 @@ export class AssignmentRecordPageComponent implements OnInit {
         .subscribe((data) => {
           if (data && data.length > 0) {
             const mapped: TerritoriesNumberData = {};
-            data.forEach((entry: any) => {
+            (data as any[]).forEach((entry: Record<string, TerritoryNumberData[]>) => {
               // El documento de NumberTerritory tiene claves por localidad
               Object.keys(entry).forEach((k) => {
                 if (k !== 'id') mapped[k] = entry[k];
@@ -221,12 +225,13 @@ export class AssignmentRecordPageComponent implements OnInit {
     const cardData = {
       location: locationDisplay,
       publisher,
-      territory: territoryNumber,
+      territory: String(territoryNumber),
       date: dateStr,
       driver: publisher,
       creation: assignedDate,
+      applesData: [],
     };
-    await this.territorieDataService.postCardAssigned(cardData as any);
+    await this.territorieDataService.postCardAssigned(cardData as Card);
 
     this.formCard().reset({
       location: this.congregationName,

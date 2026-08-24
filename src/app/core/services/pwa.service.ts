@@ -57,7 +57,7 @@ export class PwaService {
     // Check if standalone (installed)
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true;
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 
     if (isStandalone) {
       this._btnPWA.set(false);

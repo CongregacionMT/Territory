@@ -137,7 +137,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     const territoryData = JSON.parse(storedNumberTerritory);
     const territories = territoryData[path] || [];
 
-    const requests = territories.map((territory: any) =>
+    const requests = territories.map((territory: TerritoryNumberData) =>
       this.territorieDataService.getCardTerritorieRegisterTable(territory.collection).pipe(take(1)),
     );
 
@@ -207,7 +207,7 @@ export class TerritoryAssignmentComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (numbers: TerritoryNumberData[]) => {
-          const mergedData = numbers.reduce((acc: any, curr: any) => {
+          const mergedData = (numbers as any[]).reduce((acc: any, curr: any) => {
             return { ...acc, ...curr };
           }, {});
           sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
@@ -244,12 +244,13 @@ export class TerritoryAssignmentComponent implements OnInit {
     if (card.start) {
       return new Date(card.start);
     } else if (card.creation) {
-      if (typeof (card.creation as any).toDate === 'function') {
-        return (card.creation as any).toDate();
-      } else if ((card.creation as any).seconds) {
-        return new Date((card.creation as any).seconds * 1000);
+      const creationAny = card.creation as { toDate?: () => Date; seconds?: number };
+      if (typeof creationAny.toDate === 'function') {
+        return creationAny.toDate();
+      } else if (creationAny.seconds) {
+        return new Date(creationAny.seconds * 1000);
       } else {
-        return new Date(card.creation as any);
+        return new Date(card.creation as string | number);
       }
     }
     return new Date(0); // fallback
@@ -320,7 +321,7 @@ export class TerritoryAssignmentComponent implements OnInit {
       startDate = new Date(card.start).toISOString().split('T')[0];
     } else if (card.creation) {
       let d: Date;
-      const creationAny = card.creation as any;
+      const creationAny = card.creation as { toDate?: () => Date; seconds?: number };
       if (typeof creationAny?.toDate === 'function') d = creationAny.toDate();
       else if (creationAny?.seconds) d = new Date(creationAny.seconds * 1000);
       else d = new Date(card.creation as string | number);
@@ -503,14 +504,15 @@ export class TerritoryAssignmentComponent implements OnInit {
         const { collectionName, cardId, data, isNew } = changes[key];
 
         // Remove undefined fields since Firestore doesn't support them
-        const removeUndefined = (obj: any): any => {
+        const removeUndefined = (obj: unknown): unknown => {
           if (obj === null || typeof obj !== 'object') return obj;
-          if (obj instanceof Date || typeof obj.toDate === 'function') return obj;
+          if (obj instanceof Date || typeof (obj as {toDate?: Function}).toDate === 'function') return obj;
           if (Array.isArray(obj)) return obj.map(removeUndefined);
-          const result: any = {};
-          for (const k of Object.keys(obj)) {
-            if (obj[k] !== undefined) {
-              result[k] = removeUndefined(obj[k]);
+          const result: Record<string, unknown> = {};
+          const objRecord = obj as Record<string, unknown>;
+          for (const k of Object.keys(objRecord)) {
+            if (objRecord[k] !== undefined) {
+              result[k] = removeUndefined(objRecord[k]);
             }
           }
           return result;
@@ -529,7 +531,7 @@ export class TerritoryAssignmentComponent implements OnInit {
           await this.territorieDataService.updateCardInCollection(
             collectionName,
             cardId,
-            sanitizedData,
+            sanitizedData as Partial<Card>,
           );
         }
       }

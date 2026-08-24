@@ -52,7 +52,7 @@ export class PrintPdfModalComponent {
       })
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: async (result: any) => {
+          next: async (result: unknown) => {
             try {
               let currentDepartures: Departure[] = [];
               let nextDepartures: Departure[] = [];
@@ -96,7 +96,7 @@ export class PrintPdfModalComponent {
               this.isPrintingPdf.set(false);
             }
           },
-          error: (error: any) => {
+          error: (error: unknown) => {
             console.error('Error fetching departures for PDF:', error);
             this.isPrintingPdf.set(false);
           },

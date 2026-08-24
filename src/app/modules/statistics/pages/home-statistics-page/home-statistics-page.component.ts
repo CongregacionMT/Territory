@@ -12,6 +12,9 @@ import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
+import { Card, CardApplesData } from '@core/models/Card';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
 
@@ -31,7 +34,7 @@ export class HomeStatisticsPageComponent implements OnInit {
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
   appleCount = signal<any>(null);
   congregationKey = environment.congregationKey;
-  localities: any[] = environment.localities || [];
+  localities: { name: string; key: string; territoryPrefix: string; storageKey: string; hasMap?: boolean; hasPreaching?: boolean; hasNumberedTerritories?: boolean; }[] = environment.localities || [];
 
   ngOnInit(): void {
     this.spinner.cargarSpinner();
@@ -65,7 +68,7 @@ export class HomeStatisticsPageComponent implements OnInit {
     });
   }
 
-  async loadStatisticsForLocality(locality: any): Promise<void> {
+  async loadStatisticsForLocality(locality: { name: string; key: string; territoryPrefix: string; storageKey: string; hasMap?: boolean; hasPreaching?: boolean }): Promise<void> {
     const storageKey = this.getStorageKeyForLocality(locality.key);
 
     if (sessionStorage.getItem(storageKey)) {
@@ -77,20 +80,20 @@ export class HomeStatisticsPageComponent implements OnInit {
 
     if (localityTerritories.length === 0) return;
 
-    const initialStatisticData: any[] = [];
+    const initialStatisticData: Card[][] = [];
 
     // Crear array de promesas para cargar datos de cada territorio
     const territoryPromises = localityTerritories.map(
-      (territory: any) =>
+      (territory: TerritoryNumberData) =>
         new Promise<void>((resolve) => {
           this.territorieDataService
             .getCardTerritorie(territory.collection)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe((card) => {
               // Filtrar manzanas vacías o sin check
-              card.forEach((list: any, index: number) => {
+              card.forEach((list: Card, index: number) => {
                 let count = 0;
-                (list.applesData || []).forEach((apple: any) => {
+                (list.applesData || []).forEach((apple: CardApplesData) => {
                   if (apple.checked === true) {
                     count++;
                   }
@@ -106,8 +109,8 @@ export class HomeStatisticsPageComponent implements OnInit {
               });
 
               // Filtrar listas vacías de forma segura
-              const filteredCard = card.filter((list: any) => {
-                const checkedCount = (list.applesData || []).filter((a: any) => a.checked).length;
+              const filteredCard = card.filter((list: Card) => {
+                const checkedCount = (list.applesData || []).filter((a: CardApplesData) => a.checked).length;
                 return checkedCount > 0;
               });
 

@@ -3,20 +3,18 @@ import { environment } from '@environments/environment';
 import { MarkerOverride } from '@core/config/maps.types';
 import * as toGeoJSON from '@tmcw/togeojson';
 
-declare const google: any;
-
 @Injectable({
   providedIn: 'root',
 })
 export class TerritoryMapService {
-  private map: any = null;
+  private map: google.maps.Map | null = null;
   private compassHandler: ((event: DeviceOrientationEvent) => void) | null = null;
   private mapsApiLoaded = false;
 
-  private userLocationMarker: any = null;
+  private userLocationMarker: google.maps.marker.AdvancedMarkerElement | null = null;
   private userLocationDot: HTMLElement | null = null;
   private watchPositionId: number | null = null;
-  private kmlMarkers: any[] = [];
+  private kmlMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
 
   async loadMapsApi(): Promise<void> {
     if (this.mapsApiLoaded) return;
@@ -41,10 +39,10 @@ export class TerritoryMapService {
     });
   }
 
-  async initMap(element: HTMLElement): Promise<any> {
+  async initMap(element: HTMLElement): Promise<google.maps.Map> {
     await this.loadMapsApi();
 
-    const { Map } = (await google.maps.importLibrary('maps')) as any;
+    const { Map } = (await google.maps.importLibrary('maps')) as google.maps.MapsLibrary;
 
     this.map = new Map(element, {
       center: { lat: -33.787, lng: -61.205 },
@@ -65,7 +63,7 @@ export class TerritoryMapService {
   }
 
   async loadKml(
-    map: any,
+    map: google.maps.Map,
     kmlUrl: string,
     markerOverrides?: Record<string, MarkerOverride>,
   ): Promise<void> {
@@ -93,12 +91,12 @@ export class TerritoryMapService {
       }
 
       // Style polygons/lines
-      map.data.setStyle((feature: any) => {
-        const fill = feature.getProperty('fill') || '#2196f3';
-        const stroke = feature.getProperty('stroke') || '#1976d2';
-        const fillOpacity = feature.getProperty('fill-opacity') ?? 0.4;
-        const strokeOpacity = feature.getProperty('stroke-opacity') ?? 1.0;
-        const strokeWidth = feature.getProperty('stroke-width') ?? 2;
+      map.data.setStyle((feature: google.maps.Data.Feature) => {
+        const fill = (feature.getProperty('fill') as string) || '#2196f3';
+        const stroke = (feature.getProperty('stroke') as string) || '#1976d2';
+        const fillOpacity = (feature.getProperty('fill-opacity') as number) ?? 0.4;
+        const strokeOpacity = (feature.getProperty('stroke-opacity') as number) ?? 1.0;
+        const strokeWidth = (feature.getProperty('stroke-width') as number) ?? 2;
 
         return {
           fillColor: fill,
@@ -113,15 +111,15 @@ export class TerritoryMapService {
       // Create AdvancedMarkerElements for Point features
       const { AdvancedMarkerElement, PinElement } = (await google.maps.importLibrary(
         'marker',
-      )) as any;
+      )) as google.maps.MarkerLibrary;
 
       const infoWindow = new google.maps.InfoWindow();
 
       for (const feature of pointFeatures) {
-        const coords = (feature.geometry as any).coordinates;
+        const coords = (feature.geometry as GeoJSON.Point).coordinates;
         const [lng, lat] = coords;
-        const name = feature.properties?.['name'] || '';
-        const iconColor = feature.properties?.['icon-color'] || '#ea4335';
+        const name = (feature.properties?.['name'] as string) || '';
+        const iconColor = (feature.properties?.['icon-color'] as string) || '#ea4335';
         const override = markerOverrides?.[name];
 
         let markerContent: HTMLElement;
@@ -169,8 +167,8 @@ export class TerritoryMapService {
       }
 
       // Info window for polygons too
-      map.data.addListener('click', (event: any) => {
-        const name = event.feature.getProperty('name');
+      map.data.addListener('click', (event: google.maps.Data.MouseEvent) => {
+        const name = event.feature.getProperty('name') as string;
         if (name) {
           infoWindow.setContent(
             `<div style="padding:4px 8px;"><strong style="font-size:14px;">${name}</strong></div>`,
@@ -182,14 +180,16 @@ export class TerritoryMapService {
 
       // Fit bounds to show all loaded data
       const bounds = new google.maps.LatLngBounds();
-      map.data.forEach((feature: any) => {
+      map.data.forEach((feature: google.maps.Data.Feature) => {
         const geometry = feature.getGeometry();
-        geometry.forEachLatLng((latLng: any) => {
-          bounds.extend(latLng);
-        });
+        if (geometry) {
+          geometry.forEachLatLng((latLng: google.maps.LatLng) => {
+            bounds.extend(latLng);
+          });
+        }
       });
       for (const marker of this.kmlMarkers) {
-        bounds.extend(marker.position);
+        bounds.extend(marker.position as google.maps.LatLngLiteral);
       }
       if (!bounds.isEmpty()) {
         map.fitBounds(bounds);
@@ -239,7 +239,7 @@ export class TerritoryMapService {
 
     if (!this.map) return;
 
-    const { AdvancedMarkerElement } = (await google.maps.importLibrary('marker')) as any;
+    const { AdvancedMarkerElement } = (await google.maps.importLibrary('marker')) as google.maps.MarkerLibrary;
 
     // Create pulsing blue dot element
     this.userLocationDot = this.createUserLocationElement();
@@ -342,11 +342,11 @@ export class TerritoryMapService {
     } else {
       if (navigator.geolocation && this.map) {
         navigator.geolocation.getCurrentPosition((pos) => {
-          this.map.panTo({
+          this.map?.panTo({
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
           });
-          this.map.setZoom(17);
+          this.map?.setZoom(17);
         });
       }
     }
@@ -392,9 +392,8 @@ export class TerritoryMapService {
         resolve();
       };
 
-      if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-        (DeviceOrientationEvent as any)
-          .requestPermission()
+      if (typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === 'function') {
+        ((DeviceOrientationEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission())
           .then((permissionState: string) => {
             if (permissionState === 'granted') {
               startListening();

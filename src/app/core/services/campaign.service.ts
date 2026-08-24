@@ -397,7 +397,7 @@ export class CampaignService {
           if (environment.localities?.length > 0) {
             environment.localities.forEach((loc) => {
               if (numberTerritory[loc.key]) {
-                const cols = (numberTerritory[loc.key] as any[])
+                const cols = (numberTerritory[loc.key] as TerritoryNumberData[])
                   .map((t: any) => t.collection)
                   .filter((c: string) => !!c?.trim());
                 collectionsToReset.push(...cols);
@@ -561,7 +561,7 @@ export class CampaignService {
           if (environment.localities?.length > 0) {
             environment.localities.forEach((loc) => {
               if (numberTerritory[loc.key]) {
-                const cols = (numberTerritory[loc.key] as any[])
+                const cols = (numberTerritory[loc.key] as TerritoryNumberData[])
                   .map((t: any) => t.collection)
                   .filter((c: string) => !!c?.trim());
                 collectionsToCheck.push(...cols);
