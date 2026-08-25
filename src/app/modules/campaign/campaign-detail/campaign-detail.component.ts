@@ -4,36 +4,30 @@ import { ActivatedRoute } from '@angular/router';
 import { TerritorioStats } from '@core/models/TerritorioStats';
 import { CampaignService } from '@core/services/campaign.service';
 import { SpinnerService } from '@core/services/spinner.service';
-import { environment } from '@environments/environment';
+import { CampaignLocalityGroup, groupStatsByLocality } from '@shared/utils/campaign.utils';
+import { KpiCardComponent } from '@shared/components/kpi-card/kpi-card.component';
+import { ProgressBarComponent } from '@shared/components/progress-bar/progress-bar.component';
 
-export interface LocalityGroup {
-  name: string;
-  territories: TerritorioStats[];
-  completed: number;
-  total: number;
-  percent: number;
-  applesDone: number;
-  applesTotal: number;
-}
+export type FirebaseDate = string | number | Date | { toDate?: () => Date; seconds?: number };
 
 export interface CampaignData {
   id?: string;
   name?: string;
   description?: string;
-  dateInit?: string | Date;
-  dateEnd?: string | Date;
+  dateInit?: FirebaseDate;
+  dateEnd?: FirebaseDate;
   active?: boolean;
   initialInvitations?: number;
   leftoverInvitations?: string;
   missingInvitations?: number;
   finalComments?: string;
   departuresInfo?: { checkedCount: number };
-  stats?: Record<string, { percent: number; total: number; salidas: number; done: number }>;
+  stats?: Record<string, { percent: number; total: number; salidas?: number; done: number }>;
 }
 
 @Component({
   selector: 'app-campaign-detail',
-  imports: [DatePipe, NgClass],
+  imports: [DatePipe, NgClass, KpiCardComponent, ProgressBarComponent],
   templateUrl: './campaign-detail.component.html',
   styleUrl: './campaign-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,12 +36,15 @@ export class CampaignDetailComponent implements OnInit {
   campaign = signal<CampaignData>({});
   territorios = signal<TerritorioStats[]>([]);
   private spinner = inject(SpinnerService);
+  private route = inject(ActivatedRoute);
+  private campaignService = inject(CampaignService);
 
   territoriosCompletados = 0;
   salidasTotales = 0;
   manzanasCompletadas = 0;
   manzanasTotales = 0;
   territorioPercent = 0;
+  totalTerritorios = 0;
 
   // Novedades
   initialInvitations = 0;
@@ -56,12 +53,7 @@ export class CampaignDetailComponent implements OnInit {
   departuresCount = 0;
   finalComments = '';
 
-  territoriosPorLocalidad = signal<LocalityGroup[]>([]);
-
-  private route = inject(ActivatedRoute);
-  private campaignService = inject(CampaignService);
-
-  constructor() {}
+  territoriosPorLocalidad = signal<CampaignLocalityGroup[]>([]);
 
   ngOnInit(): void {
     void this.loadData();
@@ -86,128 +78,36 @@ export class CampaignDetailComponent implements OnInit {
         }
 
         if (data.stats) {
-          const stats = data.stats;
-          const gruposMap = new Map<string, LocalityGroup>();
+          const localityGroups = groupStatsByLocality(data.stats);
+          this.territoriosPorLocalidad.set(localityGroups);
 
-          const sortedLocalities = [...(environment.localities || [])].sort(
-            (a, b) => b.territoryPrefix.length - a.territoryPrefix.length,
-          );
-
-          if (sortedLocalities.length > 0) {
-            sortedLocalities.forEach((loc) => {
-              gruposMap.set(loc.territoryPrefix, {
-                name: loc.name,
-                territories: [],
-                completed: 0,
-                total: 0,
-                percent: 0,
-                applesDone: 0,
-                applesTotal: 0,
-              });
-            });
-          } else {
-            gruposMap.set(environment.territoryPrefix, {
-              name: environment.congregationName,
-              territories: [],
-              completed: 0,
-              total: 0,
-              percent: 0,
-              applesDone: 0,
-              applesTotal: 0,
-            });
-          }
-          gruposMap.set('OTROS', {
-            name: 'Otros Territorios',
-            territories: [],
-            completed: 0,
-            total: 0,
-            percent: 0,
-            applesDone: 0,
-            applesTotal: 0,
-          });
-
-          const territoriosMapped = Object.keys(stats)
-            .filter((k) => k !== 'global' && !k.includes('undefined'))
-            .map((k) => {
-              let tNombre = k;
-              if (k.includes('Territorio')) {
-                const parts = k.split(/[- ]/);
-                const match = parts[parts.length - 1].match(/\d+$/);
-                if (match) tNombre = `Territorio ${match[0]}`;
-              }
-
-              const t = {
-                id: k,
-                nombre: tNombre,
-                porcentaje: stats[k].percent || 0,
-                total: stats[k].total || 0,
-                salidas: stats[k].salidas || 0,
-              } as TerritorioStats;
-
-              // Asignar al grupo correcto
-              let matchedPrefix = 'OTROS';
-              if (sortedLocalities.length > 0) {
-                const match = sortedLocalities.find((loc) => k.startsWith(loc.territoryPrefix));
-                if (match) matchedPrefix = match.territoryPrefix;
-              } else {
-                if (k.startsWith(environment.territoryPrefix))
-                  matchedPrefix = environment.territoryPrefix;
-              }
-
-              const group = gruposMap.get(matchedPrefix);
-              if (group) {
-                group.territories.push(t);
-                group.applesDone += stats[k].done || 0;
-                group.applesTotal += stats[k].total || 0;
-              }
-
-              return t;
-            })
-            .sort((a, b) => {
-              const numA = parseInt(a.nombre.replace(/\D/g, ''), 10) || 0;
-              const numB = parseInt(b.nombre.replace(/\D/g, ''), 10) || 0;
-              return numA - numB;
-            });
-
-          // Calcular totales por grupo
+          // Calcular totales globales iterando sobre los grupos limpios
           this.manzanasCompletadas = 0;
           this.manzanasTotales = 0;
+          this.territoriosCompletados = 0;
+          this.totalTerritorios = 0;
+          this.salidasTotales = 0;
 
-          const localityGroups = Array.from(gruposMap.values())
-            .filter((group) => group.territories.length > 0)
-            .map((group) => {
-              group.territories.sort((a: TerritorioStats, b: TerritorioStats) => {
-                const numA = parseInt(a.nombre.replace(/\D/g, ''), 10) || 0;
-                const numB = parseInt(b.nombre.replace(/\D/g, ''), 10) || 0;
-                return numA - numB;
-              });
-              group.completed = group.territories.filter(
-                (t: TerritorioStats) => t.porcentaje === 100,
-              ).length;
-              group.total = group.territories.length;
-              group.percent =
-                group.applesTotal > 0
-                  ? Math.round((group.applesDone / group.applesTotal) * 100)
-                  : 0;
+          const allTerritories: TerritorioStats[] = [];
 
-              this.manzanasCompletadas += group.applesDone;
-              this.manzanasTotales += group.applesTotal;
+          for (const group of localityGroups) {
+            this.manzanasCompletadas += group.applesDone;
+            this.manzanasTotales += group.applesTotal;
+            this.territoriosCompletados += group.completed;
+            this.totalTerritorios += group.total;
 
-              return group;
-            });
+            for (const t of group.territories) {
+              this.salidasTotales += t.salidas || 0;
+              allTerritories.push(t);
+            }
+          }
 
-          this.territoriosPorLocalidad.set(localityGroups);
-          this.territorios.set(territoriosMapped);
+          this.territorios.set(allTerritories);
 
-          // métricas globales
-          this.territoriosCompletados = territoriosMapped.filter(
-            (t) => t.porcentaje === 100,
-          ).length;
           this.territorioPercent =
             this.manzanasTotales > 0
               ? Math.round((this.manzanasCompletadas / this.manzanasTotales) * 100)
               : 0;
-          this.salidasTotales = territoriosMapped.reduce((acc, t) => acc + t.salidas, 0);
         }
       }
     } finally {

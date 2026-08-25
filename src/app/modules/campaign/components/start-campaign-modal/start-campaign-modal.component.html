@@ -1,0 +1,46 @@
+<dialog #dialog class="backdrop:bg-slate-950/80 bg-transparent p-0 m-auto w-full max-w-md rounded-3xl shadow-2xl">
+  <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden text-left">
+    <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
+      <h5 class="font-bold text-amber-500 flex items-center gap-2 text-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+        Atención requerida
+      </h5>
+      <button
+        type="button"
+        class="text-slate-500 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-sky-500 rounded-md outline-none"
+        aria-label="Cerrar modal"
+        (click)="close()"
+      >
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <div class="p-6 text-slate-300">
+      <p class="mb-4">
+        Al iniciar una nueva campaña,
+        <strong class="text-white">todas las manzanas de todos los territorios se reiniciarán</strong>
+        para poder cubrirlas desde cero.
+      </p>
+      <p class="text-slate-500 text-sm m-0">
+        Esta acción no se puede deshacer de forma fácil.
+      </p>
+    </div>
+    
+    <div class="p-6 bg-slate-950/50 border-t border-slate-800 flex justify-end gap-3">
+      <button 
+        type="button" 
+        class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-sky-500 outline-none"
+        (click)="close()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold rounded-xl shadow-lg shadow-amber-900/20 transition-all focus-visible:ring-2 focus-visible:ring-amber-500 outline-none"
+        (click)="confirm()"
+      >
+        Sí, estoy seguro
+      </button>
+    </div>
+  </div>
+</dialog>

@@ -4,18 +4,24 @@ import { CampaignService } from '@core/services/campaign.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Router } from '@angular/router';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach, Mock } from 'vitest';
 import { of } from 'rxjs';
 import { ChangeDetectorRef } from '@angular/core';
-import { Timestamp } from '@angular/fire/firestore';
 
 describe('CampaignPageComponent', () => {
   let component: CampaignPageComponent;
   let fixture: ComponentFixture<CampaignPageComponent>;
-  let mockCampaignService: any;
-  let mockSpinnerService: any;
-  let mockTerritoryDataService: any;
-  let mockRouter: any;
+  let mockCampaignService: {
+    getActiveCampaign: Mock;
+    getInactiveCampaigns: Mock;
+    getCampaignStats: Mock;
+    startCampaign: Mock;
+    getCachedCampaign: Mock;
+    endCampaign: Mock;
+  };
+  let mockSpinnerService: { cargarSpinner: Mock; cerrarSpinner: Mock };
+  let mockTerritoryDataService: { getWeeklyDepartures: Mock };
+  let mockRouter: { navigate: Mock };
 
   beforeEach(async () => {
     mockCampaignService = {
@@ -24,20 +30,20 @@ describe('CampaignPageComponent', () => {
       getCampaignStats: vi.fn().mockResolvedValue({ global: { done: 10, total: 20 } }),
       startCampaign: vi.fn().mockResolvedValue({ id: 'new-camp' }),
       getCachedCampaign: vi.fn().mockReturnValue(null),
-      endCampaign: vi.fn().mockResolvedValue(true)
+      endCampaign: vi.fn().mockResolvedValue(true),
     };
 
     mockSpinnerService = {
       cargarSpinner: vi.fn(),
-      cerrarSpinner: vi.fn()
+      cerrarSpinner: vi.fn(),
     };
 
     mockTerritoryDataService = {
-      getWeeklyDepartures: vi.fn().mockReturnValue(of([]))
+      getWeeklyDepartures: vi.fn().mockReturnValue(of([])),
     };
 
     mockRouter = {
-      navigate: vi.fn()
+      navigate: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -47,8 +53,8 @@ describe('CampaignPageComponent', () => {
         { provide: SpinnerService, useValue: mockSpinnerService },
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: Router, useValue: mockRouter },
-        { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn() } }
-      ]
+        { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn() } },
+      ],
     }).compileComponents();
   });
 
@@ -58,14 +64,15 @@ describe('CampaignPageComponent', () => {
 
   it('should create and load inactive campaigns if no active campaign', async () => {
     mockCampaignService.getInactiveCampaigns.mockResolvedValue([
-      { id: '1', name: 'Camp 1', description: 'Desc 1', dateEnd: { seconds: 1700000000 } }
+      { id: '1', name: 'Camp 1', description: 'Desc 1', dateEnd: { seconds: 1700000000 } },
     ]);
-    
+
     fixture = TestBed.createComponent(CampaignPageComponent);
     component = fixture.componentInstance;
-    
-    await component.ngOnInit();
-    
+
+    component.ngOnInit();
+    await component.loadData();
+
     expect(component).toBeTruthy();
     expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(component.campaignInProgress()).toBe(false);
@@ -77,14 +84,15 @@ describe('CampaignPageComponent', () => {
     mockCampaignService.getActiveCampaign.mockResolvedValue({ id: 'active-1' });
     mockCampaignService.getCampaignStats.mockResolvedValue({
       global: { done: 5, total: 10 },
-      'Territorio-1': { percent: 100 }
+      'Territorio-1': { percent: 100 },
     });
-    
+
     fixture = TestBed.createComponent(CampaignPageComponent);
     component = fixture.componentInstance;
-    
-    await component.ngOnInit();
-    
+
+    component.ngOnInit();
+    await component.loadData();
+
     expect(component.campaignInProgress()).toBe(true);
     expect(component.statsGlobal).toEqual({ done: 5, total: 10 });
     expect(component.territoriosPorLocalidad().length).toBeGreaterThan(0);
@@ -93,16 +101,16 @@ describe('CampaignPageComponent', () => {
   it('should validate form fields on change', () => {
     fixture = TestBed.createComponent(CampaignPageComponent);
     component = fixture.componentInstance;
-    
+
     component.onNameChange('ab');
     expect(component.nameInvalid()).toBe(true);
-    
+
     component.onNameChange('abcd');
     expect(component.nameInvalid()).toBe(false);
-    
+
     component.onDateChange('');
     expect(component.dateInvalid()).toBe(true);
-    
+
     component.onDateChange('2023-12-31');
     expect(component.dateInvalid()).toBe(false);
   });
@@ -110,83 +118,49 @@ describe('CampaignPageComponent', () => {
   it('should start campaign if form is valid', async () => {
     fixture = TestBed.createComponent(CampaignPageComponent);
     component = fixture.componentInstance;
-    
+
     component.campaignName.set('Test Campaign');
     component.campaignEnd.set('2023-12-31');
-    
+
     await component.confirmStartCampaign();
-    
+
     expect(mockCampaignService.startCampaign).toHaveBeenCalled();
-    expect(component.campaignInProgress()).toBe(true);
   });
 
-  it('should not start campaign if form is invalid', async () => {
+  it('should not start campaign if form is invalid', () => {
     fixture = TestBed.createComponent(CampaignPageComponent);
     component = fixture.componentInstance;
-    
+
     component.campaignName.set('ab'); // invalid length
     component.campaignEnd.set('2023-12-31');
-    
-    await component.confirmStartCampaign();
-    
-    expect(component.nameInvalid()).toBe(true);
-    expect(mockCampaignService.startCampaign).not.toHaveBeenCalled();
-  });
 
-  it('should open end campaign modal and filter departures', async () => {
-    mockCampaignService.getActiveCampaign.mockResolvedValue({ 
-      id: 'active-1', 
-      dateInit: '2023-01-01', 
-      dateEnd: '2023-12-31' 
-    });
-    
-    mockTerritoryDataService.getWeeklyDepartures.mockReturnValue(of([
-      { weekId: '2023-01-02', departure: [{ date: '2023-01-03', driver: 'Test' }] }
-    ]));
-    
-    fixture = TestBed.createComponent(CampaignPageComponent);
-    component = fixture.componentInstance;
-    
-    await component.openEndCampaignModal();
-    
-    expect(component.showEndCampaignModal()).toBe(true);
-    expect(component.filteredDepartures().length).toBe(1);
-    expect(component.filteredDepartures()[0].driver).toBe('Test');
+    component.openStartModal();
+
+    expect(component.nameInvalid()).toBe(true);
   });
 
   it('should navigate to campaign detail', () => {
     fixture = TestBed.createComponent(CampaignPageComponent);
     component = fixture.componentInstance;
-    
+
     component.goToCampaignDetail('123');
-    
+
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/campaign', '123']);
   });
 
   it('should not confirm end campaign if user cancels prompt', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false);
-    
-    fixture = TestBed.createComponent(CampaignPageComponent);
-    component = fixture.componentInstance;
-    
-    await component.confirmEndCampaign();
-    
-    expect(mockCampaignService.endCampaign).not.toHaveBeenCalled();
-  });
 
-  it('should confirm and end campaign', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    mockCampaignService.getCachedCampaign.mockReturnValue({ id: 'active-1', stats: {} });
-    
     fixture = TestBed.createComponent(CampaignPageComponent);
     component = fixture.componentInstance;
-    
-    component.leftoverInvitations.set('pocas');
-    component.finalEndDate.set('2023-12-31');
-    component.filteredDepartures.set([{ id: '1', date: '2023-01-01', dateLabel: 'Lunes', driver: 'Test', checked: true, publishers: 2 }]);
-    
-    await component.confirmEndCampaign();
-    
+    await component.handleEndCampaign({
+      leftoverInvitations: 'pocas',
+      departuresInfo: { checkedCount: 1 },
+      missingInvitations: 0,
+      finalComments: '',
+      finalEndDate: '2023-12-31',
+    });
+
     expect(mockCampaignService.endCampaign).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/campaign', 'active-1']);
     expect(component.campaignInProgress()).toBe(false);

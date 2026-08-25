@@ -1,0 +1,11 @@
+<div class="w-full bg-slate-950 border border-slate-800 rounded-full mb-3 overflow-hidden shadow-inner print:bg-gray-100" [class]="sizeClass()">
+  <div
+    class="h-full rounded-full transition-all duration-1000 print:bg-emerald-500 relative"
+    [class]="colorClass()"
+    [style.width.%]="percent()"
+  >
+    @if (showInnerPattern()) {
+      <div class="absolute inset-0 bg-white/20" style="background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent); background-size: 1rem 1rem;"></div>
+    }
+  </div>
+</div>
