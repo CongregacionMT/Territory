@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
@@ -64,13 +63,9 @@ export class FormEditDeparturesComponent implements OnInit {
   private _snackBar = inject(MatSnackBar);
   public authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
-
-  numberGroup: number = 0;
   formDeparture: FormGroup;
-  selectedColor: string = 'primary';
   groupKeys: number[] = [];
   groupedDepartures: { [key: string]: Departure[] } = {};
-  verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
   readonly dateDepartureInput = input<string>('');
   readonly saveTrigger = input<number>(0);
@@ -82,39 +77,26 @@ export class FormEditDeparturesComponent implements OnInit {
   territoryPrefix = environment.territoryPrefix;
   congregationKey = environment.congregationKey;
   localities = environment.localities;
-  territoryOptionsMap: { [key: string]: string[] } = {};
-  isSaved: boolean = false;
+  territoryOptionsMap = signal<{ [key: string]: string[] }>({});
   isAdmin: boolean = false;
-  activeModal: { dayIndex: number; groupKey: number } | null = null;
+  activeModal = signal<{ dayIndex: number; groupKey: number } | null>(null);
 
   get activeModalDays(): AbstractControl | null {
-    if (!this.activeModal) return null;
-    const controls = this.filterControlsByGroup(this.activeModal.groupKey);
-    return controls[this.activeModal.dayIndex] || null;
+    const modal = this.activeModal();
+    if (!modal) return null;
+    const controls = this.filterControlsByGroup(modal.groupKey);
+    return controls[modal.dayIndex] || null;
   }
-
-  personalAssignments: Card[] = [];
+  personalAssignments = signal<Card[]>([]);
   showPersonalTerritories: boolean = false;
   sortByAge: boolean = true;
-  weeklyHistory: WeeklyDeparture[] = [];
-  territoryLastCompletedDays: { [locationPrefix: string]: { [num: number]: number } } = {};
+  weeklyHistory = signal<WeeklyDeparture[]>([]);
+  territoryLastCompletedDays = signal<{ [locationPrefix: string]: { [num: number]: number } }>({});
   // territoryGroupsMap: { [locationPrefix: string]: { [territoryNum: number]: number } }
   // Maps location prefix -> territory number -> group number (1, 2, 3...)
-  territoryGroupsMap: { [locationPrefix: string]: { [territoryNum: number]: number } } = {};
+  territoryGroupsMap = signal<{ [locationPrefix: string]: { [territoryNum: number]: number } }>({});
   selectedTerritoryGroup: number | null = null; // null = todos
   availableGroupNumbers: number[] = []; // grupos disponibles para la localidad actual
-
-  colorSwatchMap: { [key: string]: string } = {
-    secondary: '#64748b',
-    primary: '#3b82f6',
-    success: '#22c55e',
-    danger: '#ef4444',
-    warning: '#f59e0b',
-    info: '#38bdf8',
-    light: '#f8fafc',
-    dark: '#0f172a',
-  };
-
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';
   constructor() {
     effect(() => {
@@ -141,7 +123,6 @@ export class FormEditDeparturesComponent implements OnInit {
   }
 
   initForm(departures: Departure[]): void {
-    this.isSaved = false;
     if (this.isFormDirty) this.isFormDirty.set(true);
 
     const targetMondayStr = this.dateDepartureInput();
@@ -189,27 +170,27 @@ export class FormEditDeparturesComponent implements OnInit {
         const sorted = numbers.sort((a: unknown, b: unknown) => Number(a) - Number(b));
         const options = sorted.map((n: unknown) => `N°${String(n)}`);
 
-        this.territoryOptionsMap[loc.territoryPrefix] = options;
+        this.territoryOptionsMap.update(m => ({ ...m, [loc.territoryPrefix]: options }));
         if (loc.key) {
-          this.territoryOptionsMap[loc.key] = options;
+          this.territoryOptionsMap.update(m => ({ ...m, [loc.key]: options }));
         }
       } else {
         const options = ['Rural'];
-        this.territoryOptionsMap[loc.territoryPrefix] = options;
+        this.territoryOptionsMap.update(m => ({ ...m, [loc.territoryPrefix]: options }));
         if (loc.key) {
-          this.territoryOptionsMap[loc.key] = options;
+          this.territoryOptionsMap.update(m => ({ ...m, [loc.key]: options }));
         }
       }
     });
 
     if (
-      !this.territoryOptionsMap[this.territoryPrefix] &&
+      !this.territoryOptionsMap()[this.territoryPrefix] &&
       (!data || Object.keys(data).length === 0)
     ) {
-      this.territoryOptionsMap[this.territoryPrefix] = Array.from(
+      this.territoryOptionsMap.update(m => ({ ...m, [this.territoryPrefix]: Array.from(
         { length: TERRITORY_COUNT },
         (_, i) => `N°${i + 1}`,
-      );
+      ) }));
     }
 
     const departures = this.formDepartureDataInput();
@@ -240,9 +221,7 @@ export class FormEditDeparturesComponent implements OnInit {
     territories: unknown[],
   ): Promise<void> {
     const locationPrefix = loc.territoryPrefix;
-    if (!this.territoryLastCompletedDays[locationPrefix]) {
-      this.territoryLastCompletedDays[locationPrefix] = {};
-    }
+    this.territoryLastCompletedDays.update(m => ({ ...m, [locationPrefix]: m[locationPrefix] || {} }));
 
     const path = loc.key;
     const suffix = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
@@ -296,12 +275,12 @@ export class FormEditDeparturesComponent implements OnInit {
                   if (!isNaN(dateCard.getTime())) {
                     const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
                     const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                    this.territoryLastCompletedDays[locationPrefix][Number(num)] = days;
+                    this.territoryLastCompletedDays.update(m => { m[locationPrefix][Number(num)] = days; return {...m}; });
                   } else {
-                    this.territoryLastCompletedDays[locationPrefix][Number(num)] = Infinity;
+                    this.territoryLastCompletedDays.update(m => { m[locationPrefix][Number(num)] = Infinity; return {...m}; });
                   }
                 } else {
-                  this.territoryLastCompletedDays[locationPrefix][Number(num)] = Infinity;
+                  this.territoryLastCompletedDays.update(m => { m[locationPrefix][Number(num)] = Infinity; return {...m}; });
                 }
               }
             }
@@ -351,12 +330,12 @@ export class FormEditDeparturesComponent implements OnInit {
                 if (!isNaN(dateCard.getTime())) {
                   const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
                   const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                  this.territoryLastCompletedDays[locationPrefix][t.territorio] = days;
+                  this.territoryLastCompletedDays.update(m => { m[locationPrefix][t.territorio] = days; return {...m}; });
                 } else {
-                  this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
+                  this.territoryLastCompletedDays.update(m => { m[locationPrefix][t.territorio] = Infinity; return {...m}; });
                 }
               } else {
-                this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
+                this.territoryLastCompletedDays.update(m => { m[locationPrefix][t.territorio] = Infinity; return {...m}; });
               }
               resolve();
             });
@@ -378,7 +357,7 @@ export class FormEditDeparturesComponent implements OnInit {
     this.territoryDataService
       .getCardAssigned()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((cards) => (this.personalAssignments = cards || []));
+      .subscribe((cards) => this.personalAssignments.set(cards || []));
   }
 
   loadWeeklyHistory(): void {
@@ -386,7 +365,7 @@ export class FormEditDeparturesComponent implements OnInit {
       .getWeeklyDepartures()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((history) => {
-        this.weeklyHistory = history;
+        this.weeklyHistory.set(history);
       });
   }
 
@@ -397,12 +376,12 @@ export class FormEditDeparturesComponent implements OnInit {
       .subscribe((data: Record<string, Record<number, number>> | null) => {
         if (!data) return;
         // data shape: { [locationPrefix]: { [territoryNum]: groupNumber } }
-        this.territoryGroupsMap = data;
+        this.territoryGroupsMap.set(data);
       });
   }
 
   async saveTerritoryGroups(): Promise<void> {
-    await this.territoryDataService.saveTerritoryGroups(this.territoryGroupsMap);
+    await this.territoryDataService.saveTerritoryGroups(this.territoryGroupsMap());
   }
 
   /**
@@ -413,34 +392,34 @@ export class FormEditDeparturesComponent implements OnInit {
    * Assigns a territory to a departure group (for the admin config panel).
    */
   setTerritoryGroupAssignment(num: string, locationPrefix: string, groupNum: number | null): void {
-    if (!this.territoryGroupsMap[locationPrefix]) {
-      this.territoryGroupsMap[locationPrefix] = {};
+    if (!this.territoryGroupsMap()[locationPrefix]) {
+      this.territoryGroupsMap()[locationPrefix] = {};
     }
     const n = this.normalizeTerritoryNumber(num);
     if (groupNum === null || groupNum === 0) {
-      delete this.territoryGroupsMap[locationPrefix][n];
+      delete this.territoryGroupsMap()[locationPrefix][n];
     } else {
-      this.territoryGroupsMap[locationPrefix][n] = groupNum;
+      this.territoryGroupsMap()[locationPrefix][n] = groupNum;
     }
   }
 
   openModal(dayIndex: number, groupKey: number): void {
-    this.activeModal = { dayIndex, groupKey };
+    this.activeModal.set({ dayIndex, groupKey });
     this.selectedTerritoryGroup = groupKey > 0 ? groupKey : null;
     this.cdr.detectChanges();
   }
 
   closeModal(): void {
-    this.activeModal = null;
+    this.activeModal.set(null);
     this.cdr.detectChanges();
   }
 
   isModalOpen(dayIndex: number, groupKey: number): boolean {
-    return this.activeModal?.dayIndex === dayIndex && this.activeModal?.groupKey === groupKey;
+    return this.activeModal()?.dayIndex === dayIndex && this.activeModal()?.groupKey === groupKey;
   }
 
   getAvailableGroupNumbers(locationPrefix: string): number[] {
-    const locGroups = this.territoryGroupsMap[locationPrefix];
+    const locGroups = this.territoryGroupsMap()[locationPrefix];
     if (!locGroups) return [];
     const groups = new Set(Object.values(locGroups).filter((g) => g > 0));
     return Array.from(groups).sort((a, b) => a - b);
@@ -450,7 +429,7 @@ export class FormEditDeparturesComponent implements OnInit {
     const territoryNumber = this.normalizeTerritoryNumber(num);
     const locationNames = this.getLocationNames(locationPrefix);
 
-    return this.personalAssignments.some((assignment) => {
+    return this.personalAssignments().some((assignment) => {
       const assignedTerritory = this.normalizeTerritoryNumber(
         String(assignment.territory || assignment.territoryNumber || ''),
       );
@@ -495,10 +474,10 @@ export class FormEditDeparturesComponent implements OnInit {
     let foundDays = Infinity;
 
     if (
-      this.territoryLastCompletedDays[locationPrefix] &&
-      this.territoryLastCompletedDays[locationPrefix][territoryNumber] !== undefined
+      this.territoryLastCompletedDays()[locationPrefix] &&
+      this.territoryLastCompletedDays()[locationPrefix][territoryNumber] !== undefined
     ) {
-      foundDays = this.territoryLastCompletedDays[locationPrefix][territoryNumber];
+      foundDays = this.territoryLastCompletedDays()[locationPrefix][territoryNumber];
     } else {
       for (const loc of this.localities) {
         if (
@@ -506,10 +485,10 @@ export class FormEditDeparturesComponent implements OnInit {
           locationNames.includes(loc.key.toLowerCase())
         ) {
           if (
-            this.territoryLastCompletedDays[loc.territoryPrefix] &&
-            this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber] !== undefined
+            this.territoryLastCompletedDays()[loc.territoryPrefix] &&
+            this.territoryLastCompletedDays()[loc.territoryPrefix][territoryNumber] !== undefined
           ) {
-            foundDays = this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber];
+            foundDays = this.territoryLastCompletedDays()[loc.territoryPrefix][territoryNumber];
             break;
           }
         }
@@ -523,7 +502,7 @@ export class FormEditDeparturesComponent implements OnInit {
     if (!locationPrefix || locationPrefix === 'Seleccionar localidad') return [];
 
     // If exact match found
-    if (this.territoryOptionsMap[locationPrefix]) return this.territoryOptionsMap[locationPrefix];
+    if (this.territoryOptionsMap()[locationPrefix]) return this.territoryOptionsMap()[locationPrefix];
 
     // Fallback: search by checking against all prefixes if logic is complex,
     // but here we just return empty or default.
@@ -578,8 +557,8 @@ export class FormEditDeparturesComponent implements OnInit {
 
   getTerritoryGroupNumber(num: string, locationPrefix: string): number {
     const numericNum = Number(num);
-    if (!isNaN(numericNum) && this.territoryGroupsMap[locationPrefix]?.[numericNum]) {
-      return this.territoryGroupsMap[locationPrefix][numericNum];
+    if (!isNaN(numericNum) && this.territoryGroupsMap()[locationPrefix]?.[numericNum]) {
+      return this.territoryGroupsMap()[locationPrefix][numericNum];
     }
     return 0;
   }
@@ -587,7 +566,7 @@ export class FormEditDeparturesComponent implements OnInit {
   getPersonalPublisher(num: string, locationPrefix: string): string {
     const territoryNumber = this.normalizeTerritoryNumber(num);
     const locationNames = this.getLocationNames(locationPrefix);
-    const assignment = this.personalAssignments.find((item) => {
+    const assignment = this.personalAssignments().find((item) => {
       const assignedTerritory = this.normalizeTerritoryNumber(
         String(item.territory || item.territoryNumber || ''),
       );
@@ -704,7 +683,7 @@ export class FormEditDeparturesComponent implements OnInit {
   ): { point: string; maps: string } {
     const normalizedTerritory = this.normalizeTerritoryNumber(territory);
 
-    const matches = (this.weeklyHistory || [])
+    const matches = (this.weeklyHistory() || [])
       .flatMap((week) => week.departure || [])
       .filter((departure) => departure.location === locationPrefix)
       .filter((departure) =>
@@ -755,7 +734,6 @@ export class FormEditDeparturesComponent implements OnInit {
     }
 
     this.syncMeetingDetails(index, group);
-    this.isSaved = false;
     if (this.isFormDirty) this.isFormDirty.set(true);
   }
 
@@ -774,7 +752,6 @@ export class FormEditDeparturesComponent implements OnInit {
           control.get('driver')?.value === departureToMark.driver
         ) {
           control.get('cardStatus')?.setValue('received');
-          this.isSaved = false;
           if (this.isFormDirty) this.isFormDirty.set(true);
           return true;
         }
@@ -806,15 +783,8 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   openSnackBar(message: string, action: string): void {
     this._snackBar.open(message, action, {
-      verticalPosition: this.verticalPosition,
+      verticalPosition: 'top',
     });
-  }
-  get departureFormArray(): FormArray {
-    const departureGroupKey = `departure${this.numberGroup}`;
-    if (!this.formDeparture.get(departureGroupKey)) {
-      this.formDeparture.setControl(departureGroupKey, new FormArray([]));
-    }
-    return this.formDeparture.get(departureGroupKey) as FormArray;
   }
   filterControlsByGroup(group: number): AbstractControl[] {
     const departureGroupKey = `departure${group}`;
@@ -831,8 +801,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
 
   onChangeColor(event: Event, index: number, group: number): void {
-    this.isSaved = false;
-    if (this.isFormDirty) this.isFormDirty.set(true);
+    if (this.isFormDirty()) this.isFormDirty.set(true);
     const departureGroupKey = `departure${group}`;
     const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     const control = departureFormArrayItem.at(index);
@@ -858,41 +827,36 @@ export class FormEditDeparturesComponent implements OnInit {
     const targetTerritoryArray = newControl.get('territory') as FormArray;
     targetTerritoryArray.clear();
     sourceTerritories.forEach((t: string) => targetTerritoryArray.push(new FormControl(t)));
-
-    this.isSaved = false;
     if (this.isFormDirty) this.isFormDirty.set(true);
   }
 
   addControl(group: number): void {
     const targetMondayStr = this.dateDepartureInput();
     this.departureFormService.addControl(this.formDeparture, group, targetMondayStr);
-    this.isSaved = false;
     if (this.isFormDirty) this.isFormDirty.set(true);
   }
 
   removeControl(index: number, group: number): void {
     this.departureFormService.removeControl(this.formDeparture, index, group);
-    this.isSaved = false;
-    if (this.isFormDirty) this.isFormDirty.set(true);
+    if (this.isFormDirty()) this.isFormDirty.set(true);
   }
 
   addInputForm(group: number): void {
     this.addControl(group);
   }
   deleteInputForm(index: number, group: number): void {
-    this.isSaved = false;
-    if (this.isFormDirty) this.isFormDirty.set(true);
-    this.numberGroup = group;
-    this.departureFormArray.removeAt(index);
-    // Si el grupo queda vacío, eliminarlo de groupKeys SOLO si NO es el grupo 0 (Salidas Generales)
-    // El grupo 0 siempre debe permanecer para que el botón "Nueva salida +" esté disponible
-    if (this.departureFormArray.length === 0 && group !== 0) {
-      this.groupKeys = this.groupKeys.filter((k) => k !== group);
+    if (this.isFormDirty()) this.isFormDirty.set(true);
+    const departureGroupKey = `departure${group}`;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
+    if (departureFormArrayItem) {
+      departureFormArrayItem.removeAt(index);
+      if (departureFormArrayItem.length === 0 && group !== 0) {
+        this.groupKeys = this.groupKeys.filter((k) => k !== group);
+      }
     }
   }
   rollbackInputForm(): void {
-    this.isSaved = false;
-    if (this.isFormDirty) this.isFormDirty.set(true);
+    if (this.isFormDirty()) this.isFormDirty.set(true);
     this.groupKeys = [];
     this.groupedDepartures = {};
 
@@ -944,7 +908,6 @@ export class FormEditDeparturesComponent implements OnInit {
     this.groupKeys = [...new Set(this.groupKeys)].sort((a, b) => a - b);
   }
   addNewGroup(): void {
-    this.isSaved = false;
     if (this.isFormDirty) this.isFormDirty.set(true);
     this.groupKeys.push(this.groupKeys.length);
     this.addInputForm(this.groupKeys.length - 1);
@@ -981,8 +944,6 @@ export class FormEditDeparturesComponent implements OnInit {
   }
 
   submitForm(): Departure[] {
-    this.isSaved = true;
-
     const targetMondayStr = this.dateDepartureInput();
     const targetMonday = new Date(targetMondayStr + 'T00:00:00');
     const targetSunday = new Date(targetMonday);
@@ -1066,7 +1027,7 @@ export class FormEditDeparturesComponent implements OnInit {
     });
 
     this._snackBar.open('✅ Semana y salidas guardadas correctamente', 'Ok', {
-      verticalPosition: this.verticalPosition,
+      verticalPosition: 'top',
       duration: 3000,
     });
 

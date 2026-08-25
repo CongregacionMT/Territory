@@ -68,16 +68,16 @@
   </button>
 </div>
 
-@if (activeModal) {
+@if (activeModal()) {
   <app-territory-selection-modal
     [activeModalDays]="getFormGroup(activeModalDays!)"
-    [dayIndex]="activeModal.dayIndex"
-    [groupKey]="activeModal.groupKey"
+    [dayIndex]="activeModal()!.dayIndex"
+    [groupKey]="activeModal()!.groupKey"
     [formDeparture]="formDeparture"
-    [territoryLastCompletedDays]="territoryLastCompletedDays"
-    [territoryGroupsMap]="territoryGroupsMap"
-    [territoryNumbersCache]="territoryOptionsMap"
-    [personalAssignments]="personalAssignments"
+    [territoryLastCompletedDays]="territoryLastCompletedDays()"
+    [territoryGroupsMap]="territoryGroupsMap()"
+    [territoryNumbersCache]="territoryOptionsMap()"
+    [personalAssignments]="personalAssignments()"
     [localities]="localities"
     (close)="closeModal()"
   ></app-territory-selection-modal>
