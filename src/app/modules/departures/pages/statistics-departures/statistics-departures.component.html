@@ -19,7 +19,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (stat of driverStats; track stat.name) {
+                @for (stat of driverStats(); track stat.name) {
                   <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td class="py-3 px-4">{{ stat.name }}</td>
                     <td class="py-3 px-4 text-center">
@@ -54,7 +54,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (point of pointStats; track point.name) {
+                @for (point of pointStats(); track point.name) {
                   <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td class="py-3 px-4">{{ point.name }}</td>
                     <td class="py-3 px-4 text-center">
@@ -81,7 +81,7 @@
         </div>
         <div class="p-0">
           <div class="flex flex-col w-full">
-            @for (week of weeklyDepartures; track week.weekId) {
+            @for (week of weeklyDepartures(); track week.weekId) {
               <div class="flex justify-center items-center py-4 px-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
                 <div class="text-center">
                   <h6 class="font-medium text-gray-800 mb-1">Semana del {{ getFormattedDate(week.weekId) }}</h6>

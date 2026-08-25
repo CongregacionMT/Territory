@@ -1,10 +1,10 @@
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
-
+import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { WeeklyDeparture } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { formatWeekRange } from '@shared/utils/date-utils';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-statistics-departures',
@@ -14,44 +14,40 @@ import { formatWeekRange } from '@shared/utils/date-utils';
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./statistics-departures.component.scss'],
 })
-export class StatisticsDeparturesComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+export class StatisticsDeparturesComponent {
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
-  weeklyDepartures: WeeklyDeparture[] = [];
 
-  // Estadísticas procesadas
-  driverStats: { name: string; count: number }[] = [];
-  pointStats: { name: string; lastDate: string }[] = [];
+  weeklyDepartures = toSignal(
+    this.territoryDataService.getWeeklyDepartures().pipe(tap(() => this.spinner.cerrarSpinner())),
+    { initialValue: [] as WeeklyDeparture[] },
+  );
 
-  ngOnInit(): void {
-    console.log('Cargando StatisticsDeparturesComponent...');
-    this.spinner.cargarSpinner();
-
-    this.territoryDataService
-      .getWeeklyDepartures()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (data) => {
-          this.weeklyDepartures = data;
-          this.processStats();
-          this.spinner.cerrarSpinner();
-        },
-        error: () => this.spinner.cerrarSpinner(),
-      });
-  }
-
-  processStats(): void {
+  // Estadísticas procesadas (computed)
+  driverStats = computed(() => {
     const driverCounts: { [key: string]: number } = {};
-    const pointsMap: { [key: string]: string } = {};
+    const weeklyData = this.weeklyDepartures();
 
-    this.weeklyDepartures.forEach((week) => {
+    weeklyData.forEach((week) => {
       week.departure.forEach((dep) => {
         if (dep.driver) {
           driverCounts[dep.driver] = (driverCounts[dep.driver] || 0) + 1;
         }
+      });
+    });
+
+    return Object.keys(driverCounts)
+      .map((name) => ({ name, count: driverCounts[name] }))
+      .sort((a, b) => b.count - a.count);
+  });
+
+  pointStats = computed(() => {
+    const pointsMap: { [key: string]: string } = {};
+    const weeklyData = this.weeklyDepartures();
+
+    weeklyData.forEach((week) => {
+      week.departure.forEach((dep) => {
         if (dep.point) {
-          // Guardamos la fecha más reciente (como están ordenadas por weekId desc, la primera que encontremos es la más reciente del historial)
           if (!pointsMap[dep.point]) {
             pointsMap[dep.point] = week.weekId;
           }
@@ -59,13 +55,13 @@ export class StatisticsDeparturesComponent implements OnInit {
       });
     });
 
-    this.driverStats = Object.keys(driverCounts)
-      .map((name) => ({ name, count: driverCounts[name] }))
-      .sort((a, b) => b.count - a.count);
-
-    this.pointStats = Object.keys(pointsMap)
+    return Object.keys(pointsMap)
       .map((name) => ({ name, lastDate: pointsMap[name] }))
       .sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+  });
+
+  constructor() {
+    this.spinner.cargarSpinner();
   }
 
   getFormattedDate(date: string): string {
