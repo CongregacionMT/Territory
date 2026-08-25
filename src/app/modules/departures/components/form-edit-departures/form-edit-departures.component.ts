@@ -22,6 +22,7 @@ import {
 } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { TerritoryDataService } from '@core/services/territory-data.service';
+import { DepartureFormService } from '@core/services/departure-form.service';
 import { Departure } from '../../../../core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
@@ -44,7 +45,9 @@ import { AuthService } from '@core/services/auth.service';
 export class FormEditDeparturesComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private territoryDataService = inject(TerritoryDataService);
+  private departureFormService = inject(DepartureFormService);
   private fb = inject(FormBuilder);
+  // private fb = inject();
   private spinner = inject(SpinnerService);
   private _snackBar = inject(MatSnackBar);
   public authService = inject(AuthService);
@@ -109,9 +112,7 @@ export class FormEditDeparturesComponent implements OnInit {
     });
 
     this.isAdmin = this.authService.isAdmin();
-    this.formDeparture = this.fb.group({
-      departure0: new FormArray([]),
-    });
+    this.formDeparture = this.departureFormService.createForm();
 
     // Efecto para reaccionar a cambios en los inputs y recargar el formulario
     effect(() => {
@@ -130,88 +131,15 @@ export class FormEditDeparturesComponent implements OnInit {
   initForm(departures: Departure[]): void {
     this.isSaved = false;
     if (this.isFormDirty) this.isFormDirty.set(true);
-    this.groupKeys = [];
-    this.groupedDepartures = {};
-
-    // Limpiar todos los FormArrays existentes
-    Object.keys(this.formDeparture.controls).forEach((key) => {
-      if (key.startsWith('departure')) {
-        (this.formDeparture.get(key) as FormArray).clear();
-      }
-    });
-
-    if (!departures || departures.length === 0) {
-      // Si no hay datos, inicializamos con un grupo vacío por defecto
-      this.groupKeys = [0];
-      return;
-    }
 
     const targetMondayStr = this.dateDepartureInput();
-    const targetMonday = new Date(targetMondayStr + 'T00:00:00');
-    const targetSunday = new Date(targetMonday);
-    targetSunday.setDate(targetMonday.getDate() + 6);
-
-    // Filtrar: Solo salidas que pertenezcan a la semana seleccionada
-    const filteredDepartures = departures.filter((departure: Departure) => {
-      if (!departure.date) return true; // Permitir si no tiene fecha definida aún
-      const d = new Date(departure.date + 'T00:00:00');
-      if (isNaN(d.getTime())) return true;
-      return d >= targetMonday && d <= targetSunday;
-    });
-
-    if (filteredDepartures.length === 0) {
-      this.groupKeys = [0];
-      return;
-    }
-
-    filteredDepartures.forEach((departure: Departure) => {
-      const rawGroup = Number(departure.group);
-      const groupKey = isNaN(rawGroup) ? 0 : rawGroup;
-
-      if (!this.groupedDepartures[groupKey]) {
-        this.groupKeys.push(groupKey);
-        this.groupedDepartures[groupKey] = [];
-      }
-      this.groupedDepartures[groupKey].push(departure);
-
-      const groupArrayKey = `departure${groupKey}`;
-      let groupArray = this.formDeparture.get(groupArrayKey) as FormArray;
-      if (!groupArray) {
-        groupArray = this.fb.array([]);
-        this.formDeparture.setControl(groupArrayKey, groupArray);
-      }
-
-      // Normalizar location
-      const locality = this.localities.find((l) => l.key === departure.location);
-      const normalizedLocation = locality
-        ? locality.territoryPrefix
-        : departure.location || 'Seleccionar localidad';
-
-      groupArray.push(
-        this.fb.group({
-          date: new FormControl(departure.date || targetMondayStr),
-          driver: new FormControl(departure.driver || ''),
-          schedule: new FormControl(departure.schedule || ''),
-          location: new FormControl(normalizedLocation),
-          territory: this.fb.array(
-            (departure.territory || []).map((t: string) => new FormControl(t)),
-          ),
-          point: new FormControl(departure.point || ''),
-          maps: new FormControl(departure.maps || ''),
-          color: new FormControl(departure.color || 'secondary'),
-          group: new FormControl(groupKey),
-          isEvent: new FormControl(departure.isEvent || false),
-          title: new FormControl(departure.title || ''),
-          cardStatus: new FormControl(
-            departure.isEvent ? 'not_required' : departure.cardStatus || 'pending',
-          ),
-        }),
-      );
-    });
-
-    // Asegurar que groupKeys esté ordenado y no tenga duplicados
-    // Siempre incluir el grupo 0 (Salidas Generales) para que el botón "Nueva salida +" esté disponible
-    this.groupKeys = [...new Set([0, ...this.groupKeys])].sort((a, b) => a - b);
+    const result = this.departureFormService.initForm(
+      this.formDeparture,
+      departures,
+      targetMondayStr,
+    );
+    this.groupKeys = result.groupKeys;
+    this.groupedDepartures = result.groupedDepartures;
   }
   loadTerritoryData(): void {
     const stored = sessionStorage.getItem('numberTerritory');
@@ -1046,27 +974,22 @@ export class FormEditDeparturesComponent implements OnInit {
       }
     }
   }
-  addInputForm(group: number): void {
+
+  addControl(group: number): void {
+    const targetMondayStr = this.dateDepartureInput();
+    this.departureFormService.addControl(this.formDeparture, group, targetMondayStr);
     this.isSaved = false;
     if (this.isFormDirty) this.isFormDirty.set(true);
-    this.numberGroup = group;
-    const defaultDate = this.dateDepartureInput();
-    this.departureFormArray.push(
-      this.fb.group({
-        date: new FormControl(defaultDate),
-        driver: new FormControl(''),
-        schedule: new FormControl(''),
-        location: new FormControl(this.territoryPrefix),
-        territory: this.fb.array([]),
-        point: new FormControl(''),
-        maps: new FormControl(''),
-        color: new FormControl('secondary'),
-        group: new FormControl(group),
-        isEvent: new FormControl(false),
-        title: new FormControl(''),
-        cardStatus: new FormControl('pending'),
-      }),
-    );
+  }
+
+  removeControl(index: number, group: number): void {
+    this.departureFormService.removeControl(this.formDeparture, index, group);
+    this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
+  }
+
+  addInputForm(group: number): void {
+    this.addControl(group);
   }
   deleteInputForm(index: number, group: number): void {
     this.isSaved = false;
