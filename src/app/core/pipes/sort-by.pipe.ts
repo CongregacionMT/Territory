@@ -3,9 +3,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 @Pipe({ name: 'sortBy' })
 export class SortBy implements PipeTransform {
   transform<T>(array: Array<T>, args: string, order: number): Array<T> {
-    let newArray = [...array];
+    const newArray = [...array];
 
-    newArray.sort((a: any, b: any) => {
+    newArray.sort((a: T, b: T) => {
       if (args === 'start' || args === 'end') {
         const valA = this.getDateValue(a, args);
         const valB = this.getDateValue(b, args);
@@ -16,8 +16,11 @@ export class SortBy implements PipeTransform {
         return dateA - dateB;
       }
 
-      const valueA = a[0] ? a[0][args] : a[args];
-      const valueB = b[0] ? b[0][args] : b[args];
+      const objA = a as Record<string | number, unknown>;
+      const objB = b as Record<string | number, unknown>;
+
+      const valueA = objA[0] ? (objA[0] as Record<string, unknown>)[args] : objA[args];
+      const valueB = objB[0] ? (objB[0] as Record<string, unknown>)[args] : objB[args];
 
       // Si es el número de territorio, forzar comparación numérica
       if (args === 'numberTerritory' || args === 'territory') {
@@ -38,14 +41,15 @@ export class SortBy implements PipeTransform {
     return newArray;
   }
 
-  private getDateValue(item: any, property: string): string {
+  private getDateValue(item: unknown, property: string): string {
     const dates = ['end', 'start'];
     let value = '';
 
     if (dates.includes(property)) {
       for (let i = 0; i < 6; i++) {
-        if (item[i] && item[i][property] && item[i][property] !== '') {
-          value = item[i][property];
+        const arrItem = item as Record<number, Record<string, string>>;
+        if (arrItem[i] && arrItem[i][property] && arrItem[i][property] !== '') {
+          value = arrItem[i][property];
           break;
         }
       }
@@ -54,8 +58,10 @@ export class SortBy implements PipeTransform {
     return value;
   }
 
-  private compareValues(valueA: any, valueB: any): number {
-    if (valueA < valueB) {
+  private compareValues(valueA: unknown, valueB: unknown): number {
+    const valA = valueA as string | number;
+    const valB = valueB as string | number;
+    if (valA < valB) {
       return -1;
     } else if (valueA > valueB) {
       return 1;

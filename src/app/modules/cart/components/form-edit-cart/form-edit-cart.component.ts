@@ -16,7 +16,7 @@ import { NgClass } from '@angular/common';
   selector: 'app-form-edit-cart',
   templateUrl: './form-edit-cart.component.html',
   styleUrls: ['./form-edit-cart.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, NgClass],
 })
 export class FormEditCartComponent implements OnInit {
@@ -71,22 +71,22 @@ export class FormEditCartComponent implements OnInit {
 
   createCartGroup(cart: CartData): FormGroup {
     return this.fb.group({
-      assignment: new FormControl(cart.assignment, Validators.required),
-      date: new FormControl(cart.date, Validators.required),
-      schedule: new FormControl(cart.schedule, Validators.required),
-      location: new FormControl(cart.location, Validators.required),
-      color: new FormControl(cart.color, Validators.required),
+      assignment: new FormControl(cart.assignment, (c) => Validators.required(c)),
+      date: new FormControl(cart.date, (c) => Validators.required(c)),
+      schedule: new FormControl(cart.schedule, (c) => Validators.required(c)),
+      location: new FormControl(cart.location, (c) => Validators.required(c)),
+      color: new FormControl(cart.color, (c) => Validators.required(c)),
     });
   }
 
   createLocationGroup(location: CartLocation): FormGroup {
     return this.fb.group({
-      name: new FormControl(location.name, Validators.required),
-      linkMap: new FormControl(location.linkMap, Validators.required),
+      name: new FormControl(location.name, (c) => Validators.required(c)),
+      linkMap: new FormControl(location.linkMap, (c) => Validators.required(c)),
     });
   }
 
-  openSnackBar(message: string, action: string) {
+  openSnackBar(message: string, action: string): void {
     this._snackBar.open(message, action, {
       verticalPosition: this.verticalPosition,
     });
@@ -100,7 +100,7 @@ export class FormEditCartComponent implements OnInit {
     return this.formLocations.get('locations') as FormArray;
   }
 
-  onChangeInput(e: Event, key: string, indexChange: number) {
+  onChangeInput(e: Event, key: string, indexChange: number): void {
     const input = e.target as HTMLInputElement | HTMLSelectElement;
     const control = this.cartFormArray.at(indexChange);
     if (key === 'location') {
@@ -113,19 +113,19 @@ export class FormEditCartComponent implements OnInit {
     }
   }
 
-  onChangeLocationInput(e: Event, key: string, indexChange: number) {
+  onChangeLocationInput(e: Event, key: string, indexChange: number): void {
     const input = e.target as HTMLInputElement;
     const control = this.locationsFormArray.at(indexChange);
     control.get(key)?.setValue(input.value);
   }
 
-  onChangeColor(event: Event, index: number) {
+  onChangeColor(event: Event, index: number): void {
     const input = event.target as HTMLInputElement | HTMLSelectElement;
     const selectedValue = input.value;
     this.cartFormArray.at(index).get('color')?.setValue(selectedValue);
   }
 
-  addInputForm() {
+  addInputForm(): void {
     this.cartFormArray.push(
       this.createCartGroup({
         assignment: '',
@@ -133,41 +133,43 @@ export class FormEditCartComponent implements OnInit {
         schedule: '',
         location: { name: '', linkMap: '' },
         color: 'secondary',
-      } as CartData),
+      }),
     );
   }
 
-  addLocationForm() {
+  addLocationForm(): void {
     this.locationsFormArray.push(
       this.createLocationGroup({
         name: '',
         linkMap: '',
-      } as CartLocation),
+      }),
     );
   }
 
-  deleteInputForm(index: number) {
+  deleteInputForm(index: number): void {
     this.cartFormArray.removeAt(index);
   }
 
-  deleteLocationForm(index: number) {
+  deleteLocationForm(index: number): void {
     this.locationsFormArray.removeAt(index);
   }
 
-  rollbackInputForm() {
+  rollbackInputForm(): void {
     this.initializeForm();
   }
 
-  submitForm() {
+  submitForm(): void {
     this.openSnackBar('Salidas actualizadas! 😉', 'ok');
-    const cart = this.formCart.value.cart;
-    this.cartDataService.putCartAssignment({ cart });
+    const formValue = this.formCart.value as { cart: CartData[] };
+    const cart = formValue.cart;
+    void this.cartDataService.putCartAssignment({ cart });
   }
 
-  submitLocationsForm() {
+  submitLocationsForm(): void {
     this.openSnackBar('Ubicaciones actualizadas! 😉', 'ok');
-    const locations = this.formLocations.value.locations;
-    this.cartDataService.putLocations({ locations });
+    const formValue = this.formLocations.value as { locations: CartLocation[] };
+    const locations = formValue.locations;
+    void this.cartDataService.putLocations({ locations });
   }
 
   getColorSelectClasses(color: string): string {

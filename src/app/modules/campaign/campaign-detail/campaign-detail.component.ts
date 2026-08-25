@@ -20,15 +20,15 @@ export interface CampaignData {
   id?: string;
   name?: string;
   description?: string;
-  dateInit?: any;
-  dateEnd?: any;
+  dateInit?: string | Date;
+  dateEnd?: string | Date;
   active?: boolean;
   initialInvitations?: number;
   leftoverInvitations?: string;
   missingInvitations?: number;
   finalComments?: string;
   departuresInfo?: { checkedCount: number };
-  stats?: any;
+  stats?: Record<string, { percent: number; total: number; salidas: number; done: number }>;
 }
 
 @Component({
@@ -39,7 +39,7 @@ export interface CampaignData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CampaignDetailComponent implements OnInit {
-  campaign = signal<CampaignData>({} as CampaignData);
+  campaign = signal<CampaignData>({});
   territorios = signal<TerritorioStats[]>([]);
   private spinner = inject(SpinnerService);
 
@@ -58,17 +58,22 @@ export class CampaignDetailComponent implements OnInit {
 
   territoriosPorLocalidad = signal<LocalityGroup[]>([]);
 
-  constructor(
-    private route: ActivatedRoute,
-    private campaignService: CampaignService,
-  ) {}
+  private route = inject(ActivatedRoute);
+  private campaignService = inject(CampaignService);
 
-  async ngOnInit() {
+  constructor() {}
+
+  ngOnInit(): void {
+    void this.loadData();
+  }
+
+  async loadData(): Promise<void> {
     this.spinner.cargarSpinner();
 
     try {
-      const id = this.route.snapshot.paramMap.get('id')!;
-      const data = await this.campaignService.getCampaignById(id) as CampaignData | null;
+      const id = this.route.snapshot.paramMap.get('id');
+      if (!id) return;
+      const data = (await this.campaignService.getCampaignById(id)) as CampaignData | null;
       if (data) {
         this.campaign.set(data);
         this.initialInvitations = data.initialInvitations || 0;
@@ -81,7 +86,7 @@ export class CampaignDetailComponent implements OnInit {
         }
 
         if (data.stats) {
-          const stats = data.stats as Record<string, { percent: number; total: number; salidas: number; done: number; }>;
+          const stats = data.stats;
           const gruposMap = new Map<string, LocalityGroup>();
 
           const sortedLocalities = [...(environment.localities || [])].sort(
@@ -176,7 +181,9 @@ export class CampaignDetailComponent implements OnInit {
                 const numB = parseInt(b.nombre.replace(/\D/g, ''), 10) || 0;
                 return numA - numB;
               });
-              group.completed = group.territories.filter((t: TerritorioStats) => t.porcentaje === 100).length;
+              group.completed = group.territories.filter(
+                (t: TerritorioStats) => t.porcentaje === 100,
+              ).length;
               group.total = group.territories.length;
               group.percent =
                 group.applesTotal > 0

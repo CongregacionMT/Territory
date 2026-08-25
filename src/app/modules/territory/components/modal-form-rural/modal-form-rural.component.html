@@ -10,7 +10,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title text-gray-900" id="creationModalLabel">
-          {{title}}
+          {{title()}}
         </h5>
         <button
           type="button"
@@ -19,9 +19,9 @@
           aria-label="Close"
         ></button>
       </div>
-      @if (stateModal === 'open') {
+      @if (stateModal() === 'open') {
         <div class="modal-body">
-          <app-form-rural [editionForm]="editionForm"></app-form-rural>
+          <app-form-rural [editionForm]="editionForm()"></app-form-rural>
         </div>
       }
     </div>

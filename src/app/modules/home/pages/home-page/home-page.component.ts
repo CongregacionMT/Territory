@@ -18,6 +18,7 @@ import { AuthService } from '@core/services/auth.service';
 import { PwaService } from '@core/services/pwa.service';
 import { environment } from '@environments/environment';
 import { TitleCasePipe } from '@angular/common';
+import type { User } from '@core/models/User';
 
 @Component({
   selector: 'app-home-page',
@@ -41,7 +42,7 @@ export class HomePageComponent implements OnInit {
   campaignInProgress = signal<boolean>(false);
   congregationName: string = environment.congregationName;
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.spinner.cargarSpinner();
 
     this.territorieDataService
@@ -57,7 +58,7 @@ export class HomePageComponent implements OnInit {
       sessionStorage.removeItem('redirectedToGroup0');
     }
 
-    this.campaignService.getActiveCampaign().then((activeCampaign) => {
+    void this.campaignService.getActiveCampaign().then((activeCampaign) => {
       if (activeCampaign) {
         localStorage.setItem('activeCampaign', JSON.stringify(activeCampaign));
         this.campaignInProgress.set(true);
@@ -77,13 +78,13 @@ export class HomePageComponent implements OnInit {
       });
   }
 
-  activeNotification() {
-    this.messagingService.requestPermission().then((token) => {
+  activeNotification(): void {
+    void this.messagingService.requestPermission().then((token) => {
       const driverName = this.authService.driverName();
       if (!driverName) return;
 
-      let userData = JSON.parse(localStorage.getItem(driverName) as string);
-      if (!userData.tokens.includes(token)) {
+      const userData = JSON.parse(localStorage.getItem(driverName) as string) as User;
+      if (userData.tokens && !userData.tokens.includes(token)) {
         userData.tokens.push(token);
         this.territorieDataService.updateUser(userData.user, userData);
         localStorage.setItem(userData.user, JSON.stringify(userData));

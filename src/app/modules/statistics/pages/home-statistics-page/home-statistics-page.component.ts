@@ -14,7 +14,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { Card, CardApplesData } from '@core/models/Card';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import { TitleCasePipe } from '@angular/common';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
 
@@ -22,7 +22,7 @@ import { environment } from '@environments/environment';
   selector: 'app-home-statistics-page',
   templateUrl: './home-statistics-page.component.html',
   styleUrls: ['./home-statistics-page.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CardXlComponent, RouterLink],
 })
 export class HomeStatisticsPageComponent implements OnInit {
@@ -31,10 +31,18 @@ export class HomeStatisticsPageComponent implements OnInit {
   private spinner = inject(SpinnerService);
 
   CardButtonsStatistics = signal<CardButtonsData[]>([]);
-  territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({} as TerritoriesNumberData);
-  appleCount = signal<any>(null);
+  territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({});
+  appleCount = signal<number | null>(null);
   congregationKey = environment.congregationKey;
-  localities: { name: string; key: string; territoryPrefix: string; storageKey: string; hasMap?: boolean; hasPreaching?: boolean; hasNumberedTerritories?: boolean; }[] = environment.localities || [];
+  localities: {
+    name: string;
+    key: string;
+    territoryPrefix: string;
+    storageKey: string;
+    hasMap?: boolean;
+    hasPreaching?: boolean;
+    hasNumberedTerritories?: boolean;
+  }[] = environment.localities || [];
 
   ngOnInit(): void {
     this.spinner.cargarSpinner();
@@ -42,8 +50,8 @@ export class HomeStatisticsPageComponent implements OnInit {
     // Cargar botones de estadísticas (mapas)
     const storedTerritorioStatistics = sessionStorage.getItem('territorioStatistics');
     const numberTerritory = storedTerritorioStatistics
-      ? JSON.parse(storedTerritorioStatistics)
-      : [];
+      ? (JSON.parse(storedTerritorioStatistics) as { territorio?: CardButtonsData[] })
+      : { territorio: [] };
 
     // Usar los links directos de Firebase
     if (numberTerritory.territorio) {
@@ -52,7 +60,8 @@ export class HomeStatisticsPageComponent implements OnInit {
 
     // Cargar estadísticas para cada localidad
     this.territoryNumberOfLocalStorage.set(
-      JSON.parse(sessionStorage.getItem('numberTerritory') as string) || {},
+      (JSON.parse(sessionStorage.getItem('numberTerritory') || '{}') as TerritoriesNumberData) ||
+        {},
     );
 
     const promises: Promise<void>[] = [];
@@ -63,12 +72,19 @@ export class HomeStatisticsPageComponent implements OnInit {
       }
     });
 
-    Promise.all(promises).then(() => {
+    void Promise.all(promises).then(() => {
       this.spinner.cerrarSpinner();
     });
   }
 
-  async loadStatisticsForLocality(locality: { name: string; key: string; territoryPrefix: string; storageKey: string; hasMap?: boolean; hasPreaching?: boolean }): Promise<void> {
+  async loadStatisticsForLocality(locality: {
+    name: string;
+    key: string;
+    territoryPrefix: string;
+    storageKey: string;
+    hasMap?: boolean;
+    hasPreaching?: boolean;
+  }): Promise<void> {
     const storageKey = this.getStorageKeyForLocality(locality.key);
 
     if (sessionStorage.getItem(storageKey)) {
@@ -91,7 +107,7 @@ export class HomeStatisticsPageComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe((card) => {
               // Filtrar manzanas vacías o sin check
-              card.forEach((list: Card, index: number) => {
+              card.forEach((list: Card) => {
                 let count = 0;
                 (list.applesData || []).forEach((apple: CardApplesData) => {
                   if (apple.checked === true) {
@@ -110,7 +126,9 @@ export class HomeStatisticsPageComponent implements OnInit {
 
               // Filtrar listas vacías de forma segura
               const filteredCard = card.filter((list: Card) => {
-                const checkedCount = (list.applesData || []).filter((a: CardApplesData) => a.checked).length;
+                const checkedCount = (list.applesData || []).filter(
+                  (a: CardApplesData) => a.checked,
+                ).length;
                 return checkedCount > 0;
               });
 
