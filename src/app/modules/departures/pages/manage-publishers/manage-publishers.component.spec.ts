@@ -7,35 +7,40 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { FormsModule } from '@angular/forms';
-import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 
 describe('ManagePublishersComponent', () => {
   let component: ManagePublishersComponent;
   let fixture: ComponentFixture<ManagePublishersComponent>;
-  let mockTerritoryDataService: any;
-  let mockSpinnerService: any;
-  let mockAuthService: any;
-  let mockRouter: any;
+  let mockTerritoryDataService: Record<string, ReturnType<typeof vi.fn>>;
+  let mockSpinnerService: Record<string, ReturnType<typeof vi.fn>>;
+  let mockAuthService: Record<string, ReturnType<typeof vi.fn>>;
+  let mockRouter: Record<string, ReturnType<typeof vi.fn>>;
 
   beforeEach(async () => {
     mockTerritoryDataService = {
-      getGroupList: vi.fn().mockReturnValue(of([{ id: 'Grupo 2', publishers: [] }, { id: 'Grupo 1', publishers: [] }])),
+      getGroupList: vi.fn().mockReturnValue(
+        of([
+          { id: 'Grupo 2', publishers: [] },
+          { id: 'Grupo 1', publishers: [] },
+        ]),
+      ),
       setGroup: vi.fn().mockResolvedValue(true),
-      deleteGroup: vi.fn().mockResolvedValue(true)
+      deleteGroup: vi.fn().mockResolvedValue(true),
     };
 
     mockSpinnerService = {
       cargarSpinner: vi.fn(),
-      cerrarSpinner: vi.fn()
+      cerrarSpinner: vi.fn(),
     };
 
     mockAuthService = {
-      isAdmin: vi.fn().mockReturnValue(true)
+      isAdmin: vi.fn().mockReturnValue(true),
     };
 
     mockRouter = {
-      navigate: vi.fn()
+      navigate: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -44,8 +49,8 @@ describe('ManagePublishersComponent', () => {
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: SpinnerService, useValue: mockSpinnerService },
         { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter }
-      ]
+        { provide: Router, useValue: mockRouter },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ManagePublishersComponent);
@@ -69,9 +74,9 @@ describe('ManagePublishersComponent', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/salidas']);
   });
 
-  it('should add group', async () => {
+  it('should add group', () => {
     fixture.detectChanges();
-    await component.addGroup(); // Should add 'Grupo 3' based on next number
+    component.addGroup(); // Should add 'Grupo 3' based on next number
     expect(mockTerritoryDataService.setGroup).toHaveBeenCalledWith('Grupo 3', { publishers: [] });
   });
 
@@ -79,15 +84,17 @@ describe('ManagePublishersComponent', () => {
     fixture.detectChanges();
     component.newPublisherName['Grupo 1'] = 'John Doe';
     component.addPublisher('Grupo 1');
-    expect(component.groups.find(g => g.id === 'Grupo 1')?.publishers[0].name).toBe('John Doe');
+    expect(component.groups.find((g) => g.id === 'Grupo 1')?.publishers[0].name).toBe('John Doe');
     expect(mockTerritoryDataService.setGroup).toHaveBeenCalled();
   });
 
   it('should remove publisher', () => {
     fixture.detectChanges();
-    component.groups.find(g => g.id === 'Grupo 1')?.publishers.push({ name: 'Jane', assignment: '' });
+    component.groups
+      .find((g) => g.id === 'Grupo 1')
+      ?.publishers.push({ name: 'Jane', assignment: '' });
     component.removePublisher('Grupo 1', 0);
-    expect(component.groups.find(g => g.id === 'Grupo 1')?.publishers.length).toBe(0);
+    expect(component.groups.find((g) => g.id === 'Grupo 1')?.publishers.length).toBe(0);
     expect(mockTerritoryDataService.setGroup).toHaveBeenCalled();
   });
 

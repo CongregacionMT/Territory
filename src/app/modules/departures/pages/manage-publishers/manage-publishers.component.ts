@@ -19,7 +19,7 @@ import { AuthService } from '@core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './manage-publishers.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./manage-publishers.component.scss'],
 })
 export class ManagePublishersComponent implements OnInit {
@@ -34,7 +34,7 @@ export class ManagePublishersComponent implements OnInit {
   ngOnInit(): void {
     // Check admin access
     if (!this.authService.isAdmin()) {
-      this.router.navigate(['/salidas']);
+      void this.router.navigate(['/salidas']);
       return;
     }
 
@@ -70,7 +70,7 @@ export class ManagePublishersComponent implements OnInit {
 
           this.spinner.cerrarSpinner();
         },
-        error: (err) => {
+        error: () => {
           this.groups = [];
           this.spinner.cerrarSpinner();
         },
@@ -81,7 +81,7 @@ export class ManagePublishersComponent implements OnInit {
     const nextNumber = this.getNextGroupNumber();
     const newGroupId = `Grupo ${nextNumber}`;
 
-    this.territoryDataService.setGroup(newGroupId, { publishers: [] }).then(() => {
+    void this.territoryDataService.setGroup(newGroupId, { publishers: [] }).then(() => {
       this.loadGroups();
     });
   }
@@ -97,7 +97,7 @@ export class ManagePublishersComponent implements OnInit {
 
   deleteGroup(groupId: string): void {
     if (confirm(`¿Estás seguro de eliminar ${groupId}?`)) {
-      this.territoryDataService.deleteGroup(groupId).then(() => {
+      void this.territoryDataService.deleteGroup(groupId).then(() => {
         this.loadGroups();
       });
     }
@@ -160,6 +160,6 @@ export class ManagePublishersComponent implements OnInit {
   }
 
   saveGroup(group: Group): void {
-    this.territoryDataService.setGroup(group.id, { publishers: group.publishers });
+    void this.territoryDataService.setGroup(group.id, { publishers: group.publishers });
   }
 }

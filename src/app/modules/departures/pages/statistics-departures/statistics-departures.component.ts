@@ -11,7 +11,7 @@ import { formatWeekRange } from '@shared/utils/date-utils';
   standalone: true,
   imports: [],
   templateUrl: './statistics-departures.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./statistics-departures.component.scss'],
 })
 export class StatisticsDeparturesComponent implements OnInit {
@@ -41,7 +41,7 @@ export class StatisticsDeparturesComponent implements OnInit {
       });
   }
 
-  processStats() {
+  processStats(): void {
     const driverCounts: { [key: string]: number } = {};
     const pointsMap: { [key: string]: string } = {};
 

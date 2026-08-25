@@ -17,9 +17,11 @@ import { ActivatedRoute } from '@angular/router';
 import { forkJoin, take } from 'rxjs';
 
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { DatePipe, NgClass } from '@angular/common';
 import { environment } from '@environments/environment';
 import { PdfService } from '@core/services/pdf.service';
+import { StorageService } from '@core/services/storage.service';
+import { TerritoryCardComponent } from '../../components/territory-card/territory-card.component';
+import { parseFirebaseDate } from '@shared/utils/date-utils';
 
 import { Card } from '@core/models/Card';
 
@@ -28,7 +30,7 @@ import { Card } from '@core/models/Card';
   templateUrl: './territory-assignment.component.html',
   styleUrls: ['./territory-assignment.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, NgClass],
+  imports: [ReactiveFormsModule, FormsModule, TerritoryCardComponent],
 })
 export class TerritoryAssignmentComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
@@ -38,6 +40,7 @@ export class TerritoryAssignmentComponent implements OnInit {
   private rutaActiva = inject(ActivatedRoute);
   private document = inject<Document>(DOCUMENT);
   private pdfService = inject(PdfService);
+  private storageService = inject(StorageService);
 
   territoryPath = signal<string>('');
   territoriesNumber = signal<TerritoryNumberData[]>([]);
@@ -47,11 +50,10 @@ export class TerritoryAssignmentComponent implements OnInit {
   appleCount = signal<number>(0);
   s13JPG = signal<ArrayBuffer | null>(null);
   loadingData = signal(false);
-  territoryNumberOfLocalStorage = signal<any>({});
+  territoryNumberOfLocalStorage = signal<Record<string, TerritoryNumberData[]>>({});
   congregationKey = environment.congregationKey;
 
   editingCardKey = signal<string | null>(null);
-  editFormData = signal<{ driver?: string; start?: string; end?: string }>({});
   pendingChanges = signal<{
     [compositeKey: string]: {
       collectionName: string;
@@ -64,20 +66,14 @@ export class TerritoryAssignmentComponent implements OnInit {
     {},
   );
 
-  hasPendingChanges = computed(() => 
-    Object.keys(this.pendingChanges()).length > 0 || Object.keys(this.pendingDeletes()).length > 0
+  hasPendingChanges = computed(
+    () =>
+      Object.keys(this.pendingChanges()).length > 0 ||
+      Object.keys(this.pendingDeletes()).length > 0,
   );
 
   constructor() {
     this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));
-  }
-
-  private parseFirebaseDate(dateValue: any): Date {
-    if (!dateValue) return new Date(0);
-    if (dateValue instanceof Date) return dateValue;
-    if (typeof dateValue.toDate === 'function') return dateValue.toDate();
-    if (dateValue.seconds) return new Date(dateValue.seconds * 1000);
-    return new Date(dateValue);
   }
 
   private getStorageKeyByPath(path: string): string {
@@ -86,17 +82,16 @@ export class TerritoryAssignmentComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
-    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : [];
+    const numberTerritory =
+      this.storageService.getItem<Record<string, TerritoryNumberData[]>>('numberTerritory') || {};
 
     const currentPath = this.territoryPath();
     const storageKey = this.getStorageKeyByPath(currentPath);
 
     this.territoriesNumber.set(numberTerritory[currentPath] || []);
 
-    const storedStatisticData = sessionStorage.getItem(storageKey);
-    if (storedStatisticData) {
-      const parsedData = JSON.parse(storedStatisticData);
+    const parsedData = this.storageService.getItem<Card[][]>(storageKey);
+    if (parsedData) {
       this.dataListFull.set(parsedData);
       if (parsedData.length > 0) {
         this.sortByDate(this.selectedValueFilter());
@@ -113,7 +108,7 @@ export class TerritoryAssignmentComponent implements OnInit {
 
   private loadPDFImage(): void {
     const httpOptions = {
-      responseType: 'arraybuffer' as 'arraybuffer',
+      responseType: 'arraybuffer' as const,
     };
     const jpgPath = this.document.location.origin + '/assets/documents/S-13_S_image.jpg';
 
@@ -130,15 +125,15 @@ export class TerritoryAssignmentComponent implements OnInit {
       this.spinner.cargarSpinner();
     }
 
-    const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
-    if (!storedNumberTerritory) {
+    const territoryData =
+      this.storageService.getItem<Record<string, TerritoryNumberData[]>>('numberTerritory');
+    if (!territoryData) {
       if (updateState) {
         this.spinner.cerrarSpinner();
       }
       return;
     }
 
-    const territoryData = JSON.parse(storedNumberTerritory);
     const territories = territoryData[path] || [];
 
     const requests = territories.map((territory: TerritoryNumberData) =>
@@ -155,7 +150,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     forkJoin(requests)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (results: any) => {
+        next: (results: Card[][]) => {
           const filteredResults = results.map((cardList: Card[]) => {
             if (!cardList) return [];
             return cardList.filter((card) => {
@@ -171,7 +166,7 @@ export class TerritoryAssignmentComponent implements OnInit {
             });
           });
 
-          sessionStorage.setItem(storageKey, JSON.stringify(filteredResults));
+          this.storageService.setItem(storageKey, filteredResults);
 
           if (updateState) {
             this.dataListFull.set(filteredResults);
@@ -194,8 +189,8 @@ export class TerritoryAssignmentComponent implements OnInit {
     const currentPath = this.territoryPath();
     const storageKey = this.getStorageKeyByPath(currentPath);
 
-    sessionStorage.removeItem(storageKey);
-    sessionStorage.removeItem('numberTerritory');
+    this.storageService.removeItem(storageKey);
+    this.storageService.removeItem('numberTerritory');
 
     this.dataListFull.set([]);
     this.filterDataListFull.set([]);
@@ -205,10 +200,16 @@ export class TerritoryAssignmentComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (numbers: TerritoryNumberData[]) => {
-          const mergedData = (numbers as any[]).reduce((acc: any, curr: any) => {
-            return { ...acc, ...curr };
-          }, {});
-          sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
+          const mergedData = (numbers as unknown as Record<string, TerritoryNumberData[]>[]).reduce(
+            (
+              acc: Record<string, TerritoryNumberData[]>,
+              curr: Record<string, TerritoryNumberData[]>,
+            ) => {
+              return { ...acc, ...curr };
+            },
+            {},
+          );
+          this.storageService.setItem('numberTerritory', mergedData);
           this.territoriesNumber.set(mergedData[currentPath] || []);
           this.fetchDataForLocality(currentPath, storageKey, true);
         },
@@ -221,11 +222,11 @@ export class TerritoryAssignmentComponent implements OnInit {
 
   private getCardDate(card: Card): Date {
     if (card.start) return new Date(card.start);
-    if (card.creation) return this.parseFirebaseDate(card.creation);
+    if (card.creation) return parseFirebaseDate(card.creation);
     return new Date(0);
   }
 
-  sortByDate(value: string) {
+  sortByDate(value: string): void {
     const valueNumber = Number(value);
     const fullData = this.dataListFull();
 
@@ -256,10 +257,10 @@ export class TerritoryAssignmentComponent implements OnInit {
     this.filterDataListFull.set(filtered);
   }
 
-  async downloadPDF() {
+  async downloadPDF(): Promise<void> {
     if (!this.s13JPG()) return;
     await this.pdfService.generateTerritoryAssignmentPDF(
-      this.s13JPG()!,
+      this.s13JPG() as ArrayBuffer,
       this.territoriesNumber(),
       this.filterDataListFull(),
       this.territoryPath(),
@@ -270,32 +271,21 @@ export class TerritoryAssignmentComponent implements OnInit {
     return `${collectionName}_${cardId}`;
   }
 
-  startEdit(card: Card, collectionName: string) {
+  startEdit(card: Card, collectionName: string): void {
     if (!card.id) return;
     const key = this.getCompositeKey(collectionName, card.id);
     this.editingCardKey.set(key);
-
-    const existingPending = this.pendingChanges()[key];
-    const startDate = existingPending?.data.start || (card.start ? new Date(card.start).toISOString().split('T')[0] : this.getCardDate(card).toISOString().split('T')[0]);
-    const endDate = existingPending?.data.end || (card.end && card.end !== '0' ? new Date(card.end).toISOString().split('T')[0] : '');
-
-    this.editFormData.set({
-      driver: existingPending?.data.driver !== undefined ? existingPending.data.driver : card.driver,
-      start: startDate,
-      end: endDate,
-    });
   }
 
-  cancelEdit() {
+  cancelEdit(): void {
     this.editingCardKey.set(null);
-    this.editFormData.set({});
   }
 
-  updateEditData(field: 'driver' | 'start' | 'end', value: string) {
-    this.editFormData.update((data) => ({ ...data, [field]: value }));
-  }
-
-  applyEditLocally(card: Card, collectionName: string) {
+  applyEditLocally(
+    card: Card,
+    collectionName: string,
+    editData: { driver?: string; start?: string; end?: string },
+  ): void {
     if (!card.id) return;
     const key = this.getCompositeKey(collectionName, card.id);
 
@@ -305,22 +295,23 @@ export class TerritoryAssignmentComponent implements OnInit {
         ...pending,
         [key]: {
           collectionName,
-          cardId: card.id!,
+          cardId: String(card.id),
           data: {
             ...(existing?.data || {}),
-            driver: this.editFormData().driver,
-            start: this.editFormData().start,
-            end: this.editFormData().end || '0',
+            driver: editData.driver,
+            start: editData.start,
+            end: editData.end || '0',
           },
           ...(existing?.isNew ? { isNew: true } : {}),
         },
       };
     });
 
-    const updatedCard = { ...card, 
-      driver: this.editFormData().driver, 
-      start: this.editFormData().start, 
-      end: this.editFormData().end || '0' 
+    const updatedCard = {
+      ...card,
+      driver: editData.driver,
+      start: editData.start,
+      end: editData.end || '0',
     };
 
     this.dataListFull.update((lists) => {
@@ -341,7 +332,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     this.editingCardKey.set(null);
   }
 
-  addCard(collectionName: string, territoryIndex: number) {
+  addCard(collectionName: string, territoryIndex: number): void {
     const fakeId = `temp-${Date.now()}`;
     const newCard = new Card();
     newCard.id = fakeId;
@@ -383,7 +374,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     this.startEdit(newCard, collectionName);
   }
 
-  markForDelete(card: Card, collectionName: string) {
+  markForDelete(card: Card, collectionName: string): void {
     if (!card.id) return;
     const key = this.getCompositeKey(collectionName, card.id);
 
@@ -405,13 +396,13 @@ export class TerritoryAssignmentComponent implements OnInit {
 
     this.pendingDeletes.update((deletes) => ({
       ...deletes,
-      [key]: { collectionName, cardId: card.id! },
+      [key]: { collectionName, cardId: String(card.id) },
     }));
 
     if (this.editingCardKey() === key) this.cancelEdit();
   }
 
-  cancelDelete(card: Card, collectionName: string) {
+  cancelDelete(card: Card, collectionName: string): void {
     if (!card.id) return;
     const key = this.getCompositeKey(collectionName, card.id);
     this.pendingDeletes.update((deletes) => {
@@ -421,14 +412,15 @@ export class TerritoryAssignmentComponent implements OnInit {
     });
   }
 
-  async saveAllChanges() {
+  async saveAllChanges(): Promise<void> {
     const changes = this.pendingChanges();
     const deletes = this.pendingDeletes();
     const totalCount = Object.keys(changes).length + Object.keys(deletes).length;
 
     if (totalCount === 0) return;
 
-    if (!confirm(`¿Estás seguro? Esta acción modificará o eliminará ${totalCount} registro(s).`)) return;
+    if (!confirm(`¿Estás seguro? Esta acción modificará o eliminará ${totalCount} registro(s).`))
+      return;
 
     this.spinner.cargarSpinner();
     try {
@@ -440,24 +432,33 @@ export class TerritoryAssignmentComponent implements OnInit {
         const change = changes[key];
         const { collectionName, cardId, data, isNew } = change;
 
-        const removeUndefined = (obj: any): any => {
+        const removeUndefined = (obj: unknown): unknown => {
           if (obj === null || typeof obj !== 'object') return obj;
-          if (obj instanceof Date || typeof obj.toDate === 'function') return obj;
+          if (obj instanceof Date || typeof (obj as { toDate?: unknown }).toDate === 'function')
+            return obj;
           if (Array.isArray(obj)) return obj.map(removeUndefined);
-          const result: any = {};
-          for (const k of Object.keys(obj)) {
-            if (obj[k] !== undefined) result[k] = removeUndefined(obj[k]);
+          const result: Record<string, unknown> = {};
+          const objRecord = obj as Record<string, unknown>;
+          for (const k of Object.keys(objRecord)) {
+            const val = objRecord[k];
+            if (val !== undefined) result[k] = removeUndefined(val);
           }
           return result;
         };
         const sanitizedData = removeUndefined(data);
 
         if (isNew) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, ...cleanData } = sanitizedData as Card;
-          if (!cleanData.applesData) cleanData.applesData = [{ name: 'Registro manual', checked: true }];
+          if (!cleanData.applesData)
+            cleanData.applesData = [{ name: 'Registro manual', checked: true }];
           await this.territoryDataService.addCardInCollection(collectionName, cleanData);
         } else {
-          await this.territoryDataService.updateCardInCollection(collectionName, cardId, sanitizedData as Partial<Card>);
+          await this.territoryDataService.updateCardInCollection(
+            collectionName,
+            cardId,
+            sanitizedData as Partial<Card>,
+          );
         }
       }
       this.pendingChanges.set({});
@@ -470,7 +471,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     }
   }
 
-  discardAllChanges() {
+  discardAllChanges(): void {
     if (!confirm('¿Estás seguro de que deseas descartar todos los cambios pendientes?')) {
       return;
     }
@@ -479,13 +480,12 @@ export class TerritoryAssignmentComponent implements OnInit {
     this.pendingDeletes.set({});
     this.editingCardKey.set(null);
 
-    // Restaurar desde sessionStorage para revertir las modificaciones locales hechas por applyEditLocally
+    // Restaurar desde storage para revertir las modificaciones locales hechas por applyEditLocally
     const currentPath = this.territoryPath();
     const storageKey = this.getStorageKeyByPath(currentPath);
-    const storedStatisticData = sessionStorage.getItem(storageKey);
+    const parsedData = this.storageService.getItem<Card[][]>(storageKey);
 
-    if (storedStatisticData) {
-      const parsedData = JSON.parse(storedStatisticData);
+    if (parsedData) {
       this.dataListFull.set(parsedData);
       this.sortByDate(this.selectedValueFilter());
     } else {

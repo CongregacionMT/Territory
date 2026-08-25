@@ -80,6 +80,8 @@
   <div
     class="fixed inset-0 bg-black/70 z-[1040] animate__animated animate__fadeIn cursor-pointer"
     (click)="closePrintModal()"
+    (keyup.enter)="closePrintModal()"
+    tabindex="0"
   ></div>
 
   <!-- Modal Content -->

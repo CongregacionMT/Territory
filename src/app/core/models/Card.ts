@@ -10,8 +10,8 @@ export class Card {
   location?: string;
   iframe?: SafeHtml;
   driver?: string;
-  start?: string;
-  end?: string;
+  start?: string | Date;
+  end?: string | Date;
   isPlaceholder?: boolean;
   comments?: string;
   link?: string;

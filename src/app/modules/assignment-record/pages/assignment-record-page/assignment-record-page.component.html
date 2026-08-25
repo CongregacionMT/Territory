@@ -25,6 +25,8 @@
         class="relative bg-slate-900 rounded-2xl p-5 border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer overflow-hidden w-full max-w-[20rem] group"
         [ngClass]="card.revisionComplete ? 'border-emerald-700 shadow-emerald-900/20' : 'border-amber-700 shadow-amber-900/20'"
         (click)="cardReceived(card)"
+        (keyup.enter)="cardReceived(card)"
+        tabindex="0"
       >
         <!-- Background Gradient Hint -->
         <div class="absolute inset-0 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20"
@@ -168,8 +170,9 @@
           <form [formGroup]="formCard()" (ngSubmit)="postCardAssigned()">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <label class="block text-sm font-bold text-slate-300 mb-2">Localidad</label>
+                <label class="block text-sm font-bold text-slate-300 mb-2" for="location">Localidad</label>
                 <select
+                  id="location"
                   class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all cursor-pointer"
                   formControlName="location"
                   (change)="onLocationChange()"
@@ -181,8 +184,9 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-bold text-slate-300 mb-2">Publicador/a</label>
+                <label class="block text-sm font-bold text-slate-300 mb-2" for="publisher">Publicador/a</label>
                 <input
+                  id="publisher"
                   type="text"
                   class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all placeholder:text-slate-500"
                   formControlName="publisher"
@@ -192,8 +196,9 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-bold text-slate-300 mb-2">N° de Territorio</label>
+                <label class="block text-sm font-bold text-slate-300 mb-2" for="territory">N° de Territorio</label>
                 <select 
+                  id="territory"
                   class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all cursor-pointer" 
                   formControlName="territory"
                 >
@@ -208,8 +213,9 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-bold text-slate-300 mb-2">Fecha de Entrega</label>
+                <label class="block text-sm font-bold text-slate-300 mb-2" for="date">Fecha de Entrega</label>
                 <input
+                  id="date"
                   type="date"
                   class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all"
                   formControlName="date"

@@ -9,15 +9,15 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { Departure } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { FormEditDeparturesComponent } from '../../components/form-edit-departures/form-edit-departures.component';
 import { CanComponentDeactivate } from '@core/guards/unsaved-changes.guard';
-import { WeeklyDeparture } from '@core/models/Departures';
-import { formatWeekRange, getWeekId } from '@shared/utils/date-utils';
+import { WeeklyDeparture, DepartureData } from '@core/models/Departures';
+import { formatWeekRange } from '@shared/utils/date-utils';
 import { FormsModule } from '@angular/forms';
 import { catchError, take } from 'rxjs';
 import { environment } from '@environments/environment';
@@ -27,7 +27,7 @@ import { AuthService } from '@core/services/auth.service';
   selector: 'app-edit-departures',
   templateUrl: './edit-departures.component.html',
   styleUrls: ['./edit-departures.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormEditDeparturesComponent, FormsModule, NgClass],
 })
 export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
@@ -40,7 +40,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   public authService = inject(AuthService);
 
   dataLoaded: boolean = false;
-  dateDeparture: any = new FormControl('');
+  dateDeparture = new FormControl<string>('', { nonNullable: true });
   selectedWeekRange: string = '';
   formDepartureData: Departure[] = [] as Departure[];
   verticalPosition: MatSnackBarVerticalPosition = 'top';
@@ -106,7 +106,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
       .pipe(take(1))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
+        next: () => {
           // Siempre arrancamos en la semana actual, ignorando la fecha guardada en Firestore
           const mondayStr = this.currentMondayStr;
           this.dateDeparture.setValue(mondayStr);
@@ -122,7 +122,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
       });
   }
 
-  loadHistory() {
+  loadHistory(): void {
     this.territoryDataService
       .getWeeklyDepartures()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -141,7 +141,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
       });
   }
 
-  deleteWeek() {
+  deleteWeek(): void {
     if (!this.selectedHistoryWeek) return;
 
     // Buscar la semana en el historial local para obtener el weekId
@@ -175,7 +175,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     }
   }
 
-  loadDepartureData(weekId: string) {
+  loadDepartureData(weekId: string): void {
     const loadId = ++this.lastLoadId;
     this.spinner.cargarSpinner();
     this.dataLoaded = false;
@@ -191,7 +191,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (data: any) => {
+        next: (data: WeeklyDeparture | DepartureData | undefined) => {
           if (loadId !== this.lastLoadId) return;
 
           if (data && data.departure && data.departure.length > 0) {
@@ -220,7 +220,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
       });
   }
 
-  onWeekSelect() {
+  onWeekSelect(): void {
     if (this.selectedHistoryWeek) {
       const selected = this.weeklyHistory.find((w) => w.id === this.selectedHistoryWeek);
       if (selected) {
@@ -233,7 +233,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   getFormattedHistoryDate(weekId: string): string {
     return formatWeekRange(weekId);
   }
-  markAsReceivedQuick(departure: Departure) {
+  markAsReceivedQuick(departure: Departure): void {
     if (this.formEditComponent) {
       const marked = this.formEditComponent.markDepartureAsReceived(departure);
       if (marked) {
@@ -246,7 +246,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     }
   }
 
-  saveAll() {
+  saveAll(): void {
     if (!this.dateDeparture.value) return;
 
     // 1. Guardar la semana activa
@@ -268,7 +268,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     }
   }
 
-  createStandardWeek(copyTerritories: boolean = false) {
+  createStandardWeek(copyTerritories: boolean = false): void {
     if (!this.dateDeparture.value) return;
 
     const sourceWeek = this.weeklyHistory
@@ -435,9 +435,9 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     return `Hola ${departure.driver || ''}, falta cargar la tarjeta de la salida del ${humanDate} a las ${departure.schedule} (${territories}). Gracias.`;
   }
 
-  copyReminder(departure: Departure) {
+  copyReminder(departure: Departure): void {
     const reminder = this.getDepartureReminder(departure);
-    navigator.clipboard?.writeText(reminder);
+    void navigator.clipboard?.writeText(reminder);
     this._snackBar.open('Recordatorio copiado', 'Ok', { duration: 2500 });
   }
 
@@ -490,7 +490,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   @HostListener('window:beforeunload', ['$event'])
-  unloadNotification($event: any) {
+  unloadNotification($event: BeforeUnloadEvent): void {
     const isChildDirty = this.formEditComponent && this.formEditComponent.isDirty();
     const isMainDirty = this.dateDeparture.dirty;
     const childSaved = this.formEditComponent ? this.formEditComponent.isSaved : true;
@@ -507,13 +507,13 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   /** Salta al lunes de la semana actual */
-  goToCurrentWeek() {
+  goToCurrentWeek(): void {
     if (!this.canDeactivate()) return;
     this.dateDeparture.setValue(this.currentMondayStr);
   }
 
   /** Navega a la semana anterior */
-  prevWeek() {
+  prevWeek(): void {
     if (!this.canDeactivate()) return;
     if (!this.dateDeparture.value) return;
     const current = new Date(this.dateDeparture.value + 'T00:00:00');
@@ -522,7 +522,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   /** Navega a la semana siguiente */
-  nextWeek() {
+  nextWeek(): void {
     if (!this.canDeactivate()) return;
     if (!this.dateDeparture.value) return;
     const current = new Date(this.dateDeparture.value + 'T00:00:00');

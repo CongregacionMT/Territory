@@ -50,7 +50,7 @@
     "@angular/build": "^22.1.4",
     "@angular/cli": "~22.1.4",
     "@angular/compiler-cli": "^22.1.2",
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.31.0",
     "@schematics/angular": "^20.1.1",
     "@types/geojson": "^7946.0.16",
     "@types/google.maps": "^3.65.5",
@@ -79,11 +79,12 @@
     "webpack-bundle-analyzer": "^4.8.0"
   },
   "lint-staged": {
-    "*.{ts,js,html,json,scss,css,md}": [
+    "*.{html,json,scss,css,md}": [
       "prettier --write"
     ],
     "*.ts": [
-      "eslint --fix"
+      "eslint --fix",
+      "prettier --write"
     ]
   }
 }

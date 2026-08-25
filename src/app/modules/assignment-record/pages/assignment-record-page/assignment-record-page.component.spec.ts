@@ -1,5 +1,6 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AssignmentRecordPageComponent } from './assignment-record-page.component';
+import { Card } from '@core/models/Card';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { CardService } from '@core/services/card.service';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -14,38 +15,40 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-card-xl',
   template: '',
-  standalone: true
+  standalone: true,
 })
 class MockCardXlComponent {
-  @Input() mapSRC: any;
-  @Input() mapName: any;
+  @Input() mapSRC: string | undefined;
+  @Input() mapName: string | undefined;
 }
 
 describe('AssignmentRecordPageComponent', () => {
   let component: AssignmentRecordPageComponent;
   let fixture: ComponentFixture<AssignmentRecordPageComponent>;
-  let mockTerritoryDataService: any;
-  let mockCardService: any;
-  let mockSpinnerService: any;
+  let mockTerritoryDataService: Record<string, unknown>;
+  let mockCardService: Record<string, unknown>;
+  let mockSpinnerService: Record<string, unknown>;
 
   beforeEach(async () => {
     mockTerritoryDataService = {
       getCardAssigned: vi.fn().mockReturnValue(of([{ id: '1', territory: '1' }])),
       getRevisionCardTerritorie: vi.fn().mockReturnValue(of([{ id: '2', territory: '2' }])),
       getMaps: vi.fn().mockReturnValue(of([{ maps: [{ name: 'urbano', label: 'map' }] }])),
-      getNumberTerritory: vi.fn().mockReturnValue(of([{ wheelwright: [{ territorio: 1 }], rural: [{ territorio: 1 }] }])),
+      getNumberTerritory: vi
+        .fn()
+        .mockReturnValue(of([{ wheelwright: [{ territorio: 1 }], rural: [{ territorio: 1 }] }])),
       postCardAssigned: vi.fn().mockResolvedValue(true),
       deleteCardAssigned: vi.fn().mockResolvedValue(true),
-      deleteCardTerritorie: vi.fn().mockResolvedValue(true)
+      deleteCardTerritorie: vi.fn().mockResolvedValue(true),
     };
 
     mockCardService = {
-      goRevisionCard: vi.fn()
+      goRevisionCard: vi.fn(),
     };
 
     mockSpinnerService = {
       cargarSpinner: vi.fn(),
-      cerrarSpinner: vi.fn()
+      cerrarSpinner: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -53,14 +56,14 @@ describe('AssignmentRecordPageComponent', () => {
       providers: [
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: CardService, useValue: mockCardService },
-        { provide: SpinnerService, useValue: mockSpinnerService }
-      ]
+        { provide: SpinnerService, useValue: mockSpinnerService },
+      ],
     })
-    .overrideComponent(AssignmentRecordPageComponent, {
-      remove: { imports: [CardXlComponent] },
-      add: { imports: [MockCardXlComponent] }
-    })
-    .compileComponents();
+      .overrideComponent(AssignmentRecordPageComponent, {
+        remove: { imports: [CardXlComponent] },
+        add: { imports: [MockCardXlComponent] },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {
@@ -79,9 +82,9 @@ describe('AssignmentRecordPageComponent', () => {
   });
 
   it('should initialize data on create', () => {
-    expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
-    expect(mockTerritoryDataService.getCardAssigned).toHaveBeenCalled();
-    expect(mockTerritoryDataService.getRevisionCardTerritorie).toHaveBeenCalled();
+    expect(mockSpinnerService['cargarSpinner']).toHaveBeenCalled();
+    expect(mockTerritoryDataService['getCardAssigned']).toHaveBeenCalled();
+    expect(mockTerritoryDataService['getRevisionCardTerritorie']).toHaveBeenCalled();
     expect(component.allCardsAssigned().length).toBe(1);
     expect(component.allCardsReceived().length).toBe(1);
   });
@@ -91,7 +94,7 @@ describe('AssignmentRecordPageComponent', () => {
     vi.clearAllMocks();
     component.ngOnInit();
     expect(component.territorioMaps().length).toBe(1);
-    expect(mockTerritoryDataService.getMaps).not.toHaveBeenCalled();
+    expect(mockTerritoryDataService['getMaps']).not.toHaveBeenCalled();
   });
 
   it('should check if date is overdue', () => {
@@ -108,22 +111,22 @@ describe('AssignmentRecordPageComponent', () => {
       location: 'Wheelwright',
       publisher: 'John Doe',
       territory: 1,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
     });
 
     await component.postCardAssigned();
 
-    expect(mockTerritoryDataService.postCardAssigned).toHaveBeenCalled();
+    expect(mockTerritoryDataService['postCardAssigned']).toHaveBeenCalled();
     expect(component.isCreationModalOpen()).toBe(false);
   });
 
   it('should confirm delete and trigger deletion', () => {
-    const card = { id: '1', territory: '1' } as any;
+    const card = { id: '1', territory: '1' } as unknown as Card;
     component.cardConfirmationDelete(card);
     expect(component.cardConfirmation()).toEqual(card);
 
     component.cardDelete();
-    expect(mockTerritoryDataService.deleteCardTerritorie).toHaveBeenCalledWith(card);
+    expect(mockTerritoryDataService['deleteCardTerritorie']).toHaveBeenCalledWith(card);
     expect(component.cardConfirmation()).toBeNull();
   });
 });

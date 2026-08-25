@@ -7,16 +7,16 @@ import {
   ChangeDetectionStrategy,
   effect,
 } from '@angular/core';
-import { FormBuilder, FormControl, FormsModule } from '@angular/forms';
+import { FormControl, FormsModule } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { NetworkService } from '@core/services/network.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Departure, WeeklyDeparture } from '@core/models/Departures';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { Departure, WeeklyDeparture, DepartureData } from '@core/models/Departures';
+import { NgClass } from '@angular/common';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils';
-import { NgClass } from '@angular/common';
+
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -26,7 +26,7 @@ import { of } from 'rxjs';
   templateUrl: './departure-page.component.html',
   styleUrls: ['./departure-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DeparturesCardsComponent, RouterLink, FormsModule, NgClass],
+  imports: [DeparturesCardsComponent, RouterLink, NgClass, FormsModule],
 })
 export class DeparturePageComponent implements OnInit {
   private territoryDataService = inject(TerritoryDataService);
@@ -35,7 +35,7 @@ export class DeparturePageComponent implements OnInit {
   public networkService = inject(NetworkService);
 
   // Simple state
-  numberGroup: any = '0';
+  numberGroup: Record<string, string> | string = '0';
   titleGroup = signal('');
 
   dateDeparture = new FormControl(getWeekId(new Date()));
@@ -53,17 +53,21 @@ export class DeparturePageComponent implements OnInit {
       tap(() => this.spinner.cargarSpinner()),
       switchMap((weekId) =>
         this.territoryDataService.getWeeklyDeparture(weekId).pipe(
-          map((weeklyData: any) => {
-            let deps = weeklyData?.departure || [];
-            deps.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          map((weeklyData: WeeklyDeparture | undefined) => {
+            const deps = weeklyData?.departure || [];
+            deps.sort(
+              (a: Departure, b: Departure) =>
+                new Date(a.date || '').getTime() - new Date(b.date || '').getTime(),
+            );
             return deps;
           }),
           catchError(() =>
             this.territoryDataService.getDepartures().pipe(
-              map((masterData: any) => {
-                let deps = masterData?.departure || [];
+              map((masterData: DepartureData | undefined) => {
+                const deps = masterData?.departure || [];
                 deps.sort(
-                  (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+                  (a: Departure, b: Departure) =>
+                    new Date(a.date || '').getTime() - new Date(b.date || '').getTime(),
                 );
                 return deps;
               }),
@@ -122,8 +126,8 @@ export class DeparturePageComponent implements OnInit {
   constructor() {
     this.spinner.cargarSpinner();
     this.numberGroup = this.rutaActiva.snapshot.params;
-    if (this.numberGroup.number !== '0') {
-      this.titleGroup.set(`(Grupo ${this.numberGroup.number})`);
+    if (this.numberGroup['number'] && this.numberGroup['number'] !== '0') {
+      this.titleGroup.set(`(Grupo ${this.numberGroup['number']})`);
     }
 
     // Effect to keep FormControl in sync with signal for HTML compatibility
@@ -138,7 +142,7 @@ export class DeparturePageComponent implements OnInit {
     }
   }
 
-  selectWeek(id: string) {
+  selectWeek(id: string): void {
     this.showHistory.set(false);
 
     if (id === 'actual') {

@@ -5,7 +5,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Router, RouterLink } from '@angular/router';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { Group } from '@core/models/Group';
-import { Departure, WeeklyDeparture } from '@core/models/Departures';
+import { Departure, WeeklyDeparture, DepartureData } from '@core/models/Departures';
 import { DeparturePdfService, PrintMode } from '@core/services/departure-pdf.service';
 import { getWeekId } from '@shared/utils/date-utils';
 import { forkJoin, take } from 'rxjs';
@@ -14,7 +14,7 @@ import { forkJoin, take } from 'rxjs';
   selector: 'app-home-departure-page',
   templateUrl: './home-departure-page.component.html',
   styleUrls: ['./home-departure-page.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CardXlComponent, RouterLink],
 })
 export class HomeDeparturePageComponent implements OnInit {
@@ -25,7 +25,7 @@ export class HomeDeparturePageComponent implements OnInit {
   private pdfService = inject(DeparturePdfService);
 
   isAdmin: boolean = false;
-  groupKeys: any[] = [];
+  groupKeys: { name: string; src: string; link: string; number: number }[] = [];
   groups: Group[] = [];
 
   // Print state
@@ -33,7 +33,7 @@ export class HomeDeparturePageComponent implements OnInit {
   isPrintingPdf: boolean = false;
   pdfGenerated: boolean = false;
   constructor() {
-    localStorage.getItem('tokenAdmin') ? (this.isAdmin = true) : (this.isAdmin = false);
+    this.isAdmin = !!localStorage.getItem('tokenAdmin');
   }
 
   ngOnInit(): void {
@@ -83,7 +83,7 @@ export class HomeDeparturePageComponent implements OnInit {
           ) {
             sessionStorage.setItem('redirectedToGroup0', 'true');
             const targetLink = this.groupKeys[0].link;
-            this.router.navigate(['/salidas/' + targetLink]);
+            void this.router.navigate(['/salidas/' + targetLink]);
           }
         }
       });
@@ -102,7 +102,7 @@ export class HomeDeparturePageComponent implements OnInit {
     this.showPrintModal = false;
   }
 
-  async printPdf(mode: PrintMode): Promise<void> {
+  printPdf(mode: PrintMode): void {
     this.isPrintingPdf = true;
     this.pdfGenerated = false;
 
@@ -119,57 +119,63 @@ export class HomeDeparturePageComponent implements OnInit {
       })
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: async (result: any) => {
-            try {
-              let currentDepartures: Departure[] = [];
-              let nextDepartures: Departure[] = [];
+          next: (result: {
+            current?: WeeklyDeparture;
+            next?: WeeklyDeparture;
+            master?: DepartureData;
+          }): void => {
+            void (async (): Promise<void> => {
+              try {
+                let currentDepartures: Departure[] = [];
+                let nextDepartures: Departure[] = [];
 
-              // Use weekly data if available, fallback to master
-              if (result.current?.departure?.length > 0) {
-                currentDepartures = result.current.departure;
-              } else if (result.master?.departure?.length > 0) {
-                currentDepartures = result.master.departure;
+                // Use weekly data if available, fallback to master
+                if (result.current?.departure && result.current.departure.length > 0) {
+                  currentDepartures = result.current.departure;
+                } else if (result.master?.departure && result.master.departure.length > 0) {
+                  currentDepartures = result.master.departure;
+                }
+
+                if (result.next?.departure && result.next.departure.length > 0) {
+                  nextDepartures = result.next.departure;
+                }
+
+                // Compose the Fri–Thu departures (all groups, unfiltered)
+                const printDepartures = this.pdfService.getDeparturesForPrintWeek(
+                  currentDepartures,
+                  nextDepartures,
+                  currentWeekId,
+                );
+
+                // Get all group numbers
+                const groupNumbers = this.groupKeys.map((g) => g.number);
+
+                const pdfBytes = await this.pdfService.generateAllGroupsPdf(
+                  printDepartures,
+                  printRange.label,
+                  mode,
+                  groupNumbers,
+                );
+
+                const modeLabel = mode === 'color' ? 'color' : 'bn';
+                const filename = `salidas_${currentWeekId}_todos_${modeLabel}.pdf`;
+                this.pdfService.downloadPdf(pdfBytes, filename);
+
+                this.isPrintingPdf = false;
+                this.pdfGenerated = true;
+
+                setTimeout(() => {
+                  this.showPrintModal = false;
+                  this.pdfGenerated = false;
+                }, 3000);
+              } catch (error) {
+                console.error('Error generating PDF:', error);
+              } finally {
+                this.isPrintingPdf = false;
               }
-
-              if (result.next?.departure?.length > 0) {
-                nextDepartures = result.next.departure;
-              }
-
-              // Compose the Fri–Thu departures (all groups, unfiltered)
-              const printDepartures = this.pdfService.getDeparturesForPrintWeek(
-                currentDepartures,
-                nextDepartures,
-                currentWeekId,
-              );
-
-              // Get all group numbers
-              const groupNumbers = this.groupKeys.map((g: any) => g.number);
-
-              const pdfBytes = await this.pdfService.generateAllGroupsPdf(
-                printDepartures,
-                printRange.label,
-                mode,
-                groupNumbers,
-              );
-
-              const modeLabel = mode === 'color' ? 'color' : 'bn';
-              const filename = `salidas_${currentWeekId}_todos_${modeLabel}.pdf`;
-              this.pdfService.downloadPdf(pdfBytes, filename);
-
-              this.isPrintingPdf = false;
-              this.pdfGenerated = true;
-
-              setTimeout(() => {
-                this.showPrintModal = false;
-                this.pdfGenerated = false;
-              }, 3000);
-            } catch (error) {
-              console.error('Error generating PDF:', error);
-            } finally {
-              this.isPrintingPdf = false;
-            }
+            })();
           },
-          error: (error: any) => {
+          error: (error: unknown) => {
             console.error('Error fetching departures for PDF:', error);
             this.isPrintingPdf = false;
           },

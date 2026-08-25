@@ -20,9 +20,9 @@
         @for (data of dataList(); track data; let i = $index) {
           <tr class="hover:bg-slate-800/50 transition-colors">
             <td class="px-6 py-4 font-bold text-white">{{ data.driver }}</td>
-            <td class="px-6 py-4">{{ data.start | date:"dd-MM-yyyy" }}</td>
-            <td class="px-6 py-4">{{ data.end | date:"dd-MM-yyyy" }}</td>
-            <td class="px-6 py-4">{{ data.creation | date:"dd-MM-yyyy" }}</td>
+            <td class="px-6 py-4">{{ $any(data.start) | date:"dd-MM-yyyy" }}</td>
+            <td class="px-6 py-4">{{ $any(data.end) | date:"dd-MM-yyyy" }}</td>
+            <td class="px-6 py-4">{{ $any(data.creation) | date:"dd-MM-yyyy" }}</td>
             <td class="px-6 py-4">
               <div class="flex flex-col gap-2">
                 @for (apples of data.applesData; track apples; let j = $index) {
