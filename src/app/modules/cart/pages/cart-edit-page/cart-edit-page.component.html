@@ -1,6 +1,20 @@
-@if (dataLoaded) {
-  <app-form-edit-cart
-    [formCartDataInput]="formCartData"
-    [formLocationsDataInput]="formLocationsData"
-  ></app-form-edit-cart>
+@if (pageData()) {
+  @let data = pageData();
+  
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="mb-10 text-center">
+      <h1 class="text-3xl font-extrabold text-white tracking-tight mb-2">Editar programa del carrito</h1>
+      <p class="text-slate-400">Gestiona las asignaciones y ubicaciones para la predicación pública.</p>
+    </div>
+
+    <!-- Assignments Form -->
+    <app-cart-assignment-form
+      [cartData]="data!.cart"
+    ></app-cart-assignment-form>
+
+    <!-- Locations Form -->
+    <app-cart-locations-form
+      [locationsData]="data!.locations"
+    ></app-cart-locations-form>
+  </div>
 }
