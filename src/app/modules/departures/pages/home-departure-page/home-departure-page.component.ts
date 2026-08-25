@@ -13,7 +13,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Router, RouterLink } from '@angular/router';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
-import { Group } from '@core/models/Group';
+
 import { Departure, WeeklyDeparture, DepartureData } from '@core/models/Departures';
 import { DeparturePdfService, PrintMode } from '@core/services/departure-pdf.service';
 import { getWeekId } from '@shared/utils/date-utils';
@@ -37,12 +37,13 @@ export class HomeDeparturePageComponent {
 
   groups = toSignal(
     this.territoryDataService.getGroupList().pipe(tap(() => this.spinner.cerrarSpinner())),
-    { initialValue: [] as Group[] },
   );
 
   groupKeys = computed(() => {
     const groupData = this.groups();
     const keys: { name: string; src: string; link: string; number: number }[] = [];
+
+    if (groupData === undefined) return keys;
 
     if (groupData && groupData.length > 0) {
       const sortedGroups = [...groupData].sort((a, b) => {
