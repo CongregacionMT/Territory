@@ -15,7 +15,7 @@
       <div class="flex justify-center items-center gap-3 mb-4 text-gray-600" style="font-size: 0.8rem;">
         <span>{{ campaign().dateInit | date: "mediumDate" }} — {{ campaign().dateEnd | date: "mediumDate" }}</span>
       </div>
-      @if (campaign().stats?.global) {
+      @if (campaign().stats?.['global']) {
         <div style="border: 1px solid #ccc; border-radius: 12px; padding: 1rem 1.5rem; margin: 0 auto 1.5rem auto;">
           <div class="flex justify-between items-center mb-2">
             <span style="font-size: 0.85rem; font-weight: 600; color: #333;">Progreso Total</span>
@@ -58,7 +58,7 @@
       </div>
 
       <!-- Progreso Global (Derecha) -->
-      @if (campaign().stats?.global) {
+      @if (campaign().stats?.['global']) {
         <div class="w-full lg:w-1/2 print:break-inside-avoid">
           <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle,rgba(16,185,129,0.15)_0%,transparent_70%)] pointer-events-none print:hidden"></div>

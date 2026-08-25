@@ -14,7 +14,6 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { Card, CardApplesData } from '@core/models/Card';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
 

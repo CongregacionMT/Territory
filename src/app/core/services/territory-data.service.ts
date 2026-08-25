@@ -38,7 +38,7 @@ export class TerritoryDataService {
   private campaignService = inject(CampaignService);
 
   // Cached state via Signals to avoid relying on sessionStorage everywhere
-  private _cachedNumberTerritory = signal<Record<string, unknown> | null>(null);
+  private _cachedNumberTerritory = signal<TerritoryNumberData | null>(null);
   private _cachedStatistics = signal<StatisticsButton | null>(null);
 
   // MAPAS
@@ -50,14 +50,14 @@ export class TerritoryDataService {
   // NUMERO DE TERRITORIOS (with caching)
   getNumberTerritory(): Observable<TerritoryNumberData[]> {
     if (this._cachedNumberTerritory()) {
-      return of([this._cachedNumberTerritory()]); // Return as array to match signature
+      return of([this._cachedNumberTerritory() as TerritoryNumberData]); // Return as array to match signature
     }
     const numberRef = collection(this.firestore, 'NumberTerritory');
     return (collectionData(numberRef) as Observable<TerritoryNumberData[]>).pipe(
       tap((numbers: TerritoryNumberData[]) => {
         const mergedData = numbers.reduce(
-          (acc: Record<string, unknown>, curr: TerritoryNumberData) => ({ ...acc, ...curr }),
-          {} as Record<string, unknown>,
+          (acc: TerritoryNumberData, curr: TerritoryNumberData) => ({ ...acc, ...curr }),
+          {} as TerritoryNumberData,
         );
         this._cachedNumberTerritory.set(mergedData);
         sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
@@ -66,7 +66,7 @@ export class TerritoryDataService {
   }
 
   // GRUPOS DE TERRITORIOS
-  getTerritoryGroups(): Observable<unknown> {
+  getTerritoryGroups(): Observable<Record<string, Record<number, number>>> {
     const docRef = doc(this.firestore, 'Settings', 'TerritoryGroups');
     return docData(docRef);
   }
@@ -133,7 +133,7 @@ export class TerritoryDataService {
         };
 
         // ✅ Solo usar ID personalizado si estamos en modo campaña
-        if (isInCampaignMode) {
+        if (isInCampaignMode && activeCampaign) {
           const completedId = `Campaña-${campaignIdValid}-${Date.now()}-completed`;
           await setDoc(doc(this.firestore, collectionName, completedId), completedCard);
           await this.incrementSalidasTx(activeCampaign.id as string, territorioKey);
@@ -171,7 +171,7 @@ export class TerritoryDataService {
         };
 
         // ✅ Solo usar ID personalizado si estamos en modo campaña
-        if (isInCampaignMode) {
+        if (isInCampaignMode && activeCampaign) {
           const cardId = `Campaña-${campaignIdValid}-${Date.now()}`;
           await setDoc(doc(this.firestore, collectionName, cardId), partialCard);
           await this.incrementSalidasTx(activeCampaign.id as string, territorioKey);

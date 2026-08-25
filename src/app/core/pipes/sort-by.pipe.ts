@@ -63,7 +63,7 @@ export class SortBy implements PipeTransform {
     const valB = valueB as string | number;
     if (valA < valB) {
       return -1;
-    } else if (valueA > valueB) {
+    } else if ((valueA as number) > (valueB as number)) {
       return 1;
     } else {
       return 0;
