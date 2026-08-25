@@ -1,103 +1,64 @@
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  Component,
-  inject,
-  OnInit,
-  signal,
-  ChangeDetectionStrategy,
-  DestroyRef,
-} from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
-import { TerritoryDataService } from '@core/services/territory-data.service';
-import { User } from '@core/models/User';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
   styleUrls: ['./login-page.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule],
 })
-export class LoginPageComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+export class LoginPageComponent {
   private router = inject(Router);
   private fb = inject(FormBuilder);
-  private territoryDataService = inject(TerritoryDataService);
+  private authService = inject(AuthService);
   private spinner = inject(SpinnerService);
 
   loginError = signal(false);
-
-  formLogin: FormGroup;
-  user = '';
-  password = '';
   passwordVisible = signal(false);
 
-  constructor() {
-    this.formLogin = this.fb.group({
-      user: new FormControl('', [Validators.required]),
-      password: new FormControl('', [Validators.required]),
+  formLogin = this.fb.nonNullable.group({
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    user: ['', [Validators.required]],
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    password: ['', [Validators.required]],
+  });
+
+  loginWithUser(): void {
+    if (this.formLogin.invalid) return;
+
+    this.spinner.cargarSpinner();
+    this.loginError.set(false);
+
+    const { user, password } = this.formLogin.getRawValue();
+
+    this.authService.login(user.toLowerCase(), password).subscribe({
+      next: (users) => {
+        if (users.length !== 0) {
+          void this.router.navigate(['home']);
+        } else {
+          this.loginError.set(true);
+        }
+        this.spinner.cerrarSpinner();
+      },
+      error: () => {
+        this.loginError.set(true);
+        this.spinner.cerrarSpinner();
+      },
     });
   }
 
-  ngOnInit(): void {
-    this.formLogin
-      .get('user')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
-        const lower = value.toLowerCase();
-        if (value !== lower) {
-          this.formLogin.get('user')?.setValue(lower, { emitEvent: false });
-        }
-      });
-  }
-
-  async loginWhitUser() {
-    this.spinner.cargarSpinner();
-    this.loginError.set(false);
-    this.territoryDataService
-      .loginUser(this.formLogin.value.user, this.formLogin.value.password)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((user: User[]) => {
-        if (user.length !== 0) {
-          if (user[0].rol === 'admin') {
-            localStorage.setItem(
-              'tokenAdmin',
-              'lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa',
-            );
-          } else {
-            localStorage.setItem(
-              'tokenConductor',
-              'ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk',
-            );
-          }
-          localStorage.setItem(user[0].user, JSON.stringify(user[0]));
-          localStorage.setItem('nombreConductor', user[0].user);
-          this.router.navigate(['home']);
-          this.spinner.cerrarSpinner();
-        } else {
-          // Error handling
-          this.loginError.set(true);
-          this.spinner.cerrarSpinner();
-        }
-      });
-  }
-
   togglePasswordVisibility(): void {
-    this.passwordVisible.set(!this.passwordVisible());
+    this.passwordVisible.update((v) => !v);
   }
 
-  get User() {
+  get User(): import('@angular/forms').AbstractControl | null {
     return this.formLogin.get('user');
   }
-  get Password() {
+  get Password(): import('@angular/forms').AbstractControl | null {
     return this.formLogin.get('password');
   }
 }

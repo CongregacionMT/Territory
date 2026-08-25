@@ -1,11 +1,15 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { Firestore, collection, query, where, collectionData } from '@angular/fire/firestore';
+import { Observable, tap } from 'rxjs';
+import { User } from '@core/models/User';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private router = inject(Router);
+  private firestore = inject(Firestore);
 
   // Private signals for state
   private _isAdmin = signal<boolean>(false);
@@ -50,6 +54,37 @@ export class AuthService {
     this._isAdmin.set(false);
     this._isDriver.set(false);
     this._driverName.set('');
-    this.router.navigate(['auth']);
+    void this.router.navigate(['auth']);
+  }
+
+  login(user: string, password: string): Observable<User[]> {
+    const userRef = collection(this.firestore, 'users');
+    const q = query(userRef, where('user', '==', user), where('password', '==', password));
+
+    return (collectionData(q) as Observable<User[]>).pipe(
+      tap((users: User[]) => {
+        if (users.length !== 0) {
+          const loggedUser = users[0];
+
+          if (loggedUser.rol === 'admin') {
+            localStorage.setItem(
+              'tokenAdmin',
+              'lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa',
+            );
+          } else {
+            localStorage.setItem(
+              'tokenConductor',
+              'ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk',
+            );
+          }
+
+          localStorage.setItem(loggedUser.user, JSON.stringify(loggedUser));
+          localStorage.setItem('nombreConductor', loggedUser.user);
+
+          // Update auth state directly to avoid needing to reload or check again
+          this.checkAuthStatus();
+        }
+      }),
+    );
   }
 }
