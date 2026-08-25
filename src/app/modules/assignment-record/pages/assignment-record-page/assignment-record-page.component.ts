@@ -8,6 +8,7 @@ import {
   computed,
   ChangeDetectionStrategy,
   DestroyRef,
+  HostListener,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Card, CardApplesData } from '@core/models/Card';
@@ -27,12 +28,13 @@ import { DatePipe, TitleCasePipe, NgClass } from '@angular/common';
 import { environment } from '@environments/environment';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { Timestamp } from '@angular/fire/firestore';
+import { parseFirebaseDate } from '@shared/utils/date-utils';
 
 @Component({
   selector: 'app-assignment-record-page',
   templateUrl: './assignment-record-page.component.html',
   styleUrls: ['./assignment-record-page.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CardXlComponent, RouterLink, ReactiveFormsModule, DatePipe, TitleCasePipe, NgClass],
 })
 export class AssignmentRecordPageComponent implements OnInit {
@@ -96,27 +98,18 @@ export class AssignmentRecordPageComponent implements OnInit {
     });
   }
 
-  isOverdue(assignmentDate: any): boolean {
-    if (!assignmentDate) return false;
+  isOverdue(dateValue: any): boolean {
+    const cardDate = parseFirebaseDate(dateValue);
+    if (!cardDate || cardDate.getTime() === 0) return false;
 
-    // Handle both string and Firebase Timestamp
-    const date = (assignmentDate as { toDate?: () => Date }).toDate 
-      ? (assignmentDate as { toDate: () => Date }).toDate() 
-      : new Date(assignmentDate as string | Date);
-    const returnDate = new Date(date);
-    returnDate.setMonth(returnDate.getMonth() + 2);
+    const twoMonthsAgo = new Date();
+    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
-    return new Date() > returnDate;
+    return cardDate < twoMonthsAgo;
   }
 
-  getReturnDate(assignmentDate: any): Date | null {
-    if (!assignmentDate) return null;
-    const date = (assignmentDate as { toDate?: () => Date }).toDate 
-      ? (assignmentDate as { toDate: () => Date }).toDate() 
-      : new Date(assignmentDate as string | Date);
-    const returnDate = new Date(date);
-    returnDate.setMonth(returnDate.getMonth() + 2);
-    return returnDate;
+  getReturnDate(dateValue: any): Date {
+    return parseFirebaseDate(dateValue);
   }
 
   ngOnInit(): void {
@@ -193,6 +186,11 @@ export class AssignmentRecordPageComponent implements OnInit {
     } else {
       this.formCard().get('territory')?.setValue(null);
     }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey() {
+    this.closeModals();
   }
 
   /** Se llama cuando el usuario cambia la localidad en el formulario */

@@ -5,6 +5,7 @@ import {
   DOCUMENT,
   inject,
   signal,
+  computed,
   ChangeDetectionStrategy,
   DestroyRef,
 } from '@angular/core';
@@ -12,28 +13,26 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { HttpClient } from '@angular/common/http';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Observable, forkJoin, take } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { forkJoin, take } from 'rxjs';
 
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 import { DatePipe, NgClass } from '@angular/common';
 import { environment } from '@environments/environment';
 import { PdfService } from '@core/services/pdf.service';
 
-import { Card, CardApplesData } from '@core/models/Card';
+import { Card } from '@core/models/Card';
 
 @Component({
   selector: 'app-territory-assignment',
   templateUrl: './territory-assignment.component.html',
   styleUrls: ['./territory-assignment.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormsModule, DatePipe, NgClass],
 })
 export class TerritoryAssignmentComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private territoryDataService = inject(TerritoryDataService);
-  private territorieDataService = inject(TerritoryDataService);
   private http = inject(HttpClient);
   private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
@@ -65,13 +64,20 @@ export class TerritoryAssignmentComponent implements OnInit {
     {},
   );
 
+  hasPendingChanges = computed(() => 
+    Object.keys(this.pendingChanges()).length > 0 || Object.keys(this.pendingDeletes()).length > 0
+  );
+
   constructor() {
     this.territoryPath.set(this.rutaActiva.snapshot.url.join('/'));
   }
 
-  private getTerritoryPrefix(path: string): string {
-    const locality = environment.localities.find((loc) => loc.key === path);
-    return locality?.territoryPrefix || 'TerritorioMT';
+  private parseFirebaseDate(dateValue: any): Date {
+    if (!dateValue) return new Date(0);
+    if (dateValue instanceof Date) return dateValue;
+    if (typeof dateValue.toDate === 'function') return dateValue.toDate();
+    if (dateValue.seconds) return new Date(dateValue.seconds * 1000);
+    return new Date(dateValue);
   }
 
   private getStorageKeyByPath(path: string): string {
@@ -92,7 +98,6 @@ export class TerritoryAssignmentComponent implements OnInit {
     if (storedStatisticData) {
       const parsedData = JSON.parse(storedStatisticData);
       this.dataListFull.set(parsedData);
-      // Solo cargar datos si el array no está vacío o tiene la longitud correcta
       if (parsedData.length > 0) {
         this.sortByDate(this.selectedValueFilter());
         this.loadingData.set(true);
@@ -104,7 +109,6 @@ export class TerritoryAssignmentComponent implements OnInit {
     }
 
     this.loadPDFImage();
-    this.preCacheOtherLocalitiesIfNeeded();
   }
 
   private loadPDFImage(): void {
@@ -138,7 +142,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     const territories = territoryData[path] || [];
 
     const requests = territories.map((territory: TerritoryNumberData) =>
-      this.territorieDataService.getCardTerritorieRegisterTable(territory.collection).pipe(take(1)),
+      this.territoryDataService.getCardTerritorieRegisterTable(territory.collection).pipe(take(1)),
     );
 
     if (requests.length === 0) {
@@ -152,8 +156,6 @@ export class TerritoryAssignmentComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (results: any) => {
-          // Mantenemos la estructura original de 'results' para que los índices correspondan
-          // a 'territoriesNumber'. Filtramos individualmente cada lista de tarjetas.
           const filteredResults = results.map((cardList: Card[]) => {
             if (!cardList) return [];
             return cardList.filter((card) => {
@@ -161,8 +163,6 @@ export class TerritoryAssignmentComponent implements OnInit {
               if (card.applesData) {
                 checkedAppleCount = card.applesData.filter((apple) => apple.checked).length;
               }
-
-              // Dejar pasar tarjetas con manzanas completadas O las tarjetas de inicio/cierre que actúan como hito.
               return (
                 checkedAppleCount > 0 ||
                 (card.id &&
@@ -194,15 +194,13 @@ export class TerritoryAssignmentComponent implements OnInit {
     const currentPath = this.territoryPath();
     const storageKey = this.getStorageKeyByPath(currentPath);
 
-    // Limpiamos absolutamente todo lo relacionado con la caché de datos para forzar carga fresca
     sessionStorage.removeItem(storageKey);
     sessionStorage.removeItem('numberTerritory');
 
     this.dataListFull.set([]);
     this.filterDataListFull.set([]);
 
-    // Primero refrescamos el mapeo de territorios (números y colecciones)
-    this.territorieDataService
+    this.territoryDataService
       .getNumberTerritory()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -211,11 +209,7 @@ export class TerritoryAssignmentComponent implements OnInit {
             return { ...acc, ...curr };
           }, {});
           sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
-
-          // Actualizamos la lista de números localmente
           this.territoriesNumber.set(mergedData[currentPath] || []);
-
-          // Ahora pedimos los datos específicos de las colecciones actualizadas
           this.fetchDataForLocality(currentPath, storageKey, true);
         },
         error: (err) => {
@@ -225,35 +219,10 @@ export class TerritoryAssignmentComponent implements OnInit {
       });
   }
 
-  private preCacheOtherLocalitiesIfNeeded(): void {
-    const allStorageKeys = environment.localities.map((loc) => loc.storageKey);
-
-    // Si ya hay algo en el storage para alguna localidad, asumimos que el proceso ya ocurrió o está ocurriendo.
-    // Solo pre-cacheamos si el storage está completamente vacío.
-    if (allStorageKeys.every((key) => !sessionStorage.getItem(key))) {
-      environment.localities.forEach(({ key, storageKey }) => {
-        // No volver a pedir la que ya pedimos en ngOnInit
-        if (key !== this.territoryPath()) {
-          this.fetchDataForLocality(key, storageKey, false);
-        }
-      });
-    }
-  }
-
   private getCardDate(card: Card): Date {
-    if (card.start) {
-      return new Date(card.start);
-    } else if (card.creation) {
-      const creationAny = card.creation as { toDate?: () => Date; seconds?: number };
-      if (typeof creationAny.toDate === 'function') {
-        return creationAny.toDate();
-      } else if (creationAny.seconds) {
-        return new Date(creationAny.seconds * 1000);
-      } else {
-        return new Date(card.creation as string | number);
-      }
-    }
-    return new Date(0); // fallback
+    if (card.start) return new Date(card.start);
+    if (card.creation) return this.parseFirebaseDate(card.creation);
+    return new Date(0);
   }
 
   sortByDate(value: string) {
@@ -268,24 +237,19 @@ export class TerritoryAssignmentComponent implements OnInit {
         if (!dateStart || isNaN(dateStart.getTime()) || dateStart.getTime() === 0) return false;
 
         if (valueNumber === 1) {
-          // Últimos 6 meses
           const sixMonthsAgo = new Date();
           sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
           return dateStart >= sixMonthsAgo;
         } else if (valueNumber === 2) {
-          // Último año
           const oneYearAgo = new Date();
           oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
           return dateStart >= oneYearAgo;
         } else {
-          // Año específico
           return dateStart.getFullYear() === valueNumber;
         }
       });
 
-      // Ordenar: las primeras son las más antiguas (ascendente)
       filteredCards.sort((a, b) => this.getCardDate(a).getTime() - this.getCardDate(b).getTime());
-
       return filteredCards;
     });
 
@@ -294,7 +258,6 @@ export class TerritoryAssignmentComponent implements OnInit {
 
   async downloadPDF() {
     if (!this.s13JPG()) return;
-
     await this.pdfService.generateTerritoryAssignmentPDF(
       this.s13JPG()!,
       this.territoriesNumber(),
@@ -313,31 +276,11 @@ export class TerritoryAssignmentComponent implements OnInit {
     this.editingCardKey.set(key);
 
     const existingPending = this.pendingChanges()[key];
-
-    let startDate = '';
-    if (existingPending?.data.start !== undefined) {
-      startDate = existingPending.data.start;
-    } else if (card.start) {
-      startDate = new Date(card.start).toISOString().split('T')[0];
-    } else if (card.creation) {
-      let d: Date;
-      const creationAny = card.creation as { toDate?: () => Date; seconds?: number };
-      if (typeof creationAny?.toDate === 'function') d = creationAny.toDate();
-      else if (creationAny?.seconds) d = new Date(creationAny.seconds * 1000);
-      else d = new Date(card.creation as string | number);
-      startDate = d.toISOString().split('T')[0];
-    }
-
-    let endDate = '';
-    if (existingPending?.data.end !== undefined) {
-      endDate = existingPending.data.end;
-    } else if (card.end) {
-      endDate = new Date(card.end).toISOString().split('T')[0];
-    }
+    const startDate = existingPending?.data.start || (card.start ? new Date(card.start).toISOString().split('T')[0] : this.getCardDate(card).toISOString().split('T')[0]);
+    const endDate = existingPending?.data.end || (card.end && card.end !== '0' ? new Date(card.end).toISOString().split('T')[0] : '');
 
     this.editFormData.set({
-      driver:
-        existingPending?.data.driver !== undefined ? existingPending.data.driver : card.driver,
+      driver: existingPending?.data.driver !== undefined ? existingPending.data.driver : card.driver,
       start: startDate,
       end: endDate,
     });
@@ -367,17 +310,34 @@ export class TerritoryAssignmentComponent implements OnInit {
             ...(existing?.data || {}),
             driver: this.editFormData().driver,
             start: this.editFormData().start,
-            end: this.editFormData().end,
+            end: this.editFormData().end || '0',
           },
           ...(existing?.isNew ? { isNew: true } : {}),
         },
       };
     });
 
-    card.driver = this.editFormData().driver;
-    card.start = this.editFormData().start;
-    card.end = this.editFormData().end;
+    const updatedCard = { ...card, 
+      driver: this.editFormData().driver, 
+      start: this.editFormData().start, 
+      end: this.editFormData().end || '0' 
+    };
 
+    this.dataListFull.update((lists) => {
+      const newLists = [...lists];
+      const colIndex = this.territoriesNumber().findIndex((t) => t.collection === collectionName);
+      if (colIndex !== -1) {
+        const cardIndex = newLists[colIndex].findIndex((c) => c.id === card.id);
+        if (cardIndex !== -1) {
+          const newList = [...newLists[colIndex]];
+          newList[cardIndex] = updatedCard;
+          newLists[colIndex] = newList;
+        }
+      }
+      return newLists;
+    });
+
+    this.sortByDate(this.selectedValueFilter());
     this.editingCardKey.set(null);
   }
 
@@ -388,10 +348,8 @@ export class TerritoryAssignmentComponent implements OnInit {
     newCard.driver = '';
     const today = new Date().toISOString().split('T')[0];
     newCard.start = today;
-    newCard.end = today;
+    newCard.end = '0';
 
-    // Obtener las manzanas reales del territorio a partir de una card existente.
-    // Si no se encuentran, usar un placeholder para que pase el filtro.
     const existingCards = this.dataListFull()[territoryIndex] || [];
     const cardWithApples = existingCards.find(
       (c) => Array.isArray(c.applesData) && c.applesData.length > 0,
@@ -402,7 +360,6 @@ export class TerritoryAssignmentComponent implements OnInit {
       newCard.applesData = [{ name: 'Registro manual', checked: true }];
     }
 
-    // Copiar campos relevantes del territorio (location, numberTerritory, etc.)
     const referenceCard = existingCards.find((c) => c.location || c.numberTerritory);
     if (referenceCard) {
       newCard.location = referenceCard.location;
@@ -412,17 +369,10 @@ export class TerritoryAssignmentComponent implements OnInit {
     }
 
     const key = this.getCompositeKey(collectionName, fakeId);
-    this.pendingChanges.update((pending) => {
-      return {
-        ...pending,
-        [key]: {
-          collectionName,
-          cardId: fakeId,
-          data: { ...newCard },
-          isNew: true,
-        },
-      };
-    });
+    this.pendingChanges.update((pending) => ({
+      ...pending,
+      [key]: { collectionName, cardId: fakeId, data: { ...newCard }, isNew: true },
+    }));
 
     const currentData = [...this.dataListFull()];
     if (!currentData[territoryIndex]) currentData[territoryIndex] = [];
@@ -453,12 +403,10 @@ export class TerritoryAssignmentComponent implements OnInit {
       return;
     }
 
-    this.pendingDeletes.update((deletes) => {
-      return {
-        ...deletes,
-        [key]: { collectionName, cardId: card.id! },
-      };
-    });
+    this.pendingDeletes.update((deletes) => ({
+      ...deletes,
+      [key]: { collectionName, cardId: card.id! },
+    }));
 
     if (this.editingCardKey() === key) this.cancelEdit();
   }
@@ -473,12 +421,6 @@ export class TerritoryAssignmentComponent implements OnInit {
     });
   }
 
-  get hasPendingChanges(): boolean {
-    return (
-      Object.keys(this.pendingChanges()).length > 0 || Object.keys(this.pendingDeletes()).length > 0
-    );
-  }
-
   async saveAllChanges() {
     const changes = this.pendingChanges();
     const deletes = this.pendingDeletes();
@@ -486,53 +428,36 @@ export class TerritoryAssignmentComponent implements OnInit {
 
     if (totalCount === 0) return;
 
-    if (
-      !confirm(
-        `¿Estás seguro? Esta acción modificará o eliminará ${totalCount} registro(s) directamente en la base de datos.`,
-      )
-    ) {
-      return;
-    }
+    if (!confirm(`¿Estás seguro? Esta acción modificará o eliminará ${totalCount} registro(s).`)) return;
 
     this.spinner.cargarSpinner();
     try {
       for (const key of Object.keys(deletes)) {
-        const { collectionName, cardId } = deletes[key];
-        await this.territorieDataService.deleteCardInCollection(collectionName, cardId);
+        const del = deletes[key];
+        await this.territoryDataService.deleteCardInCollection(del.collectionName, del.cardId);
       }
       for (const key of Object.keys(changes)) {
-        const { collectionName, cardId, data, isNew } = changes[key];
+        const change = changes[key];
+        const { collectionName, cardId, data, isNew } = change;
 
-        // Remove undefined fields since Firestore doesn't support them
-        const removeUndefined = (obj: unknown): unknown => {
+        const removeUndefined = (obj: any): any => {
           if (obj === null || typeof obj !== 'object') return obj;
-          if (obj instanceof Date || typeof (obj as {toDate?: Function}).toDate === 'function') return obj;
+          if (obj instanceof Date || typeof obj.toDate === 'function') return obj;
           if (Array.isArray(obj)) return obj.map(removeUndefined);
-          const result: Record<string, unknown> = {};
-          const objRecord = obj as Record<string, unknown>;
-          for (const k of Object.keys(objRecord)) {
-            if (objRecord[k] !== undefined) {
-              result[k] = removeUndefined(objRecord[k]);
-            }
+          const result: any = {};
+          for (const k of Object.keys(obj)) {
+            if (obj[k] !== undefined) result[k] = removeUndefined(obj[k]);
           }
           return result;
         };
         const sanitizedData = removeUndefined(data);
 
         if (isNew) {
-          // Limpiar campos temporales antes de enviar a Firestore
           const { id, ...cleanData } = sanitizedData as Card;
-          // Asegurar que applesData siempre esté presente
-          if (!cleanData.applesData) {
-            cleanData.applesData = [{ name: 'Registro manual', checked: true }];
-          }
-          await this.territorieDataService.addCardInCollection(collectionName, cleanData);
+          if (!cleanData.applesData) cleanData.applesData = [{ name: 'Registro manual', checked: true }];
+          await this.territoryDataService.addCardInCollection(collectionName, cleanData);
         } else {
-          await this.territorieDataService.updateCardInCollection(
-            collectionName,
-            cardId,
-            sanitizedData as Partial<Card>,
-          );
+          await this.territoryDataService.updateCardInCollection(collectionName, cardId, sanitizedData as Partial<Card>);
         }
       }
       this.pendingChanges.set({});

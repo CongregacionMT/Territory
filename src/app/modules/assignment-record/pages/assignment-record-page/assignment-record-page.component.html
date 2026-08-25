@@ -35,8 +35,9 @@
           class="absolute top-3 right-3 text-slate-500 hover:text-red-400 hover:bg-red-900/30 w-8 h-8 rounded-full flex justify-center items-center transition-colors z-10"
           (click)="$event.stopPropagation(); cardConfirmationDelete(card)"
           title="Eliminar tarjeta"
+          aria-label="Eliminar tarjeta"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
 
         <!-- Badge de estado -->
@@ -98,8 +99,9 @@
             class="text-slate-500 hover:text-red-400 hover:bg-red-900/30 w-8 h-8 rounded-full flex justify-center items-center transition-colors"
             (click)="deleteCardAssigned(card)"
             title="Quitar asignación"
+            aria-label="Quitar asignación"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
         </div>
 
@@ -132,32 +134,34 @@
     }
 
     <!-- Botón para Nuevo -->
-    <div
+    <button
       class="border-2 border-dashed border-slate-700 hover:border-sky-500 hover:bg-sky-900/10 rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-colors min-h-[220px] group"
       (click)="isCreationModalOpen.set(true)"
+      aria-label="Nuevo Pedido"
     >
       <div class="w-16 h-16 bg-slate-800 group-hover:bg-sky-800 rounded-full flex items-center justify-center text-slate-400 group-hover:text-sky-300 mb-4 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </div>
       <span class="text-lg font-bold text-slate-300 group-hover:text-sky-400 transition-colors">Nuevo Pedido</span>
-    </div>
+    </button>
   </div>
 
   <!-- Modal de creación de asignación -->
   @if (isCreationModalOpen()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-[fadeIn_0.2s_ease_out]">
       <!-- Click exterior para cerrar -->
-      <div class="absolute inset-0" (click)="closeModals()"></div>
+      <div class="absolute inset-0" (click)="closeModals()" aria-hidden="true"></div>
       
-      <div class="relative w-full max-w-2xl bg-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl z-10 animate-[scaleIn_0.2s_ease_out]">
+      <div role="dialog" aria-modal="true" aria-labelledby="modal-title-new" class="relative w-full max-w-2xl bg-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl z-10 animate-[scaleIn_0.2s_ease_out]">
         <div class="border-b border-slate-800 p-5 flex justify-between items-center">
-          <h5 class="text-xl font-extrabold text-white">Registrar pedido de territorio</h5>
+          <h5 id="modal-title-new" class="text-xl font-extrabold text-white">Registrar pedido de territorio</h5>
           <button
             type="button"
             class="text-slate-500 hover:text-white transition-colors"
             (click)="closeModals()"
+            aria-label="Cerrar modal"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
         </div>
         <div class="p-6">
@@ -238,28 +242,29 @@
   @if (cardConfirmation()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-[fadeIn_0.2s_ease_out]">
       <!-- Click exterior para cerrar -->
-      <div class="absolute inset-0" (click)="closeModals()"></div>
+      <div class="absolute inset-0" (click)="closeModals()" aria-hidden="true"></div>
 
-      <div class="relative w-full max-w-md bg-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl overflow-hidden z-10 animate-[scaleIn_0.2s_ease_out]">
+      <div role="dialog" aria-modal="true" aria-labelledby="modal-title-confirm" class="relative w-full max-w-md bg-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl overflow-hidden z-10 animate-[scaleIn_0.2s_ease_out]">
         <div class="border-b border-slate-800 p-5 flex justify-between items-center">
-          <h5 class="text-xl font-extrabold text-white">
+          <h5 id="modal-title-confirm" class="text-xl font-extrabold text-white">
             Eliminar tarjeta
           </h5>
           <button
             type="button"
             class="text-slate-500 hover:text-white transition-colors"
             (click)="closeModals()"
+            aria-label="Cerrar modal"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
         </div>
         <div class="p-8 text-center">
           <div class="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center text-red-500 mx-auto mb-4 border border-red-800/50">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           </div>
           <p class="text-slate-400 mb-2">Confirmar eliminación permanente de:</p>
           <h3 class="text-2xl font-extrabold mb-4 text-white">
-            {{ $safeNavigationMigration(cardConfirmation()?.driver) | titlecase }}
+            {{ cardConfirmation()?.driver | titlecase }}
           </h3>
           <div class="inline-flex items-center justify-center bg-slate-800 text-sky-400 border border-slate-700 rounded-lg px-4 py-2 font-bold text-sm tracking-wider">
             TERRITORIO

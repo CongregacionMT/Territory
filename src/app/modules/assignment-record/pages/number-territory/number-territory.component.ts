@@ -1,10 +1,11 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Subscription } from 'rxjs';
 import { SpinnerService } from '@core/services/spinner.service';
 import { DatePipe } from '@angular/common';
+import { parseFirebaseDate } from '@shared/utils/date-utils';
 
 import { Card, CardApplesData } from '@core/models/Card';
 
@@ -12,7 +13,7 @@ import { Card, CardApplesData } from '@core/models/Card';
   selector: 'app-number-territory',
   templateUrl: './number-territory.component.html',
   styleUrls: ['./number-territory.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe],
 })
 export class NumberTerritoryComponent implements OnInit {
@@ -22,13 +23,11 @@ export class NumberTerritoryComponent implements OnInit {
   private spinner = inject(SpinnerService);
 
   path: string = '';
-  dataList: Card[] = [];
-  numberTerritory: number = 0;
-  appleCount: number = 0;
-  cardSubscription: Subscription;
+  dataList = signal<Card[]>([]);
+  numberTerritory = signal<number>(0);
+
   constructor() {
     this.spinner.cargarSpinner();
-    this.cardSubscription = Subscription.EMPTY;
   }
 
   ngOnInit(): void {
@@ -39,27 +38,27 @@ export class NumberTerritoryComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (card) => {
-          this.dataList = card;
-          this.numberTerritory = card[0].territoryNumber ?? 0;
-          this.dataList.map((list: Card, index: number) => {
-            this.appleCount = 0;
-            list.applesData.map((apple: CardApplesData) => {
-              if (apple.checked === true) {
-                this.appleCount += 1;
-              }
-            });
-            if (this.appleCount === 0) {
-              this.dataList.splice(index, 1);
-            }
+          // Filtrar las tarjetas que no tienen ninguna manzana seleccionada y que tengan array de manzanas
+          const filtered = card.filter((c: Card) =>
+            c.applesData?.some((apple) => apple.checked)
+          );
+
+          if (filtered.length > 0) {
+            this.numberTerritory.set(filtered[0].territoryNumber ?? 0);
+          } else {
+             // Si el array filtrado está vacío, intenta tomar el número de la lista original
+             this.numberTerritory.set(card.length > 0 ? (card[0].territoryNumber ?? 0) : 0);
+          }
+
+          filtered.forEach((list) => {
+             list.creation = parseFirebaseDate(list.creation);
+             list.start = parseFirebaseDate(list.start) as any;
+             list.end = parseFirebaseDate(list.end) as any;
           });
+          
+          this.dataList.set(filtered);
+          
           this.spinner.cerrarSpinner();
-          this.dataList.map((list) => {
-            if (list.creation && typeof list.creation === 'object' && 'seconds' in list.creation) {
-              let date = new Date((list.creation as any).seconds * 1000);
-              list.creation =
-                date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
-            }
-          });
         },
       });
   }
