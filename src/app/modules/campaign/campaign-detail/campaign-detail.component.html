@@ -12,7 +12,7 @@
     <!-- Header SOLO para impresión: centrado, vertical -->
     <div class="hidden print:block text-center mb-6">
       <h1 class="font-bold text-black" style="font-size: 2rem; margin-bottom: 0.25rem;">{{ campaign().name }}</h1>
-      <p class="text-gray-600" style="font-size: 0.9rem; margin-bottom: 0.5rem;">{{ campaign()?.description }}</p>
+      <p class="text-gray-600" style="font-size: 0.9rem; margin-bottom: 0.5rem;">{{ campaign().description }}</p>
       <div class="flex justify-center items-center gap-3 mb-4 text-gray-600" style="font-size: 0.8rem;">
         <span>{{ parsedDateInit() | date: "mediumDate" }} — {{ parsedDateEnd() | date: "mediumDate" }}</span>
       </div>
@@ -42,7 +42,7 @@
           {{ campaign().name }}
         </h1>
         <p class="text-lg text-slate-400 mx-auto lg:mx-0 max-w-2xl leading-relaxed">
-          {{ campaign()?.description || "Campaña estratégica de predicación." }}
+          {{ campaign().description || "Campaña estratégica de predicación." }}
         </p>
         <div class="flex flex-wrap justify-center lg:justify-start items-center gap-4 mt-6">
           <div class="bg-slate-900 px-6 py-2.5 rounded-full border border-slate-800 shadow-sm flex items-center gap-2 text-slate-300 font-medium">
