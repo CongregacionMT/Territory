@@ -6,8 +6,8 @@ import {
   input,
   signal,
   effect,
-  Output,
-  EventEmitter,
+  model,
+  output,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   DestroyRef,
@@ -58,7 +58,10 @@ export class FormEditDeparturesComponent implements OnInit {
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
   readonly dateDepartureInput = input<string>('');
-  @Output() requestSave = new EventEmitter<void>();
+  readonly saveTrigger = input<number>(0);
+  readonly isFormDirty = model<boolean>(false);
+  readonly saveCompleted = output<Departure[]>();
+
   drivers = signal<User[]>([]);
   congregationName = environment.congregationName;
   territoryPrefix = environment.territoryPrefix;
@@ -99,6 +102,12 @@ export class FormEditDeparturesComponent implements OnInit {
 
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';
   constructor() {
+    effect(() => {
+      if (this.saveTrigger() > 0) {
+        this.submitForm();
+      }
+    });
+
     this.isAdmin = this.authService.isAdmin();
     this.formDeparture = this.fb.group({
       departure0: new FormArray([]),
@@ -120,6 +129,7 @@ export class FormEditDeparturesComponent implements OnInit {
 
   initForm(departures: Departure[]): void {
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
     this.groupKeys = [];
     this.groupedDepartures = {};
 
@@ -873,6 +883,7 @@ export class FormEditDeparturesComponent implements OnInit {
 
     this.syncMeetingDetails(index, group);
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
   }
 
   onToggleCardReceived(index: number, group: number, checked: boolean): void {
@@ -883,6 +894,7 @@ export class FormEditDeparturesComponent implements OnInit {
 
     control.get('cardStatus')?.setValue(checked ? 'received' : 'pending');
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
   }
 
   markDepartureAsReceived(departureToMark: Departure): boolean {
@@ -901,6 +913,7 @@ export class FormEditDeparturesComponent implements OnInit {
         ) {
           control.get('cardStatus')?.setValue('received');
           this.isSaved = false;
+          if (this.isFormDirty) this.isFormDirty.set(true);
           return true;
         }
       }
@@ -998,9 +1011,11 @@ export class FormEditDeparturesComponent implements OnInit {
       control.get(key)?.setValue((e.target as HTMLInputElement).value);
     }
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
   }
   onChangeColor(event: Event, index: number, group: number): void {
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
     const departureGroupKey = `departure${group}`;
     const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     const control = departureFormArrayItem.at(index);
@@ -1010,6 +1025,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   onChangeCheckbox(e: Event, key: string, index: number, group: number): void {
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
     const departureGroupKey = `departure${group}`;
     const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     const control = departureFormArrayItem.at(index);
@@ -1032,6 +1048,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   addInputForm(group: number): void {
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
     this.numberGroup = group;
     const defaultDate = this.dateDepartureInput();
     this.departureFormArray.push(
@@ -1053,6 +1070,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   deleteInputForm(index: number, group: number): void {
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
     this.numberGroup = group;
     this.departureFormArray.removeAt(index);
     // Si el grupo queda vacío, eliminarlo de groupKeys SOLO si NO es el grupo 0 (Salidas Generales)
@@ -1063,6 +1081,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   rollbackInputForm(): void {
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
     this.groupKeys = [];
     this.groupedDepartures = {};
 
@@ -1115,6 +1134,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   addNewGroup(): void {
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
     this.groupKeys.push(this.groupKeys.length);
     this.addInputForm(this.groupKeys.length - 1);
   }
@@ -1150,6 +1170,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
   handleCheckboxChange(event: Event, num: string, i: number, group: number): void {
     this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
     const input = event.target as HTMLInputElement;
     const isChecked = input.checked;
     this.toggleTerritory(num, i, group, isChecked);
@@ -1169,10 +1190,7 @@ export class FormEditDeparturesComponent implements OnInit {
     targetSunday.setDate(targetMonday.getDate() + 6);
 
     const formDepartures = this.groupKeys
-      .map(
-        (number) =>
-          (this.formDeparture.value as Record<string, Departure[]>)?.[`departure${number}`],
-      )
+      .map((num) => (this.formDeparture.value as Record<string, Departure[]>)?.[`departure${num}`])
       .flat();
 
     // Separar salidas: las de esta semana vs. las de otras semanas

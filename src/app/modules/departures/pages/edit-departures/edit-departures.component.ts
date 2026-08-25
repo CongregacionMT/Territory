@@ -3,10 +3,10 @@ import {
   Component,
   OnInit,
   inject,
-  ViewChild,
   HostListener,
   ChangeDetectionStrategy,
   DestroyRef,
+  signal,
 } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -32,8 +32,7 @@ import { AuthService } from '@core/services/auth.service';
 })
 export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   private destroyRef = inject(DestroyRef);
-  @ViewChild(FormEditDeparturesComponent)
-  formEditComponent!: FormEditDeparturesComponent;
+
   private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
   private _snackBar = inject(MatSnackBar);
@@ -45,6 +44,8 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   formDepartureData: Departure[] = [] as Departure[];
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   isSaved: boolean = false;
+  saveTrigger = signal<number>(0);
+  isChildFormDirty = signal<boolean>(false);
   isAdmin: boolean = false;
   isCardsCollapsed: boolean = true;
   weeklyHistory: WeeklyDeparture[] = [];
@@ -234,38 +235,40 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     return formatWeekRange(weekId);
   }
   markAsReceivedQuick(departure: Departure): void {
-    if (this.formEditComponent) {
-      const marked = this.formEditComponent.markDepartureAsReceived(departure);
-      if (marked) {
-        this.saveAll();
-      } else {
-        this._snackBar.open('No se pudo encontrar la salida en el formulario', 'Ok', {
-          duration: 3000,
-        });
+    const updated = this.formDepartureData.map((d) => {
+      if (
+        d.date === departure.date &&
+        d.schedule === departure.schedule &&
+        Number(d.group) === Number(departure.group) &&
+        d.driver === departure.driver
+      ) {
+        return { ...d, cardStatus: 'received' as const };
       }
-    }
+      return d;
+    });
+    this.formDepartureData = updated;
+    this.saveTrigger.set(this.saveTrigger() + 1);
   }
 
-  saveAll(): void {
+  triggerSave(): void {
     if (!this.dateDeparture.value) return;
+    this.saveTrigger.set(this.saveTrigger() + 1);
+  }
 
-    // 1. Guardar la semana activa
-    this.territoryDataService.putDate({ date: this.dateDeparture.value });
+  onChildFormSubmit(savedData: Departure[]): void {
+    void this.territoryDataService.putDate({ date: this.dateDeparture.value });
     this.dateDeparture.markAsPristine();
     this.isSaved = true;
+    this.isChildFormDirty.set(false);
 
-    // 2. Guardar el formulario de salidas (componente hijo)
-    if (this.formEditComponent) {
-      const savedData = this.formEditComponent.submitForm();
-      if (savedData) {
-        this.formDepartureData = savedData;
-      }
-    } else {
-      this._snackBar.open(`Semana guardada: ${this.selectedWeekRange}`, 'Ok', {
-        verticalPosition: this.verticalPosition,
-        duration: 3000,
-      });
+    if (savedData) {
+      this.formDepartureData = savedData;
     }
+
+    this._snackBar.open(`Semana guardada: ${this.selectedWeekRange}`, 'Ok', {
+      verticalPosition: this.verticalPosition,
+      duration: 3000,
+    });
   }
 
   createStandardWeek(copyTerritories: boolean = false): void {
@@ -477,11 +480,10 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   canDeactivate(): boolean {
-    const isChildDirty = this.formEditComponent && this.formEditComponent.isDirty();
+    const isChildDirty = this.isChildFormDirty();
     const isMainDirty = this.dateDeparture.dirty;
-    const childSaved = this.formEditComponent ? this.formEditComponent.isSaved : true;
 
-    if ((isChildDirty || isMainDirty) && (!this.isSaved || !childSaved)) {
+    if ((isChildDirty || isMainDirty) && !this.isSaved) {
       return confirm(
         '⚠️ Tienes cambios sin guardar. Si sales ahora, perderás lo que has editado. ¿Estás seguro de que quieres salir?',
       );
@@ -491,11 +493,9 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: BeforeUnloadEvent): void {
-    const isChildDirty = this.formEditComponent && this.formEditComponent.isDirty();
+    const isChildDirty = this.isChildFormDirty();
     const isMainDirty = this.dateDeparture.dirty;
-    const childSaved = this.formEditComponent ? this.formEditComponent.isSaved : true;
-
-    if ((isChildDirty || isMainDirty) && (!this.isSaved || !childSaved)) {
+    if ((isChildDirty || isMainDirty) && !this.isSaved) {
       $event.returnValue = 'Tienes cambios sin guardar.';
     }
   }
