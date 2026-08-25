@@ -55,6 +55,20 @@ export function formatTerritoryName(key: string): string {
 
 export type FirebaseDate = string | number | Date | { toDate?: () => Date; seconds?: number };
 
+export function parseFirebaseDate(date?: FirebaseDate | null): Date | null {
+  if (!date) return null;
+  if (date instanceof Date) return date;
+  if (typeof date === 'object') {
+    if ('toDate' in date && typeof date.toDate === 'function') {
+      return date.toDate();
+    }
+    if ('seconds' in date && typeof date.seconds === 'number') {
+      return new Date(date.seconds * 1000);
+    }
+  }
+  return new Date(date as string | number);
+}
+
 export function groupStatsByLocality(
   stats: Record<string, { percent?: number; total?: number; salidas?: number; done?: number }>,
 ): CampaignLocalityGroup[] {

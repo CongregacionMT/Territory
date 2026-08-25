@@ -1,10 +1,21 @@
 import { DatePipe, NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TerritorioStats } from '@core/models/TerritorioStats';
 import { CampaignService } from '@core/services/campaign.service';
 import { SpinnerService } from '@core/services/spinner.service';
-import { CampaignLocalityGroup, groupStatsByLocality } from '@shared/utils/campaign.utils';
+import {
+  CampaignLocalityGroup,
+  groupStatsByLocality,
+  parseFirebaseDate,
+} from '@shared/utils/campaign.utils';
 import { KpiCardComponent } from '@shared/components/kpi-card/kpi-card.component';
 import { ProgressBarComponent } from '@shared/components/progress-bar/progress-bar.component';
 
@@ -38,6 +49,10 @@ export class CampaignDetailComponent implements OnInit {
   private spinner = inject(SpinnerService);
   private route = inject(ActivatedRoute);
   private campaignService = inject(CampaignService);
+
+  // Fechas parseadas para la vista
+  parsedDateInit = computed(() => parseFirebaseDate(this.campaign().dateInit));
+  parsedDateEnd = computed(() => parseFirebaseDate(this.campaign().dateEnd));
 
   territoriosCompletados = 0;
   salidasTotales = 0;

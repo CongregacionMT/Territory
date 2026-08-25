@@ -20,6 +20,7 @@ import {
   CampaignLocalityGroup,
   groupStatsByLocality,
   filterDeparturesByCampaignDates,
+  parseFirebaseDate,
 } from '@shared/utils/campaign.utils';
 
 import { ProgressBarComponent } from '@shared/components/progress-bar/progress-bar.component';
@@ -70,10 +71,9 @@ export class CampaignPageComponent implements OnInit {
   campaignHistory = signal<{ nombre: string; descripcion: string; fecha: string; id: string }[]>(
     [],
   );
-  statsGlobal = signal<Record<
-    string,
-    { percent: number; total: number; salidas?: number; done: number }
-  > | null>(null);
+  statsGlobal = signal<{ percent: number; total: number; salidas?: number; done: number } | null>(
+    null,
+  );
 
   private campaignService = inject(CampaignService);
   private spinner = inject(SpinnerService);
@@ -192,17 +192,20 @@ export class CampaignPageComponent implements OnInit {
     }
 
     if (active.dateEnd) {
-      let d = active.dateEnd;
-      if (d && typeof d === 'object' && 'toDate' in d && typeof d.toDate === 'function') {
-        d = d.toDate();
+      const parsedD = parseFirebaseDate(active.dateEnd);
+      if (parsedD) {
+        const iso = parsedD.toISOString().split('T')[0];
+        this.initialEndDate.set(iso);
       }
-      const iso = new Date(d).toISOString().split('T')[0];
-      this.initialEndDate.set(iso);
     }
 
     try {
       const departures = await firstValueFrom(this.territoryService.getWeeklyDepartures());
-      const filtered = filterDeparturesByCampaignDates(departures, active.dateInit, active.dateEnd);
+      const filtered = filterDeparturesByCampaignDates(
+        departures,
+        active.dateInit || '',
+        active.dateEnd || '',
+      );
       this.filteredDepartures.set(filtered);
 
       this.spinner.cerrarSpinner();
@@ -265,10 +268,11 @@ export class CampaignPageComponent implements OnInit {
     if (!active?.dateEnd) return 0;
     const end = active.dateEnd;
     let endDate: Date;
-    if (end && typeof end === 'object' && 'toDate' in end && typeof end.toDate === 'function') {
-      endDate = end.toDate();
+    const parsedEnd = parseFirebaseDate(end);
+    if (parsedEnd) {
+      endDate = parsedEnd;
     } else {
-      endDate = new Date(end);
+      endDate = new Date();
     }
     const now = new Date();
     const diff = endDate.getTime() - now.getTime();
