@@ -68,7 +68,7 @@ export class TerritoryDataService {
   // GRUPOS DE TERRITORIOS
   getTerritoryGroups(): Observable<Record<string, Record<number, number>>> {
     const docRef = doc(this.firestore, 'Settings', 'TerritoryGroups');
-    return docData(docRef);
+    return docData(docRef) as Observable<Record<string, Record<number, number>>>;
   }
 
   async saveTerritoryGroups(data: unknown): Promise<void> {
