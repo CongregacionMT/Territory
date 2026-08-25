@@ -17,12 +17,38 @@ vi.mock('@angular/fire/firestore', () => {
     query: vi.fn(),
     where: vi.fn(),
     orderBy: vi.fn(),
+    limit: vi.fn(),
+    startAfter: vi.fn(),
     Timestamp: {
       now: vi.fn(() => ({ seconds: 12345, nanoseconds: 0 })),
       fromDate: vi.fn(() => ({ seconds: 12345, nanoseconds: 0 })),
     },
     runTransaction: vi.fn(),
     Firestore: class Firestore {},
+    getFirestore: vi.fn(),
+  };
+});
+
+vi.mock('@angular/fire/auth', () => {
+  return {
+    getAuth: vi.fn(),
+    signInWithEmailAndPassword: vi.fn(),
+    signOut: vi.fn(),
+    authState: vi.fn(() => of(null)),
+    user: vi.fn(() => of(null)),
+    Auth: class Auth {},
+  };
+});
+
+vi.mock('@angular/fire/database', () => {
+  return {
+    getDatabase: vi.fn(),
+    ref: vi.fn(),
+    set: vi.fn(),
+    get: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+    Database: class Database {},
   };
 });
 
@@ -65,8 +91,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Firestore } from '@angular/fire/firestore';
+import { Auth } from '@angular/fire/auth';
 import { SwUpdate, ServiceWorkerModule } from '@angular/service-worker';
 import { of } from 'rxjs';
 
@@ -179,17 +205,12 @@ beforeEach(() => {
       { provide: MAT_DIALOG_DATA, useValue: {} },
       { provide: MatDialogRef, useValue: { close: vi.fn() } },
       {
-        provide: AngularFirestore,
-        useValue: {
-          collection: () => ({
-            valueChanges: () => of([]),
-            doc: () => ({ valueChanges: () => of({}) }),
-          }),
-        },
+        provide: Firestore,
+        useValue: {},
       },
       {
-        provide: AngularFireAuth,
-        useValue: { authState: of(null), currentUser: Promise.resolve(null) },
+        provide: Auth,
+        useValue: {},
       },
     ],
   });

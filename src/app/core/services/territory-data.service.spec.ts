@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { TerritoryDataService } from './territory-data.service';
-import { Firestore, collection, collectionData, doc, docData, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, docData, deleteDoc, query, where, orderBy } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { SpinnerService } from './spinner.service';
 import { CampaignService } from './campaign.service';
@@ -83,6 +83,39 @@ describe('TerritoryDataService', () => {
       service.getCardAssigned().subscribe((cards) => {
         expect(collection).toHaveBeenCalledWith(mockFirestore, 'Assigned');
         expect(cards[0].id).toBe('card1');
+        resolve();
+      });
+    });
+  });
+
+  it('should get Card Territorie with query and order', async () => {
+    vi.mocked(collection).mockReturnValue('cardRef' as any);
+    vi.mocked(query).mockReturnValue('queryRef' as any);
+    vi.mocked(where).mockReturnValue('whereCondition' as any);
+    vi.mocked(orderBy).mockReturnValue('orderCondition' as any);
+    vi.mocked(collectionData).mockReturnValue(of([{ id: 'card1' } as any]));
+
+    await new Promise<void>((resolve) => {
+      service.getCardTerritorie('SomeCollection').subscribe((cards) => {
+        expect(collection).toHaveBeenCalledWith(mockFirestore, 'SomeCollection');
+        expect(query).toHaveBeenCalled();
+        expect(collectionData).toHaveBeenCalledWith('queryRef', { idField: 'id' });
+        expect(cards.length).toBe(1);
+        expect(cards[0].id).toBe('card1');
+        resolve();
+      });
+    });
+  });
+
+  it('should get territory groups', async () => {
+    vi.mocked(doc).mockReturnValue('docRef' as any);
+    vi.mocked(docData).mockReturnValue(of({ groupA: [1, 2, 3] }));
+
+    await new Promise<void>((resolve) => {
+      service.getTerritoryGroups().subscribe((groups) => {
+        expect(doc).toHaveBeenCalledWith(mockFirestore, 'Settings', 'TerritoryGroups');
+        expect(docData).toHaveBeenCalledWith('docRef');
+        expect(groups).toEqual({ groupA: [1, 2, 3] });
         resolve();
       });
     });
