@@ -1,0 +1,227 @@
+
+<div class="mt-4 rounded-3xl bg-gray-900 border border-slate-700/80 overflow-hidden mb-2">
+  <div class="p-4 sm:p-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+      <div>
+        <div class="text-base font-extrabold text-slate-50">{{ getDepartureTitle(dateValue, scheduleValue) }}</div>
+        @if (isAdmin()) {
+          <span class="inline-flex items-center gap-1.5 mt-1.5 px-3 py-1 rounded-full text-xs font-bold" [class]="getCardStatusClass()">
+            {{ getCardStatusLabel() }}
+          </span>
+        }
+      </div>
+      <div class="flex flex-wrap items-center justify-end gap-4 w-full sm:w-auto">
+        <div class="flex items-center gap-2">
+          <input
+            class="w-5 h-5 cursor-pointer accent-green-500 rounded border-slate-600 bg-slate-800"
+            type="checkbox"
+            role="switch"
+            [id]="'isEvent_' + index() + '_' + groupIndex()"
+            [checked]="isEvent"
+            (change)="onChangeCheckbox($event, 'isEvent')"
+          />
+          <label class="text-sm font-bold text-slate-300 cursor-pointer select-none" [for]="'isEvent_' + index() + '_' + groupIndex()">
+            Evento
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-sm font-medium border text-slate-300 border-slate-600 hover:bg-slate-700 transition-colors w-full sm:w-auto cursor-pointer"
+            (click)="copy.emit()"
+            title="Copiar datos a la siguiente semana"
+          >
+            <i class="fas fa-copy sm:mr-1.5"></i><span class="hidden sm:inline">Copiar</span>
+          </button>
+        </div>
+        @if (isAdmin()) {
+          <div class="flex items-center gap-2">
+            <input
+              class="w-5 h-5 cursor-pointer accent-green-500 rounded border-slate-600 bg-slate-800"
+              type="checkbox"
+              [id]="'cardReceived_' + index() + '_' + groupIndex()"
+              [checked]="cardStatus === 'received'"
+              (change)="onToggleCardReceived($any($event.target).checked)"
+            />
+            <label class="text-sm font-bold text-slate-300 cursor-pointer select-none" [for]="'cardReceived_' + index() + '_' + groupIndex()">
+              Revisada
+            </label>
+          </div>
+        }
+        <button
+          type="button"
+          class="inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-sm font-medium border text-red-300 border-red-400/45 hover:bg-red-400/15 hover:text-red-200 transition-colors w-full sm:w-auto cursor-pointer"
+          (click)="delete.emit()"
+        >
+          <i class="fas fa-trash-alt mr-1.5"></i>Quitar
+        </button>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3 mb-3 items-end">
+      <div class="flex flex-col gap-1.5 min-w-0 w-full md:w-[140px]">
+        <label class="text-sm font-bold text-slate-300">Fecha</label>
+        <input
+          type="date"
+          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-2"
+          [value]="dateValue"
+          (change)="onChangeInput($event, 'date')"
+        />
+      </div>
+      <div class="flex flex-col gap-1.5 min-w-0 w-full md:w-[140px]">
+        <label class="text-sm font-bold text-slate-300">Horario</label>
+        <input
+          type="time"
+          aria-label="schedule"
+          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-2"
+          [value]="scheduleValue"
+          (change)="onChangeInput($event, 'schedule')"
+        />
+      </div>
+
+      @if (isEvent) {
+        <div class="flex flex-col gap-1.5 min-w-0 w-full md:flex-1 md:min-w-[320px]">
+          <label class="text-sm font-bold text-slate-300">Título</label>
+          <input
+            type="text"
+            aria-label="title"
+            class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
+            placeholder="Conmemoración"
+            [value]="dayFormGroup().get('title')?.value || ''"
+            (change)="onChangeInput($event, 'title')"
+          />
+        </div>
+      } @else {
+        <div class="flex flex-col gap-1.5 min-w-0 w-full md:flex-1 md:min-w-[200px]">
+          <label class="text-sm font-bold text-slate-300">Conductor</label>
+          <select
+            aria-label="driver"
+            class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3"
+            (change)="onChangeInput($event, 'driver')"
+          >
+            <option value="" [selected]="!dayFormGroup().get('driver')?.value" disabled>
+              Conductor
+            </option>
+            @for (driver of drivers(); track driver.user) {
+              <option [value]="driver.user" [selected]="driver.user === dayFormGroup().get('driver')?.value">
+                {{ driver.user }}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5 min-w-0 w-full md:flex-1 md:min-w-[170px]">
+          <label class="text-sm font-bold text-slate-300">Localidad</label>
+          <select
+            class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3"
+            [value]="locationValue"
+            (change)="onChangeInput($event, 'location')"
+          >
+            <option value="Seleccionar localidad" selected disabled>
+              Seleccionar localidad
+            </option>
+            @for (loc of localities(); track loc.key) {
+              <option [value]="loc.territoryPrefix">
+                {{ loc.name }}
+              </option>
+            }
+          </select>
+        </div>
+      }
+      <div class="flex flex-col gap-1.5 min-w-0 w-full md:w-[135px]">
+        <label class="text-sm font-bold text-slate-300 flex items-center">
+          Color
+          <span
+            class="inline-block w-4 h-4 ml-2 rounded-full border border-slate-400/25"
+            [style.background-color]="getColorSwatch(dayFormGroup().get('color')?.value)"
+          ></span>
+        </label>
+        <select
+          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 pl-3"
+          [style.border-left]="'12px solid ' + getColorSwatch(dayFormGroup().get('color')?.value)"
+          (change)="onChangeInput($event, 'color')"
+        >
+          <option value="secondary" [selected]="dayFormGroup().get('color')?.value === 'secondary'">Gris</option>
+          <option value="primary" [selected]="dayFormGroup().get('color')?.value === 'primary'">Azul</option>
+          <option value="success" [selected]="dayFormGroup().get('color')?.value === 'success'">Verde</option>
+          <option value="danger" [selected]="dayFormGroup().get('color')?.value === 'danger'">Rojo</option>
+          <option value="warning" [selected]="dayFormGroup().get('color')?.value === 'warning'">Amarillo</option>
+          <option value="info" [selected]="dayFormGroup().get('color')?.value === 'info'">Celeste</option>
+          <option value="light" [selected]="dayFormGroup().get('color')?.value === 'light'">Blanco</option>
+          <option value="dark" [selected]="dayFormGroup().get('color')?.value === 'dark'">Negro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[290px_310px_365px] gap-3 lg:gap-4 items-start">
+      @if (!isEvent) {
+        <div class="flex flex-col gap-1.5 w-full">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium border border-transparent text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full cursor-pointer"
+            (click)="openModal.emit()"
+          >
+            📍 Seleccionar territorios
+          </button>
+          @if (getTerritories().length === 0 && suggestedTerritories().length > 0) {
+            <div class="p-3 rounded-2xl bg-slate-800/95 border border-dashed border-blue-500/35 mt-1.5">
+              <div class="text-sm font-bold text-slate-300 mb-2">Sugerencias rápidas</div>
+              <div class="flex flex-wrap gap-2">
+                @for (t of suggestedTerritories(); track t) {
+                  <button
+                    type="button"
+                    class="rounded-full font-bold text-slate-200 bg-blue-500/15 border border-blue-500/30 px-3 py-1 text-xs hover:bg-blue-500/25 transition-colors cursor-pointer"
+                    (click)="applySuggested.emit(t)"
+                    title="Asignar territorio y reutilizar el punto/mapa si están guardados"
+                  >
+                    {{ t }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+          <div class="flex flex-wrap gap-2 mt-1">
+            @for (t of getTerritories(); track t) {
+              <a
+                [href]="getTerritoryLink(locationValue, t)"
+                target="_blank"
+                class="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-700 text-white text-sm font-extrabold no-underline focus:ring-2 focus:ring-blue-500 focus:outline-none hover:bg-blue-600 transition-colors"
+              >
+                {{ t }}
+              </a>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="flex flex-col gap-1.5 w-full">
+        <label class="text-sm font-bold text-slate-300">Punto de encuentro</label>
+        <input
+          type="text"
+          aria-label="point"
+          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
+          placeholder="Punto de encuentro"
+          [value]="dayFormGroup().get('point')?.value || ''"
+          (change)="onChangeInput($event, 'point')"
+        />
+        @if (quickSuggestionText()) {
+          <div class="text-[0.78rem] text-blue-300 mt-1">
+            <i class="fas fa-lightbulb mr-1"></i>
+            {{ quickSuggestionText() }}
+          </div>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1.5 w-full min-w-0">
+        <label class="text-sm font-bold text-slate-300">Mapa (opcional)</label>
+        <input
+          type="text"
+          aria-label="maps"
+          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
+          placeholder="Link Google Maps"
+          [value]="dayFormGroup().get('maps')?.value || ''"
+          (change)="onChangeInput($event, 'maps')"
+        />
+      </div>
+    </div>
+  </div>
+</div>

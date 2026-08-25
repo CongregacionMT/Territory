@@ -1,0 +1,143 @@
+
+<div class="fixed inset-0 z-[1055] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 p-4"
+     (click)="closeModal()">
+  <div class="relative w-full max-w-4xl max-h-[85vh] flex flex-col bg-gray-900 border border-slate-700/80 shadow-2xl rounded-2xl text-slate-200 outline-none"
+       (click)="$event.stopPropagation()">
+
+      <!-- Encabezado Modal -->
+      <div class="flex shrink-0 items-center justify-between p-4 border-b border-slate-700 rounded-t-2xl bg-slate-800/50">
+        <h5 class="text-lg font-extrabold text-slate-50 flex items-center gap-2">
+          <i class="fas fa-map-marked-alt text-blue-400"></i> Seleccionar territorios
+        </h5>
+        <button
+          type="button"
+          class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-700/80 text-slate-400 hover:text-white transition-colors cursor-pointer"
+          (click)="closeModal()"
+          aria-label="Cerrar modal"
+        >
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Cuerpo Modal (con scroll) -->
+      <div class="p-4 sm:p-6 overflow-y-auto min-h-0 flex-1">
+        <div class="flex flex-col sm:flex-row justify-between mb-4 gap-4">
+          <div class="flex flex-wrap gap-4">
+            <div class="flex items-center gap-2">
+              <input
+                class="w-5 h-5 cursor-pointer accent-blue-500 rounded border-slate-600 bg-slate-800"
+                type="checkbox"
+                id="sortByAge"
+                [checked]="sortByAge"
+                (change)="sortByAge = !sortByAge"
+              />
+              <label class="text-sm text-slate-300 cursor-pointer select-none" for="sortByAge">
+                Ordenar por antigüedad
+              </label>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                class="w-5 h-5 cursor-pointer accent-blue-500 rounded border-slate-600 bg-slate-800"
+                type="checkbox"
+                id="showPersonalTerritories"
+                [checked]="showPersonalTerritories"
+                (change)="showPersonalTerritories = !showPersonalTerritories"
+              />
+              <label class="text-sm text-slate-300 cursor-pointer select-none" for="showPersonalTerritories">
+                Mostrar personales
+              </label>
+            </div>
+          </div>
+          <!-- Filtro por grupo -->
+          @if (getAvailableGroupNumbers().length > 0) {
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm text-slate-400">Grupo:</span>
+              <button
+                type="button"
+                class="px-3 py-1 text-sm rounded-lg border transition-colors cursor-pointer"
+                [ngClass]="selectedTerritoryGroup === null ? 'bg-slate-600 border-slate-500 text-white' : 'border-slate-600 text-slate-300 hover:bg-slate-700'"
+                (click)="selectedTerritoryGroup = null"
+              >Todos</button>
+              @for (gn of getAvailableGroupNumbers(); track gn) {
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm rounded-lg border transition-colors cursor-pointer"
+                  [ngClass]="selectedTerritoryGroup === gn ? 'bg-blue-600 border-blue-500 text-white' : 'border-blue-600/50 text-blue-300 hover:bg-blue-900/50'"
+                  (click)="selectedTerritoryGroup = gn"
+                >{{ gn }}</button>
+              }
+            </div>
+          }
+        </div>
+        
+        <div class="flex flex-col gap-3">
+          @for (num of getFilteredTerritoryList(); track num) {
+            <div
+              class="relative flex items-center gap-2.5 min-h-[48px] px-3 py-2 rounded-xl border cursor-pointer transition-all select-none hover:shadow-md"
+              [ngClass]="[
+                getPriorityColorClass(num, locationPrefix()),
+                isTerritoryChecked(num) ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-slate-900' : ''
+              ]"
+            >
+              <label
+                class="absolute inset-0 cursor-pointer rounded-inherit"
+                [for]="'territory_' + num"
+              ></label>
+
+              <input
+                class="relative z-10 shrink-0 w-5 h-5 cursor-pointer accent-blue-500 rounded border-slate-600 bg-slate-700"
+                type="checkbox"
+                [id]="'territory_' + num"
+                [checked]="isTerritoryChecked(num)"
+                (change)="handleCheckboxChange($event, num)"
+              />
+
+              <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 flex-1 min-w-0 relative z-10 pointer-events-none">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="font-extrabold text-base text-slate-50 shrink-0">{{ num }}</span>
+                  <div class="flex flex-wrap items-center gap-1">
+                    @if (isTerritoryUsedInWeek(num)) {
+                      <span class="inline-flex items-center text-[0.65rem] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Ya elegido</span>
+                    }
+                    @if (isPersonalTerritory(num, locationPrefix())) {
+                      <span class="inline-flex items-center text-[0.65rem] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">Personal</span>
+                    }
+                    @if (getTerritoryGroupNumber(num, locationPrefix()) > 0) {
+                      <span class="inline-flex items-center text-[0.65rem] font-bold px-1.5 py-0.5 rounded bg-green-500/20 text-green-300 border border-green-500/30">G{{ getTerritoryGroupNumber(num, locationPrefix()) }}</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-xs sm:text-sm font-medium text-slate-400 whitespace-nowrap">
+                    {{ getTerritoryAgeLabel(num, locationPrefix()) }}
+                  </span>
+                  <a
+                    [href]="getTerritoryLink(locationPrefix(), num)"
+                    target="_blank"
+                    class="inline-flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 border border-blue-600 rounded-lg text-xs sm:text-sm font-bold text-blue-400 hover:bg-blue-600 hover:text-white transition-colors pointer-events-auto z-20 cursor-pointer shadow-sm whitespace-nowrap"
+                    (click)="$event.stopPropagation()"
+                    title="Abrir mapa del territorio en una nueva pestaña"
+                  >
+                    <i class="fas fa-map-marked-alt"></i><span class="hidden sm:inline"> Mapa</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Pie Modal -->
+      <div class="flex shrink-0 flex-wrap items-center justify-between p-4 bg-slate-800 border-t border-slate-700 rounded-b-2xl">
+        <span class="text-sm text-slate-400 mb-2 sm:mb-0">Podés seleccionar varios territorios</span>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-colors shadow-md shadow-green-900/20 cursor-pointer"
+          (click)="closeModal()"
+        >
+          Guardar selección
+        </button>
+      </div>
+  </div>
+</div>
