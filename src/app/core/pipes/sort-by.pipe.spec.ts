@@ -1,3 +1,4 @@
+/// <reference types="jasmine" />
 import { SortBy } from './sort-by.pipe';
 
 describe('SortBy Pipe', () => {
@@ -52,7 +53,7 @@ describe('SortBy Pipe', () => {
   });
 
   it('should fallback to 0 if date property is missing', () => {
-    const data = [[{ start: '2024-01-01' }], [{}]];
+    const data: any[] = [[{ start: '2024-01-01' }], [{}]];
     const result = pipe.transform(data, 'start', 1);
     expect(result[0][0].start).toBeUndefined();
     expect(result[1][0].start).toBe('2024-01-01');

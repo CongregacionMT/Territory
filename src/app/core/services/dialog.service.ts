@@ -8,7 +8,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
   providedIn: 'root',
 })
 export class DialogService {
-  private matDialog = inject(MatDialog);
+  private readonly matDialog = inject(MatDialog);
 
   openDialog<T, D = unknown, R = boolean>(
     data: D,

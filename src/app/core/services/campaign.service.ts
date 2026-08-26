@@ -23,15 +23,14 @@ import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Campaign, CampaignStats, DeparturesInfo } from '@core/models/Campaign';
+import { Campaign, DeparturesInfo } from '@core/models/Campaign';
 import { Card } from '@core/models/Card';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CampaignService {
-  private firestore = inject(Firestore);
+  private readonly firestore = inject(Firestore);
 
   async getActiveCampaign(): Promise<Campaign | null> {
     const q = query(collection(this.firestore, 'campaigns'), where('active', '==', true));
@@ -219,8 +218,8 @@ export class CampaignService {
   }
 
   extractTerritoryNumber(collectionName: string): number {
-    const match = collectionName.match(/(\d+)$/);
-    return match ? parseInt(match[1]) : 0;
+    const match = /(\d+)$/.exec(collectionName);
+    return match ? Number.parseInt(match[1], 10) : 0;
   }
 
   getCampaign(): Observable<Campaign[]> {
@@ -255,12 +254,13 @@ export class CampaignService {
     }
 
     if (!statKey) {
-      statKey =
-        card.location && card.territoryNumber
-          ? `${card.location}-${card.territoryNumber}`
-          : card.territoryNumber
-            ? `Territorio ${card.territoryNumber}`
-            : 'Territorio Desconocido';
+      if (card.location && card.territoryNumber) {
+        statKey = `${card.location}-${card.territoryNumber}`;
+      } else if (card.territoryNumber) {
+        statKey = `Territorio ${card.territoryNumber}`;
+      } else {
+        statKey = 'Territorio Desconocido';
+      }
     }
 
     console.log('[CampaignService] Using statKey:', statKey);
@@ -323,7 +323,7 @@ export class CampaignService {
     const lastEntry = existingHistory[existingHistory.length - 1];
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (!lastEntry || lastEntry.percent !== globalPercent || lastEntry.date !== today) {
+    if (lastEntry?.percent !== globalPercent || lastEntry?.date !== today) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       existingHistory.push(progressEntry);
     }
@@ -396,27 +396,12 @@ export class CampaignService {
       dateEnd: manualEndDate || Timestamp.now(),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       stats: finalStats,
+      ...(leftoverInvitations && { leftoverInvitations }),
+      ...(missingInvitations !== undefined &&
+        missingInvitations !== null && { missingInvitations }),
+      ...(departuresInfo && { departuresInfo }),
+      ...(finalComments && { finalComments }),
     };
-
-    if (leftoverInvitations) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      updateData.leftoverInvitations = leftoverInvitations;
-    }
-
-    if (missingInvitations !== undefined && missingInvitations !== null) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      updateData.missingInvitations = missingInvitations;
-    }
-
-    if (departuresInfo) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      updateData.departuresInfo = departuresInfo;
-    }
-
-    if (finalComments) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      updateData.finalComments = finalComments;
-    }
 
     await updateDoc(campaignDocRef, updateData);
 
@@ -519,7 +504,7 @@ export class CampaignService {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const parsed = JSON.parse(raw);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-      return parsed && parsed.id ? parsed : null;
+      return parsed?.id ? parsed : null;
     } catch {
       return null;
     }

@@ -192,17 +192,17 @@ export class StatisticsTableComponent {
 
   isPersonalTerritory(number: string | number | undefined): boolean {
     if (number === undefined) return false;
-    const searchNum = parseInt(String(number), 10);
+    const searchNum = Number.parseInt(String(number), 10);
     return this.personalTerritories().some(
-      (e: Card) => parseInt(String(e.territory), 10) === searchNum,
+      (e: Card) => Number.parseInt(String(e.territory), 10) === searchNum,
     );
   }
 
   getPersonalEntry(number: string | number | undefined): Card | undefined {
     if (number === undefined) return undefined;
-    const searchNum = parseInt(String(number), 10);
+    const searchNum = Number.parseInt(String(number), 10);
     return this.personalTerritories().find(
-      (e: Card) => parseInt(String(e.territory), 10) === searchNum,
+      (e: Card) => Number.parseInt(String(e.territory), 10) === searchNum,
     );
   }
 }
