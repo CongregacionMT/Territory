@@ -1,19 +1,9 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { TerritoryDataService } from '../../../core/services/territory-data.service';
-import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogService } from '@core/services/dialog.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
-import { User } from '@core/models/User';
-import { tap } from 'rxjs/operators';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { UsersFeatureService } from '../services/users-feature.service';
 
 @Component({
   selector: 'app-users-page',
@@ -21,32 +11,24 @@ import { toSignal } from '@angular/core/rxjs-interop';
   styleUrls: ['./users-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule],
+  providers: [UsersFeatureService],
 })
 export class UsersPageComponent {
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private fb = inject(FormBuilder);
+  featureService = inject(UsersFeatureService);
   private _snackBar = inject(MatSnackBar);
   private dialogService = inject(DialogService);
+  private fb = inject(FormBuilder);
 
   showError = signal<boolean>(false);
 
-  users = toSignal(
-    this.territoryDataService.getUsers().pipe(tap(() => this.spinner.cerrarSpinner())),
-    { initialValue: [] as User[] },
-  );
-
-  formUser: FormGroup;
-
-  constructor() {
-    this.spinner.cargarSpinner();
-    this.formUser = this.fb.group({
-      user: new FormControl('', [Validators.required]),
-      password: new FormControl('', [Validators.required]),
-      tokens: new FormControl([], [Validators.required]),
-      rol: new FormControl('conductor'),
-    });
-  }
+  formUser = this.fb.nonNullable.group({
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    user: ['', [Validators.required]],
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    password: ['', [Validators.required]],
+    tokens: this.fb.nonNullable.control<string[]>([]),
+    rol: ['conductor'],
+  });
 
   async copyToClipboard(token: string | string[]): Promise<void> {
     const textToCopy = Array.isArray(token) ? token.join(', ') : String(token);
@@ -67,35 +49,50 @@ export class UsersPageComponent {
     }
   }
 
-  alertSnack() {
+  alertSnack(): void {
     this._snackBar.open('📝 Token copiado al portapapeles!', 'ok', {
       duration: 3000,
     });
   }
 
-  createUser() {
-    if (this.formUser.controls?.['user'].invalid || this.formUser.controls?.['password'].invalid) {
+  async createUser(): Promise<void> {
+    if (this.formUser.invalid) {
       this.showError.set(true);
-    } else {
-      this.territoryDataService.postUser(this.formUser.value);
+      return;
+    }
+    this.showError.set(false);
+
+    // Get value typed as non-nullable
+    const userPayload = this.formUser.getRawValue();
+
+    const success = await this.featureService.createUser(userPayload);
+    if (success) {
       this.formUser.reset({ rol: 'conductor', tokens: [] });
-      this.showError.set(false);
       this._snackBar.open('👤 Usuario creado con éxito', 'ok', {
+        duration: 3000,
+      });
+    } else {
+      this._snackBar.open('❌ Error al crear usuario', 'ok', {
         duration: 3000,
       });
     }
   }
 
-  deleteUser(idUser: string) {
-    this.dialogService
-      .openDialog(
-        { title: 'Eliminar usuario', message: '¿Estás seguro de eliminar este usuario?' },
-        ConfirmDialogComponent,
-      )
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this.territoryDataService.deleteUser(idUser);
-        }
-      });
+  deleteUser(idUser: string): void {
+    const dialogRef = this.dialogService.openDialog(
+      { title: 'Eliminar usuario', message: '¿Estás seguro de eliminar este usuario?' },
+      ConfirmDialogComponent,
+    );
+    dialogRef.subscribe((confirmed) => {
+      if (confirmed) {
+        void this.featureService.deleteUser(idUser).then((success) => {
+          if (success) {
+            this._snackBar.open('🗑️ Usuario eliminado', 'ok', { duration: 3000 });
+          } else {
+            this._snackBar.open('❌ Error al eliminar usuario', 'ok', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 }

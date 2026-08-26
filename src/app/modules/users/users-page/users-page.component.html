@@ -9,13 +9,13 @@
       <p class="text-slate-400 text-sm mt-1 mb-0">Administración y roles de acceso</p>
     </div>
     <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-300">
-      {{ users().length }} {{ users().length === 1 ? 'usuario' : 'usuarios' }}
+      {{ featureService.users().length }} {{ featureService.users().length === 1 ? 'usuario' : 'usuarios' }}
     </div>
   </div>
 
   <!-- Lista de Usuarios -->
   <div class="flex flex-col gap-3 mb-10">
-    @for (user of users(); track user.user) {
+    @for (user of featureService.users(); track user.user) {
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:border-slate-700">
         
         <!-- Info del Usuario -->
@@ -51,6 +51,7 @@
                 (click)="copyToClipboard(user.tokens)"
                 class="w-full sm:max-w-md bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-sky-500/50 rounded-lg p-2 text-left transition-colors cursor-pointer group"
                 title="Copiar token"
+                aria-label="Copiar token de notificación"
               >
                 <div class="flex items-center justify-between gap-2">
                   <p class="text-xs font-mono text-sky-400 truncate mb-0 group-hover:text-sky-300">
@@ -69,6 +70,7 @@
             type="button"
             (click)="deleteUser(user.user)"
             class="w-full sm:w-auto bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:border-rose-500/50 font-semibold px-3.5 py-2 rounded-lg text-sm transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            aria-label="Eliminar usuario {{ user.user }}"
           >
             <i class="fas fa-trash-alt text-xs"></i>
             <span>Eliminar</span>
@@ -141,9 +143,15 @@
 
       <!-- Mensaje de Error -->
       @if (showError()) {
-        <div class="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
+        <div aria-live="polite" class="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
           <i class="fas fa-exclamation-circle flex-shrink-0"></i>
           <span>El usuario o contraseña no pueden estar vacíos. Intentalo de nuevo.</span>
+        </div>
+      }
+      @if (featureService.error()) {
+        <div aria-live="polite" class="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
+          <i class="fas fa-exclamation-triangle flex-shrink-0"></i>
+          <span>{{ featureService.error() }}</span>
         </div>
       }
 
