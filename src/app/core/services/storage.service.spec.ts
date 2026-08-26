@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { TestBed } from '@angular/core/testing';
 import { StorageService } from './storage.service';
 import { describe, it, expect, beforeEach, vi } from 'vitest';

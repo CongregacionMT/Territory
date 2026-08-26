@@ -27,35 +27,38 @@ export class HomeStatisticsPageComponent implements OnInit {
 
   localities = environment.localities || [];
 
-  async ngOnInit(): Promise<void> {
-    this.spinner.cargarSpinner();
+  ngOnInit(): void {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    void (async () => {
+      this.spinner.cargarSpinner();
 
-    // Cargar botones de estadísticas (mapas)
-    const storedTerritorioStatistics = sessionStorage.getItem('territorioStatistics');
-    const numberTerritory = storedTerritorioStatistics
-      ? (JSON.parse(storedTerritorioStatistics) as { territorio?: CardButtonsData[] })
-      : { territorio: [] };
+      // Cargar botones de estadísticas (mapas)
+      const storedTerritorioStatistics = sessionStorage.getItem('territorioStatistics');
+      const numberTerritory = storedTerritorioStatistics
+        ? (JSON.parse(storedTerritorioStatistics) as { territorio?: CardButtonsData[] })
+        : { territorio: [] };
 
-    if (numberTerritory.territorio) {
-      this.CardButtonsStatistics.set(numberTerritory.territorio);
-    }
-
-    // Cargar estadísticas para cada localidad
-    const territoryData = sessionStorage.getItem('numberTerritory');
-    this.territoryNumberOfLocalStorage.set(
-      territoryData ? (JSON.parse(territoryData) as TerritoriesNumberData) : {},
-    );
-
-    const promises: Promise<void>[] = [];
-
-    this.localities.forEach((locality) => {
-      if (locality.hasNumberedTerritories) {
-        promises.push(this.loadStatisticsForLocality(locality));
+      if (numberTerritory.territorio) {
+        this.CardButtonsStatistics.set(numberTerritory.territorio);
       }
-    });
 
-    await Promise.all(promises);
-    this.spinner.cerrarSpinner();
+      // Cargar estadísticas para cada localidad
+      const territoryData = sessionStorage.getItem('numberTerritory');
+      this.territoryNumberOfLocalStorage.set(
+        territoryData ? (JSON.parse(territoryData) as TerritoriesNumberData) : {},
+      );
+
+      const promises: Promise<void>[] = [];
+
+      this.localities.forEach((locality) => {
+        if (locality.hasNumberedTerritories) {
+          promises.push(this.loadStatisticsForLocality(locality));
+        }
+      });
+
+      await Promise.all(promises);
+      this.spinner.cerrarSpinner();
+    })();
   }
 
   async loadStatisticsForLocality(locality: {

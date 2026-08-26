@@ -6,7 +6,8 @@ import { Injectable } from '@angular/core';
 export class DeparturesMockService {
   constructor() {}
 
-  getDeparture() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getDeparture(): any[] {
     return [
       {
         date: '29 de agosto - 04 de septiembre',

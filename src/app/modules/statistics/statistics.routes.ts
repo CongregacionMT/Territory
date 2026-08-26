@@ -1,5 +1,4 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { StatisticsPageComponent } from './pages/statistics-page/statistics-page.component';
 import { HomeStatisticsPageComponent } from './pages/home-statistics-page/home-statistics-page.component';
 

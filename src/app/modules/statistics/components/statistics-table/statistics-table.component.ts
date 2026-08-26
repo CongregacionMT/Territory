@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Card } from '@core/models/Card';
 import { DatePipe, NgClass } from '@angular/common';
 import { SortBy } from '@core/pipes/sort-by.pipe';
@@ -152,7 +152,7 @@ export class StatisticsTableComponent {
 
   sortChanged = output<string>();
 
-  onSort(prop: string) {
+  onSort(prop: string): void {
     this.sortChanged.emit(prop);
   }
 

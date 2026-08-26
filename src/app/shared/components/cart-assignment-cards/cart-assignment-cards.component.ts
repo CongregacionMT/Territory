@@ -5,7 +5,7 @@ import { NgClass } from '@angular/common';
 @Component({
   selector: 'app-cart-assignment-cards',
   templateUrl: './cart-assignment-cards.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass],
   styleUrls: ['./cart-assignment-cards.component.scss'],
 })

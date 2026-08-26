@@ -72,7 +72,7 @@ export class DeparturesCardsComponent implements OnInit {
     const endDateTime = new Date(startDateTime.getTime() + 2 * 60 * 60 * 1000); // Default 2 hours duration
 
     // Format for Google Calendar: YYYYMMDDTHHmmss
-    const formatDate = (date: Date) => {
+    const formatDate = (date: Date): string => {
       return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
     };
 

@@ -6,11 +6,11 @@ import { Injectable, signal } from '@angular/core';
 export class SpinnerService {
   isLoading = signal<boolean>(false);
 
-  cargarSpinner() {
+  cargarSpinner(): void {
     this.isLoading.set(true);
   }
 
-  cerrarSpinner() {
+  cerrarSpinner(): void {
     this.isLoading.set(false);
   }
 }

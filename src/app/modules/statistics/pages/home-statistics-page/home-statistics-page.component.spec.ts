@@ -6,7 +6,6 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { of } from 'rxjs';
 import { Component, Input } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
-import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-card-xl',

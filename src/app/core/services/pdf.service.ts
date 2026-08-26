@@ -1,5 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { Injectable } from '@angular/core';
+import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { environment } from '@environments/environment';
 import { Card } from '@core/models/Card';
@@ -29,7 +29,7 @@ export class PdfService {
     const currentYear = new Date().getFullYear().toString();
 
     // Helper to add a page and draw common elements
-    const addPageWithBackground = () => {
+    const addPageWithBackground = (): PDFPage => {
       const page = pdfDoc.addPage([jpgDims.width, jpgDims.height]);
       page.drawImage(jpgImage, {
         x: 0,
@@ -66,7 +66,7 @@ export class PdfService {
       // Analyze max assignments in this chunk to determine horizontal pages needed
       const maxAssignmentsInChunk = Math.max(
         0,
-        ...dataChunk.map((dl) => dl.filter((item: any) => item.end).length),
+        ...dataChunk.map((dl) => dl.filter((item: Card) => item.end).length),
       );
 
       const horizontalPagesNeeded =
@@ -74,7 +74,7 @@ export class PdfService {
 
       // Generate pages for this vertical chunk
       for (let hPage = 0; hPage < horizontalPagesNeeded; hPage++) {
-        const page = addPageWithBackground();
+        const page: PDFPage = addPageWithBackground();
 
         // --- DRAW TERRITORY NUMBERS (Vertical Column) ---
         territoryChunk.forEach((territorio, index) => {
@@ -94,12 +94,12 @@ export class PdfService {
 
         dataChunk.forEach((rowAssignments, rowIndex) => {
           // Filter only completed assignments
-          const completedAssignments = rowAssignments.filter((item: any) => item.end);
+          const completedAssignments = rowAssignments.filter((item: Card) => item.end);
 
           // Get the slice for this page
           const assignmentsForPage = completedAssignments.slice(startIndex, endIndex);
 
-          assignmentsForPage.forEach((item: any, colIndex) => {
+          assignmentsForPage.forEach((item: Card, colIndex: number) => {
             const xDriver = jpgDims.width * 0.26 + colIndex * colWidth;
             const xStart = xDriver - 30;
             const xEnd = xDriver + 80;
@@ -110,14 +110,14 @@ export class PdfService {
             // --- DRAW CONTENT ---
             const driverName = item.driver;
             const fontSize = 20;
-            const textWidth = helveticaFont.widthOfTextAtSize(driverName, fontSize);
+            const textWidth = helveticaFont.widthOfTextAtSize(driverName || '', fontSize);
 
             // Center Name
             const centerX = xDriver + colWidth / 2;
             const xCentered = centerX - textWidth / 2;
 
             // Conductor
-            page.drawText(driverName, {
+            page.drawText(driverName || '', {
               x: xCentered - 40,
               y: yAdjusted + 30,
               size: fontSize,
@@ -126,7 +126,11 @@ export class PdfService {
             });
 
             // Fecha inicio
-            const dateStart = item.start.split(' ')[0].split('-').reverse().join('-');
+            const dateStart = String(item.start || '')
+              .split(' ')[0]
+              .split('-')
+              .reverse()
+              .join('-');
             page.drawText(dateStart, {
               x: xStart,
               y: yAdjusted,
@@ -136,7 +140,11 @@ export class PdfService {
             });
 
             // Fecha fin
-            const dateEnd = item.end.split(' ')[0].split('-').reverse().join('-');
+            const dateEnd = String(item.end || '')
+              .split(' ')[0]
+              .split('-')
+              .reverse()
+              .join('-');
             page.drawText(dateEnd, {
               x: xEnd,
               y: yAdjusted,

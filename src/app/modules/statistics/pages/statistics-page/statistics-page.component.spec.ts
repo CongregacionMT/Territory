@@ -3,21 +3,26 @@ import { StatisticsPageComponent } from './statistics-page.component';
 import { StatisticsFeatureService } from '../../services/statistics-feature.service';
 import { ComponentRef } from '@angular/core';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { of } from 'rxjs';
+
 import { signal } from '@angular/core';
 
 describe('StatisticsPageComponent', () => {
   let component: StatisticsPageComponent;
   let fixture: ComponentFixture<StatisticsPageComponent>;
   let componentRef: ComponentRef<StatisticsPageComponent>;
-  
+
   let mockStatsService: any;
 
   beforeEach(async () => {
     mockStatsService = {
       loadingData: signal(false),
       dataListFull: signal([]),
-      summaryStats: signal({ totalTerritories: 0, completedInPeriod: 0, percentCompleted: 0, totalApples: 0 }),
+      summaryStats: signal({
+        totalTerritories: 0,
+        completedInPeriod: 0,
+        percentCompleted: 0,
+        totalApples: 0,
+      }),
       timeRange: signal(12),
       personalTerritories: signal([]),
       loadLocalityData: vi.fn(),

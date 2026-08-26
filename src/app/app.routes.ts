@@ -45,7 +45,7 @@ export const routes: Routes = [
   },
   {
     path: 'usuarios',
-    loadChildren: () => import('./modules/users/users.routes').then((m) => m.ROUTES),
+    loadChildren: () => import('./modules/users/users.routes').then((m) => m.routes),
     data: { breadcrumb: 'Usuarios' },
   },
   {

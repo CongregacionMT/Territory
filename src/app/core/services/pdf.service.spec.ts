@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { PdfService } from './pdf.service';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as pdfLib from 'pdf-lib';
-import { environment } from '@environments/environment';
 
 vi.mock('@environments/environment', () => ({
   environment: {

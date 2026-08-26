@@ -14,11 +14,11 @@ export class UpdateSnackbarComponent {
   private snackRef = inject(MatSnackBarRef<UpdateSnackbarComponent>);
   congregationName = environment.congregationName;
 
-  actualizarAhora() {
+  actualizarAhora(): void {
     this.snackRef.dismissWithAction();
   }
 
-  cerrar() {
+  cerrar(): void {
     this.snackRef.dismiss();
   }
 }

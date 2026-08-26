@@ -27,16 +27,16 @@ export class PrintPdfModalComponent {
   private destroyRef = inject(DestroyRef);
 
   @Input() groupNumbers: number[] = [];
-  @Output() close = new EventEmitter<void>();
+  @Output() closeModalEvent = new EventEmitter<void>();
 
   isPrintingPdf = signal<boolean>(false);
   pdfGenerated = signal<boolean>(false);
 
   closeModal(): void {
-    this.close.emit();
+    this.closeModalEvent.emit();
   }
 
-  async printPdf(mode: PrintMode): Promise<void> {
+  printPdf(mode: PrintMode): void {
     this.isPrintingPdf.set(true);
     this.pdfGenerated.set(false);
 
@@ -52,49 +52,63 @@ export class PrintPdfModalComponent {
       })
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: async (result: unknown) => {
-            try {
-              let currentDepartures: Departure[] = [];
-              let nextDepartures: Departure[] = [];
+          next: (result: {
+            current: { departure?: Departure[] } | null;
+            next: { departure?: Departure[] } | null;
+            master: { departure?: Departure[] } | null;
+          }) => {
+            void (async (): Promise<void> => {
+              try {
+                let currentDepartures: Departure[] = [];
+                let nextDepartures: Departure[] = [];
 
-              if (result.current?.departure?.length > 0) {
-                currentDepartures = result.current.departure;
-              } else if (result.master?.departure?.length > 0) {
-                currentDepartures = result.master.departure;
+                if (
+                  result.current &&
+                  result.current.departure &&
+                  result.current.departure.length > 0
+                ) {
+                  currentDepartures = result.current.departure;
+                } else if (
+                  result.master &&
+                  result.master.departure &&
+                  result.master.departure.length > 0
+                ) {
+                  currentDepartures = result.master.departure;
+                }
+
+                if (result.next && result.next.departure && result.next.departure.length > 0) {
+                  nextDepartures = result.next.departure;
+                }
+
+                const printDepartures = this.pdfService.getDeparturesForPrintWeek(
+                  currentDepartures,
+                  nextDepartures,
+                  currentWeekId,
+                );
+
+                const pdfBytes = await this.pdfService.generateAllGroupsPdf(
+                  printDepartures,
+                  printRange.label,
+                  mode,
+                  this.groupNumbers,
+                );
+
+                const modeLabel = mode === 'color' ? 'color' : 'bn';
+                const filename = `salidas_${currentWeekId}_todos_${modeLabel}.pdf`;
+                this.pdfService.downloadPdf(pdfBytes, filename);
+
+                this.isPrintingPdf.set(false);
+                this.pdfGenerated.set(true);
+
+                setTimeout(() => {
+                  this.pdfGenerated.set(false);
+                  this.closeModal();
+                }, 3000);
+              } catch (error) {
+                console.error('Error generating PDF:', error);
+                this.isPrintingPdf.set(false);
               }
-
-              if (result.next?.departure?.length > 0) {
-                nextDepartures = result.next.departure;
-              }
-
-              const printDepartures = this.pdfService.getDeparturesForPrintWeek(
-                currentDepartures,
-                nextDepartures,
-                currentWeekId,
-              );
-
-              const pdfBytes = await this.pdfService.generateAllGroupsPdf(
-                printDepartures,
-                printRange.label,
-                mode,
-                this.groupNumbers,
-              );
-
-              const modeLabel = mode === 'color' ? 'color' : 'bn';
-              const filename = `salidas_${currentWeekId}_todos_${modeLabel}.pdf`;
-              this.pdfService.downloadPdf(pdfBytes, filename);
-
-              this.isPrintingPdf.set(false);
-              this.pdfGenerated.set(true);
-
-              setTimeout(() => {
-                this.pdfGenerated.set(false);
-                this.closeModal();
-              }, 3000);
-            } catch (error) {
-              console.error('Error generating PDF:', error);
-              this.isPrintingPdf.set(false);
-            }
+            })();
           },
           error: (error: unknown) => {
             console.error('Error fetching departures for PDF:', error);

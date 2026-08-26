@@ -59,7 +59,7 @@ export class StatisticsPageComponent {
   }
 
   setTimeRange(months: number): void {
-    this.statsService.setTimeRange(months);
+    void this.statsService.setTimeRange(months);
   }
 
   refreshData(): void {

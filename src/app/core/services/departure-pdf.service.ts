@@ -226,10 +226,10 @@ export class DeparturePdfService {
       // Group departures by date
       const groupedByDate = this.groupDeparturesByDate(groupDepartures);
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for (const [dateStr, deps] of groupedByDate) {
         for (let i = 0; i < deps.length; i++) {
           const dep = deps[i];
-          const isFirstOfDay = i === 0;
 
           // Estimate row height
           const rowHeight = this.estimateRowHeightCompact(dep, fontRegular, colWidths);

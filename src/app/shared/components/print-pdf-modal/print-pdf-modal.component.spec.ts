@@ -66,7 +66,7 @@ describe('PrintPdfModalComponent', () => {
 
     // Since printPdf has a nested async structure with forkJoin and await,
     // we need to await the printPdf completion or allow event loop to tick.
-    await component.printPdf('color');
+    component.printPdf('color');
 
     // Flush microtasks
     await Promise.resolve();
@@ -88,6 +88,7 @@ describe('PrintPdfModalComponent', () => {
       throwError(() => new Error('Test error')),
     );
 
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     await component.printPdf('bn');
 
     expect(component.isPrintingPdf()).toBe(false);
@@ -97,7 +98,7 @@ describe('PrintPdfModalComponent', () => {
   it('should handle error during PDF generation', async () => {
     mockPdfService.generateAllGroupsPdf.mockRejectedValue(new Error('PDF error'));
 
-    await component.printPdf('color');
+    component.printPdf('color');
 
     // Wait for the async inside subscribe to reject
     await Promise.resolve();

@@ -65,7 +65,8 @@ export class UsersPageComponent {
     // Get value typed as non-nullable
     const userPayload = this.formUser.getRawValue();
 
-    const success = await this.featureService.createUser(userPayload);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+    const success = await this.featureService.createUser(userPayload as any);
     if (success) {
       this.formUser.reset({ rol: 'conductor', tokens: [] });
       this._snackBar.open('👤 Usuario creado con éxito', 'ok', {

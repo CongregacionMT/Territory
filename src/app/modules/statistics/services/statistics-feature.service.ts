@@ -48,12 +48,12 @@ export class StatisticsFeatureService {
       });
   }
 
-  async setTimeRange(months: number) {
+  async setTimeRange(months: number): Promise<void> {
     this.timeRange.set(months);
     await this.loadLocalityData(this.currentLocality(), true);
   }
 
-  async loadLocalityData(locality: string, forceRefresh = false) {
+  async loadLocalityData(locality: string, forceRefresh = false): Promise<void> {
     if (!locality) return;
     this.currentLocality.set(locality);
 
@@ -62,7 +62,9 @@ export class StatisticsFeatureService {
 
     if (!forceRefresh && sessionStorage.getItem(storageKey)) {
       const storedStatisticData = sessionStorage.getItem(storageKey);
-      this.dataListFull.set(storedStatisticData ? JSON.parse(storedStatisticData) : []);
+      this.dataListFull.set(
+        storedStatisticData ? (JSON.parse(storedStatisticData) as Card[][]) : [],
+      );
       this.calculateSummary();
       this.loadingData.set(true);
       return;
@@ -72,7 +74,9 @@ export class StatisticsFeatureService {
     this.spinner.cargarSpinner();
 
     const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
-    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : {};
+    const numberTerritory = storedNumberTerritory
+      ? (JSON.parse(storedNumberTerritory) as Record<string, TerritoryNumberData[]>)
+      : {};
     const localityTerritories = numberTerritory[locality] || [];
 
     if (localityTerritories.length === 0) {
@@ -144,7 +148,7 @@ export class StatisticsFeatureService {
     this.loadingData.set(true);
   }
 
-  private calculateSummary() {
+  private calculateSummary(): void {
     const data = this.dataListFull();
     let totalApplesInLocality = 0;
     let completedApplesInPeriod = 0;

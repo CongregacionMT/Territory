@@ -13,7 +13,10 @@ export class PwaService {
   private _snackBar = inject(MatSnackBar);
   private destroyRef = inject(DestroyRef);
 
-  private deferredPrompt: any = null;
+  private deferredPrompt: {
+    prompt: () => void;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  } | null = null;
   private _isIos = signal<boolean>(false);
   private _btnPWA = signal<boolean>(true);
 
@@ -43,10 +46,10 @@ export class PwaService {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
-        this.swUpdate.activateUpdate().then(() => window.location.reload());
+        void this.swUpdate.activateUpdate().then(() => window.location.reload());
       });
 
-    this.swUpdate.checkForUpdate();
+    void this.swUpdate.checkForUpdate();
   }
 
   private initPWA(): void {
@@ -72,7 +75,8 @@ export class PwaService {
 
     window.addEventListener('beforeinstallprompt', (e: Event) => {
       e.preventDefault();
-      this.deferredPrompt = e;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+      this.deferredPrompt = e as any;
       this._btnPWA.set(true);
     });
   }
@@ -104,12 +108,14 @@ export class PwaService {
       return;
     }
 
-    this.deferredPrompt.prompt();
-    this.deferredPrompt.userChoice.then((choiceResult: any) => {
-      if (choiceResult.outcome === 'accepted') {
-        this._btnPWA.set(false);
-      }
-      this.deferredPrompt = null;
-    });
+    void this.deferredPrompt.prompt();
+    void this.deferredPrompt.userChoice.then(
+      (choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
+        if (choiceResult.outcome === 'accepted') {
+          this._btnPWA.set(false);
+        }
+        this.deferredPrompt = null;
+      },
+    );
   }
 }

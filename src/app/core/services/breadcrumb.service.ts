@@ -1,5 +1,5 @@
-import { Injectable, signal } from '@angular/core';
-import { ActivationEnd, Router } from '@angular/router';
+import { Injectable, signal, inject } from '@angular/core';
+import { ActivationEnd, Router, ActivatedRouteSnapshot, UrlSegment } from '@angular/router';
 import { BreadcrumbItem } from '../models/Breadcrumb';
 import { filter } from 'rxjs/operators';
 
@@ -13,10 +13,12 @@ export class BreadcrumbService {
   private _showBreadcrumb = signal<boolean>(false);
   public readonly showBreadcrumb = this._showBreadcrumb.asReadonly();
 
-  constructor(private router: Router) {
+  private router = inject(Router);
+
+  constructor() {
     this.router.events
-      .pipe(filter((event) => event instanceof ActivationEnd))
-      .subscribe((event: any) => {
+      .pipe(filter((event): event is ActivationEnd => event instanceof ActivationEnd))
+      .subscribe(() => {
         // Rebuild the breadcrumb logic based on the root route
         const root = this.router.routerState.snapshot.root;
         const breadcrumbs: BreadcrumbItem[] = [{ name: 'Inicio', route: '/home' }];
@@ -31,19 +33,23 @@ export class BreadcrumbService {
       });
   }
 
-  private addBreadcrumb(route: any, url: string[], breadcrumbs: BreadcrumbItem[]): void {
+  private addBreadcrumb(
+    route: ActivatedRouteSnapshot | null,
+    url: string[],
+    breadcrumbs: BreadcrumbItem[],
+  ): void {
     if (route) {
       // Create path from route segments
-      const routeUrl = route.url.map((segment: any) => segment.path).join('/');
+      const routeUrl = route.url.map((segment: UrlSegment) => segment.path).join('/');
 
       if (routeUrl !== '') {
         url.push(routeUrl);
       }
 
       // Check if route has breadcrumb data
-      if (route.data && route.data.breadcrumb) {
+      if (route.data && route.data['breadcrumb']) {
         const breadcrumb: BreadcrumbItem = {
-          name: route.data.breadcrumb,
+          name: route.data['breadcrumb'] as string,
           route: '/' + url.join('/'),
         };
 

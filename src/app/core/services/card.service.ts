@@ -25,13 +25,13 @@ export class CardService {
       revisionComplete: false,
     };
   }
-  rollbackCard() {
+  rollbackCard(): void {
     this.dataCard.revision = false;
   }
 
-  goRevisionCard(card: Card) {
+  goRevisionCard(card: Card): void {
     card.revision = true;
     this.dataCard = card;
-    this.router.navigate([`territorios/${card.link}`]);
+    void this.router.navigate([`territorios/${card.link}`]);
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { doc, docData, Firestore, updateDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { CartDataArray, LocationsData } from '@core/models/Cart';
 
 @Injectable({

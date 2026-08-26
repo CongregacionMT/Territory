@@ -27,7 +27,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { DepartureFormService } from '@core/services/departure-form.service';
 import { Departure } from '../../../../core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
-import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
@@ -50,7 +50,7 @@ import { AuthService } from '@core/services/auth.service';
   ],
 })
 export class FormEditDeparturesComponent implements OnInit {
-  getFormGroup(control: any): FormGroup {
+  getFormGroup(control: AbstractControl): FormGroup {
     return control as FormGroup;
   }
 
@@ -845,7 +845,8 @@ export class FormEditDeparturesComponent implements OnInit {
     newControl.patchValue(currentControl.value);
 
     // Copy territory array values manually
-    const sourceTerritories = (currentControl.get('territory') as FormArray)?.value || [];
+    const sourceTerritories =
+      ((currentControl.get('territory') as FormArray)?.value as string[]) || [];
     const targetTerritoryArray = newControl.get('territory') as FormArray;
     targetTerritoryArray.clear();
     sourceTerritories.forEach((t: string) => targetTerritoryArray.push(new FormControl(t)));
