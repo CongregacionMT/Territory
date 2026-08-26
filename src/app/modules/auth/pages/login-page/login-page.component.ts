@@ -21,9 +21,7 @@ export class LoginPageComponent {
   passwordVisible = signal(false);
 
   formLogin = this.fb.nonNullable.group({
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     user: ['', [Validators.required]],
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     password: ['', [Validators.required]],
   });
 

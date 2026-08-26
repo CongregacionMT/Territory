@@ -28,7 +28,6 @@ export class HomeStatisticsPageComponent implements OnInit {
   localities = environment.localities || [];
 
   ngOnInit(): void {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     void (async () => {
       this.spinner.cargarSpinner();
 

@@ -22,9 +22,7 @@ export class UsersPageComponent {
   showError = signal<boolean>(false);
 
   formUser = this.fb.nonNullable.group({
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     user: ['', [Validators.required]],
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     password: ['', [Validators.required]],
     tokens: this.fb.nonNullable.control<string[]>([]),
     rol: ['conductor'],
@@ -65,7 +63,6 @@ export class UsersPageComponent {
     // Get value typed as non-nullable
     const userPayload = this.formUser.getRawValue();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
     const success = await this.featureService.createUser(userPayload as any);
     if (success) {
       this.formUser.reset({ rol: 'conductor', tokens: [] });

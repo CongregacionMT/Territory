@@ -448,7 +448,6 @@ export class TerritoryAssignmentComponent implements OnInit {
         const sanitizedData = removeUndefined(data);
 
         if (isNew) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, ...cleanData } = sanitizedData as Card;
           if (!cleanData.applesData)
             cleanData.applesData = [{ name: 'Registro manual', checked: true }];

@@ -317,7 +317,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
           console.log('todo bien');
         });
       await this.territorieDataService.putCardTerritorie(currentCard);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const rawCampaign = this.campaignService.getCachedCampaign();
       if (
         rawCampaign &&

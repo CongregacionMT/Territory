@@ -6,7 +6,6 @@ import { Injectable } from '@angular/core';
 export class DeparturesMockService {
   constructor() {}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getDeparture(): any[] {
     return [
       {

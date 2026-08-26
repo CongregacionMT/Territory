@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Component, inject, input, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import {
   FormArray,

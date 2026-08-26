@@ -75,7 +75,6 @@ export class PwaService {
 
     window.addEventListener('beforeinstallprompt', (e: Event) => {
       e.preventDefault();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       this.deferredPrompt = e as any;
       this._btnPWA.set(true);
     });

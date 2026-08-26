@@ -1,4 +1,3 @@
-/* eslint-disable */
 
 import { Component, input, output, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';

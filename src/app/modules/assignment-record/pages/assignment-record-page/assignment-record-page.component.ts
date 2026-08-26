@@ -82,13 +82,9 @@ export class AssignmentRecordPageComponent implements OnInit {
 
   private createFormCard(): FormGroup {
     return this.fb.group({
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       location: new FormControl(this.congregationName, [Validators.required]),
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       publisher: new FormControl('', [Validators.required]),
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       territory: new FormControl(null, [Validators.required]),
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       date: new FormControl(new Date().toISOString().substring(0, 10), [Validators.required]),
     });
   }

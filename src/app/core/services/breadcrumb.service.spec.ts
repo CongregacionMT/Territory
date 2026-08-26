@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { BreadcrumbService } from './breadcrumb.service';
 import { Router, ActivationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 describe('BreadcrumbService', () => {

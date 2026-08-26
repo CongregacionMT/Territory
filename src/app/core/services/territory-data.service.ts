@@ -118,12 +118,9 @@ export class TerritoryDataService {
     });
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const activeCampaign = this.campaignService.getCachedCampaign();
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const campaignIdValid =
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         activeCampaign?.id && activeCampaign.id !== 'undefined' ? activeCampaign.id : null;
       const isInCampaignMode = campaignIdValid != null;
 
@@ -139,7 +136,6 @@ export class TerritoryDataService {
         if (isInCampaignMode && activeCampaign) {
           const completedId = `Campaña-${campaignIdValid}-${Date.now()}-completed`;
           await setDoc(doc(this.firestore, collectionName, completedId), completedCard);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           await this.incrementSalidasTx(activeCampaign.id as string, territorioKey);
         } else {
           // Usar ID auto-generado de Firebase
@@ -178,7 +174,6 @@ export class TerritoryDataService {
         if (isInCampaignMode && activeCampaign) {
           const cardId = `Campaña-${campaignIdValid}-${Date.now()}`;
           await setDoc(doc(this.firestore, collectionName, cardId), partialCard);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           await this.incrementSalidasTx(activeCampaign.id as string, territorioKey);
         } else {
           // Usar ID auto-generado de Firebase

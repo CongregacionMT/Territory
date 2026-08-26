@@ -237,7 +237,6 @@ export class CampaignPageComponent implements OnInit {
         data.departuresInfo,
         data.missingInvitations,
         data.finalComments,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-assertion
         Timestamp.fromDate(new Date((data.finalEndDate as string) + 'T23:59:59')) as any,
         (current: number, total: number) => {
           this.campaignProgress.set(current);

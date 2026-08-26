@@ -88,7 +88,6 @@ describe('PrintPdfModalComponent', () => {
       throwError(() => new Error('Test error')),
     );
 
-    // eslint-disable-next-line @typescript-eslint/await-thenable
     await component.printPdf('bn');
 
     expect(component.isPrintingPdf()).toBe(false);

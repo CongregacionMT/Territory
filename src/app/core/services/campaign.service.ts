@@ -51,33 +51,27 @@ export class CampaignService {
     const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
     if (!storedNumberTerritory) return [];
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const numberTerritory = JSON.parse(storedNumberTerritory);
     let allTerritories: TerritoryNumberData[] = [];
 
     if (environment.localities && environment.localities.length > 0) {
       environment.localities.forEach((locality) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (numberTerritory[locality.key]) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           allTerritories = [...allTerritories, ...numberTerritory[locality.key]];
         }
       });
     } else {
       // Fallback legacy
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       allTerritories = numberTerritory[environment.congregationKey] || [];
     }
 
     return allTerritories;
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async startCampaign(
     data: {
       name: string;
       description: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dateEnd: any;
       initialInvitations?: number;
     },
@@ -92,7 +86,6 @@ export class CampaignService {
     const campaignDoc = await addDoc(campaignRef, {
       name: data.name,
       description: data.description,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       dateEnd: Timestamp.fromDate(new Date(data.dateEnd)),
       dateInit: Timestamp.now(),
       active: true,
@@ -134,9 +127,7 @@ export class CampaignService {
     const campaignData = {
       id: campaignDoc.id,
       ...snap.data(),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       dateInit: snap.data()?.['dateInit'].toDate().toISOString(),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       dateEnd: snap.data()?.['dateEnd'].toDate().toISOString(),
     };
 
@@ -147,7 +138,6 @@ export class CampaignService {
   }
 
   // Método legacy para compatibilidad
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async resetTerritory(territoryNumber: number, campaignId: string) {
     const collectionName = `${environment.territoryPrefix}-${territoryNumber}`;
     return this.resetTerritoryByCollection(collectionName, campaignId);
@@ -156,7 +146,6 @@ export class CampaignService {
   /**
    * Resetea un territorio específico por su nombre de colección
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async resetTerritoryByCollection(collectionName: string, campaignId: string) {
     // Guard: evitar error de Firebase si la colección está vacía
     if (!collectionName?.trim()) {
@@ -174,7 +163,6 @@ export class CampaignService {
       snapshot.docs.map(async (docSnap) => {
         const data = docSnap.data();
         if (data && Array.isArray(data['applesData'])) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
           const resetApples = data['applesData'].map((apple: any) => ({
             ...apple,
             checked: false,
@@ -183,7 +171,6 @@ export class CampaignService {
           const newVersion = {
             ...data,
             applesData: resetApples,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             completed: data['completed'] ?? 0,
             revision: false,
             revisionComplete: false,
@@ -228,7 +215,6 @@ export class CampaignService {
     return collectionData(campaignRef, { idField: 'id' }) as Observable<Campaign[]>;
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async updateCampaignStats(campaignId: string, card: Card) {
     if (!card.applesData) return;
     const total = card.applesData.length;
@@ -287,27 +273,20 @@ export class CampaignService {
 
     // Recalcular global
     const snap = await getDoc(campaignRef);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const stats = snap.data()?.['stats'] || {};
 
     // Filtrar claves que parecen territorios (excluir 'global')
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const territorios = Object.keys(stats)
       .filter((k) => k !== 'global')
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
       .map((k) => stats[k]);
 
     let globalDone = 0;
     let globalTotal = 0;
     let completedTerritories = 0;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     territorios.forEach((t: any) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       globalDone += t.done || 0;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       globalTotal += t.total || 0;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (t.percent === 100) completedTerritories++;
     });
 
@@ -317,14 +296,10 @@ export class CampaignService {
     const today = new Date().toISOString().split('T')[0];
     const progressEntry = { date: today, percent: globalPercent };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const existingHistory = stats.global?.progressHistory || [];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const lastEntry = existingHistory[existingHistory.length - 1];
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (lastEntry?.percent !== globalPercent || lastEntry?.date !== today) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       existingHistory.push(progressEntry);
     }
 
@@ -337,14 +312,12 @@ export class CampaignService {
         completedTerritories,
         totalTerritories: territorios.length,
         avgPerTerritory: Math.round(globalPercent / territorios.length),
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         progressHistory: existingHistory,
         lastUpdate: Timestamp.now(),
       },
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getCampaignStats(campaignId: string): Promise<any> {
     const campaignRef = doc(this.firestore, 'campaigns', campaignId);
     const snap = await getDoc(campaignRef);
@@ -354,7 +327,6 @@ export class CampaignService {
     return {};
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async getCampaignById(id: string) {
     const ref = doc(this.firestore, 'campaigns', id);
     const snap = await getDoc(ref);
@@ -365,37 +337,28 @@ export class CampaignService {
     return {
       id: snap.id,
       ...data,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       dateInit: data['dateInit']?.toDate ? data['dateInit'].toDate() : data['dateInit'],
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       dateEnd: data['dateEnd']?.toDate ? data['dateEnd'].toDate() : data['dateEnd'],
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       stats: data['stats'] || {},
     };
   }
 
   // NOSONAR
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async endCampaign(
     campaignId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     finalStats: any,
     leftoverInvitations?: string,
     departuresInfo?: DeparturesInfo,
     missingInvitations?: number | null,
     finalComments?: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     manualEndDate?: any,
     onProgress?: (current: number, total: number) => void,
   ) {
     const campaignDocRef = doc(this.firestore, 'campaigns', campaignId);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {
       active: false,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       dateEnd: manualEndDate || Timestamp.now(),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       stats: finalStats,
       ...(leftoverInvitations && { leftoverInvitations }),
       ...(missingInvitations !== undefined &&
@@ -421,29 +384,20 @@ export class CampaignService {
       const storedInLocal = localStorage.getItem('numberTerritory');
       if (storedInLocal) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const numberTerritory = JSON.parse(storedInLocal);
           if (environment.localities?.length > 0) {
             environment.localities.forEach((loc) => {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               if (numberTerritory[loc.key]) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 const cols = (numberTerritory[loc.key] as TerritoryNumberData[])
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
                   .map((t: any) => t.collection)
                   .filter((c: string) => !!c?.trim());
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 collectionsToReset.push(...cols);
               }
             });
           } else {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             const fallback = numberTerritory[environment.congregationKey] || [];
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
             collectionsToReset = fallback
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
               .map((t: any) => t.collection)
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               .filter((c: string) => !!c?.trim());
           }
         } catch {
@@ -497,27 +451,22 @@ export class CampaignService {
     localStorage.removeItem('activeCampaign');
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   getCachedCampaign() {
     const raw = localStorage.getItem('activeCampaign');
     if (!raw) return null;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const parsed = JSON.parse(raw);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
       return parsed?.id ? parsed : null;
     } catch {
       return null;
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async resetTerritoryAfterCampaign(territoryNumber: number) {
     const collectionName = `${environment.territoryPrefix}-${territoryNumber}`;
     return this.resetTerritoryAfterCampaignByCollection(collectionName);
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async resetTerritoryAfterCampaignByCollection(collectionName: string, batch?: WriteBatch) {
     // Guard: evitar error de Firebase si la colección está vacía
     if (!collectionName?.trim()) {
@@ -586,7 +535,6 @@ export class CampaignService {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async cleanupCampaignData(campaignId: string) {
     const allTerritories = this.getAllTerritoriesFromAllLocalities();
     let collectionsToCheck: string[] = [];
@@ -600,18 +548,13 @@ export class CampaignService {
       const storedInLocal = localStorage.getItem('numberTerritory');
       if (storedInLocal) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const numberTerritory = JSON.parse(storedInLocal);
           if (environment.localities?.length > 0) {
             environment.localities.forEach((loc) => {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               if (numberTerritory[loc.key]) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 const cols = (numberTerritory[loc.key] as TerritoryNumberData[])
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
                   .map((t: any) => t.collection)
                   .filter((c: string) => !!c?.trim());
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 collectionsToCheck.push(...cols);
               }
             });
@@ -647,9 +590,7 @@ export class CampaignService {
           .filter((d) => d.id.startsWith(`Campaña-${campaignId}`)) // 👈 match exacto
           .filter((d) => {
             const data = d.data();
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const apples = data['applesData'] || [];
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             const hasActivity = apples.some((a: any) => a.checked === true);
             // Omitir el borrado si la tarjeta tiene actividad (fue completada)
             return !hasActivity;

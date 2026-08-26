@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { CampaignService } from './campaign.service';
 import { Firestore, collection, getDocs, query, doc, getDoc } from '@angular/fire/firestore';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { environment } from '@environments/environment';
 

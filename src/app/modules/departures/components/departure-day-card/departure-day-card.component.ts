@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormArray } from '@angular/forms';
