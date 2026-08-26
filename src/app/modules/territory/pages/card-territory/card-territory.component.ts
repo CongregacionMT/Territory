@@ -222,6 +222,12 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     });
   }
 
+  onAppleToggle(apple: CardApplesData, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    apple.checked = input.checked;
+    this.onCheckboxChange({ target: { value: apple.name, checked: input.checked } });
+  }
+
   get driver(): AbstractControl | null {
     return this.formCard().get('driver');
   }

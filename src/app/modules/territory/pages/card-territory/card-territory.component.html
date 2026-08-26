@@ -81,12 +81,12 @@
             </p>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
               @for (apple of card().applesData; track $index) {
-                <div
+                <label
+                  [for]="'apple-' + $index"
                   class="cursor-pointer flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all duration-150 select-none"
                   [ngClass]="apple.checked
                     ? 'bg-emerald-600/20 border-emerald-500 hover:bg-emerald-600/30'
                     : 'bg-slate-900 border-slate-700 hover:bg-slate-800'"
-                  (click)="apple.checked = !apple.checked; onCheckboxChange({ target: { value: apple.name, checked: apple.checked } })"
                 >
                   <input
                     class="sr-only"
@@ -94,6 +94,7 @@
                     [id]="'apple-' + $index"
                     [value]="apple.name"
                     [checked]="apple.checked"
+                    (change)="onAppleToggle(apple, $event)"
                   />
                   <div
                     class="w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors"
@@ -111,7 +112,7 @@
                   >
                     {{ apple.name }}
                   </span>
-                </div>
+                </label>
               }
             </div>
           </div>
