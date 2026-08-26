@@ -1,6 +1,5 @@
 import {
   Component,
-  OnInit,
   OnDestroy,
   input,
   signal,
@@ -13,32 +12,35 @@ import {
 import * as toGeoJSON from '@tmcw/togeojson';
 import * as L from 'leaflet';
 
+interface KmlFeatureProperties {
+  stroke?: string;
+  fill?: string;
+  'marker-color'?: string;
+  name?: string;
+}
+
 @Component({
   selector: 'app-offline-map-viewer',
   standalone: true,
   imports: [],
   templateUrl: './offline-map-viewer.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './offline-map-viewer.component.scss',
 })
-export class OfflineMapViewerComponent implements OnInit, OnDestroy, AfterViewInit {
+export class OfflineMapViewerComponent implements AfterViewInit, OnDestroy {
   kmlUrl = input.required<string>();
 
   loading = signal(true);
   error = signal<string | null>(null);
 
-  mapContainer = viewChild.required<ElementRef>('mapContainer');
+  mapContainer = viewChild.required<ElementRef<HTMLDivElement>>('mapContainer');
   private map: L.Map | null = null;
   private watchId: number | null = null;
   private userMarker: L.CircleMarker | null = null;
 
-  ngOnInit(): void {
-    // We will load the map in AfterViewInit
-  }
-
   ngAfterViewInit(): void {
     this.initMap();
-    this.loadKml();
+    void this.loadKml();
   }
 
   ngOnDestroy(): void {
@@ -50,7 +52,7 @@ export class OfflineMapViewerComponent implements OnInit, OnDestroy, AfterViewIn
     }
   }
 
-  private initMap() {
+  private initMap(): void {
     this.map = L.map(this.mapContainer().nativeElement, {
       zoomControl: true,
       attributionControl: false,
@@ -62,7 +64,7 @@ export class OfflineMapViewerComponent implements OnInit, OnDestroy, AfterViewIn
     }).addTo(this.map);
   }
 
-  async loadKml() {
+  async loadKml(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -84,17 +86,19 @@ export class OfflineMapViewerComponent implements OnInit, OnDestroy, AfterViewIn
         // Create GeoJSON layer
         const geoJsonLayer = L.geoJSON(geoJson, {
           style: (feature) => {
+            const props = feature?.properties as KmlFeatureProperties | undefined;
             return {
-              color: feature?.properties?.stroke || '#1976d2',
-              fillColor: feature?.properties?.fill || '#2196f3',
+              color: props?.stroke || '#1976d2',
+              fillColor: props?.fill || '#2196f3',
               fillOpacity: 0.4,
               weight: 2,
             };
           },
           pointToLayer: (feature, latlng) => {
+            const props = feature.properties as KmlFeatureProperties | undefined;
             return L.circleMarker(latlng, {
               radius: 6,
-              fillColor: feature?.properties?.['marker-color'] || '#ea4335',
+              fillColor: props?.['marker-color'] || '#ea4335',
               color: '#fff',
               weight: 1,
               opacity: 1,
@@ -102,9 +106,10 @@ export class OfflineMapViewerComponent implements OnInit, OnDestroy, AfterViewIn
             });
           },
           onEachFeature: (feature, layer) => {
-            if (feature.properties && feature.properties.name) {
+            const props = feature.properties as KmlFeatureProperties | undefined;
+            if (props?.name) {
               const isPoint = feature.geometry.type === 'Point';
-              layer.bindTooltip(feature.properties.name, {
+              layer.bindTooltip(props.name, {
                 permanent: isPoint,
                 direction: isPoint ? 'top' : 'center',
                 className: 'custom-map-tooltip',
@@ -122,15 +127,17 @@ export class OfflineMapViewerComponent implements OnInit, OnDestroy, AfterViewIn
 
       this.loading.set(false);
       this.startTracking();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[OfflineMapViewer] Error cargando KML:', err);
-      this.error.set(err.message || 'Error al cargar mapa offline');
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar mapa offline';
+      this.error.set(errorMessage);
       this.loading.set(false);
     }
   }
 
-  startTracking() {
+  startTracking(): void {
     if (navigator.geolocation && this.map) {
+      const activeMap = this.map;
       this.watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
@@ -143,7 +150,7 @@ export class OfflineMapViewerComponent implements OnInit, OnDestroy, AfterViewIn
               weight: 2,
               opacity: 1,
               fillOpacity: 1,
-            }).addTo(this.map!);
+            }).addTo(activeMap);
           } else {
             this.userMarker.setLatLng(latlng);
           }

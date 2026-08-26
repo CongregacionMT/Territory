@@ -10,7 +10,6 @@ import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DataRural } from '@core/models/DataRural';
 import { TerritoryDataService } from '../../../../core/services/territory-data.service';
-import { FormBuilder } from '@angular/forms';
 import { SpinnerService } from '@core/services/spinner.service';
 import { ModalFormRuralComponent } from '@modules/territory/components/modal-form-rural/modal-form-rural.component';
 import { ModeModal } from '@core/models/ModeModal';
@@ -21,6 +20,7 @@ import localeEs from '@angular/common/locales/es';
 import { mapConfig } from '@core/config/maps.config';
 import { NetworkService } from '@core/services/network.service';
 import { OfflineMapViewerComponent } from '../../components/offline-map-viewer/offline-map-viewer.component';
+import { AuthService } from '@core/services/auth.service';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -29,21 +29,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './mapas.component.html',
   styleUrls: ['./mapas.component.scss'],
   providers: [{ provide: LOCALE_ID, useValue: 'es' }],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [OfflineMapViewerComponent],
 })
 export class MapasComponent implements OnInit {
   private activatedRoute = inject(ActivatedRoute);
   private domSanitizer = inject(DomSanitizer);
-  private territoriyDataService = inject(TerritoryDataService);
-  private fb = inject(FormBuilder);
-  private territorieDataService = inject(TerritoryDataService);
+  private territoryDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
-  public networkService = inject(NetworkService);
   private dialogService = inject(DialogService);
   private destroyRef = inject(DestroyRef);
-
-  isAdmin: boolean = false;
+  public networkService = inject(NetworkService);
+  public authService = inject(AuthService);
   mapa: SafeHtml | undefined;
   kmlUrl: string | undefined;
 
@@ -77,7 +74,7 @@ export class MapasComponent implements OnInit {
 
     if (path === 'rural') {
       this.spinner.cargarSpinner();
-      this.territoriyDataService
+      this.territoryDataService
         .getTerritorieRural()
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
@@ -87,11 +84,10 @@ export class MapasComponent implements OnInit {
             this.spinner.cerrarSpinner();
           },
         });
-      this.isAdmin = localStorage.getItem('tokenAdmin') ? true : false;
     }
   }
 
-  openModal(mode: ModeModal, form?: DataRural) {
+  openModal(mode: ModeModal, form?: DataRural): void {
     const modalFormRuralComponent = this.modalFormRuralComponent();
     if (modalFormRuralComponent) {
       if (mode === 'creation') {
@@ -102,7 +98,7 @@ export class MapasComponent implements OnInit {
     }
   }
 
-  deleteRoad(roadId: string | undefined) {
+  deleteRoad(roadId: string | undefined): void {
     if (roadId) {
       this.dialogService
         .openDialog(
@@ -111,7 +107,7 @@ export class MapasComponent implements OnInit {
         )
         .subscribe((confirmed) => {
           if (confirmed) {
-            this.territorieDataService.deleteRoad(roadId);
+            void this.territoryDataService.deleteRoad(roadId);
           }
         });
     }

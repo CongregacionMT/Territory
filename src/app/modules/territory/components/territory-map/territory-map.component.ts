@@ -11,7 +11,6 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 
-import { environment } from '@environments/environment';
 import { TerritoryMapService } from '../../services/territory-map.service';
 import { mapConfig } from '@core/config/maps.config';
 import { TerritoryMapConfig } from '@core/config/maps.types';
@@ -43,20 +42,25 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   isFullscreen = signal(false);
   error = signal<string | null>(null);
 
+  private headingSyncId: ReturnType<typeof setInterval> | null = null;
+  private readonly fullscreenHandler = (): void =>
+    this.isFullscreen.set(!!document.fullscreenElement);
+
   currentMapConfig = computed(() => {
     return mapConfig?.maps?.[this.collection()];
   });
 
   ngOnInit(): void {
-    this.initMap();
-
-    document.addEventListener('fullscreenchange', () => {
-      this.isFullscreen.set(!!document.fullscreenElement);
-    });
+    void this.initMap();
+    document.addEventListener('fullscreenchange', this.fullscreenHandler);
   }
 
   ngOnDestroy(): void {
     this.mapService.destroy();
+    if (this.headingSyncId !== null) {
+      clearInterval(this.headingSyncId);
+    }
+    document.removeEventListener('fullscreenchange', this.fullscreenHandler);
   }
 
   private async initMap(): Promise<void> {
@@ -85,7 +89,7 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
         await this.mapService.loadKml(map, absoluteKmlUrl, config.markerOverrides);
         this.mapLoaded.set(true);
         this.startHeadingSync();
-        this.mapService.trackUserLocation();
+        void this.mapService.trackUserLocation();
         console.log('[TerritoryMapComponent] Google Map dinámico cargado con éxito.');
       } catch (err) {
         console.error(
@@ -144,11 +148,11 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   }
 
   private startHeadingSync(): void {
-    setInterval(() => {
+    this.headingSyncId = setInterval(() => {
       if (this.mapService.isMapLoaded() && !this.compassMode()) {
         this.heading.set(Math.round(this.mapService.getHeading()));
       }
-    }, 100);
+    }, 200);
   }
 
   async toggleCompass(): Promise<void> {
@@ -177,36 +181,36 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   }
 
   centerOnMe(): void {
-    this.mapService.centerOnUser();
+    void this.mapService.centerOnUser();
   }
 
   toggleFullscreen(): void {
     const elem = this.mapContainer().nativeElement as HTMLElement & {
-      webkitRequestFullscreen?: () => void;
-      msRequestFullscreen?: () => void;
+      webkitRequestFullscreen?: () => Promise<void>;
+      msRequestFullscreen?: () => Promise<void>;
     };
 
     const doc = document as Document & {
-      webkitExitFullscreen?: () => void;
-      msExitFullscreen?: () => void;
+      webkitExitFullscreen?: () => Promise<void>;
+      msExitFullscreen?: () => Promise<void>;
     };
 
     if (!document.fullscreenElement) {
       if (elem.requestFullscreen) {
-        elem.requestFullscreen();
+        void elem.requestFullscreen();
       } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
+        void elem.webkitRequestFullscreen();
       } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
+        void elem.msRequestFullscreen();
       }
       this.isFullscreen.set(true);
     } else {
       if (doc.exitFullscreen) {
-        doc.exitFullscreen();
+        void doc.exitFullscreen();
       } else if (doc.webkitExitFullscreen) {
-        doc.webkitExitFullscreen();
+        void doc.webkitExitFullscreen();
       } else if (doc.msExitFullscreen) {
-        doc.msExitFullscreen();
+        void doc.msExitFullscreen();
       }
       this.isFullscreen.set(false);
     }
@@ -224,6 +228,6 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
     this.mapLoaded.set(false);
     this.useFallback.set(false);
     this.useOfflineViewer.set(false);
-    this.initMap();
+    void this.initMap();
   }
 }

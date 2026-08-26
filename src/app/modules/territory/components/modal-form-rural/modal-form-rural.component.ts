@@ -1,5 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
 import { DataRural } from '@core/models/DataRural';
 import { FormRuralComponent } from '../form-rural/form-rural.component';
 
@@ -16,8 +15,6 @@ declare let window: Window &
   imports: [FormRuralComponent],
 })
 export class ModalFormRuralComponent implements OnInit {
-  private router = inject(Router);
-
   modalElement: { show: () => void; hide: () => void } | undefined;
   stateModal = signal<'open' | 'close'>('close');
   title = signal<string>('Crear camino');

@@ -1,10 +1,5 @@
 @if (showRural) {
-  <!-- <div class="flex items-center mt-2">
-    <img src="../../../../../assets/img/arrow.gif" alt="arrow" class="gif">
-    <div class="flex justify-center w-full">
-      <h3 class="text-center">Tocar el boton superior izquierdo para desplegar los caminos disponibles</h3>
-    </div>
-  </div> -->
+
   <div class="rural-construction-dark flex flex-col items-center justify-center text-center p-6">
     <img src="https://cdn-icons-png.flaticon.com/512/5973/5973800.png" alt="Página en construcción" class="main-icon mb-6">
 
@@ -36,32 +31,3 @@
     </div>
   }
 }
-<!-- <section class="flex justify-center flex-wrap">
-  @for (dataRuralItem of dataRural; track dataRuralItem; let i = $index) {
-    <div class="flex flex-col items-center bg-gray-500 bg-opacity-25 rounded m-4 px-2 py-4">
-      <h2>{{dataRuralItem.title}}</h2>
-      <ul class="text-lg">
-        <li>Distancia: {{dataRuralItem.distance}}</li>
-        <li>Vehículo: {{dataRuralItem.vehicle}}</li>
-        <li>Tiempo aproximado: {{dataRuralItem.time}}</li>
-        @if (isAdmin) {
-          <li>Completado: {{dataRuralItem.lastDate | date:'longDate':'es'}}</li>
-        }
-      </ul>
-      <div class="flex justify-around w-full">
-        @if (isAdmin) {
-          <button type="button" class="btn-info mt-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="openModal('edition', dataRuralItem)">Editar</button>
-        }
-        @if (isAdmin) {
-          <button type="button" class="bg-red-600 text-white border border-red-600 hover:bg-red-700 mt-2 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="deleteRoad(dataRuralItem.id)">Eliminar</button>
-        }
-      </div>
-    </div>
-  }
-  <app-modal-form-rural></app-modal-form-rural>
-</section>
-@if (showRural && isAdmin) {
-  <div class="flex justify-center pb-4">
-    <button class="bg-green-600 text-white border border-green-600 hover:bg-green-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer" (click)="openModal('creation')">Crear nuevo camino</button>
-  </div>
-} -->

@@ -18,9 +18,11 @@ import {
   FormControl,
   Validators,
   ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors,
 } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Subscription } from 'rxjs';
@@ -28,8 +30,8 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { NetworkService } from '@core/services/network.service';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { FocusInvalidInputDirective } from '../../../../shared/directives/focus-invalid-input.directive';
-import { ModalComponent as ModalComponent_1 } from '../../../../shared/components/modal/modal.component';
 import { CampaignService } from '@core/services/campaign.service';
+import { AuthService } from '@core/services/auth.service';
 import { environment } from '@environments/environment';
 
 import { Card, CardApplesData } from '@core/models/Card';
@@ -41,77 +43,76 @@ import { TerritoryMapComponent } from '../../components/territory-map/territory-
   selector: 'app-card-territory',
   templateUrl: './card-territory.component.html',
   styleUrls: ['./card-territory.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FocusInvalidInputDirective,
-    RouterLink,
-    ModalComponent_1,
-    TitleCasePipe,
+    ModalComponent,
     NgClass,
+    TitleCasePipe,
     TerritoryMapComponent,
+    RouterLink,
   ],
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
-  private destroyRef = inject(DestroyRef);
   private fb = inject(FormBuilder);
-  private territorieDataService = inject(TerritoryDataService);
-  private cardService = inject(CardService);
   private activatedRoute = inject(ActivatedRoute);
+  public cardService = inject(CardService);
+  private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
-  private campaignService = inject(CampaignService);
-  private router = inject(Router);
   public networkService = inject(NetworkService);
+  private campaignService = inject(CampaignService);
+  public authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
+  modalComponent = viewChild.required(ModalComponent);
+
+  path = signal<string>('');
   card = signal<Card>({
-    id: '',
-    location: environment.congregationName,
-    territoryNumber: 1,
-    driver: '',
-    start: '',
-    end: '',
-    link: '',
-    comments: '',
-    creation: '',
     applesData: [],
+    comments: '',
+    creation: Timestamp.now(),
+    driver: '',
+    end: '',
+    id: '',
+    link: '',
+    name: '',
     revision: false,
-    revisionComplete: false,
+    start: '',
   });
 
-  congregationKey = environment.congregationKey;
-  path = signal<string>('');
-  formCard = signal<FormGroup>(this.createFormCard());
+  congregationKey: string = environment.congregationKey;
+  dataLoaded = signal<boolean>(false);
+  availableDrivers = signal<User[]>([]);
+
+  isAdmin = this.authService.isAdmin;
+  isDriver = this.authService.isDriver;
+  loggedDriverName = this.authService.driverName;
+
+  countTrueApples = signal<number>(0);
+  countFalseApples = signal<number>(0);
   driverError = signal<boolean>(false);
   startError = signal<boolean>(false);
   endError = signal<boolean>(false);
-  cardSubscription = signal<Subscription>(Subscription.EMPTY);
-  countTrueApples = signal<number>(0);
-  countFalseApples = signal<number>(0);
-  dataLoaded = signal<boolean>(false);
-  availableDrivers = signal<User[]>([]);
-  isAdmin: boolean = false;
-  isDriver: boolean = false;
-  loggedDriverName: string = '';
 
-  readonly modalComponent = viewChild(ModalComponent);
+  private cardSubscription = signal<Subscription>(new Subscription());
 
-  isRevisionMode = computed(() => this.card().revision === true);
+  formCard = signal<FormGroup>(this.createFormCard());
+
   hasValidDriver = computed(() => this.formCard().get('driver')?.valid ?? false);
   hasValidStart = computed(() => this.formCard().get('start')?.valid ?? false);
   totalApples = computed(() => this.card().applesData?.length ?? 0);
   checkedApples = computed(
     () => this.card().applesData?.filter((apple: CardApplesData) => apple.checked)?.length ?? 0,
   );
+  isRevisionMode = computed(() => this.card().revision === true);
 
-  constructor() {
+  constructor() {}
+
+  ngOnInit(): void {
     this.spinner.cargarSpinner();
-    this.isAdmin = !!localStorage.getItem('tokenAdmin');
-    this.isDriver = !!localStorage.getItem('tokenConductor') && !this.isAdmin;
-    this.loggedDriverName = localStorage.getItem('nombreConductor') || '';
 
-    // VALIDAR SI ESTOY REVISANDO O NO LA CARD
     if (this.cardService.dataCard.revision === true) {
-      // CARGO LOS DATOS DESDE EL SERVICIO PARA REVISAR LA CARD
       this.card.set(this.cardService.dataCard);
 
       const form = this.formCard();
@@ -120,22 +121,20 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       form.patchValue({ end: this.card().end });
       form.patchValue({ comments: this.card().comments });
 
-      this.card().applesData?.map((apple: CardApplesData) => {
+      this.card().applesData?.forEach((apple: CardApplesData) => {
         const applesData: FormArray = form.get('applesData') as FormArray;
         applesData.push(new FormControl({ name: apple.name, checked: apple.checked }));
       });
       this.dataLoaded.set(true);
       this.spinner.cerrarSpinner();
     } else {
-      // SI NO ESTOY REVISANDO LA CARD, ENTONCES MUESTRO LA ULTIMA TARJETA.
-      this.path.set(this.activatedRoute.snapshot.params['collection']);
+      const collectionParam = String(this.activatedRoute.snapshot.params['collection'] || '');
+      this.path.set(collectionParam);
       const subscription = this.territorieDataService
         .getCardTerritorie(this.path())
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (cards) => {
-            // Buscar la primera card completa (con applesData).
-            // Si no hay ninguna completa, usar la primera y normalizar.
             const validCard = cards?.find((c: Card) => Array.isArray(c.applesData)) ?? cards?.[0];
 
             if (!validCard) {
@@ -145,7 +144,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
               return;
             }
 
-            // Normalizar campos faltantes
             if (!validCard.applesData) {
               validCard.applesData = [];
             }
@@ -153,13 +151,12 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
             this.card.set(validCard);
             this.countTrueApples.set(0);
 
-            // Limpia el FormArray antes de llenarlo
             const form = this.formCard();
             form.patchValue({ comments: this.card().comments });
             const applesData: FormArray = form.get('applesData') as FormArray;
             applesData.clear();
 
-            this.card().applesData?.map((apple: CardApplesData) => {
+            this.card().applesData?.forEach((apple: CardApplesData) => {
               applesData.push(new FormControl({ name: apple.name, checked: apple.checked }));
               if (apple.checked === true) {
                 this.countTrueApples.update((count) => count + 1);
@@ -183,8 +180,6 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
         });
       this.cardSubscription.set(subscription);
 
-      // Si estamos offline y firebase se queda colgado buscando en la red sin caché,
-      // forzamos el cierre del spinner después de un breve delay para que se vea el mapa.
       if (!this.networkService.isOnline()) {
         setTimeout(() => {
           if (!this.dataLoaded()) {
@@ -194,21 +189,25 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
         }, 1500);
       }
     }
+
+    this.loadDriversOptions();
   }
 
   private createFormCard(): FormGroup {
     const cardData = this.card();
     return this.fb.group({
-      driver: [cardData.driver, Validators.required],
+      driver: [
+        cardData.driver,
+        [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
+      ],
       applesData: this.fb.array([]),
-      start: [cardData.start, Validators.required],
+      start: [
+        cardData.start,
+        [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
+      ],
       end: [cardData.end],
       comments: [cardData.comments],
     });
-  }
-
-  ngOnInit(): void {
-    this.loadDriversOptions();
   }
 
   onCheckboxChange(e: { target: { value: string | undefined; checked: boolean } }): void {
@@ -216,18 +215,18 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const form = this.formCard();
     const applesData: FormArray = form.get('applesData') as FormArray;
     applesData.controls.forEach((item) => {
-      if (item.value.name === target.value) {
-        item.patchValue({ ...item.value, checked: target.checked });
+      const itemVal = item.value as CardApplesData;
+      if (itemVal.name === target.value) {
+        item.patchValue({ ...itemVal, checked: target.checked });
       }
     });
   }
 
-  // Gets creados para poder validar los datos ingresados
-  get driver() {
+  get driver(): AbstractControl | null {
     return this.formCard().get('driver');
   }
 
-  get start() {
+  get start(): AbstractControl | null {
     return this.formCard().get('start');
   }
 
@@ -239,11 +238,11 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   }
 
   verifyUniqueCheck(arr: CardApplesData[]): CardApplesData[] {
-    const checkbox = new Set();
-    const result = [];
+    const checkbox = new Set<string>();
+    const result: CardApplesData[] = [];
 
     for (const objet of arr) {
-      if (!checkbox.has(objet.name)) {
+      if (objet.name && !checkbox.has(objet.name)) {
         checkbox.add(objet.name);
         result.push(objet);
       }
@@ -254,37 +253,38 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
   fillCard(): void {
     const form = this.formCard();
-    const uniqueCheck = this.verifyUniqueCheck(form.value.applesData);
+    const rawApples = (form.value as { applesData?: CardApplesData[] }).applesData || [];
+    const uniqueCheck = this.verifyUniqueCheck(rawApples);
 
-    // Rellenar card con los datos ingresados
     const currentCard = this.card();
-    const updatedCard = {
+    const formVal = form.value as Partial<Card>;
+    const updatedCard: Card = {
       ...currentCard,
-      driver: form.value.driver,
-      start: form.value.start,
-      end: form.value.end,
-      comments: form.value.comments,
+      driver: formVal.driver ?? '',
+      start: formVal.start ?? '',
+      end: formVal.end ?? '',
+      comments: formVal.comments ?? '',
       applesData: uniqueCheck,
     };
 
     this.card.set(updatedCard);
   }
 
-  async submitForm() {
+  async submitForm(): Promise<void> {
     const form = this.formCard();
 
-    // Validar formulario
     if (form.controls?.['driver'].invalid) {
-      this.driverError.set(form.controls?.['driver'].invalid);
+      this.driverError.set(true);
       return;
     }
     if (form.controls?.['start'].invalid) {
-      this.startError.set(form.controls?.['start'].invalid);
+      this.startError.set(true);
       return;
     }
     if (form.controls?.['end'].value === '') {
       this.countFalseApples.set(0);
-      form.value.applesData?.map((apple: CardApplesData) => {
+      const apples = (form.value as { applesData?: CardApplesData[] }).applesData || [];
+      apples.forEach((apple: CardApplesData) => {
         if (apple.checked === false) {
           this.countFalseApples.update((count) => count + 1);
         }
@@ -311,16 +311,22 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
           console.log('todo bien');
         });
       await this.territorieDataService.putCardTerritorie(currentCard);
-      // Validar campaña desde cache
-      const activeCampaign = this.campaignService.getCachedCampaign();
-      if (activeCampaign) {
-        this.campaignService.updateCampaignStats(activeCampaign.id, currentCard);
+      const rawCampaign: unknown = this.campaignService.getCachedCampaign();
+      if (
+        rawCampaign &&
+        typeof rawCampaign === 'object' &&
+        'id' in rawCampaign &&
+        typeof (rawCampaign as { id: string }).id === 'string'
+      ) {
+        await this.campaignService.updateCampaignStats(
+          (rawCampaign as { id: string }).id,
+          currentCard,
+        );
       }
     } else {
       const updatedCard = {
         ...currentCard,
         creation: Timestamp.now(),
-        isInitial: false,
       };
       this.card.set(updatedCard);
 
@@ -332,7 +338,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   }
 
   isConductorMode(): boolean {
-    return this.isDriver && !this.isAdmin;
+    return this.isDriver() && !this.isAdmin();
   }
 
   private loadDriversOptions(): void {
@@ -358,7 +364,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const currentDriver = String(form.get('driver')?.value || '').trim();
     if (currentDriver) return;
 
-    const ownName = this.loggedDriverName.trim();
+    const ownName = this.loggedDriverName()?.trim() ?? '';
     if (!ownName) return;
 
     const ownUserExists = this.availableDrivers().some(

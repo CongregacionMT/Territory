@@ -17,7 +17,7 @@ import { ModalComponent as ModalComponent_1 } from '../../../../shared/component
 @Component({
   selector: 'app-territory-map',
   template: '',
-  standalone: true
+  standalone: true,
 })
 class MockTerritoryMapComponent {
   @Input() path: any;
@@ -28,7 +28,7 @@ class MockTerritoryMapComponent {
 @Component({
   selector: 'app-modal',
   template: '',
-  standalone: true
+  standalone: true,
 })
 class MockModalComponent {
   @Input() idModal: any;
@@ -50,36 +50,36 @@ describe('CardTerritoryComponent', () => {
 
   beforeEach(async () => {
     mockTerritoryDataService = {
-      getCardTerritorie: vi.fn().mockReturnValue(of([
-        { applesData: [{ name: 'A1', checked: true }] }
-      ])),
+      getCardTerritorie: vi
+        .fn()
+        .mockReturnValue(of([{ applesData: [{ name: 'A1', checked: true }] }])),
       postCardTerritorie: vi.fn().mockResolvedValue(true),
       putCardTerritorie: vi.fn().mockResolvedValue(true),
       sendRevisionCardTerritorie: vi.fn().mockResolvedValue(true),
-      getUsers: vi.fn().mockReturnValue(of([]))
+      getUsers: vi.fn().mockReturnValue(of([])),
     };
 
     mockCardService = {
       dataCard: { revision: false },
-      rollbackCard: vi.fn()
+      rollbackCard: vi.fn(),
     };
 
     mockSpinnerService = {
       cargarSpinner: vi.fn(),
-      cerrarSpinner: vi.fn()
+      cerrarSpinner: vi.fn(),
     };
 
     mockCampaignService = {
       getCachedCampaign: vi.fn().mockReturnValue(null),
-      updateCampaignStats: vi.fn()
+      updateCampaignStats: vi.fn(),
     };
 
     mockNetworkService = {
-      isOnline: vi.fn().mockReturnValue(true)
+      isOnline: vi.fn().mockReturnValue(true),
     };
 
     mockActivatedRoute = {
-      snapshot: { params: { collection: 'test-coll' } }
+      snapshot: { params: { collection: 'test-coll' } },
     };
 
     await TestBed.configureTestingModule({
@@ -90,14 +90,14 @@ describe('CardTerritoryComponent', () => {
         { provide: SpinnerService, useValue: mockSpinnerService },
         { provide: CampaignService, useValue: mockCampaignService },
         { provide: NetworkService, useValue: mockNetworkService },
-        { provide: ActivatedRoute, useValue: mockActivatedRoute }
-      ]
+        { provide: ActivatedRoute, useValue: mockActivatedRoute },
+      ],
     })
-    .overrideComponent(CardTerritoryComponent, {
-      remove: { imports: [TerritoryMapComponent, ModalComponent_1] },
-      add: { imports: [MockTerritoryMapComponent, MockModalComponent] }
-    })
-    .compileComponents();
+      .overrideComponent(CardTerritoryComponent, {
+        remove: { imports: [TerritoryMapComponent, ModalComponent_1] },
+        add: { imports: [MockTerritoryMapComponent, MockModalComponent] },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {
@@ -113,7 +113,7 @@ describe('CardTerritoryComponent', () => {
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     expect(component).toBeTruthy();
     expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(mockTerritoryDataService.getCardTerritorie).toHaveBeenCalledWith('test-coll');
@@ -128,31 +128,31 @@ describe('CardTerritoryComponent', () => {
       start: '2023-01-01',
       end: '2023-01-02',
       comments: 'Test',
-      applesData: [{ name: 'A1', checked: false }]
+      applesData: [{ name: 'A1', checked: false }],
     };
-    
+
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     expect(component.card().driver).toBe('Test Driver');
     expect(component.isRevisionMode()).toBe(true);
     expect(component.formCard().get('driver')?.value).toBe('Test Driver');
   });
 
-  it('should handle offline mode by forcing spinner to close', async () => {
+  it('should handle offline mode by forcing spinner to close', () => {
     vi.useFakeTimers();
     mockNetworkService.isOnline.mockReturnValue(false);
     mockTerritoryDataService.getCardTerritorie.mockReturnValue(of()); // Doesn't emit anything
-    
+
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
-    expect(component.dataLoaded()).toBe(false); 
-    
+
+    expect(component.dataLoaded()).toBe(false);
+
     vi.advanceTimersByTime(1500); // Trigger setTimeout
-    
+
     expect(component.dataLoaded()).toBe(true);
     vi.useRealTimers();
   });
@@ -161,12 +161,12 @@ describe('CardTerritoryComponent', () => {
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     // Clear required driver field
     component.formCard().patchValue({ driver: '' });
-    
+
     await component.submitForm();
-    
+
     expect(component.driverError()).toBe(true);
     expect(mockTerritoryDataService.sendRevisionCardTerritorie).not.toHaveBeenCalled();
   });
@@ -175,10 +175,10 @@ describe('CardTerritoryComponent', () => {
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     const event = { target: { value: 'A1', checked: false } };
     component.onCheckboxChange(event);
-    
+
     const applesDataArray = component.formCard().get('applesData')?.value;
     expect(applesDataArray[0].checked).toBe(false);
   });
@@ -186,12 +186,12 @@ describe('CardTerritoryComponent', () => {
   it('should verify unique check', () => {
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
-    
+
     const duplicateApples = [
       { name: 'A1', checked: true },
-      { name: 'A1', checked: false }
+      { name: 'A1', checked: false },
     ];
-    
+
     const result = component.verifyUniqueCheck(duplicateApples);
     expect(result.length).toBe(1);
     expect(result[0].checked).toBe(true);
@@ -201,15 +201,15 @@ describe('CardTerritoryComponent', () => {
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     // Fill valid form
     component.formCard().patchValue({ driver: 'Test', start: '2023-01-01', end: '2023-01-02' });
-    
+
     // Mock modalComponent to avoid error if viewChild is not resolved in test
     vi.spyOn(component, 'openModal').mockImplementation(() => {});
-    
+
     await component.submitForm();
-    
+
     expect(mockTerritoryDataService.sendRevisionCardTerritorie).toHaveBeenCalled();
   });
 
@@ -220,15 +220,15 @@ describe('CardTerritoryComponent', () => {
       start: '2023-01-01',
       end: '2023-01-02',
       comments: 'Test',
-      applesData: [{ name: 'A1', checked: false }]
+      applesData: [{ name: 'A1', checked: false }],
     };
-    
+
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     await component.submitForm();
-    
+
     expect(mockTerritoryDataService.postCardTerritorie).toHaveBeenCalled();
     expect(mockTerritoryDataService.putCardTerritorie).toHaveBeenCalled();
   });

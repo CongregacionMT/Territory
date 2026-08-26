@@ -14,6 +14,21 @@ describe('TerritoryCardComponent', () => {
 
     fixture = TestBed.createComponent(TerritoryCardComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('card', {
+      driver: 'Test',
+      start: '2023-01-01',
+      end: '2023-01-02',
+      applesData: [],
+      comments: '',
+      id: '1',
+      isInitial: false,
+      link: '',
+      modeModal: '',
+      name: '1',
+      number: '1',
+      revision: false,
+      creation: { seconds: 123456, nanoseconds: 0 } as any,
+    });
     fixture.detectChanges();
   });
 

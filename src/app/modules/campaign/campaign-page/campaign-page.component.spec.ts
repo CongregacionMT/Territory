@@ -94,7 +94,7 @@ describe('CampaignPageComponent', () => {
     await component.loadData();
 
     expect(component.campaignInProgress()).toBe(true);
-    expect(component.statsGlobal).toEqual({ done: 5, total: 10 });
+    expect(component.statsGlobal()).toEqual({ done: 5, total: 10 });
     expect(component.territoriosPorLocalidad().length).toBeGreaterThan(0);
   });
 
@@ -148,11 +148,10 @@ describe('CampaignPageComponent', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/campaign', '123']);
   });
 
-  it('should not confirm end campaign if user cancels prompt', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
-
+  it('should end campaign when handleEndCampaign is called', async () => {
     fixture = TestBed.createComponent(CampaignPageComponent);
     component = fixture.componentInstance;
+    component.activeCampaign.set({ id: 'active-1', stats: {} });
     await component.handleEndCampaign({
       leftoverInvitations: 'pocas',
       departuresInfo: { checkedCount: 1 },

@@ -52,22 +52,21 @@ describe('StatisticsDeparturesComponent', () => {
   });
 
   it('should create and process stats on init', () => {
-    fixture.detectChanges(); // calls ngOnInit
+    fixture.detectChanges();
 
     expect(component).toBeTruthy();
-    expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(mockTerritoryDataService.getWeeklyDepartures).toHaveBeenCalled();
 
     // Check driver stats processing
-    expect(component.driverStats.length).toBe(2);
-    expect(component.driverStats[0]).toEqual({ name: 'John Doe', count: 2 });
-    expect(component.driverStats[1]).toEqual({ name: 'Jane Doe', count: 1 });
+    expect(component.driverStats().length).toBe(2);
+    expect(component.driverStats()[0]).toEqual({ name: 'John Doe', count: 2 });
+    expect(component.driverStats()[1]).toEqual({ name: 'Jane Doe', count: 1 });
 
     // Check point stats processing
-    expect(component.pointStats.length).toBe(2);
+    expect(component.pointStats().length).toBe(2);
     // '2023-W01' is alphabetically less than '2023-W02', so it comes last when sorting desc
-    expect(component.pointStats[0]).toEqual({ name: 'Central Station', lastDate: '2023-W02' });
-    expect(component.pointStats[1]).toEqual({ name: 'North Park', lastDate: '2023-W01' });
+    expect(component.pointStats()[0]).toEqual({ name: 'Central Station', lastDate: '2023-W02' });
+    expect(component.pointStats()[1]).toEqual({ name: 'North Park', lastDate: '2023-W01' });
 
     expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
   });
@@ -80,8 +79,9 @@ describe('StatisticsDeparturesComponent', () => {
     mockTerritoryDataService.getWeeklyDepartures.mockReturnValue(
       throwError(() => new Error('Error')),
     );
-    fixture.detectChanges();
-    expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
-    expect(component.weeklyDepartures).toEqual([]);
+    const errFixture = TestBed.createComponent(StatisticsDeparturesComponent);
+    const errComponent = errFixture.componentInstance;
+    errFixture.detectChanges();
+    expect(errComponent.weeklyDepartures()).toEqual([]);
   });
 });

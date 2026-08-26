@@ -12,7 +12,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-offline-map-viewer',
   template: '',
-  standalone: true
+  standalone: true,
 })
 class MockOfflineMapViewerComponent {
   @Input() kmlUrl: any;
@@ -23,20 +23,20 @@ class MockOfflineMapViewerComponent {
 @Component({
   selector: 'app-modal-form-rural',
   template: '',
-  standalone: true
+  standalone: true,
 })
 class MockModalFormRuralComponent {
-  openModalCreation() {}
-  openModalEdition(form: any) {}
+  openModalCreation(): void {}
+  openModalEdition(): void {}
 }
 
 vi.mock('@core/config/maps.config', () => ({
   mapConfig: {
     maps: {
       'test-map': { kmlUrl: 'http://test.com/map.kml', iframeHtml: '<iframe src="test"></iframe>' },
-      'rural': { kmlUrl: 'http://test.com/rural.kml' }
-    }
-  }
+      rural: { kmlUrl: 'http://test.com/rural.kml' },
+    },
+  },
 }));
 
 describe('MapasComponent', () => {
@@ -51,24 +51,24 @@ describe('MapasComponent', () => {
   beforeEach(async () => {
     mockTerritoryDataService = {
       getTerritorieRural: vi.fn().mockReturnValue(of([{ id: '1', road: 'Route 1' }])),
-      deleteRoad: vi.fn().mockResolvedValue(true)
+      deleteRoad: vi.fn().mockResolvedValue(true),
     };
 
     mockSpinnerService = {
       cargarSpinner: vi.fn(),
-      cerrarSpinner: vi.fn()
+      cerrarSpinner: vi.fn(),
     };
 
     mockNetworkService = {
-      isOnline: vi.fn().mockReturnValue(true)
+      isOnline: vi.fn().mockReturnValue(true),
     };
 
     mockDialogService = {
-      openDialog: vi.fn().mockReturnValue(of(true))
+      openDialog: vi.fn().mockReturnValue(of(true)),
     };
 
     mockActivatedRoute = {
-      snapshot: { url: [{ path: 'test-map' }] }
+      snapshot: { url: [{ path: 'test-map' }] },
     };
 
     await TestBed.configureTestingModule({
@@ -78,14 +78,14 @@ describe('MapasComponent', () => {
         { provide: SpinnerService, useValue: mockSpinnerService },
         { provide: NetworkService, useValue: mockNetworkService },
         { provide: DialogService, useValue: mockDialogService },
-        { provide: ActivatedRoute, useValue: mockActivatedRoute }
-      ]
+        { provide: ActivatedRoute, useValue: mockActivatedRoute },
+      ],
     })
-    .overrideComponent(MapasComponent, {
-      remove: { imports: [] },
-      add: { imports: [MockOfflineMapViewerComponent, MockModalFormRuralComponent] }
-    })
-    .compileComponents();
+      .overrideComponent(MapasComponent, {
+        remove: { imports: [] },
+        add: { imports: [MockOfflineMapViewerComponent, MockModalFormRuralComponent] },
+      })
+      .compileComponents();
   });
 
   afterEach(() => {
@@ -96,7 +96,7 @@ describe('MapasComponent', () => {
     fixture = TestBed.createComponent(MapasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     expect(component).toBeTruthy();
     expect(component.kmlUrl).toBe('http://test.com/map.kml');
     expect(component.mapa).toBeDefined();
@@ -106,18 +106,18 @@ describe('MapasComponent', () => {
   it('should load rural data if path is rural', () => {
     mockActivatedRoute.snapshot.url[0].path = 'rural';
     localStorage.setItem('tokenAdmin', 'true');
-    
+
     fixture = TestBed.createComponent(MapasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(mockTerritoryDataService.getTerritorieRural).toHaveBeenCalled();
     expect(component.dataRural.length).toBe(1);
     expect(component.showRural).toBe(true);
-    expect(component.isAdmin).toBe(true);
+    expect(component.authService.isAdmin()).toBe(true);
     expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
-    
+
     localStorage.removeItem('tokenAdmin');
   });
 
@@ -125,9 +125,9 @@ describe('MapasComponent', () => {
     fixture = TestBed.createComponent(MapasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     component.deleteRoad('road-123');
-    
+
     expect(mockDialogService.openDialog).toHaveBeenCalled();
     expect(mockTerritoryDataService.deleteRoad).toHaveBeenCalledWith('road-123');
   });
@@ -137,9 +137,9 @@ describe('MapasComponent', () => {
     fixture = TestBed.createComponent(MapasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     component.deleteRoad('road-123');
-    
+
     expect(mockTerritoryDataService.deleteRoad).not.toHaveBeenCalled();
   });
 
@@ -147,9 +147,9 @@ describe('MapasComponent', () => {
     fixture = TestBed.createComponent(MapasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     component.deleteRoad(undefined);
-    
+
     expect(mockDialogService.openDialog).not.toHaveBeenCalled();
   });
 
@@ -157,13 +157,13 @@ describe('MapasComponent', () => {
     fixture = TestBed.createComponent(MapasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     // Mock viewChild
     const mockModal = { openModalCreation: vi.fn(), openModalEdition: vi.fn() } as any;
     vi.spyOn(component as any, 'modalFormRuralComponent').mockReturnValue(mockModal);
-    
+
     component.openModal('creation');
-    
+
     expect(mockModal.openModalCreation).toHaveBeenCalled();
   });
 
@@ -171,13 +171,13 @@ describe('MapasComponent', () => {
     fixture = TestBed.createComponent(MapasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     const mockModal = { openModalCreation: vi.fn(), openModalEdition: vi.fn() } as any;
     vi.spyOn(component as any, 'modalFormRuralComponent').mockReturnValue(mockModal);
-    
+
     const formData = { id: '1', road: 'Route 1' } as any;
     component.openModal('edition', formData);
-    
+
     expect(mockModal.openModalEdition).toHaveBeenCalledWith(formData);
   });
 });

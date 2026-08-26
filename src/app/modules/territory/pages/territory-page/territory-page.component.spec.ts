@@ -13,7 +13,7 @@ import { CardSComponent } from '../../../../shared/components/card-s/card-s.comp
 @Component({
   selector: 'app-card-xl',
   template: '',
-  standalone: true
+  standalone: true,
 })
 class MockCardXlComponent {
   @Input() mapSRC: any;
@@ -24,7 +24,7 @@ class MockCardXlComponent {
 @Component({
   selector: 'app-card-s',
   template: '',
-  standalone: true
+  standalone: true,
 })
 class MockCardSComponent {
   @Input() territoryNumber: any;
@@ -41,12 +41,14 @@ describe('TerritoryPageComponent', () => {
 
   beforeEach(async () => {
     mockTerritoryDataService = {
-      getMaps: vi.fn().mockReturnValue(of([{ maps: [{ mapSRC: 'src', mapName: 'name', link: 'link' }] }]))
+      getMaps: vi
+        .fn()
+        .mockReturnValue(of([{ maps: [{ mapSRC: 'src', mapName: 'name', link: 'link' }] }])),
     };
 
     mockSpinnerService = {
       cargarSpinner: vi.fn(),
-      cerrarSpinner: vi.fn()
+      cerrarSpinner: vi.fn(),
     };
 
     mockCardService = {};
@@ -56,14 +58,14 @@ describe('TerritoryPageComponent', () => {
       providers: [
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: SpinnerService, useValue: mockSpinnerService },
-        { provide: CardService, useValue: mockCardService }
-      ]
+        { provide: CardService, useValue: mockCardService },
+      ],
     })
-    .overrideComponent(TerritoryPageComponent, {
-      remove: { imports: [CardXlComponent, CardSComponent] },
-      add: { imports: [MockCardXlComponent, MockCardSComponent] }
-    })
-    .compileComponents();
+      .overrideComponent(TerritoryPageComponent, {
+        remove: { imports: [CardXlComponent, CardSComponent] },
+        add: { imports: [MockCardXlComponent, MockCardSComponent] },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {
@@ -87,8 +89,8 @@ describe('TerritoryPageComponent', () => {
     fixture = TestBed.createComponent(TerritoryPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    expect(component.isAdmin).toBe(true);
-    expect(component.isDriver).toBe(false);
+    expect(component.isAdmin()).toBe(true);
+    expect(component.isDriver()).toBe(false);
   });
 
   it('should set isDriver if tokenConductor is in localStorage', () => {
@@ -96,15 +98,15 @@ describe('TerritoryPageComponent', () => {
     fixture = TestBed.createComponent(TerritoryPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    expect(component.isDriver).toBe(true);
-    expect(component.isAdmin).toBe(false);
+    expect(component.isDriver()).toBe(true);
+    expect(component.isAdmin()).toBe(false);
   });
 
   it('should fetch maps if not in sessionStorage', () => {
     fixture = TestBed.createComponent(TerritoryPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(mockTerritoryDataService.getMaps).toHaveBeenCalled();
     expect(component.territorioMaps.length).toBe(1);
@@ -113,49 +115,76 @@ describe('TerritoryPageComponent', () => {
   });
 
   it('should load maps from sessionStorage if available', () => {
-    sessionStorage.setItem('territorioMaps', JSON.stringify([{ mapSRC: 'session', mapName: 'name', link: 'link' }]));
+    sessionStorage.setItem(
+      'territorioMaps',
+      JSON.stringify([{ mapSRC: 'session', mapName: 'name', link: 'link' }]),
+    );
     fixture = TestBed.createComponent(TerritoryPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    
+
     expect(mockSpinnerService.cargarSpinner).not.toHaveBeenCalled();
     expect(mockTerritoryDataService.getMaps).not.toHaveBeenCalled();
     expect(component.territorioMaps[0].mapSRC).toBe('session');
   });
 
   it('should group territories by locality on init', () => {
-    sessionStorage.setItem('numberTerritory', JSON.stringify({
-      wheelwright: [{ collection: 'coll1', territorio: 1 }],
-      rural: [{ collection: 'coll2', territorio: 2 }]
-    }));
-    
+    sessionStorage.setItem(
+      'numberTerritory',
+      JSON.stringify({
+        wheelwright: [{ collection: 'coll1', territorio: 1 }],
+        rural: [{ collection: 'coll2', territorio: 2 }],
+      }),
+    );
+
     fixture = TestBed.createComponent(TerritoryPageComponent);
     component = fixture.componentInstance;
     component.localities = [
-      { name: 'Wheelwright', key: 'wheelwright', territoryPrefix: 'Territorio', storageKey: 'stat_ww', hasNumberedTerritories: true },
-      { name: 'Rural', key: 'rural', territoryPrefix: 'Rural', storageKey: 'stat_ru', hasNumberedTerritories: true }
+      {
+        name: 'Wheelwright',
+        key: 'wheelwright',
+        territoryPrefix: 'Territorio',
+        storageKey: 'stat_ww',
+        hasNumberedTerritories: true,
+      },
+      {
+        name: 'Rural',
+        key: 'rural',
+        territoryPrefix: 'Rural',
+        storageKey: 'stat_ru',
+        hasNumberedTerritories: true,
+      },
     ];
-    
+
     fixture.detectChanges();
-    
+
     expect(component.localitiesWithTerritories.length).toBe(2);
     expect(component.localitiesWithTerritories[0].key).toBe('wheelwright');
     expect(component.localitiesWithTerritories[0].territories.length).toBe(1);
   });
 
   it('should filter out localities without territories', () => {
-    sessionStorage.setItem('numberTerritory', JSON.stringify({
-      wheelwright: []
-    }));
-    
+    sessionStorage.setItem(
+      'numberTerritory',
+      JSON.stringify({
+        wheelwright: [],
+      }),
+    );
+
     fixture = TestBed.createComponent(TerritoryPageComponent);
     component = fixture.componentInstance;
     component.localities = [
-      { name: 'Wheelwright', key: 'wheelwright', territoryPrefix: 'Territorio', storageKey: 'stat_ww', hasNumberedTerritories: true }
+      {
+        name: 'Wheelwright',
+        key: 'wheelwright',
+        territoryPrefix: 'Territorio',
+        storageKey: 'stat_ww',
+        hasNumberedTerritories: true,
+      },
     ];
-    
+
     fixture.detectChanges();
-    
+
     expect(component.localitiesWithTerritories.length).toBe(0);
   });
 });

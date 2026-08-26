@@ -11,12 +11,13 @@ import { RouterLink } from '@angular/router';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 import { environment } from '@environments/environment';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-territory-page',
   templateUrl: './territory-page.component.html',
   styleUrls: ['./territory-page.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CardXlComponent, RouterLink, CardSComponent],
 })
 export class TerritoryPageComponent implements OnInit {
@@ -29,19 +30,24 @@ export class TerritoryPageComponent implements OnInit {
   // NUEVO: Datos agrupados por localidad
   localitiesWithTerritories: LocalityData[] = [];
 
-  isAdmin: boolean = false;
-  isDriver: boolean = false;
+  public authService = inject(AuthService);
+
+  isAdmin = this.authService.isAdmin;
+  isDriver = this.authService.isDriver;
+
   congregationName: string = environment.congregationName;
-  localities: { name: string; key: string; territoryPrefix: string; storageKey: string; hasMap?: boolean; hasPreaching?: boolean; hasNumberedTerritories?: boolean; }[] = environment.localities || [];
+  localities: {
+    name: string;
+    key: string;
+    territoryPrefix: string;
+    storageKey: string;
+    hasMap?: boolean;
+    hasPreaching?: boolean;
+    hasNumberedTerritories?: boolean;
+  }[] = environment.localities || [];
   constructor() {}
 
   ngOnInit(): void {
-    if (localStorage.getItem('tokenAdmin')) {
-      this.isAdmin = true;
-    } else if (localStorage.getItem('tokenConductor')) {
-      this.isDriver = true;
-    }
-
     // Cargar mapas de localidades desde Firebase (ya vienen con links correctos)
     if (!sessionStorage.getItem('territorioMaps')) {
       this.spinner.cargarSpinner();
@@ -59,12 +65,16 @@ export class TerritoryPageComponent implements OnInit {
         });
     } else {
       const storedTerritorioMaps = sessionStorage.getItem('territorioMaps');
-      this.territorioMaps = storedTerritorioMaps ? JSON.parse(storedTerritorioMaps) : [];
+      this.territorioMaps = storedTerritorioMaps
+        ? (JSON.parse(storedTerritorioMaps) as CardButtonsData[])
+        : [];
     }
 
     // Cargar y agrupar territorios por localidad
     const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
-    const numberTerritory = storedNumberTerritory ? JSON.parse(storedNumberTerritory) : {};
+    const numberTerritory = storedNumberTerritory
+      ? (JSON.parse(storedNumberTerritory) as Record<string, TerritoryNumberData[]>)
+      : {};
 
     this.groupTerritoriesByLocality(numberTerritory);
   }

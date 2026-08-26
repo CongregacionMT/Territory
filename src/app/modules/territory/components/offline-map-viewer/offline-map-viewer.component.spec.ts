@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { OfflineMapViewerComponent } from './offline-map-viewer.component';
-import { ElementRef, ComponentRef } from '@angular/core';
+import { ComponentRef } from '@angular/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as L from 'leaflet';
 
@@ -35,20 +35,20 @@ describe('OfflineMapViewerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OfflineMapViewerComponent]
+      imports: [OfflineMapViewerComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(OfflineMapViewerComponent);
     component = fixture.componentInstance;
     componentRef = fixture.componentRef;
-    
+
     // Set required input
     componentRef.setInput('kmlUrl', 'http://example.com/test.kml');
-    
+
     // Mock fetch for loadKml
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      text: () => Promise.resolve('<kml></kml>')
+      text: () => Promise.resolve('<kml></kml>'),
     });
   });
 
@@ -66,14 +66,14 @@ describe('OfflineMapViewerComponent', () => {
   it('should handle fetch error', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      status: 404
+      status: 404,
     });
 
     fixture.detectChanges(); // starts loadKml
-    
+
     // wait for async fetch
-    await new Promise(resolve => setTimeout(resolve, 0));
-    
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(component.error()).toContain('HTTP Error 404');
     expect(component.loading()).toBe(false);
   });

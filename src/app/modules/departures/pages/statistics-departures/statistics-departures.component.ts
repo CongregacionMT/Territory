@@ -4,7 +4,8 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { WeeklyDeparture } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { formatWeekRange } from '@shared/utils/date-utils';
-import { tap } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-statistics-departures',
@@ -19,7 +20,14 @@ export class StatisticsDeparturesComponent {
   private spinner = inject(SpinnerService);
 
   weeklyDepartures = toSignal(
-    this.territoryDataService.getWeeklyDepartures().pipe(tap(() => this.spinner.cerrarSpinner())),
+    this.territoryDataService.getWeeklyDepartures().pipe(
+      tap(() => this.spinner.cerrarSpinner()),
+      catchError((err) => {
+        console.error('Error loading weekly departures for stats:', err);
+        this.spinner.cerrarSpinner();
+        return of([] as WeeklyDeparture[]);
+      }),
+    ),
     { initialValue: [] as WeeklyDeparture[] },
   );
 

@@ -17,7 +17,7 @@
     <hr />
 
     <!-- Territorios agrupados por localidad -->
-    @if (isAdmin || isDriver) {
+    @if (isAdmin() || isDriver()) {
       @for (locality of localitiesWithTerritories; track locality.key) {
         <div class="mb-6">
           <h2 class="text-lg font-bold text-white text-center mb-3">

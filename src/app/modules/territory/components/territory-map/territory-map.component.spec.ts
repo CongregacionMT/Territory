@@ -10,49 +10,62 @@ vi.mock('@core/config/maps.config', () => ({
     maps: {
       'test-collection': {
         kmlUrl: 'http://test.com/map.kml',
-        iframeHtml: '<iframe></iframe>'
-      }
-    }
-  }
+        iframeHtml: '<iframe></iframe>',
+      },
+    },
+  },
 }));
 
 describe('TerritoryMapComponent', () => {
   let component: TerritoryMapComponent;
   let fixture: ComponentFixture<TerritoryMapComponent>;
   let componentRef: ComponentRef<TerritoryMapComponent>;
-  let mockMapService: any;
-  let mockNetworkService: any;
+  let mockMapService: {
+    destroy: ReturnType<typeof vi.fn>;
+    loadMapsApi: ReturnType<typeof vi.fn>;
+    initMap: ReturnType<typeof vi.fn>;
+    loadKml: ReturnType<typeof vi.fn>;
+    trackUserLocation: ReturnType<typeof vi.fn>;
+    isMapLoaded: ReturnType<typeof vi.fn>;
+    getHeading: ReturnType<typeof vi.fn>;
+    setHeading: ReturnType<typeof vi.fn>;
+    centerOnUser: ReturnType<typeof vi.fn>;
+    createFallbackIframe: ReturnType<typeof vi.fn>;
+  };
+  let mockNetworkService: {
+    isOnline: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     mockMapService = {
       destroy: vi.fn(),
-      loadMapsApi: vi.fn().mockResolvedValue(true),
+      loadMapsApi: vi.fn().mockResolvedValue(undefined),
       initMap: vi.fn().mockResolvedValue({}),
-      loadKml: vi.fn().mockResolvedValue(true),
+      loadKml: vi.fn().mockResolvedValue(undefined),
       trackUserLocation: vi.fn(),
       isMapLoaded: vi.fn().mockReturnValue(true),
       getHeading: vi.fn().mockReturnValue(0),
       setHeading: vi.fn(),
       centerOnUser: vi.fn(),
-      createFallbackIframe: vi.fn()
+      createFallbackIframe: vi.fn(),
     };
 
     mockNetworkService = {
-      isOnline: vi.fn().mockReturnValue(true)
+      isOnline: vi.fn().mockReturnValue(true),
     };
 
     await TestBed.configureTestingModule({
       imports: [TerritoryMapComponent],
       providers: [
         { provide: TerritoryMapService, useValue: mockMapService },
-        { provide: NetworkService, useValue: mockNetworkService }
-      ]
+        { provide: NetworkService, useValue: mockNetworkService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TerritoryMapComponent);
     component = fixture.componentInstance;
     componentRef = fixture.componentRef;
-    
+
     // Set required inputs
     componentRef.setInput('collection', 'test-collection');
     componentRef.setInput('congregationKey', 'test-key');
@@ -65,10 +78,10 @@ describe('TerritoryMapComponent', () => {
 
   it('should initialize map successfully with KML', async () => {
     fixture.detectChanges(); // calls ngOnInit -> initMap
-    
+
     // Wait for promises in initMap
-    await new Promise(resolve => setTimeout(resolve, 0));
-    
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(mockMapService.loadMapsApi).toHaveBeenCalled();
     expect(mockMapService.initMap).toHaveBeenCalled();
     expect(mockMapService.loadKml).toHaveBeenCalled();
@@ -78,9 +91,9 @@ describe('TerritoryMapComponent', () => {
   it('should fallback to iframe when loadKml fails and network is online', async () => {
     mockMapService.loadMapsApi.mockRejectedValue(new Error('API Error'));
     fixture.detectChanges();
-    
-    await new Promise(resolve => setTimeout(resolve, 0));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(component.useFallback()).toBe(true);
     expect(mockMapService.createFallbackIframe).toHaveBeenCalled();
   });
@@ -88,12 +101,24 @@ describe('TerritoryMapComponent', () => {
   it('should fallback to offline viewer when network is offline', async () => {
     mockNetworkService.isOnline.mockReturnValue(false);
     mockMapService.loadMapsApi.mockRejectedValue(new Error('Offline'));
-    
+
     fixture.detectChanges();
-    
-    await new Promise(resolve => setTimeout(resolve, 0));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(component.useOfflineViewer()).toBe(true);
     expect(component.useFallback()).toBe(false);
+  });
+  it('should clean up interval and event listener on destroy', async () => {
+    const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
+    const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
+
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    component.ngOnDestroy();
+
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('fullscreenchange', expect.any(Function));
   });
 });
