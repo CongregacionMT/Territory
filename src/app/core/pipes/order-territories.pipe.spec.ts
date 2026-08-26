@@ -20,7 +20,7 @@ describe('OrderTerritoriesPipe', () => {
     const data = [
       { nombre: 'Territorio 10', porcentaje: 50 },
       { nombre: 'Territorio 2', porcentaje: 30 },
-      { nombre: 'Territorio 1', porcentaje: 80 }
+      { nombre: 'Territorio 1', porcentaje: 80 },
     ];
 
     const result = pipe.transform(data);
@@ -28,7 +28,7 @@ describe('OrderTerritoriesPipe', () => {
     expect(result).toEqual([
       { nombre: 'Territorio 1', porcentaje: 80 },
       { nombre: 'Territorio 2', porcentaje: 30 },
-      { nombre: 'Territorio 10', porcentaje: 50 }
+      { nombre: 'Territorio 10', porcentaje: 50 },
     ]);
   });
 });

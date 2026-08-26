@@ -1,12 +1,4 @@
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  Component,
-  OnInit,
-  inject,
-  signal,
-  ChangeDetectionStrategy,
-  DestroyRef,
-} from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -16,6 +8,7 @@ import { Card, CardApplesData } from '@core/models/Card';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-home-statistics-page',
@@ -23,27 +16,18 @@ import { environment } from '@environments/environment';
   styleUrls: ['./home-statistics-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CardXlComponent, RouterLink],
+  standalone: true,
 })
 export class HomeStatisticsPageComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
   private territorieDataService = inject(TerritoryDataService);
   private spinner = inject(SpinnerService);
 
   CardButtonsStatistics = signal<CardButtonsData[]>([]);
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({});
-  appleCount = signal<number | null>(null);
-  congregationKey = environment.congregationKey;
-  localities: {
-    name: string;
-    key: string;
-    territoryPrefix: string;
-    storageKey: string;
-    hasMap?: boolean;
-    hasPreaching?: boolean;
-    hasNumberedTerritories?: boolean;
-  }[] = environment.localities || [];
 
-  ngOnInit(): void {
+  localities = environment.localities || [];
+
+  async ngOnInit(): Promise<void> {
     this.spinner.cargarSpinner();
 
     // Cargar botones de estadísticas (mapas)
@@ -52,15 +36,14 @@ export class HomeStatisticsPageComponent implements OnInit {
       ? (JSON.parse(storedTerritorioStatistics) as { territorio?: CardButtonsData[] })
       : { territorio: [] };
 
-    // Usar los links directos de Firebase
     if (numberTerritory.territorio) {
       this.CardButtonsStatistics.set(numberTerritory.territorio);
     }
 
     // Cargar estadísticas para cada localidad
+    const territoryData = sessionStorage.getItem('numberTerritory');
     this.territoryNumberOfLocalStorage.set(
-      (JSON.parse(sessionStorage.getItem('numberTerritory') || '{}') as TerritoriesNumberData) ||
-        {},
+      territoryData ? (JSON.parse(territoryData) as TerritoriesNumberData) : {},
     );
 
     const promises: Promise<void>[] = [];
@@ -71,9 +54,8 @@ export class HomeStatisticsPageComponent implements OnInit {
       }
     });
 
-    void Promise.all(promises).then(() => {
-      this.spinner.cerrarSpinner();
-    });
+    await Promise.all(promises);
+    this.spinner.cerrarSpinner();
   }
 
   async loadStatisticsForLocality(locality: {
@@ -87,7 +69,7 @@ export class HomeStatisticsPageComponent implements OnInit {
     const storageKey = this.getStorageKeyForLocality(locality.key);
 
     if (sessionStorage.getItem(storageKey)) {
-      return; // Ya cargado
+      return;
     }
 
     const numberTerritory = this.territoryNumberOfLocalStorage();
@@ -97,54 +79,33 @@ export class HomeStatisticsPageComponent implements OnInit {
 
     const initialStatisticData: Card[][] = [];
 
-    // Crear array de promesas para cargar datos de cada territorio
-    const territoryPromises = localityTerritories.map(
-      (territory: TerritoryNumberData) =>
-        new Promise<void>((resolve) => {
-          this.territorieDataService
-            .getCardTerritorie(territory.collection)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((card) => {
-              // Filtrar manzanas vacías o sin check
-              card.forEach((list: Card) => {
-                let count = 0;
-                (list.applesData || []).forEach((apple: CardApplesData) => {
-                  if (apple.checked === true) {
-                    count++;
-                  }
-                });
-                // Nota: la lógica original borraba el elemento si count era 0
-                // pero splice en un forEach puede causar problemas de índice.
-                // Aquí mantenemos la lógica original pero con cuidado.
-                if (count === 0) {
-                  // Marcamos para borrar o filtramos después.
-                  // Para mantener compatibilidad exacta con lógica anterior:
-                  // card.splice(index, 1); <-- esto es peligroso en forEach
-                }
-              });
+    const territoryPromises = localityTerritories.map(async (territory: TerritoryNumberData) => {
+      try {
+        const card = await firstValueFrom(
+          this.territorieDataService.getCardTerritorie(territory.collection),
+        );
 
-              // Filtrar listas vacías de forma segura
-              const filteredCard = card.filter((list: Card) => {
-                const checkedCount = (list.applesData || []).filter(
-                  (a: CardApplesData) => a.checked,
-                ).length;
-                return checkedCount > 0;
-              });
+        // Filtrar listas vacías de forma segura
+        const filteredCard = card.filter((list: Card) => {
+          const checkedCount = (list.applesData || []).filter(
+            (a: CardApplesData) => a.checked,
+          ).length;
+          return checkedCount > 0;
+        });
 
-              if (filteredCard.length > 0) {
-                initialStatisticData.push(filteredCard);
-              }
-              resolve();
-            });
-        }),
-    );
+        if (filteredCard.length > 0) {
+          initialStatisticData.push(filteredCard);
+        }
+      } catch (error) {
+        console.error(`Error loading territory ${territory.collection}`, error);
+      }
+    });
 
     await Promise.all(territoryPromises);
     sessionStorage.setItem(storageKey, JSON.stringify(initialStatisticData));
   }
 
   getStorageKeyForLocality(localityKey: string): string {
-    // Genera clave única para cada localidad: statisticDataMariaTeresa_12
     const suffix = localityKey.charAt(0).toUpperCase() + localityKey.slice(1).replace(/-/g, '');
     return `statisticData${suffix}_12`;
   }

@@ -7,7 +7,7 @@ import { of, throwError } from 'rxjs';
 
 // Hoist vi.mock to the top
 vi.mock('@shared/utils/date-utils', () => ({
-  getWeekId: vi.fn().mockReturnValue('2023-W01')
+  getWeekId: vi.fn().mockReturnValue('2023-W01'),
 }));
 
 describe('PrintPdfModalComponent', () => {
@@ -22,20 +22,20 @@ describe('PrintPdfModalComponent', () => {
       getPrintWeekRange: vi.fn().mockReturnValue({ label: 'Range Label' }),
       getDeparturesForPrintWeek: vi.fn().mockReturnValue([]),
       generateAllGroupsPdf: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
-      downloadPdf: vi.fn()
+      downloadPdf: vi.fn(),
     };
 
     mockTerritoryDataService = {
       getWeeklyDeparture: vi.fn().mockReturnValue(of({ departure: [] })),
-      getDepartures: vi.fn().mockReturnValue(of({ departure: [] }))
+      getDepartures: vi.fn().mockReturnValue(of({ departure: [] })),
     };
 
     await TestBed.configureTestingModule({
       imports: [PrintPdfModalComponent],
       providers: [
         { provide: DeparturePdfService, useValue: mockPdfService },
-        { provide: TerritoryDataService, useValue: mockTerritoryDataService }
-      ]
+        { provide: TerritoryDataService, useValue: mockTerritoryDataService },
+      ],
     }).compileComponents();
   });
 
@@ -63,11 +63,11 @@ describe('PrintPdfModalComponent', () => {
 
   it('should print PDF successfully', async () => {
     vi.spyOn(component.close, 'emit');
-    
-    // Since printPdf has a nested async structure with forkJoin and await, 
+
+    // Since printPdf has a nested async structure with forkJoin and await,
     // we need to await the printPdf completion or allow event loop to tick.
     await component.printPdf('color');
-    
+
     // Flush microtasks
     await Promise.resolve();
 
@@ -78,23 +78,25 @@ describe('PrintPdfModalComponent', () => {
 
     // Advance time by 3 seconds
     vi.advanceTimersByTime(3000);
-    
+
     expect(component.pdfGenerated()).toBe(false);
     expect(component.close.emit).toHaveBeenCalled();
   });
 
   it('should handle error when fetching departures', async () => {
-    mockTerritoryDataService.getWeeklyDeparture.mockReturnValue(throwError(() => new Error('Test error')));
-    
+    mockTerritoryDataService.getWeeklyDeparture.mockReturnValue(
+      throwError(() => new Error('Test error')),
+    );
+
     await component.printPdf('bn');
 
     expect(component.isPrintingPdf()).toBe(false);
     expect(mockPdfService.generateAllGroupsPdf).not.toHaveBeenCalled();
   });
-  
+
   it('should handle error during PDF generation', async () => {
     mockPdfService.generateAllGroupsPdf.mockRejectedValue(new Error('PDF error'));
-    
+
     await component.printPdf('color');
 
     // Wait for the async inside subscribe to reject

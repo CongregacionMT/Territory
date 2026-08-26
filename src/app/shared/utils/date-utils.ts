@@ -51,11 +51,11 @@ export function formatWeekRange(dateString: string): string {
 export function parseFirebaseDate(value: unknown): Date {
   if (!value) return new Date(0);
   if (value instanceof Date) return value;
-  
+
   const asTimestamp = value as { toDate?: () => Date; seconds?: number };
   if (typeof asTimestamp.toDate === 'function') return asTimestamp.toDate();
   if (asTimestamp.seconds) return new Date(asTimestamp.seconds * 1000);
-  
+
   const parsed = new Date(value as string | number);
   return isNaN(parsed.getTime()) ? new Date(0) : parsed;
 }

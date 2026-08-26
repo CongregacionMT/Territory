@@ -10,13 +10,10 @@ describe('CardService', () => {
 
   beforeEach(() => {
     mockRouter = {
-      navigate: vi.fn()
+      navigate: vi.fn(),
     };
     TestBed.configureTestingModule({
-      providers: [
-        CardService,
-        { provide: Router, useValue: mockRouter }
-      ]
+      providers: [CardService, { provide: Router, useValue: mockRouter }],
     });
     service = TestBed.inject(CardService);
   });
@@ -52,7 +49,7 @@ describe('CardService', () => {
       id: '1',
       location: 'loc',
       numberTerritory: 1,
-      link: 'test-link'
+      link: 'test-link',
     } as Card;
 
     service.goRevisionCard(mockCard);

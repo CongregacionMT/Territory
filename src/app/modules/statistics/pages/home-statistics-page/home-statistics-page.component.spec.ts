@@ -11,7 +11,7 @@ import { environment } from '@environments/environment';
 @Component({
   selector: 'app-card-xl',
   template: '',
-  standalone: true
+  standalone: true,
 })
 class MockCardXlComponent {
   @Input() mapSRC: any;
@@ -26,28 +26,26 @@ describe('HomeStatisticsPageComponent', () => {
 
   beforeEach(async () => {
     mockTerritoryDataService = {
-      getCardTerritorie: vi.fn().mockReturnValue(of([
-        { applesData: [{ checked: true }] }
-      ]))
+      getCardTerritorie: vi.fn().mockReturnValue(of([{ applesData: [{ checked: true }] }])),
     };
 
     mockSpinnerService = {
       cargarSpinner: vi.fn(),
-      cerrarSpinner: vi.fn()
+      cerrarSpinner: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
       imports: [HomeStatisticsPageComponent, RouterTestingModule],
       providers: [
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
-        { provide: SpinnerService, useValue: mockSpinnerService }
-      ]
+        { provide: SpinnerService, useValue: mockSpinnerService },
+      ],
     })
-    .overrideComponent(HomeStatisticsPageComponent, {
-      remove: { imports: [] }, // Keep everything that works
-      add: { imports: [MockCardXlComponent] }
-    })
-    .compileComponents();
+      .overrideComponent(HomeStatisticsPageComponent, {
+        remove: { imports: [] }, // Keep everything that works
+        add: { imports: [MockCardXlComponent] },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {
@@ -55,7 +53,13 @@ describe('HomeStatisticsPageComponent', () => {
     // Simulate some environment data
     component = TestBed.createComponent(HomeStatisticsPageComponent).componentInstance;
     component.localities = [
-      { name: 'Wheelwright', key: 'wheelwright', territoryPrefix: 'Territorio', storageKey: 'stat_ww', hasNumberedTerritories: true }
+      {
+        name: 'Wheelwright',
+        key: 'wheelwright',
+        territoryPrefix: 'Territorio',
+        storageKey: 'stat_ww',
+        hasNumberedTerritories: true,
+      },
     ];
   });
 
@@ -65,26 +69,35 @@ describe('HomeStatisticsPageComponent', () => {
 
   it('should initialize data and load statistics for localities', async () => {
     // Provide numberTerritory so it loads statistics
-    sessionStorage.setItem('numberTerritory', JSON.stringify({
-      wheelwright: [{ collection: 'coll1', territorio: 1 }]
-    }));
+    sessionStorage.setItem(
+      'numberTerritory',
+      JSON.stringify({
+        wheelwright: [{ collection: 'coll1', territorio: 1 }],
+      }),
+    );
 
     fixture = TestBed.createComponent(HomeStatisticsPageComponent);
     component = fixture.componentInstance;
     component.localities = [
-      { name: 'Wheelwright', key: 'wheelwright', territoryPrefix: 'Territorio', storageKey: 'stat_ww', hasNumberedTerritories: true }
+      {
+        name: 'Wheelwright',
+        key: 'wheelwright',
+        territoryPrefix: 'Territorio',
+        storageKey: 'stat_ww',
+        hasNumberedTerritories: true,
+      },
     ];
 
     fixture.detectChanges(); // calls ngOnInit
 
     expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(mockTerritoryDataService.getCardTerritorie).toHaveBeenCalledWith('coll1');
-    
+
     // Wait for promises to resolve
-    await new Promise(resolve => setTimeout(resolve, 0));
-    
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
-    
+
     const key = component.getStorageKeyForLocality('wheelwright');
     expect(sessionStorage.getItem(key)).toBeTruthy();
   });
@@ -92,7 +105,7 @@ describe('HomeStatisticsPageComponent', () => {
   it('should get storage key correctly', () => {
     fixture = TestBed.createComponent(HomeStatisticsPageComponent);
     component = fixture.componentInstance;
-    
+
     const key = component.getStorageKeyForLocality('maria-teresa');
     expect(key).toBe('statisticDataMariateresa_12');
   });
@@ -100,12 +113,18 @@ describe('HomeStatisticsPageComponent', () => {
   it('should not load statistics if already in sessionStorage', async () => {
     fixture = TestBed.createComponent(HomeStatisticsPageComponent);
     component = fixture.componentInstance;
-    
+
     const key = component.getStorageKeyForLocality('wheelwright');
     sessionStorage.setItem(key, '[]');
-    
-    await component.loadStatisticsForLocality({ name: 'Wheelwright', key: 'wheelwright', territoryPrefix: 'T', storageKey: 'S', hasNumberedTerritories: true });
-    
+
+    await component.loadStatisticsForLocality({
+      name: 'Wheelwright',
+      key: 'wheelwright',
+      territoryPrefix: 'T',
+      storageKey: 'S',
+      hasNumberedTerritories: true,
+    });
+
     expect(mockTerritoryDataService.getCardTerritorie).not.toHaveBeenCalled();
   });
 });

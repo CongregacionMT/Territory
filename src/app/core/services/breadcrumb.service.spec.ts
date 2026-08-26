@@ -11,7 +11,7 @@ describe('BreadcrumbService', () => {
 
   beforeEach(() => {
     eventsSubject = new Subject<any>();
-    
+
     mockRouter = {
       events: eventsSubject.asObservable(),
       url: '/home',
@@ -20,17 +20,14 @@ describe('BreadcrumbService', () => {
           root: {
             url: [],
             data: {},
-            firstChild: null
-          }
-        }
-      }
+            firstChild: null,
+          },
+        },
+      },
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BreadcrumbService,
-        { provide: Router, useValue: mockRouter }
-      ]
+      providers: [BreadcrumbService, { provide: Router, useValue: mockRouter }],
     });
     service = TestBed.inject(BreadcrumbService);
   });
@@ -62,17 +59,17 @@ describe('BreadcrumbService', () => {
         firstChild: {
           url: [{ path: 'edit' }],
           data: { breadcrumb: 'Edit' },
-          firstChild: null
-        }
-      }
+          firstChild: null,
+        },
+      },
     };
 
     eventsSubject.next(new ActivationEnd({} as any));
-    
+
     expect(service.showBreadcrumb()).toBe(true);
     const breadcrumbs = service.breadcrumbs();
     expect(breadcrumbs.length).toBe(3);
-    
+
     expect(breadcrumbs[0]).toEqual({ name: 'Inicio', route: '/home' });
     expect(breadcrumbs[1]).toEqual({ name: 'Territorios', route: '/territorios' });
     expect(breadcrumbs[2]).toEqual({ name: 'Edit', route: '/territorios/edit' });
@@ -90,13 +87,13 @@ describe('BreadcrumbService', () => {
           // Empty path but same breadcrumb
           url: [],
           data: { breadcrumb: 'Territorios' },
-          firstChild: null
-        }
-      }
+          firstChild: null,
+        },
+      },
     };
 
     eventsSubject.next(new ActivationEnd({} as any));
-    
+
     const breadcrumbs = service.breadcrumbs();
     expect(breadcrumbs.length).toBe(2); // Inicio and Territorios
     expect(breadcrumbs[1]).toEqual({ name: 'Territorios', route: '/territorios' });

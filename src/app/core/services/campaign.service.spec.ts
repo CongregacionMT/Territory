@@ -1,6 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { CampaignService } from './campaign.service';
-import { Firestore, collection, getDocs, query, where, orderBy, doc, getDoc } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  doc,
+  getDoc,
+} from '@angular/fire/firestore';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { environment } from '@environments/environment';
 
@@ -8,8 +17,8 @@ vi.mock('@environments/environment', () => ({
   environment: {
     localities: [],
     congregationKey: 'wheelwright',
-    territoryPrefix: 'Territorio'
-  }
+    territoryPrefix: 'Territorio',
+  },
 }));
 
 describe('CampaignService', () => {
@@ -19,13 +28,10 @@ describe('CampaignService', () => {
   beforeEach(() => {
     mockFirestore = {};
     TestBed.configureTestingModule({
-      providers: [
-        CampaignService,
-        { provide: Firestore, useValue: mockFirestore },
-      ],
+      providers: [CampaignService, { provide: Firestore, useValue: mockFirestore }],
     });
     service = TestBed.inject(CampaignService);
-    
+
     // reset mocks before each test
     vi.clearAllMocks();
   });
@@ -40,7 +46,7 @@ describe('CampaignService', () => {
     vi.mocked(query).mockReturnValue(mockQuery as any);
     vi.mocked(getDocs).mockResolvedValue({
       empty: false,
-      docs: [{ id: 'test-id', data: () => ({ name: 'Test Campaign' }) }]
+      docs: [{ id: 'test-id', data: () => ({ name: 'Test Campaign' }) }],
     } as any);
 
     const result = await service.getActiveCampaign();
@@ -61,11 +67,11 @@ describe('CampaignService', () => {
     const mockStorage = {
       wheelwright: [
         { territorio: 1, collection: 'w1' },
-        { territorio: 2, collection: 'w2' }
-      ]
+        { territorio: 2, collection: 'w2' },
+      ],
     };
     window.sessionStorage.setItem('numberTerritory', JSON.stringify(mockStorage));
-    
+
     // Temporarily override environment mock
     const originalLocalities = environment.localities;
     environment.localities = [{ key: 'wheelwright' }] as any;
@@ -89,7 +95,7 @@ describe('CampaignService', () => {
 
   it('should get inactive campaigns', async () => {
     vi.mocked(getDocs).mockResolvedValue({
-      docs: [{ id: 'inactive1', data: () => ({ name: 'Old Campaign' }) }]
+      docs: [{ id: 'inactive1', data: () => ({ name: 'Old Campaign' }) }],
     } as any);
 
     const result = await service.getInactiveCampaigns();
@@ -102,7 +108,7 @@ describe('CampaignService', () => {
     vi.mocked(doc).mockReturnValue('docRef' as any);
     vi.mocked(getDoc).mockResolvedValue({
       exists: () => true,
-      data: () => ({ stats: { global: { done: 10 } } })
+      data: () => ({ stats: { global: { done: 10 } } }),
     } as any);
 
     const result = await service.getCampaignStats('camp1');
@@ -113,7 +119,7 @@ describe('CampaignService', () => {
   it('should return empty object if no stats exist', async () => {
     vi.mocked(doc).mockReturnValue('docRef' as any);
     vi.mocked(getDoc).mockResolvedValue({
-      exists: () => false
+      exists: () => false,
     } as any);
 
     const result = await service.getCampaignStats('camp1');

@@ -44,11 +44,7 @@ describe('SortBy Pipe', () => {
   });
 
   it('should extract start and end dates from nested array and sort correctly', () => {
-    const data = [
-      [{ start: '2023-12-01' }],
-      [{ start: '2024-01-01' }],
-      [{ start: '2023-05-01' }],
-    ];
+    const data = [[{ start: '2023-12-01' }], [{ start: '2024-01-01' }], [{ start: '2023-05-01' }]];
     const result = pipe.transform(data, 'start', 1);
     expect(result[0][0].start).toBe('2023-05-01');
     expect(result[1][0].start).toBe('2023-12-01');
@@ -56,10 +52,7 @@ describe('SortBy Pipe', () => {
   });
 
   it('should fallback to 0 if date property is missing', () => {
-    const data = [
-      [{ start: '2024-01-01' }],
-      [{}],
-    ];
+    const data = [[{ start: '2024-01-01' }], [{}]];
     const result = pipe.transform(data, 'start', 1);
     expect(result[0][0].start).toBeUndefined();
     expect(result[1][0].start).toBe('2024-01-01');

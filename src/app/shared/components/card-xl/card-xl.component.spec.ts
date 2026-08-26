@@ -16,11 +16,11 @@ describe('CardXlComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(CardXlComponent);
     component = fixture.componentInstance;
-    
+
     // Set required inputs before detectChanges
     fixture.componentRef.setInput('mapSRC', 'test-image.jpg');
     fixture.componentRef.setInput('mapName', 'Test Map');
-    
+
     fixture.detectChanges();
   });
 

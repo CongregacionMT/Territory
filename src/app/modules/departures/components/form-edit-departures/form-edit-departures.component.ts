@@ -170,15 +170,15 @@ export class FormEditDeparturesComponent implements OnInit {
         const sorted = numbers.sort((a: unknown, b: unknown) => Number(a) - Number(b));
         const options = sorted.map((n: unknown) => `N°${String(n)}`);
 
-        this.territoryOptionsMap.update(m => ({ ...m, [loc.territoryPrefix]: options }));
+        this.territoryOptionsMap.update((m) => ({ ...m, [loc.territoryPrefix]: options }));
         if (loc.key) {
-          this.territoryOptionsMap.update(m => ({ ...m, [loc.key]: options }));
+          this.territoryOptionsMap.update((m) => ({ ...m, [loc.key]: options }));
         }
       } else {
         const options = ['Rural'];
-        this.territoryOptionsMap.update(m => ({ ...m, [loc.territoryPrefix]: options }));
+        this.territoryOptionsMap.update((m) => ({ ...m, [loc.territoryPrefix]: options }));
         if (loc.key) {
-          this.territoryOptionsMap.update(m => ({ ...m, [loc.key]: options }));
+          this.territoryOptionsMap.update((m) => ({ ...m, [loc.key]: options }));
         }
       }
     });
@@ -187,10 +187,10 @@ export class FormEditDeparturesComponent implements OnInit {
       !this.territoryOptionsMap()[this.territoryPrefix] &&
       (!data || Object.keys(data).length === 0)
     ) {
-      this.territoryOptionsMap.update(m => ({ ...m, [this.territoryPrefix]: Array.from(
-        { length: TERRITORY_COUNT },
-        (_, i) => `N°${i + 1}`,
-      ) }));
+      this.territoryOptionsMap.update((m) => ({
+        ...m,
+        [this.territoryPrefix]: Array.from({ length: TERRITORY_COUNT }, (_, i) => `N°${i + 1}`),
+      }));
     }
 
     const departures = this.formDepartureDataInput();
@@ -221,7 +221,10 @@ export class FormEditDeparturesComponent implements OnInit {
     territories: unknown[],
   ): Promise<void> {
     const locationPrefix = loc.territoryPrefix;
-    this.territoryLastCompletedDays.update(m => ({ ...m, [locationPrefix]: m[locationPrefix] || {} }));
+    this.territoryLastCompletedDays.update((m) => ({
+      ...m,
+      [locationPrefix]: m[locationPrefix] || {},
+    }));
 
     const path = loc.key;
     const suffix = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
@@ -275,12 +278,21 @@ export class FormEditDeparturesComponent implements OnInit {
                   if (!isNaN(dateCard.getTime())) {
                     const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
                     const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                    this.territoryLastCompletedDays.update(m => { m[locationPrefix][Number(num)] = days; return {...m}; });
+                    this.territoryLastCompletedDays.update((m) => {
+                      m[locationPrefix][Number(num)] = days;
+                      return { ...m };
+                    });
                   } else {
-                    this.territoryLastCompletedDays.update(m => { m[locationPrefix][Number(num)] = Infinity; return {...m}; });
+                    this.territoryLastCompletedDays.update((m) => {
+                      m[locationPrefix][Number(num)] = Infinity;
+                      return { ...m };
+                    });
                   }
                 } else {
-                  this.territoryLastCompletedDays.update(m => { m[locationPrefix][Number(num)] = Infinity; return {...m}; });
+                  this.territoryLastCompletedDays.update((m) => {
+                    m[locationPrefix][Number(num)] = Infinity;
+                    return { ...m };
+                  });
                 }
               }
             }
@@ -330,12 +342,21 @@ export class FormEditDeparturesComponent implements OnInit {
                 if (!isNaN(dateCard.getTime())) {
                   const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
                   const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                  this.territoryLastCompletedDays.update(m => { m[locationPrefix][t.territorio] = days; return {...m}; });
+                  this.territoryLastCompletedDays.update((m) => {
+                    m[locationPrefix][t.territorio] = days;
+                    return { ...m };
+                  });
                 } else {
-                  this.territoryLastCompletedDays.update(m => { m[locationPrefix][t.territorio] = Infinity; return {...m}; });
+                  this.territoryLastCompletedDays.update((m) => {
+                    m[locationPrefix][t.territorio] = Infinity;
+                    return { ...m };
+                  });
                 }
               } else {
-                this.territoryLastCompletedDays.update(m => { m[locationPrefix][t.territorio] = Infinity; return {...m}; });
+                this.territoryLastCompletedDays.update((m) => {
+                  m[locationPrefix][t.territorio] = Infinity;
+                  return { ...m };
+                });
               }
               resolve();
             });
@@ -502,7 +523,8 @@ export class FormEditDeparturesComponent implements OnInit {
     if (!locationPrefix || locationPrefix === 'Seleccionar localidad') return [];
 
     // If exact match found
-    if (this.territoryOptionsMap()[locationPrefix]) return this.territoryOptionsMap()[locationPrefix];
+    if (this.territoryOptionsMap()[locationPrefix])
+      return this.territoryOptionsMap()[locationPrefix];
 
     // Fallback: search by checking against all prefixes if logic is complex,
     // but here we just return empty or default.

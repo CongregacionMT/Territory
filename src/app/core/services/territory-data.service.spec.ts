@@ -1,12 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { TerritoryDataService } from './territory-data.service';
-import { Firestore, collection, collectionData, doc, docData, deleteDoc, query, where, orderBy } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  docData,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+} from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { SpinnerService } from './spinner.service';
 import { CampaignService } from './campaign.service';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { of } from 'rxjs';
-
 
 describe('TerritoryDataService', () => {
   let service: TerritoryDataService;
@@ -64,12 +73,12 @@ describe('TerritoryDataService', () => {
       service.getNumberTerritory().subscribe((data) => {
         expect(collection).toHaveBeenCalledWith(mockFirestore, 'NumberTerritory');
         expect(data).toEqual(mockData);
-        
+
         // Should now be cached
         service.getNumberTerritory().subscribe((cachedData) => {
           expect(cachedData).toEqual([{ wheelwright: [{ territorio: 1 }] }]);
           // Collection should not be called again
-          expect(collection).toHaveBeenCalledTimes(1); 
+          expect(collection).toHaveBeenCalledTimes(1);
           resolve();
         });
       });
@@ -128,5 +137,4 @@ describe('TerritoryDataService', () => {
     expect(doc).toHaveBeenCalledWith(mockFirestore, 'Assigned', '123');
     expect(deleteDoc).toHaveBeenCalledWith('docRef');
   });
-
 });

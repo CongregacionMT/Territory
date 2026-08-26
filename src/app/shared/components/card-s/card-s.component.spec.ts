@@ -16,10 +16,10 @@ describe('CardSComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(CardSComponent);
     component = fixture.componentInstance;
-    
+
     // Set required input
     fixture.componentRef.setInput('terrNumber', { territorio: 1, collection: 'w1' });
-    
+
     fixture.detectChanges();
   });
 
