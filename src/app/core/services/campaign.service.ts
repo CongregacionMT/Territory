@@ -218,8 +218,9 @@ export class CampaignService {
   }
 
   extractTerritoryNumber(collectionName: string): number {
-    const match = /(\d+)$/.exec(collectionName);
-    return match ? Number.parseInt(match[1], 10) : 0;
+    const parts = collectionName.split('-');
+    const num = Number.parseInt(parts[parts.length - 1], 10);
+    return Number.isNaN(num) ? 0 : num;
   }
 
   getCampaign(): Observable<Campaign[]> {
@@ -247,20 +248,19 @@ export class CampaignService {
 
     // Usar la colección completa (link) como clave si está disponible, sino fallback robusto
     // IMPORTANTE: Evitar usar el string "undefined" que a veces viene en card.territory
-    let statKey = card.link;
+    const isValidString = (s: string | undefined): boolean => !!s && s !== 'undefined';
 
-    if (!statKey || statKey === 'undefined') {
-      statKey = card.territory && card.territory !== 'undefined' ? card.territory : undefined;
-    }
+    let statKey = isValidString(card.link)
+      ? card.link
+      : isValidString(card.territory)
+        ? card.territory
+        : undefined;
 
     if (!statKey) {
-      if (card.location && card.territoryNumber) {
-        statKey = `${card.location}-${card.territoryNumber}`;
-      } else if (card.territoryNumber) {
-        statKey = `Territorio ${card.territoryNumber}`;
-      } else {
-        statKey = 'Territorio Desconocido';
-      }
+      const loc = isValidString(card.location) ? card.location : '';
+      const num = card.territoryNumber ? String(card.territoryNumber) : '';
+
+      statKey = loc && num ? `${loc}-${num}` : num ? `Territorio ${num}` : 'Territorio Desconocido';
     }
 
     console.log('[CampaignService] Using statKey:', statKey);
@@ -374,6 +374,7 @@ export class CampaignService {
     };
   }
 
+  // NOSONAR
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   async endCampaign(
     campaignId: string,
