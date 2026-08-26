@@ -1,13 +1,21 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
 import { CircuitOverseerService } from '../../services/circuit-overseer.service';
+import { AuthService } from '@core/services/auth.service';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+interface DashboardCard {
+  title: string;
+  imgUrl: string;
+  route: string;
+  hoverColor: string;
+}
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, AsyncPipe, FormsModule],
+  imports: [RouterLink, FormsModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,15 +23,41 @@ import { CircuitOverseerService } from '../../services/circuit-overseer.service'
 export class HomeComponent {
   congregationName = environment.congregationName;
   private circuitOverseerService = inject(CircuitOverseerService);
+  private authService = inject(AuthService);
 
-  overseerData$ = this.circuitOverseerService.getOverseerData();
-  isAdmin = localStorage.getItem('tokenAdmin') ? true : false;
-  newName = '';
+  overseer = toSignal(this.circuitOverseerService.getOverseerData(), {
+    initialValue: { name: 'Esteban y Natalia' },
+  });
+  isAdmin = this.authService.isAdmin;
 
-  saveName() {
-    if (this.newName.trim()) {
-      this.circuitOverseerService.updateOverseerName(this.newName);
-      this.newName = '';
+  newName = signal('');
+
+  cards = signal<DashboardCard[]>([
+    {
+      title: 'Ubicaciones',
+      imgUrl: 'https://i.postimg.cc/5XbRCwC8/mt.png',
+      route: '../territorios/ubications-overseer',
+      hoverColor: 'hover:shadow-sky-500/20',
+    },
+    {
+      title: 'Territorios',
+      imgUrl: 'assets/img/map.png',
+      route: '../territorios',
+      hoverColor: 'hover:shadow-emerald-500/20',
+    },
+    {
+      title: 'Salidas',
+      imgUrl: 'assets/img/salidas.png',
+      route: '../salidas',
+      hoverColor: 'hover:shadow-amber-500/20',
+    },
+  ]);
+
+  saveName(): void {
+    const name = this.newName().trim();
+    if (name) {
+      void this.circuitOverseerService.updateOverseerName(name);
+      this.newName.set('');
     }
   }
 }

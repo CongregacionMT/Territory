@@ -1,52 +1,44 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
-  <div class="mb-10 text-center">
+  <header class="mb-10 text-center">
     <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-2">Congregación {{ congregationName }}</h1>
-    <h2 class="text-2xl font-bold text-sky-400">¡Bienvenidos {{ (overseerData$ | async)?.name || 'Esteban y Natalia' }}!</h2>
-  </div>
+    <h2 class="text-2xl font-bold text-sky-400">¡Bienvenidos {{ overseer().name }}!</h2>
+  </header>
 
-  @if (isAdmin) {
-    <div class="flex justify-center my-8">
+  @if (isAdmin()) {
+    <section class="flex justify-center my-8" aria-label="Administración de superintendente">
       <div class="flex items-center w-full max-w-sm bg-slate-900/50 rounded-xl overflow-hidden border border-slate-700 shadow-sm focus-within:ring-2 focus-within:ring-sky-500 transition-all">
+        <label for="overseerName" class="sr-only">Nuevo nombre del superintendente</label>
         <input 
+          id="overseerName"
           type="text" 
           class="w-full bg-transparent text-white px-4 py-3 outline-none placeholder:text-slate-500" 
-          placeholder="Nuevo nombre del superintendente." 
-          [(ngModel)]="newName"
+          placeholder="Ej: Juan Pérez" 
+          [ngModel]="newName()"
+          (ngModelChange)="newName.set($event)"
+          (keyup.enter)="saveName()"
         >
         <button 
-          class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-6 py-3 transition-colors shrink-0" 
+          class="bg-sky-600 hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-white font-bold px-6 py-3 transition-colors shrink-0" 
           type="button" 
           (click)="saveName()"
         >
           Guardar
         </button>
       </div>
-    </div>
+    </section>
   }
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 max-w-5xl mx-auto">
-    <!-- Ubicaciones -->
-    <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-sm flex flex-col items-center justify-center p-8 transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-500/20 cursor-pointer" routerLink="../territorios/ubications-overseer">
-      <div class="bg-slate-900 rounded-full w-32 h-32 flex flex-col items-center justify-center p-4 shadow-inner mb-6 border border-slate-700">
-        <img src="https://i.postimg.cc/5XbRCwC8/mt.png" alt="map" class="w-full h-auto object-contain drop-shadow-md">
-      </div>
-      <h3 class="text-2xl font-extrabold text-white text-center">Ubicaciones</h3>
-    </div>
-    
-    <!-- Territorios -->
-    <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-sm flex flex-col items-center justify-center p-8 transition-all duration-300 animate-[fadeInUp_0.6s_ease_backwards] hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/20 cursor-pointer" routerLink="../territorios">
-      <div class="bg-slate-900 rounded-full w-32 h-32 flex flex-col items-center justify-center p-4 shadow-inner mb-6 border border-slate-700">
-        <img src="../../../../../assets/img/map.png" alt="map" class="w-full h-auto object-contain drop-shadow-md">
-      </div>
-      <h3 class="text-2xl font-extrabold text-white text-center">Territorios</h3>
-    </div>
-    
-    <!-- Salidas -->
-    <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-sm flex flex-col items-center justify-center p-8 transition-all duration-300 animate-[fadeInUp_0.7s_ease_backwards] hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/20 cursor-pointer" routerLink="../salidas">
-      <div class="bg-slate-900 rounded-full w-32 h-32 flex flex-col items-center justify-center p-4 shadow-inner mb-6 border border-slate-700">
-        <img src="../../../../../assets/img/salidas.png" alt="map" class="w-full h-auto object-contain drop-shadow-md">
-      </div>
-      <h3 class="text-2xl font-extrabold text-white text-center">Salidas</h3>
-    </div>
-  </div>
+  <nav class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 max-w-5xl mx-auto" aria-label="Navegación principal">
+    @for (card of cards(); track card.title) {
+      <a 
+        [routerLink]="card.route"
+        class="block bg-slate-800 rounded-3xl border border-slate-700 shadow-sm p-8 transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-sky-500 {{ card.hoverColor }}"
+      >
+        <div class="bg-slate-900 rounded-full w-32 h-32 flex flex-col items-center justify-center p-4 shadow-inner mb-6 mx-auto border border-slate-700">
+          <img [src]="card.imgUrl" [alt]="'Ir a ' + card.title" class="w-full h-auto object-contain drop-shadow-md">
+        </div>
+        <h3 class="text-2xl font-extrabold text-white text-center">{{ card.title }}</h3>
+      </a>
+    }
+  </nav>
 </div>
