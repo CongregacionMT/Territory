@@ -20,9 +20,9 @@ export interface NavOption {
   imports: [RouterLink, TitleCasePipe],
 })
 export class HomePageComponent implements OnInit {
-  public authService = inject(AuthService);
-  public pwaService = inject(PwaService);
-  private homeFacade = inject(HomeFacadeService);
+  public readonly authService = inject(AuthService);
+  public readonly pwaService = inject(PwaService);
+  private readonly homeFacade = inject(HomeFacadeService);
 
   congregationName: string = environment.congregationName;
 

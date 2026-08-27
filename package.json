@@ -13,6 +13,7 @@
     "analyze": "npm run build:stats && webpack-bundle-analyzer dist/territory/stats.json",
     "watch": "ng build --watch --configuration development",
     "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint \"src/**/*.ts\"",
     "deploy": "node scripts/deploy.js",
     "test-congregation": "ng serve --configuration=test-congregation",
