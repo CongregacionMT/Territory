@@ -56,13 +56,13 @@ describe('PrintPdfModalComponent', () => {
   });
 
   it('should emit close event', () => {
-    vi.spyOn(component.close, 'emit');
+    vi.spyOn(component.closeModalEvent, 'emit');
     component.closeModal();
-    expect(component.close.emit).toHaveBeenCalled();
+    expect(component.closeModalEvent.emit).toHaveBeenCalled();
   });
 
   it('should print PDF successfully', async () => {
-    vi.spyOn(component.close, 'emit');
+    vi.spyOn(component.closeModalEvent, 'emit');
 
     // Since printPdf has a nested async structure with forkJoin and await,
     // we need to await the printPdf completion or allow event loop to tick.
@@ -80,15 +80,15 @@ describe('PrintPdfModalComponent', () => {
     vi.advanceTimersByTime(3000);
 
     expect(component.pdfGenerated()).toBe(false);
-    expect(component.close.emit).toHaveBeenCalled();
+    expect(component.closeModalEvent.emit).toHaveBeenCalled();
   });
 
-  it('should handle error when fetching departures', async () => {
+  it('should handle error when fetching departures', () => {
     mockTerritoryDataService.getWeeklyDeparture.mockReturnValue(
       throwError(() => new Error('Test error')),
     );
 
-    await component.printPdf('bn');
+    component.printPdf('bn');
 
     expect(component.isPrintingPdf()).toBe(false);
     expect(mockPdfService.generateAllGroupsPdf).not.toHaveBeenCalled();

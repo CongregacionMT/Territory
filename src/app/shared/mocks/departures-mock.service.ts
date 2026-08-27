@@ -1,12 +1,23 @@
 import { Injectable } from '@angular/core';
 
+export interface MockDepartureDay {
+  day: string;
+  schedule: string;
+  driver: string;
+  territory: string;
+  point: string;
+}
+
+export interface MockDepartureItem {
+  date?: string;
+  departure?: MockDepartureDay[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class DeparturesMockService {
-  constructor() {}
-
-  getDeparture(): any[] {
+  getDeparture(): MockDepartureItem[] {
     return [
       {
         date: '29 de agosto - 04 de septiembre',

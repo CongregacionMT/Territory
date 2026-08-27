@@ -23,6 +23,8 @@ import {
   FormControl,
   Validators,
   ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors,
 } from '@angular/forms';
 import { TerritoriesNumberData, TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
@@ -82,10 +84,18 @@ export class AssignmentRecordPageComponent implements OnInit {
 
   private createFormCard(): FormGroup {
     return this.fb.group({
-      location: new FormControl(this.congregationName, [Validators.required]),
-      publisher: new FormControl('', [Validators.required]),
-      territory: new FormControl(null, [Validators.required]),
-      date: new FormControl(new Date().toISOString().substring(0, 10), [Validators.required]),
+      location: new FormControl(this.congregationName, [
+        (control: AbstractControl): ValidationErrors | null => Validators.required(control),
+      ]),
+      publisher: new FormControl('', [
+        (control: AbstractControl): ValidationErrors | null => Validators.required(control),
+      ]),
+      territory: new FormControl(null, [
+        (control: AbstractControl): ValidationErrors | null => Validators.required(control),
+      ]),
+      date: new FormControl(new Date().toISOString().substring(0, 10), [
+        (control: AbstractControl): ValidationErrors | null => Validators.required(control),
+      ]),
     });
   }
 

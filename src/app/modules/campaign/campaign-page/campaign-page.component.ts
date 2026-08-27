@@ -218,8 +218,7 @@ export class CampaignPageComponent implements OnInit {
   }
 
   async handleEndCampaign(data: EndCampaignData): Promise<void> {
-    const active = (this.campaignService.getCachedCampaign() ||
-      this.activeCampaign()) as CampaignData | null;
+    const active = this.campaignService.getCachedCampaign() || this.activeCampaign();
     if (!active) return;
 
     this.finishingCampaign.set(true);

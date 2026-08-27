@@ -5,6 +5,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { filter, switchMap } from 'rxjs';
 import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void> | void;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -13,10 +18,7 @@ export class PwaService {
   private _snackBar = inject(MatSnackBar);
   private destroyRef = inject(DestroyRef);
 
-  private deferredPrompt: {
-    prompt: () => void;
-    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-  } | null = null;
+  private deferredPrompt: BeforeInstallPromptEvent | null = null;
   private _isIos = signal<boolean>(false);
   private _btnPWA = signal<boolean>(true);
 
@@ -46,7 +48,7 @@ export class PwaService {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
-        void this.swUpdate.activateUpdate().then(() => window.location.reload());
+        document.location.reload();
       });
 
     void this.swUpdate.checkForUpdate();
@@ -55,12 +57,14 @@ export class PwaService {
   private initPWA(): void {
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
-    this._isIos.set(/iphone|ipad|ipod/.test(userAgent));
+    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    this._isIos.set(isIosDevice);
 
-    // Check if standalone (installed)
+    // Detect if running in standalone mode (installed PWA)
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+      ('standalone' in window.navigator &&
+        Boolean((window.navigator as unknown as { standalone: boolean }).standalone));
 
     if (isStandalone) {
       this._btnPWA.set(false);
@@ -75,7 +79,7 @@ export class PwaService {
 
     window.addEventListener('beforeinstallprompt', (e: Event) => {
       e.preventDefault();
-      this.deferredPrompt = e as any;
+      this.deferredPrompt = e as unknown as BeforeInstallPromptEvent;
       this._btnPWA.set(true);
     });
   }

@@ -226,7 +226,7 @@ export class DeparturePdfService {
       // Group departures by date
       const groupedByDate = this.groupDeparturesByDate(groupDepartures);
 
-      for (const [dateStr, deps] of groupedByDate) {
+      for (const [, deps] of groupedByDate) {
         for (let i = 0; i < deps.length; i++) {
           const dep = deps[i];
 

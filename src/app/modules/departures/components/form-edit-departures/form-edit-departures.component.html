@@ -20,7 +20,7 @@
               [suggestedTerritories]="getSuggestedTerritories(i, group)"
               [quickSuggestionText]="getQuickSuggestionText(i, group)"
               (delete)="deleteInputForm(i, group)"
-              (copy)="copyDay(i, group)"
+              (dayCopy)="copyDay(i, group)"
               (openModal)="openModal(i, group)"
               (applySuggested)="applySuggestedTerritory(i, group, $event)"
             ></app-departure-day-card>

@@ -82,12 +82,13 @@ describe('UsersPageComponent', () => {
   });
 
   it('should call deleteUser if confirmed', async () => {
+    mockDialogService.openDialog.mockReturnValue(of(true));
     mockFeatureService.deleteUser.mockResolvedValue(true);
     component.deleteUser('test');
 
     expect(mockDialogService.openDialog).toHaveBeenCalled();
 
-    // Wait for promise resolution
+    // Wait for async operations (subscribe + async IIFE)
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockFeatureService.deleteUser).toHaveBeenCalledWith('test');

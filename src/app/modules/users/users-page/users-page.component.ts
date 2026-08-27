@@ -1,8 +1,17 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
+import { filter } from 'rxjs';
 import { DialogService } from '@core/services/dialog.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { User } from '@core/models/User';
 import { UsersFeatureService } from '../services/users-feature.service';
 
 @Component({
@@ -15,15 +24,22 @@ import { UsersFeatureService } from '../services/users-feature.service';
 })
 export class UsersPageComponent {
   featureService = inject(UsersFeatureService);
-  private _snackBar = inject(MatSnackBar);
-  private dialogService = inject(DialogService);
-  private fb = inject(FormBuilder);
+  private readonly _snackBar = inject(MatSnackBar);
+  private readonly dialogService = inject(DialogService);
+  private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   showError = signal<boolean>(false);
 
   formUser = this.fb.nonNullable.group({
-    user: ['', [Validators.required]],
-    password: ['', [Validators.required]],
+    user: [
+      '',
+      [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
+    ],
+    password: [
+      '',
+      [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
+    ],
     tokens: this.fb.nonNullable.control<string[]>([]),
     rol: ['conductor'],
   });
@@ -60,10 +76,15 @@ export class UsersPageComponent {
     }
     this.showError.set(false);
 
-    // Get value typed as non-nullable
-    const userPayload = this.formUser.getRawValue();
+    const rawVal = this.formUser.getRawValue();
+    const userPayload: User = {
+      user: rawVal.user,
+      password: rawVal.password,
+      rol: rawVal.rol,
+      tokens: rawVal.tokens,
+    };
 
-    const success = await this.featureService.createUser(userPayload as any);
+    const success = await this.featureService.createUser(userPayload);
     if (success) {
       this.formUser.reset({ rol: 'conductor', tokens: [] });
       this._snackBar.open('👤 Usuario creado con éxito', 'ok', {
@@ -76,21 +97,36 @@ export class UsersPageComponent {
     }
   }
 
-  deleteUser(idUser: string): void {
-    const dialogRef = this.dialogService.openDialog(
-      { title: 'Eliminar usuario', message: '¿Estás seguro de eliminar este usuario?' },
-      ConfirmDialogComponent,
-    );
-    dialogRef.subscribe((confirmed) => {
-      if (confirmed) {
-        void this.featureService.deleteUser(idUser).then((success) => {
+  deleteUser(userOrName: User | string): void {
+    const userName = typeof userOrName === 'string' ? userOrName : userOrName.user;
+    if (!userName) return;
+
+    const dialogData = {
+      title: 'Eliminar usuario',
+      message: `¿Estás seguro de que deseas eliminar al usuario "${userName}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+    };
+
+    this.dialogService
+      .openDialog(dialogData, ConfirmDialogComponent)
+      .pipe(
+        filter((confirmed): confirmed is boolean => confirmed === true),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        void (async (): Promise<void> => {
+          const success = await this.featureService.deleteUser(userName);
           if (success) {
-            this._snackBar.open('🗑️ Usuario eliminado', 'ok', { duration: 3000 });
+            this._snackBar.open('🗑️ Usuario eliminado con éxito', 'ok', {
+              duration: 3000,
+            });
           } else {
-            this._snackBar.open('❌ Error al eliminar usuario', 'ok', { duration: 3000 });
+            this._snackBar.open('❌ Error al eliminar usuario', 'ok', {
+              duration: 3000,
+            });
           }
-        });
-      }
-    });
+        })();
+      });
   }
 }

@@ -1,7 +1,8 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormGroup, ReactiveFormsModule, FormArray } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule, FormArray, FormControl } from '@angular/forms';
 import { User } from '@core/models/User';
+import { LocalityConfig } from '@core/models/LocalityData';
 
 @Component({
   selector: 'app-departure-day-card',
@@ -17,34 +18,34 @@ export class DepartureDayCardComponent {
 
   isAdmin = input<boolean>(false);
   drivers = input<User[]>([]);
-  localities = input<any[]>([]);
+  localities = input<LocalityConfig[]>([]);
 
   suggestedTerritories = input<string[]>([]);
   quickSuggestionText = input<string | null>(null);
 
   delete = output<void>();
-  copy = output<void>();
+  dayCopy = output<void>();
   openModal = output<void>();
   applySuggested = output<string>();
 
   get dateValue(): string {
-    return this.dayFormGroup().get('date')?.value || '';
+    return String(this.dayFormGroup().get('date')?.value ?? '');
   }
 
   get scheduleValue(): string {
-    return this.dayFormGroup().get('schedule')?.value || '';
+    return String(this.dayFormGroup().get('schedule')?.value ?? '');
   }
 
   get locationValue(): string {
-    return this.dayFormGroup().get('location')?.value || '';
+    return String(this.dayFormGroup().get('location')?.value ?? '');
   }
 
   get isEvent(): boolean {
-    return this.dayFormGroup().get('isEvent')?.value || false;
+    return Boolean(this.dayFormGroup().get('isEvent')?.value);
   }
 
   get cardStatus(): string {
-    return this.dayFormGroup().get('cardStatus')?.value || 'pending';
+    return String(this.dayFormGroup().get('cardStatus')?.value ?? 'pending');
   }
 
   getDepartureTitle(date: string, schedule: string): string {
@@ -88,8 +89,10 @@ export class DepartureDayCardComponent {
   }
 
   getTerritories(): string[] {
-    const territoryArray = this.dayFormGroup().get('territory');
-    return territoryArray ? territoryArray.value || [] : [];
+    const territoryArray = this.dayFormGroup().get('territory') as FormArray<
+      FormControl<string>
+    > | null;
+    return (territoryArray?.value as string[]) || [];
   }
 
   getTerritoryLink(locationPrefix: string, territoryNumber: string): string {
@@ -114,14 +117,17 @@ export class DepartureDayCardComponent {
     this.dayFormGroup().get(controlName)?.markAsDirty();
 
     if (controlName === 'isEvent' && checked) {
-      const territoryArray = this.dayFormGroup().get('territory') as FormArray;
+      const territoryArray = this.dayFormGroup().get('territory') as FormArray<
+        FormControl<string>
+      > | null;
       if (territoryArray) {
         territoryArray.clear();
       }
     }
   }
 
-  onToggleCardReceived(checked: boolean): void {
+  onToggleCardReceived(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
     this.dayFormGroup()
       .get('cardStatus')
       ?.setValue(checked ? 'received' : 'pending');

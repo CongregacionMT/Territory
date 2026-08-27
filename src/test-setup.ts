@@ -1,6 +1,26 @@
 import '@analogjs/vitest-angular/setup-zone';
 import { vi, beforeEach } from 'vitest';
 import { of } from 'rxjs';
+import {
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting,
+} from '@angular/platform-browser-dynamic/testing';
+import { getTestBed, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ElementRef } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { Firestore } from '@angular/fire/firestore';
+import { Auth } from '@angular/fire/auth';
+import { SwUpdate, ServiceWorkerModule } from '@angular/service-worker';
+
+import { DialogService } from './app/core/services/dialog.service';
+import { TerritoryDataService } from './app/core/services/territory-data.service';
+import { CampaignService } from './app/core/services/campaign.service';
+import { SpinnerService } from './app/core/services/spinner.service';
+import { CartDataService } from './app/core/services/cart-data.service';
+import { MessagingService } from './app/core/services/messaging.service';
 
 vi.mock('@angular/fire/firestore', () => {
   return {
@@ -52,67 +72,52 @@ vi.mock('@angular/fire/database', () => {
   };
 });
 
-import {
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting,
-} from '@angular/platform-browser-dynamic/testing';
-import { getTestBed } from '@angular/core/testing';
-
 getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
 
-import { vi, beforeEach } from 'vitest';
-import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
-import { ElementRef } from '@angular/core';
-import { DialogService } from './app/core/services/dialog.service';
-import { TerritoryDataService } from './app/core/services/territory-data.service';
-import { CampaignService } from './app/core/services/campaign.service';
-import { SpinnerService } from './app/core/services/spinner.service';
-import { CartDataService } from './app/core/services/cart-data.service';
-import { MessagingService } from './app/core/services/messaging.service';
-
-(globalThis as any).jasmine = {
-  createSpyObj: (baseName: string, methodNames: string[] | Record<string, any>) => {
-    const obj: any = {};
-    if (Array.isArray(methodNames)) {
-      methodNames.forEach((name) => {
-        obj[name] = vi.fn().mockReturnValue(of({}));
-      });
-    } else if (methodNames) {
-      for (const [key, value] of Object.entries(methodNames)) {
-        obj[key] = vi.fn().mockReturnValue(value);
-      }
+function createSpyObj(
+  _baseName: string,
+  methodNames: string[] | Record<string, unknown>,
+): Record<string, unknown> {
+  const obj: Record<string, unknown> = {};
+  if (Array.isArray(methodNames)) {
+    methodNames.forEach((name) => {
+      obj[name] = vi.fn().mockReturnValue(of({}));
+    });
+  } else if (methodNames) {
+    for (const [key, value] of Object.entries(methodNames)) {
+      obj[key] = vi.fn().mockReturnValue(value);
     }
-    return obj;
-  },
-};
+  }
+  return obj;
+}
 
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+interface WindowWithBootstrap extends Window {
+  bootstrap?: { Modal: ReturnType<typeof vi.fn> };
+}
 
-import { Firestore } from '@angular/fire/firestore';
-import { Auth } from '@angular/fire/auth';
-import { SwUpdate, ServiceWorkerModule } from '@angular/service-worker';
-import { of } from 'rxjs';
+(window as WindowWithBootstrap).bootstrap = { Modal: vi.fn() };
+window.matchMedia = vi.fn().mockReturnValue({ matches: false });
 
-(globalThis as any).window.bootstrap = { Modal: vi.fn() };
-(globalThis as any).window.matchMedia = vi.fn().mockReturnValue({ matches: false });
-
-const storageMock = () => {
+const storageMock = (): Storage => {
   let storage: Record<string, string> = {};
   return {
-    getItem: (key: string) => (key in storage ? storage[key] : null),
-    setItem: (key: string, value: string) => (storage[key] = value || ''),
-    removeItem: (key: string) => delete storage[key],
-    clear: () => (storage = {}),
+    getItem: (key: string): string | null => (key in storage ? storage[key] : null),
+    setItem: (key: string, value: string): void => {
+      storage[key] = value || '';
+    },
+    removeItem: (key: string): void => {
+      delete storage[key];
+    },
+    clear: (): void => {
+      storage = {};
+    },
+    key: (index: number): string | null => Object.keys(storage)[index] ?? null,
+    length: 0,
   };
 };
 
 Object.defineProperty(window, 'localStorage', { value: storageMock() });
 Object.defineProperty(window, 'sessionStorage', { value: storageMock() });
-
-import { provideRouter } from '@angular/router';
 
 beforeEach(() => {
   TestBed.configureTestingModule({
@@ -127,26 +132,22 @@ beforeEach(() => {
         useValue: {
           snapshot: {
             params: { collection: '1' },
-            paramMap: { get: () => '1' },
+            paramMap: { get: (): string => '1' },
             queryParams: {},
             url: [{ path: 'test' }],
           },
-          paramMap: of({ get: () => '1' }),
+          paramMap: of({ get: (): string => '1' }),
           queryParams: of({}),
         },
       },
       { provide: ElementRef, useValue: { nativeElement: document.createElement('div') } },
       {
         provide: DialogService,
-        useValue: (globalThis as any).jasmine.createSpyObj('DialogService', [
-          'openModal',
-          'closeModal',
-          'confirmDialog',
-        ]),
+        useValue: createSpyObj('DialogService', ['openModal', 'closeModal', 'confirmDialog']),
       },
       {
         provide: TerritoryDataService,
-        useValue: (globalThis as any).jasmine.createSpyObj('TerritoryDataService', {
+        useValue: createSpyObj('TerritoryDataService', {
           getTerritories: of([{}]),
           getTerritory: of({}),
           getMaps: of([{ maps: [] }]),
@@ -167,7 +168,7 @@ beforeEach(() => {
       },
       {
         provide: CampaignService,
-        useValue: (globalThis as any).jasmine.createSpyObj('CampaignService', {
+        useValue: createSpyObj('CampaignService', {
           getCampaigns: of([{}]),
           getAllCampaigns: of([{}]),
           getActiveCampaign: Promise.resolve({}),
@@ -175,7 +176,7 @@ beforeEach(() => {
       },
       {
         provide: SpinnerService,
-        useValue: (globalThis as any).jasmine.createSpyObj('SpinnerService', [
+        useValue: createSpyObj('SpinnerService', [
           'show',
           'hide',
           'cargarSpinner',
@@ -185,7 +186,7 @@ beforeEach(() => {
       },
       {
         provide: CartDataService,
-        useValue: (globalThis as any).jasmine.createSpyObj('CartDataService', {
+        useValue: createSpyObj('CartDataService', {
           getCarts: of([{}]),
           getCart: of({}),
           getAllCarts: of([{}]),
@@ -195,11 +196,7 @@ beforeEach(() => {
       },
       {
         provide: MessagingService,
-        useValue: (globalThis as any).jasmine.createSpyObj('MessagingService', [
-          'sendMessage',
-          'success',
-          'error',
-        ]),
+        useValue: createSpyObj('MessagingService', ['sendMessage', 'success', 'error']),
       },
       { provide: MAT_DIALOG_DATA, useValue: {} },
       { provide: MatDialogRef, useValue: { close: vi.fn() } },

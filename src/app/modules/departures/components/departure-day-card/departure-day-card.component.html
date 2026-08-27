@@ -28,7 +28,7 @@
           <button
             type="button"
             class="inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-sm font-medium border text-slate-300 border-slate-600 hover:bg-slate-700 transition-colors w-full sm:w-auto cursor-pointer"
-            (click)="copy.emit()"
+            (click)="dayCopy.emit()"
             title="Copiar datos a la siguiente semana"
           >
             <i class="fas fa-copy sm:mr-1.5"></i><span class="hidden sm:inline">Copiar</span>
@@ -41,7 +41,7 @@
               type="checkbox"
               [id]="'cardReceived_' + index() + '_' + groupIndex()"
               [checked]="cardStatus === 'received'"
-              (change)="onToggleCardReceived($any($event.target).checked)"
+              (change)="onToggleCardReceived($event)"
             />
             <label class="text-sm font-bold text-slate-300 cursor-pointer select-none" [for]="'cardReceived_' + index() + '_' + groupIndex()">
               Revisada
