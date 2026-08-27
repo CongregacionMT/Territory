@@ -4,7 +4,6 @@ import { AuthService } from '@core/services/auth.service';
 import { CampaignService } from '@core/services/campaign.service';
 import { CartDataService } from '@core/services/cart-data.service';
 import { MessagingService } from '@core/services/messaging.service';
-import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { User } from '@core/models/User';
 import { take } from 'rxjs';
@@ -13,13 +12,12 @@ import { take } from 'rxjs';
   providedIn: 'root', // Lo proveemos en root para que esté disponible, o podría ser 'any' / provided en el módulo
 })
 export class HomeFacadeService {
-  private readonly spinner = inject(SpinnerService);
-  private territorieDataService = inject(TerritoryDataService);
-  private campaignService = inject(CampaignService);
-  private messagingService = inject(MessagingService);
-  private cartDataService = inject(CartDataService);
-  private _snackBar = inject(MatSnackBar);
-  private authService = inject(AuthService);
+  private readonly territorieDataService = inject(TerritoryDataService);
+  private readonly campaignService = inject(CampaignService);
+  private readonly messagingService = inject(MessagingService);
+  private readonly cartDataService = inject(CartDataService);
+  private readonly _snackBar = inject(MatSnackBar);
+  private readonly authService = inject(AuthService);
 
   initializeHomeState(): void {
     // 🚀 Hacemos pre-fetching de datos en background SIN bloquear la pantalla con el spinner
