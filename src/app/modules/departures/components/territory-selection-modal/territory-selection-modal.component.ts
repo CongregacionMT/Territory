@@ -1,7 +1,8 @@
-
 import { Component, input, output, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, FormArray, FormControl } from '@angular/forms';
+import { Card } from '@core/models/Card';
+import { LocalityConfig } from '@core/models/LocalityData';
 
 @Component({
   selector: 'app-territory-selection-modal',
@@ -20,19 +21,19 @@ export class TerritorySelectionModalComponent {
   territoryLastCompletedDays = input.required<Record<string, Record<number, number>>>();
   territoryGroupsMap = input.required<Record<string, Record<number, number>>>();
   territoryNumbersCache = input.required<Record<string, string[]>>();
-  personalAssignments = input.required<any[]>();
-  localities = input.required<any[]>();
+  personalAssignments = input.required<Card[]>();
+  localities = input.required<LocalityConfig[]>();
 
   // Outputs
-  close = output<void>();
+  modalClose = output<void>();
 
   // State
   sortByAge = true;
   showPersonalTerritories = true;
   selectedTerritoryGroup: number | null = null;
 
-  locationPrefix = computed(() => {
-    return this.activeModalDays().get('location')?.value || '';
+  locationPrefix = computed<string>(() => {
+    return String(this.activeModalDays().get('location')?.value ?? '');
   });
 
   getAvailableGroupNumbers(): number[] {
@@ -103,29 +104,45 @@ export class TerritorySelectionModalComponent {
   }
 
   isPersonalTerritory(num: string, locationPrefix: string): boolean {
-    const assignment = this.personalAssignments().find(
-      (a) => a.locationPrefix === locationPrefix && a.territorio === Number(num),
-    );
-    return !!assignment && assignment.isPersonal;
+    const territoryNumber = this.normalizeTerritoryNumber(num);
+    const locationNames = this.getLocationNames(locationPrefix);
+
+    return this.personalAssignments().some((assignment) => {
+      const assignedTerritory = this.normalizeTerritoryNumber(
+        String(assignment.territory || assignment.territoryNumber || ''),
+      );
+      const assignedLocation = String(assignment.location || '').toLowerCase();
+
+      return (
+        assignedTerritory === territoryNumber &&
+        locationNames.some((name) => assignedLocation.includes(name))
+      );
+    });
   }
 
   isTerritoryChecked(num: string): boolean {
-    const territoryArray = this.activeModalDays().get('territory') as FormArray;
+    const territoryArray = this.activeModalDays().get('territory') as FormArray<
+      FormControl<string>
+    > | null;
     if (!territoryArray) return false;
-    return territoryArray.value.includes(num);
+    const values = territoryArray.value || [];
+    return values.includes(num);
   }
 
   handleCheckboxChange(event: Event, num: string): void {
     const checked = (event.target as HTMLInputElement).checked;
-    const territoryArray = this.activeModalDays().get('territory') as FormArray;
+    const territoryArray = this.activeModalDays().get('territory') as FormArray<
+      FormControl<string>
+    > | null;
     if (!territoryArray) return;
 
+    const values = territoryArray.value || [];
     if (checked) {
-      if (!territoryArray.value.includes(num)) {
-        territoryArray.push(new FormControl(num));
+      if (!values.includes(num)) {
+        territoryArray.push(new FormControl(num, { nonNullable: true }));
       }
     } else {
-      const index = territoryArray.value.findIndex((val: string) => val === num);
+      const index = values.findIndex((val: string) => val === num);
       if (index >= 0) {
         territoryArray.removeAt(index);
       }
@@ -140,13 +157,15 @@ export class TerritorySelectionModalComponent {
     Object.keys(this.formDeparture().controls).forEach((key) => {
       if (key.startsWith('departure')) {
         const groupIndex = parseInt(key.replace('departure', ''), 10);
-        const formArray = this.formDeparture().get(key) as FormArray;
+        const formArray = this.formDeparture().get(key) as FormArray | null;
+        if (!formArray) return;
 
         formArray.controls.forEach((groupControl, i) => {
           if (groupIndex === this.groupKey() && i === this.dayIndex()) return;
 
-          if (groupControl.get('location')?.value === locPrefix) {
-            const territoryVals = groupControl.get('territory')?.value || [];
+          const controlLocation = String(groupControl.get('location')?.value ?? '');
+          if (controlLocation === locPrefix) {
+            const territoryVals = (groupControl.get('territory')?.value as string[]) || [];
             if (territoryVals.includes(num)) {
               isUsed = true;
             }
@@ -209,6 +228,28 @@ export class TerritorySelectionModalComponent {
   }
 
   closeModal(): void {
-    this.close.emit();
+    this.modalClose.emit();
+  }
+
+  private normalizeTerritoryNumber(value: string): number {
+    const match = String(value).match(/\d+/);
+    return match ? Number(match[0]) : -1;
+  }
+
+  private getLocationNames(locationPrefix: string): string[] {
+    const location = String(locationPrefix || '').toLowerCase();
+    const locality = this.localities().find(
+      (loc) =>
+        String(loc.territoryPrefix || '').toLowerCase() === location ||
+        String(loc.key || '').toLowerCase() === location ||
+        String(loc.name || '').toLowerCase() === location,
+    );
+
+    return [
+      location,
+      String(locality?.key || '').toLowerCase(),
+      String(locality?.name || '').toLowerCase(),
+      String(locality?.territoryPrefix || '').toLowerCase(),
+    ].filter(Boolean);
   }
 }

@@ -1,11 +1,10 @@
 import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CardButtonsData } from '@core/models/CardButtonsData';
-import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
+import { TerritoriesNumberData, TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { Card, CardApplesData } from '@core/models/Card';
-import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
 import { firstValueFrom } from 'rxjs';
@@ -19,8 +18,8 @@ import { firstValueFrom } from 'rxjs';
   standalone: true,
 })
 export class HomeStatisticsPageComponent implements OnInit {
-  private territorieDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
+  private readonly territorieDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
 
   CardButtonsStatistics = signal<CardButtonsData[]>([]);
   territoryNumberOfLocalStorage = signal<TerritoriesNumberData>({});
@@ -28,36 +27,38 @@ export class HomeStatisticsPageComponent implements OnInit {
   localities = environment.localities || [];
 
   ngOnInit(): void {
-    void (async () => {
-      this.spinner.cargarSpinner();
+    void this.loadAllStatistics();
+  }
 
-      // Cargar botones de estadísticas (mapas)
-      const storedTerritorioStatistics = sessionStorage.getItem('territorioStatistics');
-      const numberTerritory = storedTerritorioStatistics
-        ? (JSON.parse(storedTerritorioStatistics) as { territorio?: CardButtonsData[] })
-        : { territorio: [] };
+  private async loadAllStatistics(): Promise<void> {
+    this.spinner.cargarSpinner();
 
-      if (numberTerritory.territorio) {
-        this.CardButtonsStatistics.set(numberTerritory.territorio);
+    // Cargar botones de estadísticas (mapas)
+    const storedTerritorioStatistics = sessionStorage.getItem('territorioStatistics');
+    const numberTerritory = storedTerritorioStatistics
+      ? (JSON.parse(storedTerritorioStatistics) as { territorio?: CardButtonsData[] })
+      : { territorio: [] };
+
+    if (numberTerritory.territorio) {
+      this.CardButtonsStatistics.set(numberTerritory.territorio);
+    }
+
+    // Cargar estadísticas para cada localidad
+    const territoryData = sessionStorage.getItem('numberTerritory');
+    this.territoryNumberOfLocalStorage.set(
+      territoryData ? (JSON.parse(territoryData) as TerritoriesNumberData) : {},
+    );
+
+    const promises: Promise<void>[] = [];
+
+    this.localities.forEach((locality) => {
+      if (locality.hasNumberedTerritories) {
+        promises.push(this.loadStatisticsForLocality(locality));
       }
+    });
 
-      // Cargar estadísticas para cada localidad
-      const territoryData = sessionStorage.getItem('numberTerritory');
-      this.territoryNumberOfLocalStorage.set(
-        territoryData ? (JSON.parse(territoryData) as TerritoriesNumberData) : {},
-      );
-
-      const promises: Promise<void>[] = [];
-
-      this.localities.forEach((locality) => {
-        if (locality.hasNumberedTerritories) {
-          promises.push(this.loadStatisticsForLocality(locality));
-        }
-      });
-
-      await Promise.all(promises);
-      this.spinner.cerrarSpinner();
-    })();
+    await Promise.all(promises);
+    this.spinner.cerrarSpinner();
   }
 
   async loadStatisticsForLocality(locality: {
@@ -108,7 +109,7 @@ export class HomeStatisticsPageComponent implements OnInit {
   }
 
   getStorageKeyForLocality(localityKey: string): string {
-    const suffix = localityKey.charAt(0).toUpperCase() + localityKey.slice(1).replace(/-/g, '');
+    const suffix = localityKey.charAt(0).toUpperCase() + localityKey.slice(1).replaceAll('-', '');
     return `statisticData${suffix}_12`;
   }
 }
