@@ -41,7 +41,7 @@ export class UsersPageComponent {
       [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
     ],
     tokens: this.fb.nonNullable.control<string[]>([]),
-    rol: ['conductor'],
+    rol: this.fb.nonNullable.control<'admin' | 'conductor'>('conductor'),
   });
 
   async copyToClipboard(token: string | string[]): Promise<void> {
