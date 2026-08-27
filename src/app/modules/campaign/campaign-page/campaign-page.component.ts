@@ -75,11 +75,11 @@ export class CampaignPageComponent implements OnInit {
     null,
   );
 
-  private campaignService = inject(CampaignService);
-  private spinner = inject(SpinnerService);
-  private router = inject(Router);
-  private territoryService = inject(TerritoryDataService);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly campaignService = inject(CampaignService);
+  private readonly spinner = inject(SpinnerService);
+  private readonly router = inject(Router);
+  private readonly territoryService = inject(TerritoryDataService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   startModal = viewChild.required(StartCampaignModalComponent);
   endModal = viewChild.required(EndCampaignModalComponent);
@@ -237,7 +237,7 @@ export class CampaignPageComponent implements OnInit {
         data.departuresInfo,
         data.missingInvitations,
         data.finalComments,
-        Timestamp.fromDate(new Date((data.finalEndDate as string) + 'T23:59:59')) as any,
+        Timestamp.fromDate(new Date(data.finalEndDate + 'T23:59:59')),
         (current: number, total: number) => {
           this.campaignProgress.set(current);
           this.campaignProgressTotal.set(total);

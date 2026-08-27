@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { BreadcrumbService } from './breadcrumb.service';
 import { Router, ActivationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('BreadcrumbService', () => {
   let service: BreadcrumbService;
@@ -68,7 +68,7 @@ describe('BreadcrumbService', () => {
 
     expect(service.showBreadcrumb()).toBe(true);
     const breadcrumbs = service.breadcrumbs();
-    expect(breadcrumbs.length).toBe(3);
+    expect(breadcrumbs).toHaveLength(3);
 
     expect(breadcrumbs[0]).toEqual({ name: 'Inicio', route: '/home' });
     expect(breadcrumbs[1]).toEqual({ name: 'Territorios', route: '/territorios' });
@@ -95,7 +95,7 @@ describe('BreadcrumbService', () => {
     eventsSubject.next(new ActivationEnd({} as any));
 
     const breadcrumbs = service.breadcrumbs();
-    expect(breadcrumbs.length).toBe(2); // Inicio and Territorios
+    expect(breadcrumbs).toHaveLength(2); // Inicio and Territorios
     expect(breadcrumbs[1]).toEqual({ name: 'Territorios', route: '/territorios' });
   });
 });

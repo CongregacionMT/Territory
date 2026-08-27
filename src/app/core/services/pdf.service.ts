@@ -173,7 +173,7 @@ export class PdfService {
     a.download = `Registro de territorios - ${localityName}.pdf`;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    a.remove();
     URL.revokeObjectURL(url);
   }
 }

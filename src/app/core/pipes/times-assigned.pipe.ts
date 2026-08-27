@@ -3,8 +3,8 @@ import { Card, CardApplesData } from '@core/models/Card';
 
 @Pipe({ name: 'timesAssigned' })
 export class TimesAssigned implements PipeTransform {
-  transform(dataList: Card[], _time?: boolean): number {
-    let dataFilter = JSON.parse(JSON.stringify(dataList)) as Card[];
+  transform(dataList: Card[]): number {
+    let dataFilter = structuredClone(dataList);
     if (dataFilter.length !== 0) {
       dataFilter = dataFilter.filter((list: Card) => {
         let count = 0;

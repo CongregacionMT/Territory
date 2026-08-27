@@ -12,7 +12,7 @@ import { environment } from '@environments/environment';
   imports: [RouterLink, NgClass],
 })
 export class DeparturesCardsComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  private readonly route = inject(ActivatedRoute);
 
   readonly departures = input<Departure[]>([] as Departure[]);
   currentPath: number = 0;
@@ -33,9 +33,9 @@ export class DeparturesCardsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const lastPath = this.route.snapshot.url[this.route.snapshot.url.length - 1]?.path;
+    const lastPath = this.route.snapshot.url.at(-1)?.path;
     const parsedPath = Number(lastPath);
-    this.currentPath = !isNaN(parsedPath) ? parsedPath : 0;
+    this.currentPath = !Number.isNaN(parsedPath) ? parsedPath : 0;
   }
 
   private scrollToToday(): boolean {

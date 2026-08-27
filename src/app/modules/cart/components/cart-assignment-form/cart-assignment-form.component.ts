@@ -70,11 +70,11 @@ export class CartAssignmentFormComponent implements OnInit {
 
   createCartGroup(cart: Partial<CartData>): FormGroup {
     return this.fb.group({
-      assignment: new FormControl(cart.assignment || '', Validators.required),
-      date: new FormControl(cart.date || '', Validators.required),
-      schedule: new FormControl(cart.schedule || '', Validators.required),
-      location: new FormControl(cart.location?.name || '', Validators.required),
-      color: new FormControl(cart.color || 'secondary', Validators.required),
+      assignment: new FormControl(cart.assignment || '', Validators.required.bind(Validators)),
+      date: new FormControl(cart.date || '', Validators.required.bind(Validators)),
+      schedule: new FormControl(cart.schedule || '', Validators.required.bind(Validators)),
+      location: new FormControl(cart.location?.name || '', Validators.required.bind(Validators)),
+      color: new FormControl(cart.color || 'secondary', Validators.required.bind(Validators)),
     });
   }
 

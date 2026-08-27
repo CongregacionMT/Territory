@@ -82,7 +82,7 @@ describe('PdfService', () => {
 
     // It should have downloaded a file with the locality name
     const createObjectURLCalls = vi.mocked(global.URL.createObjectURL).mock.calls;
-    expect(createObjectURLCalls.length).toBe(1);
+    expect(createObjectURLCalls).toHaveLength(1);
 
     expect(document.createElement).toHaveBeenCalledWith('a');
   });

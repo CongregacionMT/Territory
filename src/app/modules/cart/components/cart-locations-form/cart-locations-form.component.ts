@@ -50,8 +50,8 @@ export class CartLocationsFormComponent implements OnInit {
 
   createLocationGroup(location: Partial<CartLocation>): FormGroup {
     return this.fb.group({
-      name: new FormControl(location.name || '', Validators.required),
-      linkMap: new FormControl(location.linkMap || '', Validators.required),
+      name: new FormControl(location.name || '', Validators.required.bind(Validators)),
+      linkMap: new FormControl(location.linkMap || '', Validators.required.bind(Validators)),
     });
   }
 

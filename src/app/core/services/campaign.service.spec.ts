@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CampaignService } from './campaign.service';
 import { Firestore, collection, getDocs, query, doc, getDoc } from '@angular/fire/firestore';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { environment } from '@environments/environment';
 
 vi.mock('@environments/environment', () => ({
@@ -69,7 +69,7 @@ describe('CampaignService', () => {
 
     const result = service.getAllTerritoriesFromAllLocalities();
 
-    expect(result.length).toBe(2);
+    expect(result).toHaveLength(2);
     expect(result[0].collection).toBe('w1');
     expect(result[1].collection).toBe('w2');
 
@@ -90,7 +90,7 @@ describe('CampaignService', () => {
     } as any);
 
     const result = await service.getInactiveCampaigns();
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].id).toBe('inactive1');
     expect(result[0].name).toBe('Old Campaign');
   });

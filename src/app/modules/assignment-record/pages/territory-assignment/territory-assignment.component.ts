@@ -33,14 +33,14 @@ import { Card } from '@core/models/Card';
   imports: [ReactiveFormsModule, FormsModule, TerritoryCardComponent],
 })
 export class TerritoryAssignmentComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private territoryDataService = inject(TerritoryDataService);
-  private http = inject(HttpClient);
-  private spinner = inject(SpinnerService);
-  private rutaActiva = inject(ActivatedRoute);
-  private document = inject<Document>(DOCUMENT);
-  private pdfService = inject(PdfService);
-  private storageService = inject(StorageService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly http = inject(HttpClient);
+  private readonly spinner = inject(SpinnerService);
+  private readonly rutaActiva = inject(ActivatedRoute);
+  private readonly document = inject<Document>(DOCUMENT);
+  private readonly pdfService = inject(PdfService);
+  private readonly storageService = inject(StorageService);
 
   territoryPath = signal<string>('');
   territoriesNumber = signal<TerritoryNumberData[]>([]);
@@ -235,7 +235,8 @@ export class TerritoryAssignmentComponent implements OnInit {
     const filtered = fullData.map((territoryCards: Card[]) => {
       const filteredCards = territoryCards.filter((card: Card) => {
         const dateStart = this.getCardDate(card);
-        if (!dateStart || isNaN(dateStart.getTime()) || dateStart.getTime() === 0) return false;
+        if (!dateStart || Number.isNaN(dateStart.getTime()) || dateStart.getTime() === 0)
+          return false;
 
         if (valueNumber === 1) {
           const sixMonthsAgo = new Date();
@@ -297,12 +298,12 @@ export class TerritoryAssignmentComponent implements OnInit {
           collectionName,
           cardId: String(card.id),
           data: {
-            ...(existing?.data || {}),
+            ...existing?.data,
             driver: editData.driver,
             start: editData.start,
             end: editData.end || '0',
           },
-          ...(existing?.isNew ? { isNew: true } : {}),
+          ...(existing?.isNew && { isNew: true }),
         },
       };
     });
@@ -448,7 +449,8 @@ export class TerritoryAssignmentComponent implements OnInit {
         const sanitizedData = removeUndefined(data);
 
         if (isNew) {
-          const { id, ...cleanData } = sanitizedData as Card;
+          const cleanData = { ...(sanitizedData as Card) };
+          delete cleanData.id;
           if (!cleanData.applesData)
             cleanData.applesData = [{ name: 'Registro manual', checked: true }];
           await this.territoryDataService.addCardInCollection(collectionName, cleanData);

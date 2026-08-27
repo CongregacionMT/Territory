@@ -32,14 +32,14 @@ import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/
   providedIn: 'root',
 })
 export class TerritoryDataService {
-  private firestore = inject(Firestore);
-  private router = inject(Router);
-  private spinner = inject(SpinnerService);
-  private campaignService = inject(CampaignService);
+  private readonly firestore = inject(Firestore);
+  private readonly router = inject(Router);
+  private readonly spinner = inject(SpinnerService);
+  private readonly campaignService = inject(CampaignService);
 
   // Cached state via Signals to avoid relying on sessionStorage everywhere
-  private _cachedNumberTerritory = signal<TerritoryNumberData | null>(null);
-  private _cachedStatistics = signal<StatisticsButton | null>(null);
+  private readonly _cachedNumberTerritory = signal<TerritoryNumberData | null>(null);
+  private readonly _cachedStatistics = signal<StatisticsButton | null>(null);
 
   // MAPAS
   getMaps(): Observable<MapData[]> {
@@ -118,7 +118,7 @@ export class TerritoryDataService {
     });
 
     try {
-      const activeCampaign = this.campaignService.getCachedCampaign();
+      const activeCampaign = this.campaignService.getCachedCampaign() as { id?: string } | null;
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
       const campaignIdValid =
         activeCampaign?.id && activeCampaign.id !== 'undefined' ? activeCampaign.id : null;
@@ -132,15 +132,13 @@ export class TerritoryDataService {
           isInitial: false,
         };
 
-        // ✅ Solo usar ID personalizado si estamos en modo campaña
-        if (isInCampaignMode && activeCampaign) {
-          const completedId = `Campaña-${campaignIdValid}-${Date.now()}-completed`;
-          await setDoc(doc(this.firestore, collectionName, completedId), completedCard);
-          await this.incrementSalidasTx(activeCampaign.id as string, territorioKey);
-        } else {
-          // Usar ID auto-generado de Firebase
-          const cardRef = collection(this.firestore, collectionName);
-          await addDoc(cardRef, completedCard);
+        const completedId =
+          isInCampaignMode && activeCampaign
+            ? `Campaña-${campaignIdValid}-${Date.now()}-completed`
+            : null;
+        await this.saveDocument(collectionName, completedId, completedCard);
+        if (completedId && campaignIdValid) {
+          await this.incrementSalidasTx(campaignIdValid, territorioKey);
         }
 
         const resetCard = {
@@ -154,15 +152,8 @@ export class TerritoryDataService {
           })),
         };
 
-        // ✅ Solo usar ID personalizado si estamos en modo campaña
-        if (isInCampaignMode) {
-          const resetId = `Campaña-${campaignIdValid}-${Date.now()}-reset`;
-          await setDoc(doc(this.firestore, collectionName, resetId), resetCard);
-        } else {
-          // Usar ID auto-generado de Firebase
-          const cardRef = collection(this.firestore, collectionName);
-          await addDoc(cardRef, resetCard);
-        }
+        const resetId = isInCampaignMode ? `Campaña-${campaignIdValid}-${Date.now()}-reset` : null;
+        await this.saveDocument(collectionName, resetId, resetCard);
       } else {
         const partialCard = {
           ...card,
@@ -170,15 +161,11 @@ export class TerritoryDataService {
           isInitial: false,
         };
 
-        // ✅ Solo usar ID personalizado si estamos en modo campaña
-        if (isInCampaignMode && activeCampaign) {
-          const cardId = `Campaña-${campaignIdValid}-${Date.now()}`;
-          await setDoc(doc(this.firestore, collectionName, cardId), partialCard);
-          await this.incrementSalidasTx(activeCampaign.id as string, territorioKey);
-        } else {
-          // Usar ID auto-generado de Firebase
-          const cardRef = collection(this.firestore, collectionName);
-          await addDoc(cardRef, partialCard);
+        const cardId =
+          isInCampaignMode && activeCampaign ? `Campaña-${campaignIdValid}-${Date.now()}` : null;
+        await this.saveDocument(collectionName, cardId, partialCard);
+        if (cardId && campaignIdValid) {
+          await this.incrementSalidasTx(campaignIdValid, territorioKey);
         }
       }
       void this.router.navigate(['home']);
@@ -187,6 +174,19 @@ export class TerritoryDataService {
     } finally {
       this.spinner?.cerrarSpinner?.();
       this.isCreating = false;
+    }
+  }
+
+  private async saveDocument(
+    collectionName: string,
+    docId: string | null,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    if (docId) {
+      await setDoc(doc(this.firestore, collectionName, docId), data);
+    } else {
+      const cardRef = collection(this.firestore, collectionName);
+      await addDoc(cardRef, data);
     }
   }
   private async incrementSalidasTx(campaignId: string, territorioKey: string): Promise<void> {
@@ -230,7 +230,7 @@ export class TerritoryDataService {
       String(collectionName ?? ''),
     ];
     for (const s of sources) {
-      const m = s.match(/(\d+)(?!.*\d)/);
+      const m = /(\d+)(?=\D*$)/.exec(s);
       if (m) {
         const key = `Territorio ${m[1]}`;
         return key;

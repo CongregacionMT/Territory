@@ -22,9 +22,9 @@ import { forkJoin, take } from 'rxjs';
   standalone: true,
 })
 export class PrintPdfModalComponent {
-  private pdfService = inject(DeparturePdfService);
-  private territoryDataService = inject(TerritoryDataService);
-  private destroyRef = inject(DestroyRef);
+  private readonly pdfService = inject(DeparturePdfService);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input() groupNumbers: number[] = [];
   @Output() closeModalEvent = new EventEmitter<void>();
@@ -62,21 +62,13 @@ export class PrintPdfModalComponent {
                 let currentDepartures: Departure[] = [];
                 let nextDepartures: Departure[] = [];
 
-                if (
-                  result.current &&
-                  result.current.departure &&
-                  result.current.departure.length > 0
-                ) {
+                if (result.current?.departure?.length) {
                   currentDepartures = result.current.departure;
-                } else if (
-                  result.master &&
-                  result.master.departure &&
-                  result.master.departure.length > 0
-                ) {
+                } else if (result.master?.departure?.length) {
                   currentDepartures = result.master.departure;
                 }
 
-                if (result.next && result.next.departure && result.next.departure.length > 0) {
+                if (result.next?.departure?.length) {
                   nextDepartures = result.next.departure;
                 }
 

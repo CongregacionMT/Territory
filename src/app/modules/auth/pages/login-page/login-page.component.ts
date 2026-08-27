@@ -12,17 +12,17 @@ import { AuthService } from '@core/services/auth.service';
   imports: [ReactiveFormsModule],
 })
 export class LoginPageComponent {
-  private router = inject(Router);
-  private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
-  private spinner = inject(SpinnerService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly spinner = inject(SpinnerService);
 
   loginError = signal(false);
   passwordVisible = signal(false);
 
   formLogin = this.fb.nonNullable.group({
-    user: ['', [Validators.required]],
-    password: ['', [Validators.required]],
+    user: ['', [Validators.required.bind(Validators)]],
+    password: ['', [Validators.required.bind(Validators)]],
   });
 
   loginWithUser(): void {

@@ -55,15 +55,15 @@ import { TerritoryMapComponent } from '../../components/territory-map/territory-
   ],
 })
 export class CardTerritoryComponent implements OnInit, OnDestroy {
-  private fb = inject(FormBuilder);
-  private activatedRoute = inject(ActivatedRoute);
-  public cardService = inject(CardService);
-  private territorieDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  public networkService = inject(NetworkService);
-  private campaignService = inject(CampaignService);
-  public authService = inject(AuthService);
-  private destroyRef = inject(DestroyRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  public readonly cardService = inject(CardService);
+  private readonly territorieDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
+  public readonly networkService = inject(NetworkService);
+  private readonly campaignService = inject(CampaignService);
+  public readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
 
   modalComponent = viewChild.required(ModalComponent);
 
@@ -317,7 +317,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
           console.log('todo bien');
         });
       await this.territorieDataService.putCardTerritorie(currentCard);
-      const rawCampaign = this.campaignService.getCachedCampaign();
+      const rawCampaign: unknown = this.campaignService.getCachedCampaign();
       if (
         rawCampaign &&
         typeof rawCampaign === 'object' &&
