@@ -1,7 +1,23 @@
 import { Injectable } from '@angular/core';
 import { Departure } from '@core/models/Departures';
-import { PDFDocument, rgb, StandardFonts, PDFPage, PDFFont } from 'pdf-lib';
+import type { PDFPage, PDFFont, RGB } from 'pdf-lib';
 import { environment } from '@environments/environment';
+
+interface PdfColors {
+  primary: RGB;
+  primaryLight: RGB;
+  headerBg: RGB;
+  white: RGB;
+  black: RGB;
+  gray: RGB;
+  lightGray: RGB;
+  veryLightGray: RGB;
+  rowAlt: RGB;
+  eventBg: RGB;
+  specificGroupBg: RGB;
+  borderGray: RGB;
+  groupHeader: RGB;
+}
 
 /**
  * Modes for PDF generation:
@@ -40,39 +56,41 @@ export class DeparturePdfService {
   private readonly MARGIN = 10; // Minimal margins to maximize space
   private readonly CONTENT_WIDTH = 595.28 - 20; // PAGE_WIDTH - 2*MARGIN
 
-  // Color palette for the color mode
-  private readonly COLORS = {
-    primary: rgb(0.01, 0.47, 0.74), // #0277bd
-    primaryLight: rgb(0.88, 0.96, 0.99), // #e1f5fe
-    headerBg: rgb(0.01, 0.34, 0.61), // #01579b
-    white: rgb(1, 1, 1),
-    black: rgb(0, 0, 0),
-    gray: rgb(0.42, 0.42, 0.42), // #6c6c6c
-    lightGray: rgb(0.93, 0.93, 0.93), // #ededed
-    veryLightGray: rgb(0.97, 0.97, 0.97), // #f8f8f8
-    rowAlt: rgb(0.96, 0.98, 1), // #f5f9ff
-    eventBg: rgb(1, 0.98, 0.88), // #fff9e0
-    specificGroupBg: rgb(0.85, 0.94, 0.85), // Light green for specific group
-    borderGray: rgb(0.78, 0.78, 0.78), // #c8c8c8
-    groupHeader: rgb(0.01, 0.47, 0.74), // #0277bd
-  };
-
-  // B&W palette
-  private readonly BW_COLORS = {
-    primary: rgb(0, 0, 0),
-    primaryLight: rgb(0.93, 0.93, 0.93),
-    headerBg: rgb(0.15, 0.15, 0.15),
-    white: rgb(1, 1, 1),
-    black: rgb(0, 0, 0),
-    gray: rgb(0.35, 0.35, 0.35),
-    lightGray: rgb(0.9, 0.9, 0.9),
-    veryLightGray: rgb(0.96, 0.96, 0.96),
-    rowAlt: rgb(0.94, 0.94, 0.94),
-    eventBg: rgb(0.92, 0.92, 0.92),
-    specificGroupBg: rgb(0.86, 0.86, 0.86), // Noticeable gray
-    borderGray: rgb(0.7, 0.7, 0.7),
-    groupHeader: rgb(0, 0, 0),
-  };
+  // Get color palette for the mode
+  private getColors(rgbFn: typeof import('pdf-lib').rgb, mode: PrintMode): PdfColors {
+    if (mode === 'color') {
+      return {
+        primary: rgbFn(0.01, 0.47, 0.74), // #0277bd
+        primaryLight: rgbFn(0.88, 0.96, 0.99), // #e1f5fe
+        headerBg: rgbFn(0.01, 0.34, 0.61), // #01579b
+        white: rgbFn(1, 1, 1),
+        black: rgbFn(0, 0, 0),
+        gray: rgbFn(0.42, 0.42, 0.42), // #6c6c6c
+        lightGray: rgbFn(0.93, 0.93, 0.93), // #ededed
+        veryLightGray: rgbFn(0.97, 0.97, 0.97), // #f8f8f8
+        rowAlt: rgbFn(0.96, 0.98, 1), // #f5f9ff
+        eventBg: rgbFn(1, 0.98, 0.88), // #fff9e0
+        specificGroupBg: rgbFn(0.85, 0.94, 0.85), // Light green for specific group
+        borderGray: rgbFn(0.78, 0.78, 0.78), // #c8c8c8
+        groupHeader: rgbFn(0.01, 0.47, 0.74), // #0277bd
+      };
+    }
+    return {
+      primary: rgbFn(0, 0, 0),
+      primaryLight: rgbFn(0.93, 0.93, 0.93),
+      headerBg: rgbFn(0.15, 0.15, 0.15),
+      white: rgbFn(1, 1, 1),
+      black: rgbFn(0, 0, 0),
+      gray: rgbFn(0.35, 0.35, 0.35),
+      lightGray: rgbFn(0.9, 0.9, 0.9),
+      veryLightGray: rgbFn(0.96, 0.96, 0.96),
+      rowAlt: rgbFn(0.94, 0.94, 0.94),
+      eventBg: rgbFn(0.92, 0.92, 0.92),
+      specificGroupBg: rgbFn(0.86, 0.86, 0.86), // Noticeable gray
+      borderGray: rgbFn(0.7, 0.7, 0.7),
+      groupHeader: rgbFn(0, 0, 0),
+    };
+  }
 
   /**
    * Calculate the Friday-to-Thursday print range from a Monday-based weekId.
@@ -173,13 +191,14 @@ export class DeparturePdfService {
     mode: PrintMode,
     groupNumbers: number[],
   ): Promise<Uint8Array> {
+    const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
     const pdfDoc = await PDFDocument.create();
 
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
-    const colors = mode === 'color' ? this.COLORS : this.BW_COLORS;
+    const colors = this.getColors(rgb, mode);
 
     // Column widths — optimized for max readability
     const colWidths: ColWidths = {
@@ -291,7 +310,7 @@ export class DeparturePdfService {
     yPos: number,
     fontBold: PDFFont,
     fontRegular: PDFFont,
-    colors: typeof this.COLORS,
+    colors: ReturnType<typeof this.getColors>,
     weekLabel: string,
   ): number {
     const congregationName = environment.congregationName;
@@ -339,7 +358,7 @@ export class DeparturePdfService {
     yPos: number,
     fontBold: PDFFont,
     fontRegular: PDFFont,
-    colors: typeof this.COLORS,
+    colors: ReturnType<typeof this.getColors>,
     groupNumber: number,
   ): number {
     const groupText = groupNumber === 0 ? 'General' : `Grupo ${groupNumber}`;
@@ -384,7 +403,7 @@ export class DeparturePdfService {
     page: PDFPage,
     yPos: number,
     fontBold: PDFFont,
-    colors: typeof this.COLORS,
+    colors: ReturnType<typeof this.getColors>,
     colWidths: ColWidths,
   ): number {
     const headerHeight = 18;
@@ -454,7 +473,7 @@ export class DeparturePdfService {
     isEvenRow: boolean,
     fontBold: PDFFont,
     fontRegular: PDFFont,
-    colors: typeof this.COLORS,
+    colors: ReturnType<typeof this.getColors>,
     colWidths: ColWidths,
   ): number {
     const rowHeight = this.estimateRowHeightCompact(dep, fontRegular, colWidths);
@@ -653,7 +672,11 @@ export class DeparturePdfService {
     return this.generateAllGroupsPdf(departures, weekLabel, mode, [groupNum]);
   }
 
-  private drawFooter(page: PDFPage, fontItalic: PDFFont, colors: typeof this.COLORS): void {
+  private drawFooter(
+    page: PDFPage,
+    fontItalic: PDFFont,
+    colors: ReturnType<typeof this.getColors>,
+  ): void {
     const footerText = `Generado el ${new Date().toLocaleDateString('es-AR')}`;
     const footerSize = 7;
     const footerWidth = fontItalic.widthOfTextAtSize(footerText, footerSize);

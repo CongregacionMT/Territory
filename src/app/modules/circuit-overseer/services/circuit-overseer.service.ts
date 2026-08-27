@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, doc, docData, setDoc } from '@angular/fire/firestore';
+import { doc, docData, setDoc, Firestore } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
+import { FirestoreProviderService } from '@core/services/firestore-provider.service';
 
 export interface CircuitOverseerData {
   name: string;
@@ -10,7 +11,10 @@ export interface CircuitOverseerData {
   providedIn: 'root',
 })
 export class CircuitOverseerService {
-  private firestore = inject(Firestore);
+  private readonly firestoreProvider = inject(FirestoreProviderService);
+  private get firestore(): Firestore {
+    return this.firestoreProvider.getFirestore();
+  }
 
   getOverseerData(): Observable<CircuitOverseerData> {
     const docRef = doc(this.firestore, 'CircuitOverseer', 'data');

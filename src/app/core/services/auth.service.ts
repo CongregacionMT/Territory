@@ -1,15 +1,16 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Firestore, collection, query, where, collectionData } from '@angular/fire/firestore';
+import { collection, query, where, collectionData } from '@angular/fire/firestore';
 import { Observable, tap } from 'rxjs';
 import { User } from '@core/models/User';
+import { FirestoreProviderService } from './firestore-provider.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private router = inject(Router);
-  private firestore = inject(Firestore);
+  private firestoreProvider = inject(FirestoreProviderService);
 
   // Private signals for state
   private _isAdmin = signal<boolean>(false);
@@ -58,7 +59,8 @@ export class AuthService {
   }
 
   login(user: string, password: string): Observable<User[]> {
-    const userRef = collection(this.firestore, 'users');
+    const firestore = this.firestoreProvider.getFirestore();
+    const userRef = collection(firestore, 'users');
     const q = query(userRef, where('user', '==', user), where('password', '==', password));
 
     return (collectionData(q) as Observable<User[]>).pipe(

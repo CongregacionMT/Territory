@@ -25,12 +25,16 @@ import { environment } from '@environments/environment';
 import { TerritoriesNumberData, TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { Campaign, CampaignStats, DeparturesInfo } from '@core/models/Campaign';
 import { Card, CardApplesData } from '@core/models/Card';
+import { FirestoreProviderService } from './firestore-provider.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CampaignService {
-  private readonly firestore = inject(Firestore);
+  private readonly firestoreProvider = inject(FirestoreProviderService);
+  private get firestore(): Firestore {
+    return this.firestoreProvider.getFirestore();
+  }
 
   async getActiveCampaign(): Promise<Campaign | null> {
     const q = query(collection(this.firestore, 'campaigns'), where('active', '==', true));

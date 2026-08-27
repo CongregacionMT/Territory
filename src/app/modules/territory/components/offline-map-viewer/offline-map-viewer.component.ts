@@ -9,8 +9,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 
-import * as toGeoJSON from '@tmcw/togeojson';
-import * as L from 'leaflet';
+import type * as L from 'leaflet';
 
 interface KmlFeatureProperties {
   stroke?: string;
@@ -39,8 +38,7 @@ export class OfflineMapViewerComponent implements AfterViewInit, OnDestroy {
   private userMarker: L.CircleMarker | null = null;
 
   ngAfterViewInit(): void {
-    this.initMap();
-    void this.loadKml();
+    void this.initMap().then(() => this.loadKml());
   }
 
   ngOnDestroy(): void {
@@ -52,7 +50,8 @@ export class OfflineMapViewerComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private initMap(): void {
+  private async initMap(): Promise<void> {
+    const L = await import('leaflet');
     this.map = L.map(this.mapContainer().nativeElement, {
       zoomControl: true,
       attributionControl: false,
@@ -68,6 +67,8 @@ export class OfflineMapViewerComponent implements AfterViewInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
     try {
+      const L = await import('leaflet');
+      const toGeoJSON = await import('@tmcw/togeojson');
       const url = this.kmlUrl().startsWith('http')
         ? this.kmlUrl()
         : `${window.location.origin}/${this.kmlUrl()}`;
@@ -126,7 +127,7 @@ export class OfflineMapViewerComponent implements AfterViewInit, OnDestroy {
       }
 
       this.loading.set(false);
-      this.startTracking();
+      void this.startTracking();
     } catch (err: unknown) {
       console.error('[OfflineMapViewer] Error cargando KML:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error al cargar mapa offline';
@@ -135,9 +136,10 @@ export class OfflineMapViewerComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  startTracking(): void {
+  async startTracking(): Promise<void> {
     if (navigator.geolocation && this.map) {
       const activeMap = this.map;
+      const L = await import('leaflet');
       this.watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);

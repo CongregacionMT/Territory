@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
+import type { PDFPage } from 'pdf-lib';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { environment } from '@environments/environment';
 import { Card } from '@core/models/Card';
@@ -14,6 +14,7 @@ export class PdfService {
     filterDataListFull: Card[][],
     territoryPath: string,
   ): Promise<void> {
+    const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
     const pdfDoc = await PDFDocument.create();
 
     // Constant layout values

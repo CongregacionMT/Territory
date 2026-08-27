@@ -1,8 +1,6 @@
 import {
   enableProdMode,
   importProvidersFrom,
-  provideEnvironmentInitializer,
-  inject,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
   LOCALE_ID,
@@ -10,13 +8,6 @@ import {
 import { environment } from './environments/environment';
 import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideMessaging, getMessaging } from '@angular/fire/messaging';
-import {
-  provideFirestore,
-  initializeFirestore,
-  persistentLocalCache,
-} from '@angular/fire/firestore';
-import { MatDialogModule } from '@angular/material/dialog';
-import { DialogService } from '@core/services/dialog.service';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app/app.routes';
@@ -52,14 +43,6 @@ bootstrapApplication(AppComponent, {
     ),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideMessaging(() => getMessaging(getApp())),
-    provideFirestore(() => {
-      const app = getApp();
-      return initializeFirestore(app, {
-        localCache: persistentLocalCache(),
-      });
-    }),
-    importProvidersFrom(MatDialogModule),
-    provideEnvironmentInitializer(() => inject(DialogService)),
     provideAnimations(),
     { provide: LOCALE_ID, useValue: 'es' },
   ],

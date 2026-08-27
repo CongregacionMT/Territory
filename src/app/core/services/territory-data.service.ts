@@ -27,12 +27,16 @@ import { StatisticsButton } from '@core/models/StatisticsButton';
 import { User } from '@core/models/User';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
+import { FirestoreProviderService } from './firestore-provider.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TerritoryDataService {
-  private readonly firestore = inject(Firestore);
+  private readonly firestoreProvider = inject(FirestoreProviderService);
+  private get firestore(): Firestore {
+    return this.firestoreProvider.getFirestore();
+  }
   private readonly router = inject(Router);
   private readonly spinner = inject(SpinnerService);
   private readonly campaignService = inject(CampaignService);

@@ -23,14 +23,15 @@ import { OfflineMapViewerComponent } from '../../components/offline-map-viewer/o
 import { AuthService } from '@core/services/auth.service';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-mapas',
   templateUrl: './mapas.component.html',
   styleUrls: ['./mapas.component.scss'],
-  providers: [{ provide: LOCALE_ID, useValue: 'es' }],
+  providers: [{ provide: LOCALE_ID, useValue: 'es' }, DialogService],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [OfflineMapViewerComponent],
+  imports: [OfflineMapViewerComponent, MatDialogModule],
 })
 export class MapasComponent implements OnInit {
   private activatedRoute = inject(ActivatedRoute);

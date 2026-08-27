@@ -13,14 +13,15 @@ import { DialogService } from '@core/services/dialog.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { User } from '@core/models/User';
 import { UsersFeatureService } from '../services/users-feature.service';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-users-page',
   templateUrl: './users-page.component.html',
   styleUrls: ['./users-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
-  providers: [UsersFeatureService],
+  imports: [ReactiveFormsModule, MatDialogModule],
+  providers: [UsersFeatureService, DialogService],
 })
 export class UsersPageComponent {
   featureService = inject(UsersFeatureService);

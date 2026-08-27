@@ -1,14 +1,18 @@
 import { Injectable, inject } from '@angular/core';
-import { doc, docData, Firestore, updateDoc } from '@angular/fire/firestore';
+import { doc, docData, updateDoc, Firestore } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { CartDataArray, LocationsData } from '@core/models/Cart';
+import { FirestoreProviderService } from './firestore-provider.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CartDataService {
-  private firestore = inject(Firestore);
+  private readonly firestoreProvider = inject(FirestoreProviderService);
+  private get firestore(): Firestore {
+    return this.firestoreProvider.getFirestore();
+  }
   constructor() {}
 
   getCartAssignment(): Observable<CartDataArray> {
