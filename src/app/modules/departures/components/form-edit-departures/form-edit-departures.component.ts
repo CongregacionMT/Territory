@@ -133,6 +133,7 @@ export class FormEditDeparturesComponent implements OnInit {
     );
     this.groupKeys = result.groupKeys;
     this.groupedDepartures = result.groupedDepartures;
+    this.cdr.markForCheck();
   }
   loadTerritoryData(): void {
     const stored = sessionStorage.getItem('numberTerritory');

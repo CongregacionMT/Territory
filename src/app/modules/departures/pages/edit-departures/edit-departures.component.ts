@@ -5,20 +5,19 @@ import {
   inject,
   HostListener,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   DestroyRef,
   signal,
 } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
-import { Departure } from '@core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { FormEditDeparturesComponent } from '../../components/form-edit-departures/form-edit-departures.component';
 import { CanComponentDeactivate } from '@core/guards/unsaved-changes.guard';
-import { WeeklyDeparture, DepartureData } from '@core/models/Departures';
+import { WeeklyDeparture, DepartureData, Departure } from '@core/models/Departures';
 import { formatWeekRange } from '@shared/utils/date-utils';
-import { FormsModule } from '@angular/forms';
 import { catchError, take } from 'rxjs';
 import { environment } from '@environments/environment';
 import { AuthService } from '@core/services/auth.service';
@@ -31,12 +30,13 @@ import { AuthService } from '@core/services/auth.service';
   imports: [ReactiveFormsModule, FormEditDeparturesComponent, FormsModule, NgClass],
 })
 export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
-  private destroyRef = inject(DestroyRef);
+  private readonly destroyRef = inject(DestroyRef);
 
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private _snackBar = inject(MatSnackBar);
-  public authService = inject(AuthService);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
+  private readonly _snackBar = inject(MatSnackBar);
+  public readonly authService = inject(AuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   dataLoaded: boolean = false;
   dateDeparture = new FormControl<string>('', { nonNullable: true });
@@ -76,10 +76,10 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
         this.isSaved = false;
         if (value) {
           const dateObj = new Date(value + 'T00:00:00');
-          if (isNaN(dateObj.getTime())) return;
+          if (Number.isNaN(dateObj.getTime())) return;
 
           const monday = this.getMonday(dateObj);
-          if (isNaN(monday.getTime())) return;
+          if (Number.isNaN(monday.getTime())) return;
 
           const mondayStr = monday.toISOString().split('T')[0];
 
@@ -102,25 +102,10 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     this.loadHistory();
 
     // Cargar la semana inicial: siempre se usa la semana actual como punto de partida
-    this.territoryDataService
-      .getDateDepartures()
-      .pipe(take(1))
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          // Siempre arrancamos en la semana actual, ignorando la fecha guardada en Firestore
-          const mondayStr = this.currentMondayStr;
-          this.dateDeparture.setValue(mondayStr);
-          this.selectedWeekRange = this.formatWeekRange(todayMonday);
-          this.dateDeparture.markAsPristine();
-        },
-        error: () => {
-          // Si no hay datos, cargar igualmente con la semana actual
-          this.dateDeparture.setValue(this.currentMondayStr);
-          this.selectedWeekRange = this.formatWeekRange(todayMonday);
-          this.dateDeparture.markAsPristine();
-        },
-      });
+    // Arrancamos directamente, ignorando la fecha guardada en Firestore para evitar demoras
+    this.dateDeparture.setValue(this.currentMondayStr);
+    this.selectedWeekRange = this.formatWeekRange(todayMonday);
+    this.dateDeparture.markAsPristine();
   }
 
   loadHistory(): void {
@@ -139,6 +124,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
         this.weeklyHistory = history
           .filter((w) => w.weekId >= eightWeeksAgoStr)
           .sort((a, b) => b.weekId.localeCompare(a.weekId));
+        this.cdr.markForCheck();
       });
   }
 
@@ -165,6 +151,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
           this.formDepartureData = []; // Limpiar el formulario
           this.loadHistory(); // Recargar el historial
           this.spinner.cerrarSpinner();
+          this.cdr.markForCheck();
         })
         .catch((err) => {
           console.error(err);
@@ -172,6 +159,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
             duration: 3000,
           });
           this.spinner.cerrarSpinner();
+          this.cdr.markForCheck();
         });
     }
   }
@@ -199,16 +187,28 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
             this.formDepartureData = data.departure;
             this.dataLoaded = true;
             this.spinner.cerrarSpinner();
+            this.cdr.markForCheck();
           } else {
             // If getWeeklyDeparture succeeds but has no departure data, fallback to master
             this.territoryDataService
               .getDepartures()
               .pipe(take(1))
-              .subscribe((masterData) => {
-                if (loadId !== this.lastLoadId) return;
-                this.formDepartureData = masterData?.departure || [];
-                this.dataLoaded = true;
-                this.spinner.cerrarSpinner();
+              .subscribe({
+                next: (masterData) => {
+                  if (loadId !== this.lastLoadId) return;
+                  this.formDepartureData = masterData?.departure || [];
+                  this.dataLoaded = true;
+                  this.spinner.cerrarSpinner();
+                  this.cdr.markForCheck();
+                },
+                error: (err) => {
+                  console.error('Error loading fallback master data:', err);
+                  if (loadId !== this.lastLoadId) return;
+                  this.formDepartureData = [];
+                  this.dataLoaded = true;
+                  this.spinner.cerrarSpinner();
+                  this.cdr.markForCheck();
+                },
               });
           }
         },
@@ -217,6 +217,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
           this.formDepartureData = [];
           this.dataLoaded = true;
           this.spinner.cerrarSpinner();
+          this.cdr.markForCheck();
         },
       });
   }
