@@ -13,7 +13,7 @@ import { take } from 'rxjs';
   providedIn: 'root', // Lo proveemos en root para que esté disponible, o podría ser 'any' / provided en el módulo
 })
 export class HomeFacadeService {
-  private spinner = inject(SpinnerService);
+  private readonly spinner = inject(SpinnerService);
   private territorieDataService = inject(TerritoryDataService);
   private campaignService = inject(CampaignService);
   private messagingService = inject(MessagingService);
@@ -22,9 +22,7 @@ export class HomeFacadeService {
   private authService = inject(AuthService);
 
   initializeHomeState(): void {
-    this.spinner.cargarSpinner();
-
-    // Utilizamos take(1) para evitar fugas de memoria, asumiendo que solo disparan requests iniciales
+    // 🚀 Hacemos pre-fetching de datos en background SIN bloquear la pantalla con el spinner
     this.territorieDataService.getNumberTerritory().pipe(take(1)).subscribe();
     this.territorieDataService.getStatisticsButtons().pipe(take(1)).subscribe();
     this.cartDataService.getCartAssignment().pipe(take(1)).subscribe();
@@ -33,14 +31,19 @@ export class HomeFacadeService {
       sessionStorage.removeItem('redirectedToGroup0');
     }
 
-    void this.campaignService.getActiveCampaign().then((activeCampaign) => {
-      if (activeCampaign) {
-        localStorage.setItem('activeCampaign', JSON.stringify(activeCampaign));
-      } else {
-        localStorage.removeItem('activeCampaign');
-      }
-      this.spinner.cerrarSpinner();
-    });
+    // Buscamos la campaña activa en silencio
+    this.campaignService
+      .getActiveCampaign()
+      .then((activeCampaign) => {
+        if (activeCampaign) {
+          localStorage.setItem('activeCampaign', JSON.stringify(activeCampaign));
+        } else {
+          localStorage.removeItem('activeCampaign');
+        }
+      })
+      .catch((error) => {
+        console.error('[HomeFacade] Error pre-cargando campaña:', error);
+      });
   }
 
   enableNotifications(): void {
