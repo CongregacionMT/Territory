@@ -8,6 +8,7 @@ import {
   ChangeDetectorRef,
   DestroyRef,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -37,6 +38,8 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   private readonly _snackBar = inject(MatSnackBar);
   public readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
+
+  @ViewChild('formEditDepartures') formEditComponent?: FormEditDeparturesComponent;
 
   dataLoaded: boolean = false;
   dateDeparture = new FormControl<string>('', { nonNullable: true });
@@ -236,19 +239,13 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     return formatWeekRange(weekId);
   }
   markAsReceivedQuick(departure: Departure): void {
-    const updated = this.formDepartureData.map((d) => {
-      if (
-        d.date === departure.date &&
-        d.schedule === departure.schedule &&
-        Number(d.group) === Number(departure.group) &&
-        d.driver === departure.driver
-      ) {
-        return { ...d, cardStatus: 'received' as const };
-      }
-      return d;
-    });
-    this.formDepartureData = updated;
-    this.saveTrigger.set(this.saveTrigger() + 1);
+    if (this.formEditComponent) {
+      this.formEditComponent.markDepartureAsReceived(departure);
+    }
+  }
+
+  onFormChanged(): void {
+    this.cdr.markForCheck();
   }
 
   triggerSave(): void {
@@ -411,24 +408,34 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     return `${dayName} ${day} de ${month}`;
   }
 
+  getFormDepartures(): Departure[] {
+    if (this.formEditComponent && this.dataLoaded) {
+      const currentDepartures = this.formEditComponent.getCurrentDepartures();
+      if (currentDepartures) {
+        return currentDepartures;
+      }
+    }
+    return this.formDepartureData || [];
+  }
+
   getPendingCardDepartures(): Departure[] {
-    return (this.formDepartureData || [])
+    return this.getFormDepartures()
       .filter((departure) => !departure.isEvent)
       .filter((departure) => departure.cardStatus !== 'received')
       .filter((departure) => departure.cardStatus !== 'not_required')
       .filter((departure) => !this.isBeforeTrackingStart(departure.date))
-      .sort((a, b) => a.date.localeCompare(b.date));
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   }
 
   getReceivedCardCount(): number {
-    return (this.formDepartureData || []).filter(
+    return this.getFormDepartures().filter(
       (departure) =>
         departure.cardStatus === 'received' || this.isBeforeTrackingStart(departure.date),
     ).length;
   }
 
   getNotRequiredCardCount(): number {
-    return (this.formDepartureData || []).filter(
+    return this.getFormDepartures().filter(
       (departure) => departure.isEvent || departure.cardStatus === 'not_required',
     ).length;
   }

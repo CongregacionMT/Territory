@@ -29,7 +29,7 @@
             type="button"
             class="inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-sm font-medium border text-slate-300 border-slate-600 hover:bg-slate-700 transition-colors w-full sm:w-auto cursor-pointer"
             (click)="dayCopy.emit()"
-            title="Copiar datos a la siguiente semana"
+            title="Copiar salida"
           >
             <i class="fas fa-copy sm:mr-1.5"></i><span class="hidden sm:inline">Copiar</span>
           </button>
@@ -65,7 +65,7 @@
           type="date"
           class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-2"
           [value]="dateValue"
-          (change)="onChangeInput($event, 'date')"
+          (input)="onChangeInput($event, 'date')"
         />
       </div>
       <div class="flex flex-col gap-1.5 min-w-0 w-full md:w-[140px]">
@@ -75,7 +75,7 @@
           aria-label="schedule"
           class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-2"
           [value]="scheduleValue"
-          (change)="onChangeInput($event, 'schedule')"
+          (input)="onChangeInput($event, 'schedule')"
         />
       </div>
 
@@ -88,7 +88,7 @@
             class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
             placeholder="Conmemoración"
             [value]="dayFormGroup().get('title')?.value || ''"
-            (change)="onChangeInput($event, 'title')"
+            (input)="onChangeInput($event, 'title')"
           />
         </div>
       } @else {
@@ -201,7 +201,7 @@
           class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
           placeholder="Punto de encuentro"
           [value]="dayFormGroup().get('point')?.value || ''"
-          (change)="onChangeInput($event, 'point')"
+          (input)="onChangeInput($event, 'point')"
         />
         @if (quickSuggestionText()) {
           <div class="text-[0.78rem] text-blue-300 mt-1">
@@ -219,7 +219,7 @@
           class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
           placeholder="Link Google Maps"
           [value]="dayFormGroup().get('maps')?.value || ''"
-          (change)="onChangeInput($event, 'maps')"
+          (input)="onChangeInput($event, 'maps')"
         />
       </div>
     </div>

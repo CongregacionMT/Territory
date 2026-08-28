@@ -27,11 +27,11 @@ import { forkJoin, take, tap } from 'rxjs';
   imports: [CardXlComponent, RouterLink],
 })
 export class HomeDeparturePageComponent {
-  private destroyRef = inject(DestroyRef);
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private router = inject(Router);
-  private pdfService = inject(DeparturePdfService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
+  private readonly router = inject(Router);
+  private readonly pdfService = inject(DeparturePdfService);
 
   isAdmin: boolean = false;
 
@@ -47,18 +47,18 @@ export class HomeDeparturePageComponent {
 
     if (groupData && groupData.length > 0) {
       const sortedGroups = [...groupData].sort((a, b) => {
-        const numA = parseInt(a.id.replace('Grupo ', '')) || 0;
-        const numB = parseInt(b.id.replace('Grupo ', '')) || 0;
+        const numA = Number.parseInt(a.id.replace('Grupo ', '')) || 0;
+        const numB = Number.parseInt(b.id.replace('Grupo ', '')) || 0;
         return numA - numB;
       });
 
       sortedGroups.forEach((group) => {
-        const groupNum = parseInt(group.id.replace('Grupo ', '')) || 0;
+        const groupNum = Number.parseInt(group.id.replace('Grupo ', '')) || 0;
         keys.push({
-          name: group.id,
+          name: sortedGroups.length === 1 ? 'Salidas generales' : group.id,
           src: '../../../assets/img/group.png',
-          link: `grupo/${groupNum}`,
-          number: groupNum,
+          link: sortedGroups.length === 1 ? 'grupo/0' : `grupo/${groupNum}`,
+          number: sortedGroups.length === 1 ? 0 : groupNum,
         });
       });
     } else {

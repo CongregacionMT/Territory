@@ -12,11 +12,17 @@
                 <i class="fas" [class.fa-star]="isCurrentWeek()" [class.fa-calendar]="!isCurrentWeek()"></i>
                 {{ isCurrentWeek() ? 'Actual' : 'Otra semana' }}
               </span>
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold"
-                    [ngClass]="isSaved ? 'bg-green-500/20 text-green-300' : 'bg-amber-500/20 text-amber-300'">
-                <i class="fas" [class.fa-check]="isSaved" [class.fa-exclamation-triangle]="!isSaved"></i>
-                {{ isSaved ? 'Guardado' : 'Sin guardar' }}
-              </span>
+              @if (isChildFormDirty() || dateDeparture.dirty) {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold bg-amber-500/20 text-amber-300">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  Cambios sin guardar
+                </span>
+              } @else if (isSaved) {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold bg-green-500/20 text-green-300">
+                  <i class="fas fa-check"></i>
+                  Guardado
+                </span>
+              }
             </div>
           </div>
 
@@ -103,7 +109,7 @@
           @if (!isCardsCollapsed) {
             @if (getPendingCardDepartures().length > 0) {
               <div class="flex flex-col gap-3">
-                @for (departure of getPendingCardDepartures(); track departure.departureId) {
+                @for (departure of getPendingCardDepartures(); track departure.date + '_' + departure.schedule + '_' + departure.group + '_' + departure.driver) {
                   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-slate-800 rounded-2xl border border-blue-500/20 gap-4">
                     <div>
                       <div class="text-base font-extrabold text-slate-50">{{ getHumanDate(departure.date) }}</div>
@@ -142,11 +148,13 @@
       <div class="bg-gray-900 rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden">
         <div class="p-4 sm:p-6">
           <app-form-edit-departures
+            #formEditDepartures
             [formDepartureDataInput]="formDepartureData"
             [dateDepartureInput]="dateDeparture.value"
             (saveCompleted)="onChildFormSubmit($event)"
             [(isFormDirty)]="isChildFormDirty"
             [saveTrigger]="saveTrigger()"
+            (formValueChanged)="onFormChanged()"
           ></app-form-edit-departures>
         </div>
       </div>

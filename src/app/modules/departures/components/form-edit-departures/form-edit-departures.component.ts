@@ -71,6 +71,7 @@ export class FormEditDeparturesComponent implements OnInit {
   readonly saveTrigger = input<number>(0);
   readonly isFormDirty = model<boolean>(false);
   readonly saveCompleted = output<Departure[]>();
+  readonly formValueChanged = output<void>();
 
   drivers = signal<User[]>([]);
   congregationName = environment.congregationName;
@@ -120,10 +121,17 @@ export class FormEditDeparturesComponent implements OnInit {
     this.loadPersonalAssignments();
     this.loadWeeklyHistory();
     this.loadTerritoryGroups();
+
+    this.formDeparture.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.formDeparture.dirty && !this.isFormDirty()) {
+        this.isFormDirty.set(true);
+      }
+      this.formValueChanged.emit();
+    });
   }
 
   initForm(departures: Departure[]): void {
-    if (this.isFormDirty) this.isFormDirty.set(true);
+    if (this.isFormDirty) this.isFormDirty.set(false);
 
     const targetMondayStr = this.dateDepartureInput();
     const result = this.departureFormService.initForm(
@@ -133,6 +141,9 @@ export class FormEditDeparturesComponent implements OnInit {
     );
     this.groupKeys = result.groupKeys;
     this.groupedDepartures = result.groupedDepartures;
+
+    this.formDeparture.markAsPristine();
+
     this.cdr.markForCheck();
   }
   loadTerritoryData(): void {
@@ -783,6 +794,14 @@ export class FormEditDeparturesComponent implements OnInit {
     return false;
   }
 
+  getCurrentDepartures(): Departure[] {
+    const formDepartures = this.groupKeys
+      .map((num) => (this.formDeparture.value as Record<string, Departure[]>)?.[`departure${num}`])
+      .flat()
+      .filter(Boolean);
+    return formDepartures;
+  }
+
   private normalizeTerritoryNumber(value: string): number {
     const match = String(value).match(/\d+/);
     return match ? Number(match[0]) : -1;
@@ -1057,6 +1076,7 @@ export class FormEditDeparturesComponent implements OnInit {
 
     // Re-inicializar el formulario mostrando solo las salidas de esta semana
     this.initForm(weeklyOnly);
+    this.saveCompleted.emit(weeklyOnly);
     return weeklyOnly;
   }
 }
