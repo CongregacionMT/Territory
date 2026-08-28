@@ -10,7 +10,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { CardService } from '@core/services/card.service';
 import { CardButtonsData } from '@core/models/CardButtonsData';
 import { SpinnerService } from '@core/services/spinner.service';
-import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { LocalityData } from '@core/models/LocalityData';
 import { MapData } from '@core/models/MapData';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
@@ -81,14 +81,11 @@ export class TerritoryPageComponent implements OnInit {
     this.territorieDataService
       .getNumberTerritory()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((numbersArray: Record<string, TerritoryNumberData[]>[]) => {
+      .subscribe((numbersArray: TerritoriesNumberData[]) => {
         // Reducimos el array para unificar por si vienen desglosados
         const mergedData = (numbersArray || []).reduce(
-          (
-            acc: Record<string, TerritoryNumberData[]>,
-            curr: Record<string, TerritoryNumberData[]>,
-          ) => ({ ...acc, ...curr }),
-          {} as Record<string, TerritoryNumberData[]>,
+          (acc: TerritoriesNumberData, curr: TerritoriesNumberData) => ({ ...acc, ...curr }),
+          {} as TerritoriesNumberData,
         );
         this.groupTerritoriesByLocality(mergedData);
       });
@@ -97,7 +94,7 @@ export class TerritoryPageComponent implements OnInit {
   /**
    * Agrupa los territorios por localidad basándose en el prefijo de la colección
    */
-  groupTerritoriesByLocality(numberTerritory: Record<string, TerritoryNumberData[]>): void {
+  groupTerritoriesByLocality(numberTerritory: TerritoriesNumberData): void {
     const grouped = this.localities
       .filter((locality) => locality.hasNumberedTerritories)
       .map((locality) => {

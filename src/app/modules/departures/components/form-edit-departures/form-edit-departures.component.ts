@@ -30,7 +30,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
-import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+
 import { User } from '@core/models/User';
 import { take } from 'rxjs';
 import { Card } from '@core/models/Card';
@@ -214,16 +214,21 @@ export class FormEditDeparturesComponent implements OnInit {
       this.territoryDataService
         .getNumberTerritory()
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((numbers: TerritoryNumberData[]) => {
-          const mergedData = numbers.reduce(
-            (acc: Record<string, unknown>, curr: TerritoryNumberData) => {
-              return { ...acc, ...curr };
-            },
-            {},
-          );
-          sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
-          this.processTerritoryData(mergedData);
-        });
+        .subscribe(
+          (numbers: import('@core/models/TerritoryNumberData').TerritoriesNumberData[]) => {
+            const mergedData = numbers.reduce(
+              (
+                acc: Record<string, unknown>,
+                curr: import('@core/models/TerritoryNumberData').TerritoriesNumberData,
+              ) => {
+                return { ...acc, ...curr };
+              },
+              {},
+            );
+            sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
+            this.processTerritoryData(mergedData);
+          },
+        );
     }
   }
   processTerritoryData(data: Record<string, unknown>): void {

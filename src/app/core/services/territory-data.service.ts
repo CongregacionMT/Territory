@@ -25,7 +25,7 @@ import { Card } from '@core/models/Card';
 import { Group } from '@core/models/Group';
 import { StatisticsButton } from '@core/models/StatisticsButton';
 import { User } from '@core/models/User';
-import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
 import { FirestoreProviderService } from './firestore-provider.service';
 
@@ -42,7 +42,7 @@ export class TerritoryDataService {
   private readonly campaignService = inject(CampaignService);
 
   // Cached state via Signals to avoid relying on sessionStorage everywhere
-  private readonly _cachedNumberTerritory = signal<TerritoryNumberData | null>(null);
+  private readonly _cachedNumberTerritory = signal<TerritoriesNumberData | null>(null);
   private readonly _cachedStatistics = signal<StatisticsButton | null>(null);
 
   // MAPAS
@@ -52,16 +52,16 @@ export class TerritoryDataService {
   }
 
   // NUMERO DE TERRITORIOS (with caching)
-  getNumberTerritory(): Observable<TerritoryNumberData[]> {
+  getNumberTerritory(): Observable<TerritoriesNumberData[]> {
     if (this._cachedNumberTerritory()) {
-      return of([this._cachedNumberTerritory() as TerritoryNumberData]); // Return as array to match signature
+      return of([this._cachedNumberTerritory() as TerritoriesNumberData]); // Return as array to match signature
     }
     const numberRef = collection(this.firestore, 'NumberTerritory');
-    return (collectionData(numberRef) as Observable<TerritoryNumberData[]>).pipe(
-      tap((numbers: TerritoryNumberData[]) => {
+    return (collectionData(numberRef) as Observable<TerritoriesNumberData[]>).pipe(
+      tap((numbers: TerritoriesNumberData[]) => {
         const mergedData = numbers.reduce(
-          (acc: TerritoryNumberData, curr: TerritoryNumberData) => ({ ...acc, ...curr }),
-          {} as TerritoryNumberData,
+          (acc: TerritoriesNumberData, curr: TerritoriesNumberData) => ({ ...acc, ...curr }),
+          {} as TerritoriesNumberData,
         );
         this._cachedNumberTerritory.set(mergedData);
         sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));

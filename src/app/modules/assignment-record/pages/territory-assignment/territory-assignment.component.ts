@@ -132,7 +132,7 @@ export class TerritoryAssignmentComponent implements OnInit {
         next: (results: Card[][]) => {
           const filteredResults = results.map((cardList: Card[]) => {
             if (!cardList) return [];
-            return cardList.filter((card) => {
+            const list = cardList.filter((card) => {
               if ((card as unknown as { isReset?: boolean })?.isReset) return false;
               let checkedAppleCount = 0;
               if (card.applesData) {
@@ -147,6 +147,58 @@ export class TerritoryAssignmentComponent implements OnInit {
                   (card.id.startsWith('PostCampaña') || card.id.startsWith('Campaña-undefined')))
               );
             });
+
+            // Deduplicate entries by driver + start + end. If duplicates exist, prefer:
+            // 1) entry with a non-'0' end date
+            // 2) entry with more checked apples
+            // 3) newer creation date
+            const map = new Map<string, Card>();
+            for (const card of list) {
+              const keyDriver = (card.driver || '').trim();
+              const keyStart = String(card.start || '');
+              const keyEnd = String(card.end || '');
+              const key = `${keyDriver}||${keyStart}||${keyEnd}`;
+
+              const existing = map.get(key);
+              if (!existing) {
+                map.set(key, card);
+                continue;
+              }
+
+              const existingEnd = String(existing.end || '');
+              const cardEnd = String(card.end || '');
+              const existingChecked = (existing.applesData || []).filter((a) => a.checked).length;
+              const cardChecked = (card.applesData || []).filter((a) => a.checked).length;
+
+              // Prefer one with non-'0' end
+              if (existingEnd === '0' && cardEnd !== '0') {
+                map.set(key, card);
+                continue;
+              }
+              if (existingEnd !== '0' && cardEnd === '0') {
+                continue;
+              }
+
+              // Prefer more checked apples
+              if (cardChecked > existingChecked) {
+                map.set(key, card);
+                continue;
+              }
+              if (cardChecked < existingChecked) {
+                continue;
+              }
+
+              // As last resort prefer newer creation
+              try {
+                const existingDate = this.getCardDate(existing).getTime();
+                const cardDate = this.getCardDate(card).getTime();
+                if (cardDate > existingDate) map.set(key, card);
+              } catch {
+                // keep existing
+              }
+            }
+
+            return Array.from(map.values());
           });
 
           if (updateState) {
@@ -185,7 +237,7 @@ export class TerritoryAssignmentComponent implements OnInit {
       .getNumberTerritory()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (numbers: TerritoryNumberData[]) => {
+        next: (numbers: import('@core/models/TerritoryNumberData').TerritoriesNumberData[]) => {
           const mergedData = (numbers as unknown as Record<string, TerritoryNumberData[]>[]).reduce(
             (
               acc: Record<string, TerritoryNumberData[]>,
