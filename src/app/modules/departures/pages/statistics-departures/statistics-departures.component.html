@@ -1,6 +1,6 @@
 
 <div class="container mx-auto px-4 py-6 w-full">
-  <h2 class="text-center text-2xl font-bold mb-6 text-gray-800">Estadísticas de Salidas</h2>
+  <h2 class="text-center text-2xl font-bold mb-6 text-slate-800">Estadísticas de Salidas</h2>
 
   <div class="flex flex-wrap -mx-4 gap-y-6">
     <!-- Participación de Conductores -->
@@ -13,14 +13,14 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-gray-200 text-gray-700">
+                <tr class="border-b border-slate-200 text-slate-700">
                   <th class="py-3 px-4 font-semibold">Conductor</th>
                   <th class="py-3 px-4 font-semibold text-center">Total Salidas</th>
                 </tr>
               </thead>
               <tbody>
                 @for (stat of driverStats(); track stat.name) {
-                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td class="py-3 px-4">{{ stat.name }}</td>
                     <td class="py-3 px-4 text-center">
                       <span class="inline-block px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 font-semibold text-sm">{{ stat.count }}</span>
@@ -28,7 +28,7 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="2" class="py-4 text-center text-gray-500 italic">No hay datos suficientes</td>
+                    <td colspan="2" class="py-4 text-center text-slate-500 italic">No hay datos suficientes</td>
                   </tr>
                 }
               </tbody>
@@ -48,22 +48,22 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-gray-200 text-gray-700">
+                <tr class="border-b border-slate-200 text-slate-700">
                   <th class="py-3 px-4 font-semibold">Punto</th>
                   <th class="py-3 px-4 font-semibold text-center">Última Vez</th>
                 </tr>
               </thead>
               <tbody>
                 @for (point of pointStats(); track point.name) {
-                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td class="py-3 px-4">{{ point.name }}</td>
                     <td class="py-3 px-4 text-center">
-                      <span class="text-gray-500 text-sm">{{ getFormattedDate(point.lastDate) }}</span>
+                      <span class="text-slate-500 text-sm">{{ getFormattedDate(point.lastDate) }}</span>
                     </td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="2" class="py-4 text-center text-gray-500 italic">No hay datos suficientes</td>
+                    <td colspan="2" class="py-4 text-center text-slate-500 italic">No hay datos suficientes</td>
                   </tr>
                 }
               </tbody>
@@ -76,20 +76,20 @@
     <!-- Historial Resumido -->
     <div class="w-full px-4 mt-2">
       <div class="bg-white rounded-lg shadow-md border-0 flex flex-col">
-        <div class="bg-gray-900 rounded-t-lg text-white py-4 px-6">
+        <div class="bg-slate-900 rounded-t-lg text-white py-4 px-6">
           <h5 class="text-lg font-semibold mb-0">📅 Historial de Semanas</h5>
         </div>
         <div class="p-0">
           <div class="flex flex-col w-full">
             @for (week of weeklyDepartures(); track week.weekId) {
-              <div class="flex justify-center items-center py-4 px-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
+              <div class="flex justify-center items-center py-4 px-6 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors">
                 <div class="text-center">
-                  <h6 class="font-medium text-gray-800 mb-1">Semana del {{ getFormattedDate(week.weekId) }}</h6>
-                  <span class="text-sm text-gray-500">{{ week.departure.length }} salidas programadas</span>
+                  <h6 class="font-medium text-slate-800 mb-1">Semana del {{ getFormattedDate(week.weekId) }}</h6>
+                  <span class="text-sm text-slate-500">{{ week.departure.length }} salidas programadas</span>
                 </div>
               </div>
             } @empty {
-              <p class="text-center text-gray-500 my-6 italic">Aún no se han guardado semanas en el historial</p>
+              <p class="text-center text-slate-500 my-6 italic">Aún no se han guardado semanas en el historial</p>
             }
           </div>
         </div>

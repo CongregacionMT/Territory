@@ -10,7 +10,7 @@
   @if(groupKeys().length > 0) {
     <div class="flex justify-center pb-4">
       <button
-        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700/60 hover:bg-gray-600 text-gray-300 hover:text-white text-sm font-medium transition-colors cursor-pointer"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/60 hover:bg-slate-600 text-slate-300 hover:text-white text-sm font-medium transition-colors cursor-pointer"
         (click)="openPrintModal()"
         id="btn-print-all-departures"
       >
@@ -85,17 +85,17 @@
 
   <!-- Modal Content -->
   <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1050] w-[90%] max-w-[400px] animate__animated animate__zoomIn">
-    <div class="bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden print-modal">
+    <div class="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden print-modal">
 
       <!-- Modal Header -->
-      <div class="px-6 pt-5 pb-3 flex justify-between items-center border-b border-gray-700">
+      <div class="px-6 pt-5 pb-3 flex justify-between items-center border-b border-slate-700">
         <h5 class="text-lg font-bold text-white flex items-center gap-2 m-0">
           <img src="https://api.iconify.design/mdi:printer.svg?color=%2393c5fd" width="24" height="24" alt="Print" />
           Imprimir salidas
         </h5>
         <button
           type="button"
-          class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1"
+          class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
           (click)="closePrintModal()"
           aria-label="Cerrar"
         >
@@ -105,10 +105,10 @@
 
       <!-- Modal Body -->
       <div class="p-6">
-        <p class="text-gray-400 text-sm mb-2">
-          Se generará un PDF con las salidas de <strong class="text-gray-200">todos los grupos</strong> en una misma hoja, optimizado para imprimir.
+        <p class="text-slate-400 text-sm mb-2">
+          Se generará un PDF con las salidas de <strong class="text-slate-200">todos los grupos</strong> en una misma hoja, optimizado para imprimir.
         </p>
-        <p class="text-gray-500 text-xs mb-5 flex items-center gap-1">
+        <p class="text-slate-500 text-xs mb-5 flex items-center gap-1">
           <img src="https://api.iconify.design/mdi:information-outline.svg?color=%239ca3af" width="14" height="14" alt="Info" />
           El rango de impresión es de <strong>viernes a jueves</strong> para colocar en el tablero.
         </p>
@@ -144,7 +144,7 @@
         </div>
 
         @if (isPrintingPdf()) {
-          <div class="text-center mt-5 text-gray-400 flex items-center justify-center gap-2">
+          <div class="text-center mt-5 text-slate-400 flex items-center justify-center gap-2">
             <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
             <span class="text-sm">Generando PDF...</span>
           </div>

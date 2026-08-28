@@ -12,8 +12,8 @@
     <!-- Header SOLO para impresión: centrado, vertical -->
     <div class="hidden print:block text-center mb-6">
       <h1 class="font-bold text-black" style="font-size: 2rem; margin-bottom: 0.25rem;">{{ campaign().name }}</h1>
-      <p class="text-gray-600" style="font-size: 0.9rem; margin-bottom: 0.5rem;">{{ campaign().description }}</p>
-      <div class="flex justify-center items-center gap-3 mb-4 text-gray-600" style="font-size: 0.8rem;">
+      <p class="text-slate-600" style="font-size: 0.9rem; margin-bottom: 0.5rem;">{{ campaign().description }}</p>
+      <div class="flex justify-center items-center gap-3 mb-4 text-slate-600" style="font-size: 0.8rem;">
         <span>{{ parsedDateInit() | date: "mediumDate" }} — {{ parsedDateEnd() | date: "mediumDate" }}</span>
       </div>
       @if (campaign().stats?.['global']) {
@@ -151,12 +151,12 @@
     <!-- Comentarios Finales -->
     @if (finalComments) {
       <div class="mb-12">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl print:border-gray-300 print:bg-transparent">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl print:border-slate-300 print:bg-transparent">
           <h4 class="text-xl font-bold text-white mb-4 flex items-center gap-2 print:text-black">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-500"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Observaciones de la Campaña
           </h4>
-          <div class="text-slate-300 whitespace-pre-wrap leading-relaxed text-lg print:text-gray-800">
+          <div class="text-slate-300 whitespace-pre-wrap leading-relaxed text-lg print:text-slate-800">
             {{ finalComments }}
           </div>
         </div>
@@ -171,13 +171,13 @@
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
             Desempeño por Localidad
           </h4>
-          <div class="flex-grow border-b border-slate-800 ml-6 print:border-gray-300"></div>
+          <div class="flex-grow border-b border-slate-800 ml-6 print:border-slate-300"></div>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 print:grid-cols-2 print:gap-4">
           @for (grupo of territoriosPorLocalidad(); track grupo.name) {
             <div class="bg-slate-900 border rounded-2xl p-6 transition-transform hover:-translate-y-1 print:bg-transparent print:p-4" 
-                 [ngClass]="grupo.percent === 100 ? 'border-emerald-500/50 bg-emerald-950/10 shadow-[0_0_15px_rgba(16,185,129,0.1)] print:border-gray-300' : 'border-slate-800 print:border-gray-300'">
+                 [ngClass]="grupo.percent === 100 ? 'border-emerald-500/50 bg-emerald-950/10 shadow-[0_0_15px_rgba(16,185,129,0.1)] print:border-slate-300' : 'border-slate-800 print:border-slate-300'">
               
               <div class="flex justify-between items-center mb-6">
                 <h5 class="font-bold text-lg text-white mb-0 flex items-center gap-2 print:text-black">
@@ -186,7 +186,7 @@
                   }
                   {{ grupo.name }}
                 </h5>
-                <span class="px-3 py-1 rounded-lg font-bold text-sm print:bg-transparent print:text-black print:border print:border-gray-300"
+                <span class="px-3 py-1 rounded-lg font-bold text-sm print:bg-transparent print:text-black print:border print:border-slate-300"
                       [ngClass]="grupo.percent === 100 ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-800 text-slate-300'">
                   {{ grupo.percent }}%
                 </span>
@@ -198,7 +198,7 @@
                 [colorClass]="grupo.percent === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-sky-500 to-indigo-500'">
               </app-progress-bar>
 
-              <div class="flex justify-between items-center text-slate-400 text-sm font-medium print:text-gray-600">
+              <div class="flex justify-between items-center text-slate-400 text-sm font-medium print:text-slate-600">
                 <div class="flex items-center gap-1.5">
                   <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><path d="m12 15 2 2 4-4"/><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                   <span>Territorios: <strong class="text-slate-200 print:text-black">{{ grupo.completed }}/{{ grupo.total }}</strong></span>

@@ -73,17 +73,17 @@
 
       <!-- Modal Content -->
       <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1050] w-[92%] max-w-md text-left">
-        <div class="bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
+        <div class="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
           
           <!-- Modal Header -->
-          <div class="px-6 pt-5 pb-3 bg-gray-800/90 border-b border-gray-700 flex justify-between items-center">
+          <div class="px-6 pt-5 pb-3 bg-slate-800/90 border-b border-slate-700 flex justify-between items-center">
             <h5 class="text-lg font-bold text-white flex items-center gap-2 m-0">
               <img src="https://api.iconify.design/mdi:history.svg?color=%2393c5fd" width="22" height="22" alt="History" />
               Historial de semanas
             </h5>
             <button
               type="button"
-              class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1 rounded-lg hover:bg-gray-700"
+              class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1 rounded-lg hover:bg-slate-700"
               (click)="showHistory.set(false)"
               aria-label="Cerrar"
             >
@@ -98,13 +98,13 @@
             <button 
               type="button"
               class="w-full text-left p-3.5 rounded-xl flex items-center gap-3 transition-all cursor-pointer border"
-              [ngClass]="isCurrentWeek() ? 'bg-blue-900/40 border-blue-500/60 text-blue-100 shadow-md' : 'bg-gray-700/40 border-gray-600/50 hover:bg-gray-700 text-gray-200'"
+              [ngClass]="isCurrentWeek() ? 'bg-blue-900/40 border-blue-500/60 text-blue-100 shadow-md' : 'bg-slate-700/40 border-slate-600/50 hover:bg-slate-700 text-slate-200'"
               (click)="selectWeek('actual')"
             >
               <span class="text-2xl shrink-0">📅</span>
               <div class="flex-1 min-w-0">
                 <div class="font-bold text-sm md:text-base">Semana actual</div>
-                <div class="text-xs text-gray-400 mt-0.5">Volver a la semana en curso</div>
+                <div class="text-xs text-slate-400 mt-0.5">Volver a la semana en curso</div>
               </div>
             </button>
 
@@ -120,7 +120,7 @@
                     <button 
                       type="button"
                       class="w-full text-left px-4 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer border"
-                      [ngClass]="selectedWeekId() === week.id ? 'bg-green-600 border-green-500 text-white shadow-md' : 'bg-gray-700/40 border-gray-600/40 hover:bg-gray-700 text-green-300'"
+                      [ngClass]="selectedWeekId() === week.id ? 'bg-green-600 border-green-500 text-white shadow-md' : 'bg-slate-700/40 border-slate-600/40 hover:bg-slate-700 text-green-300'"
                       (click)="selectWeek(week.id ? week.id : 'actual')"
                     >
                       {{ getFormattedDate(week.weekId) }}
@@ -135,14 +135,14 @@
               <div>
                 <div class="px-1 mb-2 flex items-center gap-1.5">
                   <img src="https://api.iconify.design/mdi:history.svg?color=%239ca3af" width="16" height="16" alt="Past">
-                  <h6 class="text-gray-400 text-xs font-bold uppercase tracking-wider m-0">Historial anterior</h6>
+                  <h6 class="text-slate-400 text-xs font-bold uppercase tracking-wider m-0">Historial anterior</h6>
                 </div>
                 <div class="flex flex-col gap-2">
                   @for (week of pastWeeks(); track week.id) {
                     <button 
                       type="button"
                       class="w-full text-left px-4 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer border"
-                      [ngClass]="selectedWeekId() === week.id ? 'bg-blue-600 border-blue-500 text-white shadow-md' : 'bg-gray-700/30 border-gray-600/30 hover:bg-gray-700 text-gray-300'"
+                      [ngClass]="selectedWeekId() === week.id ? 'bg-blue-600 border-blue-500 text-white shadow-md' : 'bg-slate-700/30 border-slate-600/30 hover:bg-slate-700 text-slate-300'"
                       (click)="selectWeek(week.id ? week.id : 'actual')"
                     >
                       {{ getFormattedDate(week.weekId) }}
@@ -153,7 +153,7 @@
             }
 
             @if (futureWeeks().length === 0 && pastWeeks().length === 0) {
-              <div class="text-center text-gray-400 p-6 border border-dashed border-gray-700 rounded-xl">
+              <div class="text-center text-slate-400 p-6 border border-dashed border-slate-700 rounded-xl">
                 <span class="text-sm">No hay historial disponible</span>
               </div>
             }
@@ -219,10 +219,10 @@
 
       <!-- Clear Message -->
       <div class="relative mt-3 z-10">
-        <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">
+        <h3 class="text-xl md:text-2xl font-bold text-slate-800 mb-2">
           Salidas en preparación
         </h3>
-        <p class="text-gray-600 mb-6 mx-auto max-w-sm text-sm md:text-base leading-relaxed">
+        <p class="text-slate-600 mb-6 mx-auto max-w-sm text-sm md:text-base leading-relaxed">
           Pronto verás aquí los puntos de encuentro, conductores y territorios asignados para esta semana.
         </p>
 
