@@ -136,6 +136,8 @@ export class TerritorySelectionModalComponent {
     > | null;
     if (!territoryArray) return;
 
+    this.activeModalDays().get('territory')?.markAsDirty();
+
     const values = territoryArray.value || [];
     if (checked) {
       if (!values.includes(num)) {
@@ -147,7 +149,6 @@ export class TerritorySelectionModalComponent {
         territoryArray.removeAt(index);
       }
     }
-    this.activeModalDays().get('territory')?.markAsDirty();
   }
 
   isTerritoryUsedInWeek(num: string): boolean {

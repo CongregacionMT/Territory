@@ -107,14 +107,14 @@ export class DepartureDayCardComponent {
 
   onChangeInput(event: Event, controlName: string): void {
     const val = (event.target as HTMLInputElement | HTMLSelectElement).value;
-    this.dayFormGroup().get(controlName)?.setValue(val);
     this.dayFormGroup().get(controlName)?.markAsDirty();
+    this.dayFormGroup().get(controlName)?.setValue(val);
   }
 
   onChangeCheckbox(event: Event, controlName: string): void {
     const checked = (event.target as HTMLInputElement).checked;
-    this.dayFormGroup().get(controlName)?.setValue(checked);
     this.dayFormGroup().get(controlName)?.markAsDirty();
+    this.dayFormGroup().get(controlName)?.setValue(checked);
 
     if (controlName === 'isEvent' && checked) {
       const territoryArray = this.dayFormGroup().get('territory') as FormArray<
@@ -128,9 +128,9 @@ export class DepartureDayCardComponent {
 
   onToggleCardReceived(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
+    this.dayFormGroup().get('cardStatus')?.markAsDirty();
     this.dayFormGroup()
       .get('cardStatus')
       ?.setValue(checked ? 'received' : 'pending');
-    this.dayFormGroup().get('cardStatus')?.markAsDirty();
   }
 }
