@@ -54,6 +54,10 @@ export class TerritoryCardComponent {
   }
 
   onApply(): void {
+    if (!this.editFormData().end) {
+      alert('La fecha de devolución es obligatoria para guardar.');
+      return;
+    }
     this.editApply.emit(this.editFormData());
   }
 

@@ -67,9 +67,12 @@ export class DepartureFormService {
       }
 
       const locality = this.localities.find((l) => l.key === departure.location);
-      const normalizedLocation = locality
-        ? locality.territoryPrefix
-        : departure.location || 'Seleccionar localidad';
+      let normalizedLocation = locality ? locality.territoryPrefix : departure.location;
+
+      if (!normalizedLocation || normalizedLocation === 'Seleccionar localidad') {
+        normalizedLocation =
+          this.localities && this.localities.length > 0 ? this.localities[0].territoryPrefix : '';
+      }
 
       groupArray.push(
         this.fb.group({
@@ -107,13 +110,15 @@ export class DepartureFormService {
     }
 
     const defaultColor = group === 0 ? 'secondary' : 'primary';
+    const defaultLocation =
+      this.localities && this.localities.length > 0 ? this.localities[0].territoryPrefix : '';
 
     departureFormArrayItem.push(
       this.fb.group({
         date: new FormControl(dateStr),
         driver: new FormControl(''),
         schedule: new FormControl(''),
-        location: new FormControl('Seleccionar localidad'),
+        location: new FormControl(defaultLocation),
         territory: this.fb.array([]),
         point: new FormControl(''),
         maps: new FormControl(''),

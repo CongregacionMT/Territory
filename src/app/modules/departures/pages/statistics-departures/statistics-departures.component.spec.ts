@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { StatisticsDeparturesComponent } from './statistics-departures.component';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -42,6 +43,7 @@ describe('StatisticsDeparturesComponent', () => {
     await TestBed.configureTestingModule({
       imports: [StatisticsDeparturesComponent],
       providers: [
+        provideRouter([]),
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: SpinnerService, useValue: mockSpinnerService },
       ],
@@ -59,14 +61,21 @@ describe('StatisticsDeparturesComponent', () => {
 
     // Check driver stats processing
     expect(component.driverStats().length).toBe(2);
-    expect(component.driverStats()[0]).toEqual({ name: 'John Doe', count: 2 });
-    expect(component.driverStats()[1]).toEqual({ name: 'Jane Doe', count: 1 });
+    expect(component.driverStats()[0]).toEqual({ name: 'John Doe', count: 2, percentage: 67 });
+    expect(component.driverStats()[1]).toEqual({ name: 'Jane Doe', count: 1, percentage: 33 });
 
     // Check point stats processing
     expect(component.pointStats().length).toBe(2);
-    // '2023-W01' is alphabetically less than '2023-W02', so it comes last when sorting desc
-    expect(component.pointStats()[0]).toEqual({ name: 'Central Station', lastDate: '2023-W02' });
-    expect(component.pointStats()[1]).toEqual({ name: 'North Park', lastDate: '2023-W01' });
+    expect(component.pointStats()[0]).toEqual({
+      name: 'Central Station',
+      lastDate: '2023-W02',
+      count: 2,
+    });
+    expect(component.pointStats()[1]).toEqual({
+      name: 'North Park',
+      lastDate: '2023-W01',
+      count: 1,
+    });
 
     expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
   });

@@ -4,7 +4,7 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { Card, CardApplesData } from '@core/models/Card';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import { take } from 'rxjs';
+import { take, firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class StatisticsFeatureService {
@@ -73,7 +73,13 @@ export class StatisticsFeatureService {
     this.loadingData.set(false);
     this.spinner.cargarSpinner();
 
-    const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
+    let storedNumberTerritory = sessionStorage.getItem('numberTerritory');
+
+    if (!storedNumberTerritory) {
+      await firstValueFrom(this.territorieDataService.getNumberTerritory());
+      storedNumberTerritory = sessionStorage.getItem('numberTerritory');
+    }
+
     const numberTerritory = storedNumberTerritory
       ? (JSON.parse(storedNumberTerritory) as Record<string, TerritoryNumberData[]>)
       : {};
@@ -129,7 +135,7 @@ export class StatisticsFeatureService {
                   {
                     numberTerritory: t.territorio,
                     applesData: blueprintCard?.applesData || [],
-                    driver: 'Sin asignar',
+                    driver: '',
                     end: '',
                     isPlaceholder: true,
                   },
@@ -142,7 +148,6 @@ export class StatisticsFeatureService {
 
     await Promise.all(promises);
     this.dataListFull.set(fetchedData);
-    sessionStorage.setItem(storageKey, JSON.stringify(fetchedData));
     this.calculateSummary();
     this.spinner.cerrarSpinner();
     this.loadingData.set(true);

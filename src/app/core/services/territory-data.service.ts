@@ -147,6 +147,11 @@ export class TerritoryDataService {
 
         const resetCard = {
           ...card,
+          isReset: true,
+          driver: '',
+          start: '',
+          end: '0',
+          comments: '',
           creation: Timestamp.now(),
           completed: (card.completed ?? 0) + 1,
           isInitial: false,

@@ -116,9 +116,6 @@
             [value]="locationValue"
             (change)="onChangeInput($event, 'location')"
           >
-            <option value="Seleccionar localidad" selected disabled>
-              Seleccionar localidad
-            </option>
             @for (loc of localities(); track loc.key) {
               <option [value]="loc.territoryPrefix">
                 {{ loc.name }}

@@ -5,7 +5,7 @@
 
     <!-- Botones de localidades -->
     <div class="flex flex-wrap justify-center gap-4 mb-6">
-      @for (terr of territorioMaps; track terr) {
+      @for (terr of territorioMaps(); track terr) {
         <app-card-xl
           mapSRC="{{ terr.src }}"
           mapName="{{ terr.name }}"
@@ -14,13 +14,13 @@
       }
     </div>
 
-    <hr />
+    <hr class="mb-6"/>
 
     <!-- Territorios agrupados por localidad -->
     @if (isAdmin() || isDriver()) {
-      @for (locality of localitiesWithTerritories; track locality.key) {
+      @for (locality of localitiesWithTerritories(); track locality.key) {
         <div class="mb-6">
-          <h2 class="text-lg font-bold text-white text-center mb-3">
+          <h2 class="text-2xl font-bold text-white text-center mb-6">
             Territorios de {{ locality.name }} por Número
           </h2>
 

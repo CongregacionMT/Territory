@@ -18,6 +18,7 @@ export class Card {
   applesData: CardApplesData[];
   revision?: boolean;
   revisionComplete?: boolean;
+  isInitial?: boolean;
   numberTerritory?: number;
   completed?: number;
   territory?: string;

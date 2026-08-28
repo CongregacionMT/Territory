@@ -24,7 +24,7 @@
         >
           <div class="flex items-center gap-3">
             <span class="text-lg md:text-xl font-extrabold capitalize transition-colors duration-300"
-                  [ngClass]="isToday(departure.date) ? 'text-sky-800' : getTailwindColor(departure.color).text">
+                  [ngClass]="isToday(departure.date) ? 'text-sky-800' : 'text-slate-800'">
               {{ getDayOfWeek(departure.date) }}
             </span>
             <span class="text-white px-3 py-1 rounded-lg text-sm md:text-base font-bold transition-colors duration-300"

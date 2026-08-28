@@ -1,4 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+  DestroyRef,
+  signal,
+} from '@angular/core';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { CardService } from '@core/services/card.service';
 import { CardButtonsData } from '@core/models/CardButtonsData';
@@ -21,14 +28,13 @@ import { AuthService } from '@core/services/auth.service';
   imports: [CardXlComponent, RouterLink, CardSComponent],
 })
 export class TerritoryPageComponent implements OnInit {
-  private territorieDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private destroyRef = inject(DestroyRef);
-  cardService = inject(CardService);
-  territorioMaps: CardButtonsData[] = [];
+  private readonly territorieDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
+  private readonly destroyRef = inject(DestroyRef);
+  public readonly cardService = inject(CardService);
 
-  // NUEVO: Datos agrupados por localidad
-  localitiesWithTerritories: LocalityData[] = [];
+  public territorioMaps = signal<CardButtonsData[]>([]);
+  public localitiesWithTerritories = signal<LocalityData[]>([]);
 
   public authService = inject(AuthService);
 
@@ -59,31 +65,40 @@ export class TerritoryPageComponent implements OnInit {
           if (map.length > 0) {
             const maps = map[0].maps;
             sessionStorage.setItem('territorioMaps', JSON.stringify(maps));
-            this.territorioMaps = maps;
+            this.territorioMaps.set(maps);
           }
           this.spinner.cerrarSpinner();
         });
     } else {
       const storedTerritorioMaps = sessionStorage.getItem('territorioMaps');
-      this.territorioMaps = storedTerritorioMaps
+      const maps = storedTerritorioMaps
         ? (JSON.parse(storedTerritorioMaps) as CardButtonsData[])
         : [];
+      this.territorioMaps.set(maps);
     }
 
     // Cargar y agrupar territorios por localidad
-    const storedNumberTerritory = sessionStorage.getItem('numberTerritory');
-    const numberTerritory = storedNumberTerritory
-      ? (JSON.parse(storedNumberTerritory) as Record<string, TerritoryNumberData[]>)
-      : {};
-
-    this.groupTerritoriesByLocality(numberTerritory);
+    this.territorieDataService
+      .getNumberTerritory()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((numbersArray: Record<string, TerritoryNumberData[]>[]) => {
+        // Reducimos el array para unificar por si vienen desglosados
+        const mergedData = (numbersArray || []).reduce(
+          (
+            acc: Record<string, TerritoryNumberData[]>,
+            curr: Record<string, TerritoryNumberData[]>,
+          ) => ({ ...acc, ...curr }),
+          {} as Record<string, TerritoryNumberData[]>,
+        );
+        this.groupTerritoriesByLocality(mergedData);
+      });
   }
 
   /**
    * Agrupa los territorios por localidad basándose en el prefijo de la colección
    */
   groupTerritoriesByLocality(numberTerritory: Record<string, TerritoryNumberData[]>): void {
-    this.localitiesWithTerritories = this.localities
+    const grouped = this.localities
       .filter((locality) => locality.hasNumberedTerritories)
       .map((locality) => {
         // Obtener territorios específicos de esta localidad usando su key
@@ -98,5 +113,7 @@ export class TerritoryPageComponent implements OnInit {
         } as LocalityData;
       })
       .filter((locality) => locality.territories.length > 0);
+
+    this.localitiesWithTerritories.set(grouped);
   }
 }

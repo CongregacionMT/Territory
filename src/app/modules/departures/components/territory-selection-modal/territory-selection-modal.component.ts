@@ -96,8 +96,8 @@ export class TerritorySelectionModalComponent {
   }
 
   getTerritoryGroupNumber(num: string, locationPrefix: string): number {
-    const numericNum = Number(num);
-    if (!isNaN(numericNum) && this.territoryGroupsMap()[locationPrefix]?.[numericNum]) {
+    const numericNum = this.normalizeTerritoryNumber(num);
+    if (numericNum !== -1 && this.territoryGroupsMap()[locationPrefix]?.[numericNum]) {
       return this.territoryGroupsMap()[locationPrefix][numericNum];
     }
     return 0;
@@ -178,8 +178,11 @@ export class TerritorySelectionModalComponent {
   }
 
   getTerritoryLastUsedDays(num: string, locationPrefix: string): number {
-    const numericNum = Number(num);
-    if (!isNaN(numericNum) && this.territoryLastCompletedDays()[locationPrefix]?.[numericNum]) {
+    const numericNum = this.normalizeTerritoryNumber(num);
+    if (
+      numericNum !== -1 &&
+      this.territoryLastCompletedDays()[locationPrefix]?.[numericNum] !== undefined
+    ) {
       return this.territoryLastCompletedDays()[locationPrefix][numericNum];
     }
     return Infinity;

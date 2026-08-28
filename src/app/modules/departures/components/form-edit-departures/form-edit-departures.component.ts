@@ -316,9 +316,12 @@ export class FormEditDeparturesComponent implements OnInit {
               const primaryCard = territoryCards[0];
               const num = primaryCard.numberTerritory || primaryCard.territory;
               if (num !== undefined) {
+                const numericNum = this.normalizeTerritoryNumber(String(num));
+                if (numericNum === -1) return;
+
                 let lastEnd = null;
                 for (let i = 0; i < 6 && i < territoryCards.length; i++) {
-                  if (territoryCards[i].end) {
+                  if (territoryCards[i].end && territoryCards[i].end !== '0') {
                     lastEnd = territoryCards[i].end;
                     break;
                   }
@@ -351,18 +354,18 @@ export class FormEditDeparturesComponent implements OnInit {
                     const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
                     const days = Math.floor(difference / (1000 * 60 * 60 * 24));
                     this.territoryLastCompletedDays.update((m) => {
-                      m[locationPrefix][Number(num)] = days;
+                      m[locationPrefix][numericNum] = days;
                       return { ...m };
                     });
                   } else {
                     this.territoryLastCompletedDays.update((m) => {
-                      m[locationPrefix][Number(num)] = Infinity;
+                      m[locationPrefix][numericNum] = Infinity;
                       return { ...m };
                     });
                   }
                 } else {
                   this.territoryLastCompletedDays.update((m) => {
-                    m[locationPrefix][Number(num)] = Infinity;
+                    m[locationPrefix][numericNum] = Infinity;
                     return { ...m };
                   });
                 }
@@ -386,7 +389,7 @@ export class FormEditDeparturesComponent implements OnInit {
             .subscribe((cards) => {
               let lastEnd = null;
               for (const c of cards) {
-                if (c.end) {
+                if (c.end && c.end !== '0') {
                   lastEnd = c.end;
                   break;
                 }
@@ -650,8 +653,8 @@ export class FormEditDeparturesComponent implements OnInit {
   }
 
   getTerritoryGroupNumber(num: string, locationPrefix: string): number {
-    const numericNum = Number(num);
-    if (!isNaN(numericNum) && this.territoryGroupsMap()[locationPrefix]?.[numericNum]) {
+    const numericNum = this.normalizeTerritoryNumber(num);
+    if (numericNum !== -1 && this.territoryGroupsMap()[locationPrefix]?.[numericNum]) {
       return this.territoryGroupsMap()[locationPrefix][numericNum];
     }
     return 0;
@@ -991,7 +994,13 @@ export class FormEditDeparturesComponent implements OnInit {
           date: new FormControl(departure.date || departure.day),
           driver: new FormControl(departure.driver),
           schedule: new FormControl(departure.schedule),
-          location: new FormControl(departure.location),
+          location: new FormControl(
+            !departure.location || departure.location === 'Seleccionar localidad'
+              ? this.localities && this.localities.length > 0
+                ? this.localities[0].territoryPrefix
+                : ''
+              : departure.location,
+          ),
           territory: this.fb.array(
             (departure.territory || []).map((t: string) => new FormControl(t)),
           ),

@@ -23,7 +23,7 @@ import { StorageService } from '@core/services/storage.service';
 import { TerritoryCardComponent } from '../../components/territory-card/territory-card.component';
 import { parseFirebaseDate } from '@shared/utils/date-utils';
 
-import { Card } from '@core/models/Card';
+import { Card, CardApplesData } from '@core/models/Card';
 
 @Component({
   selector: 'app-territory-assignment',
@@ -82,26 +82,7 @@ export class TerritoryAssignmentComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const numberTerritory =
-      this.storageService.getItem<Record<string, TerritoryNumberData[]>>('numberTerritory') || {};
-
-    const currentPath = this.territoryPath();
-    const storageKey = this.getStorageKeyByPath(currentPath);
-
-    this.territoriesNumber.set(numberTerritory[currentPath] || []);
-
-    const parsedData = this.storageService.getItem<Card[][]>(storageKey);
-    if (parsedData) {
-      this.dataListFull.set(parsedData);
-      if (parsedData.length > 0) {
-        this.sortByDate(this.selectedValueFilter());
-        this.loadingData.set(true);
-      } else {
-        this.fetchDataForLocality(currentPath, storageKey, true);
-      }
-    } else {
-      this.fetchDataForLocality(currentPath, storageKey, true);
-    }
+    this.refreshData();
 
     this.loadPDFImage();
   }
@@ -125,16 +106,14 @@ export class TerritoryAssignmentComponent implements OnInit {
       this.spinner.cargarSpinner();
     }
 
-    const territoryData =
-      this.storageService.getItem<Record<string, TerritoryNumberData[]>>('numberTerritory');
-    if (!territoryData) {
+    const territories = this.territoriesNumber();
+
+    if (!territories || territories.length === 0) {
       if (updateState) {
         this.spinner.cerrarSpinner();
       }
       return;
     }
-
-    const territories = territoryData[path] || [];
 
     const requests = territories.map((territory: TerritoryNumberData) =>
       this.territoryDataService.getCardTerritorieRegisterTable(territory.collection).pipe(take(1)),
@@ -154,19 +133,21 @@ export class TerritoryAssignmentComponent implements OnInit {
           const filteredResults = results.map((cardList: Card[]) => {
             if (!cardList) return [];
             return cardList.filter((card) => {
+              if ((card as unknown as { isReset?: boolean })?.isReset) return false;
               let checkedAppleCount = 0;
               if (card.applesData) {
                 checkedAppleCount = card.applesData.filter((apple) => apple.checked).length;
               }
+              const hasDriver = card.driver && card.driver.trim() !== '';
               return (
                 checkedAppleCount > 0 ||
+                hasDriver ||
+                (card.applesData && card.applesData.length > 1) ||
                 (card.id &&
                   (card.id.startsWith('PostCampaña') || card.id.startsWith('Campaña-undefined')))
               );
             });
           });
-
-          this.storageService.setItem(storageKey, filteredResults);
 
           if (updateState) {
             this.dataListFull.set(filteredResults);
@@ -191,6 +172,11 @@ export class TerritoryAssignmentComponent implements OnInit {
 
     this.storageService.removeItem(storageKey);
     this.storageService.removeItem('numberTerritory');
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith('statisticData')) {
+        sessionStorage.removeItem(key);
+      }
+    });
 
     this.dataListFull.set([]);
     this.filterDataListFull.set([]);
@@ -209,7 +195,6 @@ export class TerritoryAssignmentComponent implements OnInit {
             },
             {},
           );
-          this.storageService.setItem('numberTerritory', mergedData);
           this.territoriesNumber.set(mergedData[currentPath] || []);
           this.fetchDataForLocality(currentPath, storageKey, true);
         },
@@ -292,6 +277,12 @@ export class TerritoryAssignmentComponent implements OnInit {
 
     this.pendingChanges.update((pending) => {
       const existing = pending[key];
+
+      let updatedApples = existing?.data?.applesData || card.applesData || [];
+      if (editData.end && editData.end !== '0') {
+        updatedApples = updatedApples.map((a: CardApplesData) => ({ ...a, checked: true }));
+      }
+
       return {
         ...pending,
         [key]: {
@@ -302,17 +293,24 @@ export class TerritoryAssignmentComponent implements OnInit {
             driver: editData.driver,
             start: editData.start,
             end: editData.end || '0',
+            applesData: updatedApples,
           },
           ...(existing?.isNew && { isNew: true }),
         },
       };
     });
 
+    let localApples = card.applesData || [];
+    if (editData.end && editData.end !== '0') {
+      localApples = localApples.map((a) => ({ ...a, checked: true }));
+    }
+
     const updatedCard = {
       ...card,
       driver: editData.driver,
       start: editData.start,
       end: editData.end || '0',
+      applesData: localApples,
     };
 
     this.dataListFull.update((lists) => {
@@ -335,29 +333,53 @@ export class TerritoryAssignmentComponent implements OnInit {
 
   addCard(collectionName: string, territoryIndex: number): void {
     const fakeId = `temp-${Date.now()}`;
-    const newCard = new Card();
-    newCard.id = fakeId;
-    newCard.driver = '';
     const today = new Date().toISOString().split('T')[0];
-    newCard.start = today;
-    newCard.end = '0';
 
     const existingCards = this.dataListFull()[territoryIndex] || [];
-    const cardWithApples = existingCards.find(
-      (c) => Array.isArray(c.applesData) && c.applesData.length > 0,
-    );
-    if (cardWithApples) {
-      newCard.applesData = cardWithApples.applesData.map((a) => ({ name: a.name, checked: true }));
-    } else {
-      newCard.applesData = [{ name: 'Registro manual', checked: true }];
+
+    // Función segura para extraer manzanas sea Array o Firebase Object Map
+    const getApples = (c: Card): CardApplesData[] => {
+      if (!c.applesData) return [];
+      if (Array.isArray(c.applesData)) return c.applesData;
+      return Object.values(c.applesData);
+    };
+
+    // 1. Buscar la tarjeta maestra original que tenga más de 1 manzana real
+    let cardWithApples = existingCards.find((c) => getApples(c).length > 1);
+
+    // 2. Si falló, buscar alguna que tenga al menos 1 manzana y que NO sea 'Registro manual'
+    if (!cardWithApples) {
+      cardWithApples = existingCards.find((c) => {
+        const apples = getApples(c);
+        return apples.length > 0 && apples[0].name && apples[0].name !== 'Registro manual';
+      });
     }
 
-    const referenceCard = existingCards.find((c) => c.location || c.numberTerritory);
-    if (referenceCard) {
-      newCard.location = referenceCard.location;
-      newCard.numberTerritory = referenceCard.numberTerritory;
-      newCard.territoryNumber = referenceCard.territoryNumber;
-      newCard.link = referenceCard.link;
+    // 3. Buscar la estructura base (location, link, etc)
+    const referenceCard = existingCards.find((c) => c.location || c.link || c.numberTerritory);
+
+    const baseCard = { ...referenceCard, ...cardWithApples };
+
+    const newCard = new Card();
+    Object.assign(newCard, baseCard);
+
+    newCard.id = fakeId;
+    newCard.driver = '';
+    newCard.start = today;
+    newCard.end = '0';
+    newCard.completed = 0;
+    newCard.revision = false;
+    newCard.revisionComplete = false;
+    newCard.creation = new Date().toISOString();
+
+    const finalApples = getApples(baseCard as Card);
+    if (finalApples.length > 0 && finalApples[0].name !== 'Registro manual') {
+      newCard.applesData = finalApples.map((a: CardApplesData) => ({
+        name: a.name,
+        checked: false,
+      }));
+    } else {
+      newCard.applesData = [{ name: 'Registro manual', checked: false }];
     }
 
     const key = this.getCompositeKey(collectionName, fakeId);
@@ -423,6 +445,23 @@ export class TerritoryAssignmentComponent implements OnInit {
     if (!confirm(`¿Estás seguro? Esta acción modificará o eliminará ${totalCount} registro(s).`))
       return;
 
+    // Validación estricta: ningún cambio puede tener campos vacíos
+    for (const key of Object.keys(changes)) {
+      const data = changes[key].data;
+      if (
+        !data.driver ||
+        data.driver.trim() === '' ||
+        !data.start ||
+        !data.end ||
+        data.end === '0'
+      ) {
+        alert(
+          'No se puede guardar. Hay un registro pendiente que no tiene conductor, fecha de entrega o fecha de devolución. Por favor, completa todos los campos requeridos.',
+        );
+        return;
+      }
+    }
+
     this.spinner.cargarSpinner();
     try {
       for (const key of Object.keys(deletes)) {
@@ -446,19 +485,19 @@ export class TerritoryAssignmentComponent implements OnInit {
           }
           return result;
         };
-        const sanitizedData = removeUndefined(data);
+        const sanitizedData = removeUndefined(data) as Card;
 
         if (isNew) {
-          const cleanData = { ...(sanitizedData as Card) };
+          const cleanData = { ...sanitizedData };
           delete cleanData.id;
           if (!cleanData.applesData)
-            cleanData.applesData = [{ name: 'Registro manual', checked: true }];
+            cleanData.applesData = [{ name: 'Registro manual', checked: false }];
           await this.territoryDataService.addCardInCollection(collectionName, cleanData);
         } else {
           await this.territoryDataService.updateCardInCollection(
             collectionName,
             cardId,
-            sanitizedData as Partial<Card>,
+            sanitizedData,
           );
         }
       }
@@ -481,16 +520,6 @@ export class TerritoryAssignmentComponent implements OnInit {
     this.pendingDeletes.set({});
     this.editingCardKey.set(null);
 
-    // Restaurar desde storage para revertir las modificaciones locales hechas por applyEditLocally
-    const currentPath = this.territoryPath();
-    const storageKey = this.getStorageKeyByPath(currentPath);
-    const parsedData = this.storageService.getItem<Card[][]>(storageKey);
-
-    if (parsedData) {
-      this.dataListFull.set(parsedData);
-      this.sortByDate(this.selectedValueFilter());
-    } else {
-      this.refreshData();
-    }
+    this.refreshData();
   }
 }

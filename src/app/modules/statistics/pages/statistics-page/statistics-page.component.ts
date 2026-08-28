@@ -23,7 +23,7 @@ import { StatisticsTableComponent } from '../../components/statistics-table/stat
   standalone: true,
 })
 export class StatisticsPageComponent {
-  private statsService = inject(StatisticsFeatureService);
+  private readonly statsService = inject(StatisticsFeatureService);
 
   // Router input binding replaces ActivatedRoute subscription
   readonly locality = input.required<string>();
