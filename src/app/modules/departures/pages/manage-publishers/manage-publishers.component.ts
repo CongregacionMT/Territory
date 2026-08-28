@@ -30,11 +30,11 @@ import { AuthService } from '@core/services/auth.service';
   styleUrls: ['./manage-publishers.component.scss'],
 })
 export class ManagePublishersComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private router = inject(Router);
-  private authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
   groups = signal<Group[]>([]);
   newPublisherName: { [groupId: string]: string } = {};
 
@@ -69,8 +69,8 @@ export class ManagePublishersComponent implements OnInit {
 
           // Sort groups by number
           parsedGroups.sort((a, b) => {
-            const numA = parseInt(a.id.replace('Grupo ', '')) || 0;
-            const numB = parseInt(b.id.replace('Grupo ', '')) || 0;
+            const numA = Number.parseInt(a.id.replace('Grupo ', ''), 10) || 0;
+            const numB = Number.parseInt(b.id.replace('Grupo ', ''), 10) || 0;
             return numA - numB;
           });
 
@@ -99,7 +99,7 @@ export class ManagePublishersComponent implements OnInit {
     if (currentGroups.length === 0) return 1;
 
     const numbers = currentGroups
-      .map((g) => parseInt(g.id.replace('Grupo ', '')))
+      .map((g) => Number.parseInt(g.id.replace('Grupo ', '')))
       .sort((a, b) => a - b);
     return numbers[numbers.length - 1] + 1;
   }

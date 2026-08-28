@@ -25,16 +25,16 @@ import { DepartureDayCardComponent } from '../departure-day-card/departure-day-c
 import { TerritorySelectionModalComponent } from '../territory-selection-modal/territory-selection-modal.component';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { DepartureFormService } from '@core/services/departure-form.service';
-import { Departure } from '../../../../core/models/Departures';
+import { Departure, WeeklyDeparture } from '../../../../core/models/Departures';
 import { SpinnerService } from '@core/services/spinner.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { User } from '@core/models/User';
-import { WeeklyDeparture } from '../../../../core/models/Departures';
 import { take } from 'rxjs';
 import { Card } from '@core/models/Card';
+import { Group } from '@core/models/Group';
 import { AuthService } from '@core/services/auth.service';
 
 @Component({
@@ -98,6 +98,7 @@ export class FormEditDeparturesComponent implements OnInit {
   territoryGroupsMap = signal<{ [locationPrefix: string]: { [territoryNum: number]: number } }>({});
   selectedTerritoryGroup: number | null = null; // null = todos
   availableGroupNumbers: number[] = []; // grupos disponibles para la localidad actual
+  publisherGroups = signal<Group[]>([]);
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';
   constructor() {
     effect(() => {
@@ -121,6 +122,7 @@ export class FormEditDeparturesComponent implements OnInit {
     this.loadPersonalAssignments();
     this.loadWeeklyHistory();
     this.loadTerritoryGroups();
+    this.loadPublisherGroups();
 
     this.formDeparture.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.formDeparture.dirty && !this.isFormDirty()) {
@@ -142,10 +144,68 @@ export class FormEditDeparturesComponent implements OnInit {
     this.groupKeys = result.groupKeys;
     this.groupedDepartures = result.groupedDepartures;
 
+    this.ensureGroupKeys();
+
     this.formDeparture.markAsPristine();
 
     this.cdr.markForCheck();
   }
+
+  loadPublisherGroups(): void {
+    this.territoryDataService
+      .getGroupList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        let parsedGroups: Group[] = [];
+        if (Array.isArray(data)) {
+          parsedGroups = data.map((group) => ({
+            id: group.id,
+            publishers: Array.isArray(group.publishers) ? group.publishers : [],
+          }));
+        }
+
+        parsedGroups.sort((a, b) => {
+          const numA = Number.parseInt(a.id.replace('Grupo ', '')) || 0;
+          const numB = Number.parseInt(b.id.replace('Grupo ', '')) || 0;
+          return numA - numB;
+        });
+
+        this.publisherGroups.set(parsedGroups);
+        this.ensureGroupKeys();
+      });
+  }
+
+  ensureGroupKeys(): void {
+    const configuredGroups = [
+      0,
+      ...this.publisherGroups().map((g: Group) => parseInt(g.id.replace('Grupo ', '')) || 0),
+    ];
+    let changed = false;
+
+    // Remove groupKeys that are not in configuredGroups (except those that have actual departures)
+    // Actually, we should probably keep any group that has existing departures,
+    // even if it was deleted from manage-publishers, to avoid data loss.
+    // So we just ADD missing groups.
+
+    configuredGroups.forEach((g) => {
+      if (!this.groupKeys.includes(g)) {
+        this.groupKeys.push(g);
+        changed = true;
+      }
+      const groupArrayKey = `departure${g}`;
+      if (!this.formDeparture.get(groupArrayKey)) {
+        this.formDeparture.setControl(groupArrayKey, this.fb.array([]));
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      // Sort groupKeys numerically
+      this.groupKeys.sort((a, b) => a - b);
+      this.cdr.markForCheck();
+    }
+  }
+
   loadTerritoryData(): void {
     const stored = sessionStorage.getItem('numberTerritory');
     if (stored) {

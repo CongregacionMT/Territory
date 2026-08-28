@@ -360,9 +360,9 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     const targetMonday = new Date(`${targetWeekId}T00:00:00`);
 
     if (
-      isNaN(sourceDate.getTime()) ||
-      isNaN(sourceMonday.getTime()) ||
-      isNaN(targetMonday.getTime())
+      Number.isNaN(sourceDate.getTime()) ||
+      Number.isNaN(sourceMonday.getTime()) ||
+      Number.isNaN(targetMonday.getTime())
     ) {
       return dateStr;
     }
@@ -385,7 +385,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   getHumanDate(dateStr: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr + 'T00:00:00');
-    if (isNaN(date.getTime())) return dateStr;
+    if (Number.isNaN(date.getTime())) return dateStr;
 
     const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const monthsOfYear = [
@@ -482,7 +482,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   private getWeekOffset(dateValue: string, weekId: string): number {
     const date = new Date(`${dateValue}T00:00:00`);
     const week = new Date(`${weekId}T00:00:00`);
-    if (isNaN(date.getTime()) || isNaN(week.getTime())) return -1;
+    if (Number.isNaN(date.getTime()) || Number.isNaN(week.getTime())) return -1;
 
     return Math.round((date.getTime() - week.getTime()) / (1000 * 60 * 60 * 24));
   }
