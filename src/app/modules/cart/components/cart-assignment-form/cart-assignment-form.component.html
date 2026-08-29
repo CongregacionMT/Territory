@@ -1,0 +1,144 @@
+<div class="bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl overflow-hidden mb-10 transition-all duration-300 hover:shadow-sky-900/10">
+  <div class="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700 p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="bg-sky-500/20 p-2.5 rounded-lg border border-sky-500/30">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-400"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white m-0">Turnos</h2>
+        <p class="text-sm text-slate-400 m-0">Administra los horarios y ubicaciones</p>
+      </div>
+    </div>
+    
+    <button
+      type="button"
+      class="bg-sky-600 hover:bg-sky-500 text-white font-medium py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-lg shadow-sky-600/20 w-full sm:w-auto justify-center"
+      (click)="addInputForm()"
+      title="Nueva asignación"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Nuevo Turno
+    </button>
+  </div>
+
+  <form [formGroup]="formCart" (ngSubmit)="submitForm()" class="p-6">
+    <div formArrayName="cart" class="space-y-6">
+      
+      <!-- Table Headers (Desktop Only) -->
+      <div class="hidden xl:grid grid-cols-[1.5fr_1fr_1fr_1.5fr_1fr_auto] gap-4 mb-2 px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <div>Asignación</div>
+        <div>Fecha</div>
+        <div>Horario</div>
+        <div>Ubicación</div>
+        <div>Color</div>
+        <div class="text-center w-12">Acción</div>
+      </div>
+
+      @for (days of cartFormArray.controls; track $index; let i = $index) {
+        <div [formGroupName]="i" class="group relative bg-slate-800/50 xl:bg-transparent rounded-xl xl:rounded-none p-4 xl:p-2 border border-slate-700/50 xl:border-transparent xl:border-b xl:border-slate-800 grid grid-cols-1 xl:grid-cols-[1.5fr_1fr_1fr_1.5fr_1fr_auto] gap-4 xl:gap-4 items-end xl:items-center hover:bg-slate-800 transition-colors">
+          
+          <!-- Asignación -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-slate-300 xl:hidden">Asignación</label>
+            <input
+              type="text"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+              placeholder="Ej: Juan, Maria y Jose"
+              formControlName="assignment"
+              aria-label="Asignación"
+            />
+          </div>
+
+          <!-- Fecha -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-slate-300 xl:hidden">Fecha</label>
+            <input
+              type="date"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+              formControlName="date"
+              aria-label="Fecha"
+            />
+          </div>
+
+          <!-- Horario -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-slate-300 xl:hidden">Horario</label>
+            <input
+              type="time"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+              formControlName="schedule"
+              aria-label="Horario"
+            />
+          </div>
+
+          <!-- Ubicación -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-slate-300 xl:hidden">Ubicación</label>
+            <select
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none appearance-none"
+              formControlName="location"
+              aria-label="Ubicación"
+            >
+              @for (location of locations; track location.name) {
+                <option [value]="location.name">{{ location.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Color -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-slate-300 xl:hidden">Color</label>
+            <select
+              class="w-full rounded-lg px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-sky-500/50 transition-all outline-none appearance-none border"
+              [ngClass]="getColorSelectClasses(days.get('color')?.value)"
+              formControlName="color"
+              aria-label="Color"
+            >
+              <option value="primary">Azul</option>
+              <option value="success">Verde</option>
+              <option value="warning">Amarillo</option>
+              <option value="danger">Rojo</option>
+              <option value="info">Celeste</option>
+              <option value="secondary">Gris Oscuro</option>
+              <option value="light">Blanco</option>
+              <option value="dark">Negro</option>
+            </select>
+          </div>
+
+          <!-- Borrar -->
+          <div class="flex xl:justify-center mt-2 xl:mt-0">
+            <button
+              type="button"
+              class="w-full xl:w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/20 hover:border-red-500 transition-all"
+              (click)="deleteInputForm(i)"
+              title="Eliminar asignación"
+              aria-label="Eliminar asignación"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span class="xl:hidden ml-2 font-medium">Eliminar</span>
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (cartFormArray.controls.length === 0) {
+        <div class="text-center py-8 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed">
+          <p class="text-slate-400">No hay turnos configurados. Agrega uno nuevo.</p>
+        </div>
+      }
+    </div>
+
+    <!-- Acciones -->
+    <div class="mt-8 pt-6 border-t border-slate-800 flex justify-end">
+      <button
+        type="submit"
+        class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2"
+        [disabled]="formCart.invalid"
+        [class.opacity-50]="formCart.invalid"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        Guardar Turnos
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import {
   collection,
   collectionData,
@@ -15,9 +15,7 @@ import {
   setDoc,
   runTransaction,
 } from '@angular/fire/firestore';
-import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { SpinnerService } from './spinner.service';
+import { Observable, tap, of } from 'rxjs';
 import { DataRural } from '@core/models/DataRural';
 import { CampaignService } from './campaign.service';
 import { MapData } from '@core/models/MapData';
@@ -25,67 +23,72 @@ import { Card } from '@core/models/Card';
 import { Group } from '@core/models/Group';
 import { StatisticsButton } from '@core/models/StatisticsButton';
 import { User } from '@core/models/User';
-import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import {
-  DateDeparture,
-  Departure,
-  DepartureData,
-  WeeklyDeparture,
-} from '@core/models/Departures';
+import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
+import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
+import { FirestoreProviderService } from './firestore-provider.service';
+import { MeetingPointService } from './meeting-point.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TerritoryDataService {
-  private firestore = inject(Firestore);
-  private router = inject(Router);
-  private spinner = inject(SpinnerService);
-  private campaignService = inject(CampaignService);
+  private readonly firestoreProvider = inject(FirestoreProviderService);
+  private get firestore(): Firestore {
+    return this.firestoreProvider.getFirestore();
+  }
+  private readonly campaignService = inject(CampaignService);
+  private readonly meetingPointService = inject(MeetingPointService);
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {}
+  // Cached state via Signals to avoid relying on sessionStorage everywhere
+  private readonly _cachedNumberTerritory = signal<TerritoriesNumberData | null>(null);
+  private readonly _cachedStatistics = signal<StatisticsButton | null>(null);
 
   // MAPAS
   getMaps(): Observable<MapData[]> {
     const mapRef = collection(this.firestore, 'MapsTerritory');
     return collectionData(mapRef) as Observable<MapData[]>;
   }
-  // NUMERO DE TERRITORIOS
-  getNumberTerritory(): Observable<TerritoryNumberData[]> {
+
+  // NUMERO DE TERRITORIOS (with caching)
+  getNumberTerritory(): Observable<TerritoriesNumberData[]> {
+    if (this._cachedNumberTerritory()) {
+      return of([this._cachedNumberTerritory() as TerritoriesNumberData]); // Return as array to match signature
+    }
     const numberRef = collection(this.firestore, 'NumberTerritory');
-    return collectionData(numberRef) as Observable<TerritoryNumberData[]>;
+    return (collectionData(numberRef) as Observable<TerritoriesNumberData[]>).pipe(
+      tap((numbers: TerritoriesNumberData[]) => {
+        const mergedData = numbers.reduce(
+          (acc: TerritoriesNumberData, curr: TerritoriesNumberData) => ({ ...acc, ...curr }),
+          {} as TerritoriesNumberData,
+        );
+        this._cachedNumberTerritory.set(mergedData);
+        sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
+      }),
+    );
   }
 
   // GRUPOS DE TERRITORIOS
-  getTerritoryGroups(): Observable<any> {
+  getTerritoryGroups(): Observable<Record<string, Record<number, number>>> {
     const docRef = doc(this.firestore, 'Settings', 'TerritoryGroups');
-    return docData(docRef);
+    return docData(docRef) as Observable<Record<string, Record<number, number>>>;
   }
 
-  async saveTerritoryGroups(data: any) {
+  async saveTerritoryGroups(data: unknown): Promise<void> {
     const docRef = doc(this.firestore, 'Settings', 'TerritoryGroups');
     await setDoc(docRef, data);
   }
   // TARJETAS DE CONDUCTORES
-  getCardTerritorie(
-    collectionParam: string,
-    months: number = 12,
-  ): Observable<Card[]> {
+  getCardTerritorie(collectionParam: string, months: number = 12): Observable<Card[]> {
     const cardRef = collection(this.firestore, collectionParam);
     // Limitar por defecto a los últimos X meses para evitar traer datos muy antiguos
     const fromDate = Timestamp.fromDate(
       new Date(new Date().setMonth(new Date().getMonth() - months)),
     );
-    const q = query(
-      cardRef,
-      where('creation', '>=', fromDate),
-      orderBy('creation', 'desc'),
-    );
+    const q = query(cardRef, where('creation', '>=', fromDate), orderBy('creation', 'desc'));
     return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
   }
 
-  async sendRevisionCardTerritorie(card: Card) {
+  async sendRevisionCardTerritorie(card: Card): Promise<void> {
     const cardRef = collection(this.firestore, 'revision');
     await addDoc(cardRef, { ...card });
   }
@@ -104,9 +107,7 @@ export class TerritoryDataService {
     }
 
     if (!collectionName?.trim()) {
-      console.error(
-        '[TerritoryDataService] postCardTerritorie: collectionName is empty',
-      );
+      console.error('[TerritoryDataService] postCardTerritorie: collectionName is empty');
       return;
     }
 
@@ -119,9 +120,10 @@ export class TerritoryDataService {
     });
 
     try {
-      const activeCampaign = this.campaignService.getCachedCampaign();
+      const activeCampaign = this.campaignService.getCachedCampaign() as { id?: string } | null;
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
-      const campaignIdValid = (activeCampaign?.id && activeCampaign.id !== 'undefined') ? activeCampaign.id : null;
+      const campaignIdValid =
+        activeCampaign?.id && activeCampaign.id !== 'undefined' ? activeCampaign.id : null;
       const isInCampaignMode = campaignIdValid != null;
 
       if (countFalseApples === 0) {
@@ -132,22 +134,22 @@ export class TerritoryDataService {
           isInitial: false,
         };
 
-        // ✅ Solo usar ID personalizado si estamos en modo campaña
-        if (isInCampaignMode) {
-          const completedId = `Campaña-${campaignIdValid}-${Date.now()}-completed`;
-          await setDoc(
-            doc(this.firestore, collectionName, completedId),
-            completedCard,
-          );
-          await this.incrementSalidasTx(activeCampaign.id, territorioKey);
-        } else {
-          // Usar ID auto-generado de Firebase
-          const cardRef = collection(this.firestore, collectionName);
-          await addDoc(cardRef, completedCard);
+        const completedId =
+          isInCampaignMode && activeCampaign
+            ? `Campaña-${campaignIdValid}-${Date.now()}-completed`
+            : null;
+        await this.saveDocument(collectionName, completedId, completedCard);
+        if (completedId && campaignIdValid) {
+          await this.incrementSalidasTx(campaignIdValid, territorioKey);
         }
 
         const resetCard = {
           ...card,
+          isReset: true,
+          driver: '',
+          start: '',
+          end: '0',
+          comments: '',
           creation: Timestamp.now(),
           completed: (card.completed ?? 0) + 1,
           isInitial: false,
@@ -157,15 +159,8 @@ export class TerritoryDataService {
           })),
         };
 
-        // ✅ Solo usar ID personalizado si estamos en modo campaña
-        if (isInCampaignMode) {
-          const resetId = `Campaña-${campaignIdValid}-${Date.now()}-reset`;
-          await setDoc(doc(this.firestore, collectionName, resetId), resetCard);
-        } else {
-          // Usar ID auto-generado de Firebase
-          const cardRef = collection(this.firestore, collectionName);
-          await addDoc(cardRef, resetCard);
-        }
+        const resetId = isInCampaignMode ? `Campaña-${campaignIdValid}-${Date.now()}-reset` : null;
+        await this.saveDocument(collectionName, resetId, resetCard);
       } else {
         const partialCard = {
           ...card,
@@ -173,65 +168,56 @@ export class TerritoryDataService {
           isInitial: false,
         };
 
-        // ✅ Solo usar ID personalizado si estamos en modo campaña
-        if (isInCampaignMode) {
-          const cardId = `Campaña-${campaignIdValid}-${Date.now()}`;
-          await setDoc(
-            doc(this.firestore, collectionName, cardId),
-            partialCard,
-          );
-          await this.incrementSalidasTx(activeCampaign.id, territorioKey);
-        } else {
-          // Usar ID auto-generado de Firebase
-          const cardRef = collection(this.firestore, collectionName);
-          await addDoc(cardRef, partialCard);
+        const cardId =
+          isInCampaignMode && activeCampaign ? `Campaña-${campaignIdValid}-${Date.now()}` : null;
+        await this.saveDocument(collectionName, cardId, partialCard);
+        if (cardId && campaignIdValid) {
+          await this.incrementSalidasTx(campaignIdValid, territorioKey);
         }
       }
-      this.router.navigate(['home']);
-    } catch (err) {
-      // Error handling
+    } catch (err: unknown) {
+      console.error(err);
     } finally {
-      this.spinner?.cerrarSpinner?.();
       this.isCreating = false;
     }
   }
-  private async incrementSalidasTx(campaignId: string, territorioKey: string) {
+
+  private async saveDocument(
+    collectionName: string,
+    docId: string | null,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    if (docId) {
+      await setDoc(doc(this.firestore, collectionName, docId), data);
+    } else {
+      const cardRef = collection(this.firestore, collectionName);
+      await addDoc(cardRef, data);
+    }
+  }
+  private async incrementSalidasTx(campaignId: string, territorioKey: string): Promise<void> {
     const ref = doc(this.firestore, 'campaigns', campaignId);
     try {
       await runTransaction(this.firestore, async (tx) => {
         const snap = await tx.get(ref);
         const exists = snap.exists();
-        const data = exists ? (snap.data() as any) : {};
-        const stats = data?.stats ?? {};
-        const allKeys = Object.keys(stats || {});
+        const data = exists ? (snap.data() as Card) : {};
+
+        // Define a type for stats to avoid 'any'
+        type StatEntry = { salidas?: number };
+        type StatsData = Record<string, StatEntry>;
+
+        const stats = ((data as Record<string, unknown>)?.[`stats`] as StatsData) ?? {};
         const territorio = stats[territorioKey] ?? {};
-        const current = Number(territorio?.salidas ?? 0);
+        const current = Number(territorio.salidas ?? 0);
         const next = current + 1;
 
-        // Build payload carefully to avoid overwriting other territories
-        const payload = {
-          stats: {
-            [territorioKey]: {
-              ...territorio,
-              salidas: next,
-            },
-          },
-        };
         tx.update(ref, {
           [`stats.${territorioKey}.salidas`]: next,
         });
       });
-
-      // Read-after-write verification (outside transaction)
-      const verifySnap = await (await import('firebase/firestore')).getDoc(ref);
-      const verifyData = verifySnap.exists() ? (verifySnap.data() as any) : {};
-      const verifyStats = verifyData?.stats ?? {};
-
-      const verifyValue = Number(verifyStats?.[territorioKey]?.salidas ?? 0);
-    } catch (err: any) {
-      // Error handling
-    } finally {
-      // End transaction
+      // The read-after-write verification is intentionally removed because variables were unused
+    } catch (err: unknown) {
+      console.error(err);
     }
   }
   private getTerritorioKeyStrict(card: Card, collectionName: string): string {
@@ -249,7 +235,7 @@ export class TerritoryDataService {
       String(collectionName ?? ''),
     ];
     for (const s of sources) {
-      const m = s.match(/(\d+)(?!.*\d)/);
+      const m = /(\d+)(?=\D*$)/.exec(s);
       if (m) {
         const key = `Territorio ${m[1]}`;
         return key;
@@ -258,42 +244,42 @@ export class TerritoryDataService {
     return 'Territorio 0';
   }
 
-  async putCardTerritorie(card: Card) {
+  async putCardTerritorie(card: Card): Promise<void> {
     if (!card.id) return;
     const revisionRef = doc(this.firestore, 'revision', card.id);
     card.revisionComplete = true;
-    updateDoc(revisionRef, { ...card });
+    await updateDoc(revisionRef, { ...card });
   }
 
-  deleteCardTerritorie(card: Card) {
+  deleteCardTerritorie(card: Card): void {
     if (!card.id) return;
-    deleteDoc(doc(this.firestore, 'revision', card.id));
+    void deleteDoc(doc(this.firestore, 'revision', card.id));
   }
   // TARJETAS ASIGNADAS DURANTE LA SEMANA
   getCardAssigned(): Observable<Card[]> {
     const cardRef = collection(this.firestore, 'Assigned');
     return collectionData(cardRef, { idField: 'id' }) as Observable<Card[]>;
   }
-  postCardAssigned(card: Card) {
+  async postCardAssigned(card: Card): Promise<void> {
     const cardRef = collection(this.firestore, 'Assigned');
-    return addDoc(cardRef, { ...card });
+    await addDoc(cardRef, { ...card });
   }
-  deleteCardAssigned(card: Card) {
+  deleteCardAssigned(card: Card): void {
     if (!card.id) return;
-    deleteDoc(doc(this.firestore, 'Assigned', card.id));
+    void deleteDoc(doc(this.firestore, 'Assigned', card.id));
   }
   // GRUPOS
   getGroupList(): Observable<Group[]> {
     const groupRef = collection(this.firestore, 'Groups');
     return collectionData(groupRef, { idField: 'id' }) as Observable<Group[]>;
   }
-  setGroup(groupId: string, data: any) {
+  async setGroup(groupId: string, data: unknown): Promise<void> {
     const groupDoc = doc(this.firestore, 'Groups', groupId);
-    return setDoc(groupDoc, data);
+    await setDoc(groupDoc, data);
   }
-  deleteGroup(groupId: string) {
+  async deleteGroup(groupId: string): Promise<void> {
     const groupDoc = doc(this.firestore, 'Groups', groupId);
-    return deleteDoc(groupDoc);
+    await deleteDoc(groupDoc);
   }
 
   // SALIDAS
@@ -302,27 +288,19 @@ export class TerritoryDataService {
     return docData(departuresRef) as Observable<DepartureData>;
   }
   getDateDepartures(): Observable<DateDeparture> {
-    const dateDeparturesRef = doc(
-      this.firestore,
-      'Departures',
-      'dateDeparture',
-    );
+    const dateDeparturesRef = doc(this.firestore, 'Departures', 'dateDeparture');
     return docData(dateDeparturesRef) as Observable<DateDeparture>;
   }
-  putDepartures(departures: DepartureData) {
+  async putDepartures(departures: DepartureData): Promise<void> {
     const departuresRef = doc(this.firestore, 'Departures', `docDeparture`);
-    updateDoc(departuresRef, { ...departures });
+    await updateDoc(departuresRef, { ...departures });
   }
-  putDate(date: DateDeparture) {
-    const departuresRef = doc(this.firestore, 'Departures', `dateDeparture`);
-    updateDoc(departuresRef, { ...date });
+  async putDate(date: DateDeparture): Promise<void> {
+    const departuresRef = doc(this.firestore, 'Departures', 'dateDeparture');
+    await updateDoc(departuresRef, { ...date });
   }
 
-  createDepartureId(
-    weekId: string,
-    departure: Departure,
-    index: number = 0,
-  ): string {
+  createDepartureId(weekId: string, departure: Departure, index: number = 0): string {
     const raw = [
       weekId,
       departure.date || 'sin-fecha',
@@ -344,8 +322,7 @@ export class TerritoryDataService {
     weekId: string,
     index: number,
   ): Departure {
-    const departureId =
-      departure.departureId || this.createDepartureId(weekId, departure, index);
+    const departureId = departure.departureId || this.createDepartureId(weekId, departure, index);
 
     if (departure.isEvent) {
       return {
@@ -371,29 +348,31 @@ export class TerritoryDataService {
   getWeeklyDepartures(): Observable<WeeklyDeparture[]> {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
     const q = query(departuresRef, orderBy('weekId', 'desc'));
-    return collectionData(q, { idField: 'id' }) as Observable<
-      WeeklyDeparture[]
-    >;
+    return collectionData(q, { idField: 'id' }) as Observable<WeeklyDeparture[]>;
   }
 
   getWeeklyDeparture(weekId: string): Observable<WeeklyDeparture | undefined> {
     const departuresRef = doc(this.firestore, 'WeeklyDepartures', weekId);
-    return docData(departuresRef, { idField: 'id' }) as Observable<
-      WeeklyDeparture | undefined
-    >;
+    return docData(departuresRef, { idField: 'id' }) as Observable<WeeklyDeparture | undefined>;
   }
 
-  async postWeeklyDeparture(weeklyDeparture: WeeklyDeparture) {
+  async postWeeklyDeparture(weeklyDeparture: WeeklyDeparture): Promise<void> {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
     // Usamos weekId como ID del documento para que sea único por semana y sea fácil de actualizar si se vuelve a guardar
     const docRef = doc(departuresRef, weeklyDeparture.weekId);
-    const normalizedDepartures = (weeklyDeparture.departure || []).map(
-      (departure, index) =>
-        this.normalizeDepartureForCardTracking(
-          departure,
-          weeklyDeparture.weekId,
-          index,
-        ),
+
+    // Guardar automáticamente los puntos de encuentro
+    for (const departure of weeklyDeparture.departure || []) {
+      if (departure.point && departure.maps) {
+        // No esperamos que termine para no bloquear, o podemos usar Promise.all
+        this.meetingPointService
+          .saveMeetingPoint(departure.point, departure.maps)
+          .catch(console.error);
+      }
+    }
+
+    const normalizedDepartures = (weeklyDeparture.departure || []).map((departure, index) =>
+      this.normalizeDepartureForCardTracking(departure, weeklyDeparture.weekId, index),
     );
     await setDoc(docRef, {
       ...weeklyDeparture,
@@ -402,7 +381,7 @@ export class TerritoryDataService {
     });
   }
 
-  async deleteWeeklyDeparture(weekId: string) {
+  async deleteWeeklyDeparture(weekId: string): Promise<void> {
     const departuresRef = doc(this.firestore, 'WeeklyDepartures', weekId);
     await deleteDoc(departuresRef);
   }
@@ -410,25 +389,33 @@ export class TerritoryDataService {
   // RURAL
   getTerritorieRural(): Observable<DataRural[]> {
     const collectionRef = collection(this.firestore, 'TerritorioRural');
-    return collectionData(collectionRef, { idField: 'id' }) as Observable<
-      DataRural[]
-    >;
+    return collectionData(collectionRef, { idField: 'id' }) as Observable<DataRural[]>;
   }
-  postNewRoad(road: DataRural) {
+  async postNewRoad(road: DataRural): Promise<void> {
     const cardRef = collection(this.firestore, 'TerritorioRural');
-    return addDoc(cardRef, road);
+    await addDoc(cardRef, road);
   }
-  putNewRoad(road: any, docId: string) {
+  async putNewRoad(road: unknown, docId: string): Promise<void> {
     const roadRef = doc(this.firestore, 'TerritorioRural', docId);
-    updateDoc(roadRef, road);
+    await updateDoc(roadRef, road as Record<string, unknown>);
   }
-  deleteRoad(docId: string) {
-    deleteDoc(doc(this.firestore, 'TerritorioRural', docId));
+  deleteRoad(docId: string): void {
+    void deleteDoc(doc(this.firestore, 'TerritorioRural', docId));
   }
   // ESTADÍSTICAS
   getStatisticsButtons(): Observable<StatisticsButton[]> {
+    if (this._cachedStatistics()) {
+      return of([this._cachedStatistics() as StatisticsButton]);
+    }
     const mapRef = collection(this.firestore, 'Statistics');
-    return collectionData(mapRef) as Observable<StatisticsButton[]>;
+    return (collectionData(mapRef) as Observable<StatisticsButton[]>).pipe(
+      tap((number: StatisticsButton[]) => {
+        if (number.length > 0) {
+          this._cachedStatistics.set(number[0]);
+          sessionStorage.setItem('territorioStatistics', JSON.stringify(number[0]));
+        }
+      }),
+    );
   }
   // REGISTER
   getCardTerritorieRegisterTable(collectionParam: string): Observable<Card[]> {
@@ -437,17 +424,21 @@ export class TerritoryDataService {
     return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
   }
 
-  async updateCardInCollection(collectionName: string, cardId: string, updatedData: Partial<Card>) {
+  async updateCardInCollection(
+    collectionName: string,
+    cardId: string,
+    updatedData: Partial<Card>,
+  ): Promise<void> {
     const cardRef = doc(this.firestore, collectionName, cardId);
     await updateDoc(cardRef, updatedData);
   }
 
-  async deleteCardInCollection(collectionName: string, cardId: string) {
+  async deleteCardInCollection(collectionName: string, cardId: string): Promise<void> {
     const cardRef = doc(this.firestore, collectionName, cardId);
     await deleteDoc(cardRef);
   }
 
-  async addCardInCollection(collectionName: string, cardData: Partial<Card>) {
+  async addCardInCollection(collectionName: string, cardData: Partial<Card>): Promise<void> {
     const cardRef = collection(this.firestore, collectionName);
     const completedCard = {
       ...cardData,
@@ -463,24 +454,16 @@ export class TerritoryDataService {
     const cardRef = collection(this.firestore, 'users');
     return collectionData(cardRef) as Observable<User[]>;
   }
-  postUser(user: User) {
-    setDoc(doc(this.firestore, 'users', user.user), user);
+  async postUser(user: User): Promise<void> {
+    await setDoc(doc(this.firestore, 'users', user.user), user);
   }
-  loginUser(user: string, password: string): Observable<User[]> {
-    const userRef = collection(this.firestore, 'users');
-    const q = query(
-      userRef,
-      where('user', '==', user),
-      where('password', '==', password),
-    );
-    return collectionData(q) as Observable<User[]>;
-  }
-  updateUser(user: string, dataUser: User) {
+
+  updateUser(user: string, dataUser: User): Observable<User> {
     const userRef = doc(this.firestore, 'users', user);
-    updateDoc(userRef, { ...dataUser });
+    void updateDoc(userRef, { ...dataUser });
     return docData(userRef) as Observable<User>;
   }
-  deleteUser(user: string) {
-    deleteDoc(doc(this.firestore, 'users', user));
+  deleteUser(user: string): void {
+    void deleteDoc(doc(this.firestore, 'users', user));
   }
 }

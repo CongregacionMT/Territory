@@ -1,17 +1,24 @@
-<div class="container table-responsive">
-  <app-breadcrumb [routerBreadcrum]="routerBreadcrum()"></app-breadcrumb>
-  <div class="d-flex justify-content-center">
-    <h1 class="mt-0 mb-3">Selecciona una localidad</h1>
-  </div>
-  
-  <!-- Botones de localidades para estadísticas -->
-  <div class="card-container d-flex justify-content-center mb-3">
-    @for (group of CardButtonsStatistics(); track group) {
-      <app-card-xl
-        [mapName]="group.name"
-        [mapSRC]="group.src"
-        [routerLink]="group.link"
-      ></app-card-xl>
-    }
+<div class="min-h-[calc(100vh-80px)] py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <h1 class="text-4xl font-extrabold text-white mb-4 tracking-tight">
+        Selecciona una localidad
+      </h1>
+      <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+        Elige un mapa para ver las estadísticas de progreso.
+      </p>
+    </div>
+    
+    <!-- Botones de localidades para estadísticas -->
+    <div class="flex flex-wrap justify-center items-center gap-6">
+      @for (group of CardButtonsStatistics(); track group) {
+        <app-card-xl
+          [mapName]="group.name"
+          [mapSRC]="group.src"
+          [routerLink]="group.link"
+        ></app-card-xl>
+      }
+    </div>
   </div>
 </div>

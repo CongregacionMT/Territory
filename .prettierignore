@@ -1,0 +1,20 @@
+# Dependencias y compilados
+node_modules/
+dist/
+coverage/
+.angular/
+
+# Archivos auto-generados o temporales
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+*.log
+
+# No formatear archivos que podrían romper su estructura sensible a espacios
+*.md
+*.html
+
+# Si luego se decide formatear el html de angular habría que configurar reglas especiales,
+# pero de momento ignoraremos los archivos no-TS para evitar conflictos grandes.
+# Aunque, Angular usa HTML, lo vamos a formatear con prettier pero con cuidado si queremos.
+# Mejor saco el *.html y uso el parser de angular

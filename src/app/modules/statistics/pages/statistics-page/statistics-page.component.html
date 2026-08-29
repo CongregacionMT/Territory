@@ -1,330 +1,192 @@
-<div class="container py-4">
-  <div
-    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3 w-100"
-  >
-    <h1 class="h2 mb-0 text-break fs-3 fs-md-2">
-      Estadísticas de {{ nameTitleTerritory() }}
-    </h1>
+<div class="min-h-screen py-6 px-3 sm:px-6">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Header y Filtros -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 w-full">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-0 tracking-tight break-words">
+        Estadísticas de {{ nameTitleTerritory() }}
+      </h1>
 
-    <div
-      class="d-flex align-items-center gap-2 overflow-x-auto overflow-y-hidden w-100 w-md-auto pb-1"
-      style="scrollbar-width: thin; -webkit-overflow-scrolling: touch"
-    >
-      <button
-        type="button"
-        class="btn btn-outline-secondary shadow-sm flex-shrink-0"
-        (click)="refreshData()"
-        title="Refrescar datos"
-      >
-        <i class="fas fa-sync-alt" [class.fa-spin]="!loadingData()"></i>
-      </button>
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <button
+          type="button"
+          class="bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 shadow-sm flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors cursor-pointer"
+          (click)="refreshData()"
+          title="Refrescar datos"
+          aria-label="Refrescar datos"
+        >
+          <i class="fas fa-sync-alt" [class.fa-spin]="!loadingData()"></i>
+        </button>
 
-      <div
-        class="btn-group shadow-sm flex-shrink-0"
-        role="group"
-        aria-label="Filtro de tiempo"
-      >
-        <button
-          type="button"
-          class="btn btn-outline-primary"
-          [class.active]="timeRange() === 1"
-          (click)="setTimeRange(1)"
-        >
-          1 Mes
-        </button>
-        <button
-          type="button"
-          class="btn btn-outline-primary"
-          [class.active]="timeRange() === 3"
-          (click)="setTimeRange(3)"
-        >
-          3 Meses
-        </button>
-        <button
-          type="button"
-          class="btn btn-outline-primary"
-          [class.active]="timeRange() === 6"
-          (click)="setTimeRange(6)"
-        >
-          6 Meses
-        </button>
-        <button
-          type="button"
-          class="btn btn-outline-primary"
-          [class.active]="timeRange() === 12"
-          (click)="setTimeRange(12)"
-        >
-          1 Año
-        </button>
-        <button
-          type="button"
-          class="btn btn-outline-primary"
-          [class.active]="timeRange() === 0"
-          (click)="setTimeRange(120)"
-        >
-          Histórico
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Summary Cards Section -->
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-sm-6 col-lg-3">
-      <div class="stats-card bg-glass border-0 shadow-sm p-3 h-100 rounded-4">
-        <div class="d-flex align-items-center mb-2">
-          <div class="icon-shape bg-soft-primary rounded-3 me-3">
-            <i class="fas fa-map-marked-alt text-primary"></i>
-          </div>
-          <span class="text-muted small fw-bold text-uppercase ls-1"
-            >Territorios</span
+        <div class="flex rounded-lg shadow-sm overflow-x-auto border border-slate-700 bg-slate-900" role="group" aria-label="Filtro de tiempo">
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors border-r border-slate-700 last:border-r-0 whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 1"
+            [class.text-white]="timeRange() === 1"
+            [class.text-slate-400]="timeRange() !== 1"
+            [class.hover:bg-slate-800]="timeRange() !== 1"
+            [class.hover:text-slate-300]="timeRange() !== 1"
+            (click)="setTimeRange(1)"
           >
-        </div>
-        <h3 class="mb-0 fw-bold">{{ summaryStats().totalTerritories }}</h3>
-        <p class="text-muted small mb-0">Total en localidad</p>
-      </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-      <div class="stats-card bg-glass border-0 shadow-sm p-3 h-100 rounded-4">
-        <div class="d-flex align-items-center mb-2">
-          <div class="icon-shape bg-soft-success rounded-3 me-3">
-            <i class="fas fa-flag-checkered text-success"></i>
-          </div>
-          <span class="text-muted small fw-bold text-uppercase ls-1"
-            >Completados</span
+            1 Mes
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors border-r border-slate-700 last:border-r-0 whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 3"
+            [class.text-white]="timeRange() === 3"
+            [class.text-slate-400]="timeRange() !== 3"
+            [class.hover:bg-slate-800]="timeRange() !== 3"
+            [class.hover:text-slate-300]="timeRange() !== 3"
+            (click)="setTimeRange(3)"
           >
-        </div>
-        <h3 class="mb-0 fw-bold">{{ summaryStats().completedInPeriod }}</h3>
-        <p class="text-muted small mb-0">Territorios finalizados</p>
-      </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-      <div class="stats-card bg-glass border-0 shadow-sm p-3 h-100 rounded-4">
-        <div class="d-flex align-items-center mb-2">
-          <div class="icon-shape bg-soft-warning rounded-3 me-3">
-            <i class="fas fa-th text-warning"></i>
-          </div>
-          <span class="text-muted small fw-bold text-uppercase ls-1"
-            >Cobertura</span
+            3 Meses
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors border-r border-slate-700 last:border-r-0 whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 6"
+            [class.text-white]="timeRange() === 6"
+            [class.text-slate-400]="timeRange() !== 6"
+            [class.hover:bg-slate-800]="timeRange() !== 6"
+            [class.hover:text-slate-300]="timeRange() !== 6"
+            (click)="setTimeRange(6)"
           >
-        </div>
-        <h3 class="mb-0 fw-bold">
-          {{ summaryStats().percentCompleted | number: "1.0-1" }}%
-        </h3>
-        <p class="text-muted small mb-0">Manzanas recorridas</p>
-      </div>
-    </div>
-    <div class="col-12 col-sm-6 col-lg-3">
-      <div class="stats-card bg-glass border-0 shadow-sm p-3 h-100 rounded-4">
-        <div class="d-flex align-items-center mb-2">
-          <div class="icon-shape bg-soft-info rounded-3 me-3">
-            <i class="fas fa-history text-info"></i>
-          </div>
-          <span class="text-muted small fw-bold text-uppercase ls-1"
-            >Manzanas</span
+            6 Meses
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors border-r border-slate-700 last:border-r-0 whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 12"
+            [class.text-white]="timeRange() === 12"
+            [class.text-slate-400]="timeRange() !== 12"
+            [class.hover:bg-slate-800]="timeRange() !== 12"
+            [class.hover:text-slate-300]="timeRange() !== 12"
+            (click)="setTimeRange(12)"
           >
+            1 Año
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
+            [class.bg-sky-600]="timeRange() === 120"
+            [class.text-white]="timeRange() === 120"
+            [class.text-slate-400]="timeRange() !== 120"
+            [class.hover:bg-slate-800]="timeRange() !== 120"
+            [class.hover:text-slate-300]="timeRange() !== 120"
+            (click)="setTimeRange(120)"
+          >
+            Histórico
+          </button>
         </div>
-        <h3 class="mb-0 fw-bold">{{ summaryStats().totalApples }}</h3>
-        <p class="text-muted small mb-0">Total recorridos en periodo</p>
       </div>
     </div>
-  </div>
 
-  @if (loadingData()) {
-    <div class="rounded-4 shadow-sm bg-glass mb-4 overflow-hidden">
-      <div class="table-responsive border-0">
-        <table
-          class="table table-dark table-hover mb-0"
-          id="mi-tabla"
-          style="min-width: 700px"
-        >
-          <thead>
-            <tr style="cursor: pointer">
-              <th
-                (click)="sortTable('numberTerritory')"
-                class="ps-4 border-0 text-muted small text-uppercase fw-bold"
-              >
-                Territorio
-                <i
-                  [class]="getIcon('numberTerritory')"
-                  aria-hidden="true"
-                  class="ms-1"
-                ></i>
-              </th>
-              <th
-                (click)="sortTable('applesData')"
-                class="border-0 text-muted small text-uppercase fw-bold"
-              >
-                Manzanas
-                <i
-                  [class]="getIcon('applesData')"
-                  aria-hidden="true"
-                  class="ms-1"
-                ></i>
-              </th>
-              <th
-                (click)="sortTable('end')"
-                class="pe-4 border-0 text-muted small text-uppercase fw-bold text-end"
-              >
-                Última vez completado
-                <i [class]="getIcon('end')" aria-hidden="true" class="ms-1"></i>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="border-top-0">
-            @for (
-              dataList of dataListFull() | sortBy: path() : order();
-              track dataList
-            ) {
-              <tr class="align-middle" [class]="'row-' + paintRow(dataList)">
-                <td class="ps-4 border-0">
-                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span class="fw-semibold"
-                      >Número {{ dataList[0].numberTerritory }}</span
-                    >
-                    @if (isPersonalTerritory(dataList[0].numberTerritory)) {
-                      <span
-                        class="badge personal-territory-badge"
-                        [title]="
-                          'Publicador: ' +
-                          (getPersonalEntry(dataList[0].numberTerritory)
-                            ?.publisher || '')
-                        "
-                      >
-                        🏠 Territorio Personal
-                      </span>
-                    }
-                  </div>
-                </td>
-                <td class="border-0">
-                  @if (
-                    dataList[0].applesData && dataList[0].applesData.length > 0
-                  ) {
-                    <span
-                      class="badge bg-soft-secondary text-light border border-secondary border-opacity-25 rounded-pill px-3"
-                    >
-                      {{ dataList[0].applesData.length }} manzanas
-                    </span>
-                  } @else {
-                    <span class="text-muted smaller italic">Sin actividad</span>
-                  }
-                </td>
-                <td class="pe-4 border-0 text-end">
-                  <div class="d-flex flex-column align-items-end">
-                    <span class="fw-medium">
-                      @let lastEnd =
-                        dataList[0]?.end ||
-                        dataList[1]?.end ||
-                        dataList[2]?.end ||
-                        dataList[3]?.end ||
-                        dataList[4]?.end ||
-                        dataList[5]?.end;
-                      @if (lastEnd) {
-                        {{ lastEnd | date: "dd/MM/yyyy" }}
-                      } @else {
-                        <span class="badge bg-danger rounded-pill px-3"
-                          >NUNCA</span
-                        >
-                      }
-                    </span>
-                    <span class="text-muted smaller">
-                      {{
-                        dataList[0].driver && dataList[0].driver !== "Nadie"
-                          ? "Por " + dataList[0].driver
-                          : "Sin asignar"
-                      }}
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="3" class="text-center py-5">
-                  <i class="fas fa-folder-open fa-3x text-secondary mb-3"></i>
-                  <p class="text-muted">
-                    No hay actividad registrada en este periodo
-                  </p>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  }
+    <!-- Summary Cards Section -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <app-stat-card
+        title="Territorios"
+        [value]="summaryStats().totalTerritories"
+        subtitle="Total en localidad"
+        icon="fa-map-marked-alt"
+        iconBgColorClass="bg-sky-500/10"
+        iconColorClass="text-sky-500"
+      ></app-stat-card>
 
-  <div
-    class="legend-section p-3 p-md-4 rounded-4 border border-secondary border-opacity-10 shadow-sm"
-  >
-    <h5 class="mb-4 d-flex align-items-center fs-6 fs-md-5">
-      <i class="fas fa-info-circle me-2 text-primary"></i>
-      Leyenda de Actividad (Días desde completado)
-    </h5>
-    <div class="row g-3 g-md-4">
-      <div class="col-12 col-sm-6 col-lg-3">
-        <div class="p-3 rounded-3 row-success border h-100">
-          <div class="fw-bold mb-2">Reciente</div>
-          <div class="input-group input-group-sm mb-2" style="width: 110px">
-            <input
-              [formControl]="green"
-              class="form-control text-center bg-dark text-white border-secondary"
-              type="number"
-            />
-            <span class="input-group-text bg-secondary text-white border-0"
-              >días</span
-            >
-          </div>
-          <div class="small text-muted">Aún se considera vigente</div>
-        </div>
-      </div>
-      <div class="col-12 col-sm-6 col-lg-3">
-        <div class="p-3 rounded-3 row-primary border h-100">
-          <div class="fw-bold mb-2">Pendiente</div>
-          <div class="input-group input-group-sm mb-2" style="width: 110px">
-            <input
-              [formControl]="blue"
-              class="form-control text-center bg-dark text-white border-secondary"
-              type="number"
-            />
-            <span class="input-group-text bg-secondary text-white border-0"
-              >días</span
-            >
-          </div>
-          <div class="small text-muted">Vencimiento próximo</div>
-        </div>
-      </div>
-      <div class="col-12 col-sm-6 col-lg-3">
-        <div class="p-3 rounded-3 row-warning border h-100">
-          <div class="fw-bold mb-2">Necesario</div>
-          <div class="input-group input-group-sm mb-2" style="width: 110px">
-            <input
-              [formControl]="yellow"
-              class="form-control text-center bg-dark text-white border-secondary"
-              type="number"
-            />
-            <span class="input-group-text bg-secondary text-white border-0"
-              >días</span
-            >
-          </div>
-          <div class="small text-muted">Prioridad media</div>
-        </div>
-      </div>
-      <div class="col-12 col-sm-6 col-lg-3">
-        <div class="p-3 rounded-3 row-danger border h-100">
-          <div class="fw-bold mb-2">Urgente</div>
-          <div class="input-group input-group-sm mb-2" style="width: 110px">
-            <input
-              [formControl]="red"
-              class="form-control text-center bg-dark text-white border-secondary"
-              type="number"
-            />
-            <span class="input-group-text bg-secondary text-white border-0"
-              >días</span
-            >
-          </div>
-          <div class="small text-muted">Hace más de este tiempo</div>
-        </div>
+      <app-stat-card
+        title="Completados"
+        [value]="summaryStats().completedInPeriod"
+        subtitle="Territorios finalizados"
+        icon="fa-flag-checkered"
+        iconBgColorClass="bg-emerald-500/10"
+        iconColorClass="text-emerald-500"
+      ></app-stat-card>
+
+      <app-stat-card
+        title="Cobertura"
+        [value]="(summaryStats().percentCompleted | number: '1.0-1') || '0'"
+        subtitle="Manzanas recorridas"
+        icon="fa-th"
+        iconBgColorClass="bg-amber-500/10"
+        iconColorClass="text-amber-500"
+        [isPercentage]="true"
+      ></app-stat-card>
+
+      <app-stat-card
+        title="Manzanas"
+        [value]="summaryStats().totalApples"
+        subtitle="Total recorridos en periodo"
+        icon="fa-history"
+        iconBgColorClass="bg-indigo-500/10"
+        iconColorClass="text-indigo-500"
+      ></app-stat-card>
+    </div>
+
+    <!-- Data Table -->
+    @if (loadingData()) {
+      <app-statistics-table
+        [data]="dataListFull()"
+        [path]="currentSortPath"
+        [order]="order"
+        [personalTerritories]="personalTerritories()"
+        [greenThreshold]="green.value"
+        [blueThreshold]="blue.value"
+        [yellowThreshold]="yellow.value"
+        (sortChanged)="onSortChanged($event)"
+      ></app-statistics-table>
+    }
+
+    <!-- Leyenda -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm mb-8">
+      <h5 class="mb-6 flex items-center text-lg font-bold text-white">
+        <i class="fas fa-info-circle mr-3 text-sky-500"></i>
+        Leyenda de Actividad (Días desde completado)
+      </h5>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        
+        <app-legend-item
+          title="Reciente"
+          description="Aún se considera vigente"
+          [control]="green"
+          ariaLabel="Días para considerar el territorio en estado Reciente (verde)"
+          bgClass="bg-emerald-900/10"
+          borderClass="border-emerald-500/20 border-l-emerald-500"
+          textClass="text-emerald-400"
+        ></app-legend-item>
+
+        <app-legend-item
+          title="Pendiente"
+          description="Vencimiento próximo"
+          [control]="blue"
+          ariaLabel="Días para considerar el territorio en estado Pendiente (azul)"
+          bgClass="bg-sky-900/10"
+          borderClass="border-sky-500/20 border-l-sky-500"
+          textClass="text-sky-400"
+        ></app-legend-item>
+
+        <app-legend-item
+          title="Necesario"
+          description="Prioridad media"
+          [control]="yellow"
+          ariaLabel="Días para considerar el territorio en estado Necesario (amarillo)"
+          bgClass="bg-amber-900/10"
+          borderClass="border-amber-500/20 border-l-amber-500"
+          textClass="text-amber-400"
+        ></app-legend-item>
+
+        <app-legend-item
+          title="Urgente"
+          description="Hace más de este tiempo"
+          [control]="red"
+          ariaLabel="Días para considerar el territorio en estado Urgente (rojo)"
+          bgClass="bg-rose-900/10"
+          borderClass="border-rose-500/20 border-l-rose-500"
+          textClass="text-rose-400"
+        ></app-legend-item>
+
       </div>
     </div>
+
   </div>
 </div>

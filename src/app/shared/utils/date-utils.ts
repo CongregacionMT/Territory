@@ -15,7 +15,7 @@ export function getWeekId(date: Date): string {
 
 export function formatWeekRange(dateString: string): string {
   if (!dateString) return '';
-  
+
   let date: Date;
   if (dateString === 'actual') {
     date = new Date();
@@ -31,9 +31,31 @@ export function formatWeekRange(dateString: string): string {
   sunday.setDate(monday.getDate() + 6);
 
   const months = [
-    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
   ];
 
   return `${monday.getDate()} de ${months[monday.getMonth()]} al ${sunday.getDate()} de ${months[sunday.getMonth()]}`;
+}
+
+export function parseFirebaseDate(value: unknown): Date {
+  if (!value) return new Date(0);
+  if (value instanceof Date) return value;
+
+  const asTimestamp = value as { toDate?: () => Date; seconds?: number };
+  if (typeof asTimestamp.toDate === 'function') return asTimestamp.toDate();
+  if (asTimestamp.seconds) return new Date(asTimestamp.seconds * 1000);
+
+  const parsed = new Date(value as string | number);
+  return isNaN(parsed.getTime()) ? new Date(0) : parsed;
 }

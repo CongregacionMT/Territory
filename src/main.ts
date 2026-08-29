@@ -1,27 +1,21 @@
 import {
   enableProdMode,
   importProvidersFrom,
-  provideEnvironmentInitializer,
-  inject,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
+  LOCALE_ID,
 } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { initializeDialogService } from './app/app.module';
 import { environment } from './environments/environment';
 import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideMessaging, getMessaging } from '@angular/fire/messaging';
-import { provideFirestore, initializeFirestore, persistentLocalCache, getFirestore } from '@angular/fire/firestore';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { DialogService } from '@core/services/dialog.service';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
-import { AppRoutingModule } from './app/app-routing.module';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import { routes } from './app/app.routes';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { AppComponent } from './app/app.component';
 import localeEs from '@angular/common/locales/es';
 import { registerLocaleData } from '@angular/common';
-import { LOCALE_ID } from '@angular/core';
 
 registerLocaleData(localeEs, 'es');
 
@@ -35,7 +29,6 @@ bootstrapApplication(AppComponent, {
     provideBrowserGlobalErrorListeners(),
     importProvidersFrom(
       BrowserModule,
-      AppRoutingModule,
       ServiceWorkerModule.register('ngsw-worker.js', {
         enabled: environment.production,
         // Register the ServiceWorker as soon as the application is stable
@@ -43,16 +36,13 @@ bootstrapApplication(AppComponent, {
         registrationStrategy: 'registerWhenStable:30000',
       }),
     ),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
+    ),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideMessaging(() => getMessaging(getApp())),
-    provideFirestore(() => {
-      const app = getApp();
-      return initializeFirestore(app, {
-        localCache: persistentLocalCache()
-      });
-    }),
-    importProvidersFrom(MatDialogModule),
-    provideEnvironmentInitializer(() => initializeDialogService()),
     provideAnimations(),
     { provide: LOCALE_ID, useValue: 'es' },
   ],

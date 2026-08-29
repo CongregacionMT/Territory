@@ -1,325 +1,222 @@
-.btn-list-primary {
-    --bs-btn-bg: #008fc9;
-    --bs-btn-hover-bg:#0575a1;
+// Badge variants — require gradient backgrounds not expressible in Tailwind
+.badge-current-week {
+  background: linear-gradient(135deg, #0288d1, #0097a7);
+  animation: pulseBadge 2.5s infinite ease-in-out;
 }
 
-.date-pill {
-    display: inline-flex;
-    align-items: center;
-    background-color: #e0f2f1; /* Light teal/cyan tint */
-    background: linear-gradient(to right, #e0f7fa, #e1f5fe);
-    color: #0277bd;
-    padding: 0.5rem 1.5rem;
-    border-radius: 50rem;
-    border: 1px solid #b3e5fc;
-    box-shadow: 0 2px 6px rgba(0, 143, 201, 0.08);
-    
-    h2 {
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        color: #01579b;
-    }
+.badge-future-week {
+  background: linear-gradient(135deg, #2e7d32, #388e3c);
+  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
 }
 
-.nav-week-btn {
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    border: 1px solid #b3e5fc;
-    background: linear-gradient(to right, #e0f7fa, #e1f5fe);
-    box-shadow: 0 2px 6px rgba(0, 143, 201, 0.1);
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: #b3e5fc;
-        border-color: #0277bd;
-        transform: scale(1.08);
-    }
-
-    &:active {
-        transform: scale(0.95);
-    }
+.badge-past-week {
+  background: linear-gradient(135deg, #616161, #757575);
+  box-shadow: 0 4px 10px rgba(97, 97, 97, 0.2);
 }
 
-.relative-week-badge {
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &.badge-current-week {
-        background: linear-gradient(135deg, #0288d1, #0097a7);
-        color: #ffffff;
-        animation: pulseBadge 2.5s infinite ease-in-out;
-    }
-
-    &.badge-future-week {
-        background: linear-gradient(135deg, #2e7d32, #388e3c);
-        color: #ffffff;
-        box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
-    }
-
-    &.badge-past-week {
-        background: linear-gradient(135deg, #616161, #757575);
-        color: #ffffff;
-        box-shadow: 0 4px 10px rgba(97, 97, 97, 0.2);
-    }
-}
-
-// Print modal styles
-.print-modal {
-    overflow: hidden;
-}
-
-.btn-print-bw {
-    background: #f8f9fa;
-    border: 2px solid #dee2e6;
-    color: #333;
-    transition: all 0.25s ease;
-
-    &:hover:not(:disabled) {
-        background: #e9ecef;
-        border-color: #adb5bd;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-}
-
-.btn-print-color {
-    background: linear-gradient(135deg, #0277bd, #0288d1);
-    border: 2px solid transparent;
-    color: #fff;
-    transition: all 0.25s ease;
-
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #01579b, #0277bd);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(2, 119, 189, 0.35);
-        color: #fff;
-    }
-
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-}
-
-// Modern Premium Empty State Card & Animations
+// Empty state card & animations
 .empty-state-card {
-    background: linear-gradient(145deg, #ffffff 0%, #f4fbff 60%, #e6f7ff 100%);
-    border: 1px solid rgba(2, 136, 209, 0.15);
-    max-width: 540px;
-    box-shadow: 0 12px 32px rgba(2, 119, 189, 0.08) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #f4fbff 60%, #e6f7ff 100%);
+  border: 1px solid rgba(2, 136, 209, 0.15);
+  max-width: 540px;
+  box-shadow: 0 12px 32px rgba(2, 119, 189, 0.08) !important;
 }
 
 .bg-grid-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(rgba(2, 119, 189, 0.08) 1px, transparent 1px);
-    background-size: 20px 20px;
-    pointer-events: none;
-    opacity: 0.6;
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(2, 119, 189, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .glow-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(40px);
-    pointer-events: none;
-    z-index: 0;
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
 
-    &-1 {
-        width: 140px;
-        height: 140px;
-        top: -20px;
-        left: -20px;
-        background: rgba(2, 143, 201, 0.15);
-    }
+  &-1 {
+    width: 140px;
+    height: 140px;
+    top: -20px;
+    left: -20px;
+    background: rgba(2, 143, 201, 0.15);
+  }
 
-    &-2 {
-        width: 160px;
-        height: 160px;
-        bottom: -30px;
-        right: -30px;
-        background: rgba(0, 200, 83, 0.12);
-    }
+  &-2 {
+    width: 160px;
+    height: 160px;
+    bottom: -30px;
+    right: -30px;
+    background: rgba(0, 200, 83, 0.12);
+  }
 }
 
-// Central Map Animation Stage
 .map-stage {
-    width: 180px;
-    height: 180px;
-    z-index: 1;
+  width: 180px;
+  height: 180px;
+  z-index: 1;
 }
 
 .central-map-badge {
-    width: 90px;
-    height: 90px;
-    z-index: 3;
-    border: 3px solid #e0f7fa;
-    box-shadow: 0 10px 28px rgba(2, 119, 189, 0.2);
-    position: relative;
-    background: #ffffff;
+  width: 90px;
+  height: 90px;
+  z-index: 3;
+  border: 3px solid #e0f7fa;
+  box-shadow: 0 10px 28px rgba(2, 119, 189, 0.2);
+  position: relative;
+  background: #ffffff;
 
-    .map-bounce-icon {
-        animation: mapFloat 3s ease-in-out infinite;
-    }
+  .map-bounce-icon {
+    animation: mapFloat 3s ease-in-out infinite;
+  }
 
-    .magnifier-glass {
-        top: 6px;
-        right: 6px;
-        animation: magnifyScan 4s ease-in-out infinite;
-    }
+  .magnifier-glass {
+    top: 6px;
+    right: 6px;
+    animation: magnifyScan 4s ease-in-out infinite;
+  }
 }
 
-// Radar Waves
 .radar-wave {
-    position: absolute;
-    border-radius: 50%;
-    border: 2px dashed rgba(2, 136, 209, 0.35);
-    animation: radarExpand 4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-    z-index: 1;
+  position: absolute;
+  border-radius: 50%;
+  border: 2px dashed rgba(2, 136, 209, 0.35);
+  animation: radarExpand 4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  z-index: 1;
 
-    &.wave-1 {
-        width: 80px;
-        height: 80px;
-        animation-delay: 0s;
-    }
+  &.wave-1 {
+    width: 80px;
+    height: 80px;
+    animation-delay: 0s;
+  }
 
-    &.wave-2 {
-        width: 80px;
-        height: 80px;
-        animation-delay: 1.3s;
-    }
-
-    &.wave-3 {
-        width: 80px;
-        height: 80px;
-        animation-delay: 2.6s;
-    }
+  &.wave-2 {
+    width: 80px;
+    height: 80px;
+    animation-delay: 1.3s;
+  }
 }
 
-// Orbiting Map Pins
 .orbiting-container {
-    position: absolute;
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    animation: orbitRotate 10s linear infinite;
-    z-index: 2;
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  animation: orbitRotate 10s linear infinite;
+  z-index: 2;
 }
 
 .orbiting-pin {
-    position: absolute;
-    background: #ffffff;
-    border-radius: 50%;
-    padding: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  background: #ffffff;
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    &.pin-1 {
-        top: -6px;
-        left: calc(50% - 17px);
-    }
+  &.pin-1 {
+    top: -6px;
+    left: calc(50% - 17px);
+  }
 
-    &.pin-2 {
-        bottom: 15px;
-        right: 0px;
-    }
+  &.pin-2 {
+    bottom: 15px;
+    right: 0;
+  }
 
-    &.pin-3 {
-        bottom: 15px;
-        left: 0px;
-    }
+  &.pin-3 {
+    bottom: 15px;
+    left: 0;
+  }
 }
 
-// Status dot indicator
 .status-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #0288d1;
-    border-radius: 50%;
-    box-shadow: 0 0 0 0 rgba(2, 136, 209, 0.5);
-    animation: statusPulse 1.8s infinite;
+  width: 8px;
+  height: 8px;
+  background-color: #0288d1;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(2, 136, 209, 0.5);
+  animation: statusPulse 1.8s infinite;
 }
 
 // Keyframes
+@keyframes pulseBadge {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 10px rgba(2, 136, 209, 0.25);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 6px 14px rgba(2, 136, 209, 0.4);
+  }
+}
+
 @keyframes mapFloat {
-    0%, 100% {
-        transform: translateY(0) scale(1);
-    }
-    50% {
-        transform: translateY(-5px) scale(1.04);
-    }
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.04);
+  }
 }
 
 @keyframes magnifyScan {
-    0%, 100% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-    25% {
-        transform: translate(-12px, 8px) rotate(-10deg);
-    }
-    50% {
-        transform: translate(-20px, -6px) rotate(15deg);
-    }
-    75% {
-        transform: translate(-6px, 12px) rotate(-5deg);
-    }
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(-12px, 8px) rotate(-10deg);
+  }
+  50% {
+    transform: translate(-20px, -6px) rotate(15deg);
+  }
+  75% {
+    transform: translate(-6px, 12px) rotate(-5deg);
+  }
 }
 
 @keyframes radarExpand {
-    0% {
-        width: 70px;
-        height: 70px;
-        opacity: 0.9;
-    }
-    100% {
-        width: 190px;
-        height: 190px;
-        opacity: 0;
-    }
+  0% {
+    width: 70px;
+    height: 70px;
+    opacity: 0.9;
+  }
+  100% {
+    width: 190px;
+    height: 190px;
+    opacity: 0;
+  }
 }
 
 @keyframes orbitRotate {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes statusPulse {
-    0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(2, 136, 209, 0.7);
-    }
-    70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 6px rgba(2, 136, 209, 0);
-    }
-    100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(2, 136, 209, 0);
-    }
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(2, 136, 209, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(2, 136, 209, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(2, 136, 209, 0);
+  }
 }

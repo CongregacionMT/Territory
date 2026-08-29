@@ -1,53 +1,58 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnInit,
   inject,
-  ViewChild,
   HostListener,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  DestroyRef,
+  signal,
+  ViewChild,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-} from '@angular/forms';
-import {
-  MatSnackBar,
-  MatSnackBarVerticalPosition,
-} from '@angular/material/snack-bar';
-import { Departure } from '@core/models/Departures';
+import { NgClass } from '@angular/common';
+import { FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatSnackBar, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { FormEditDeparturesComponent } from '../../components/form-edit-departures/form-edit-departures.component';
 import { CanComponentDeactivate } from '@core/guards/unsaved-changes.guard';
-import { WeeklyDeparture } from '@core/models/Departures';
-import { formatWeekRange, getWeekId } from '@shared/utils/date-utils';
-import { FormsModule } from '@angular/forms';
-import { take } from 'rxjs';
+import { WeeklyDeparture, DepartureData, Departure } from '@core/models/Departures';
+import { formatWeekRange } from '@shared/utils/date-utils';
+import { catchError, take } from 'rxjs';
 import { environment } from '@environments/environment';
+import { AuthService } from '@core/services/auth.service';
+import { MeetingPointService } from '@core/services/meeting-point.service';
+import { MeetingPoint } from '@core/models/MeetingPoint';
 
 @Component({
   selector: 'app-edit-departures',
   templateUrl: './edit-departures.component.html',
   styleUrls: ['./edit-departures.component.scss'],
-  imports: [ReactiveFormsModule, FormEditDeparturesComponent, FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule, FormEditDeparturesComponent, FormsModule, NgClass],
 })
 export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
-  @ViewChild(FormEditDeparturesComponent)
-  formEditComponent!: FormEditDeparturesComponent;
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private _snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly meetingPointService = inject(MeetingPointService);
+  private readonly spinner = inject(SpinnerService);
+  private readonly _snackBar = inject(MatSnackBar);
+  public readonly authService = inject(AuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  @ViewChild('formEditDepartures') formEditComponent?: FormEditDeparturesComponent;
 
   dataLoaded: boolean = false;
-  routerBreadcrum: any = [];
-  dateDeparture: any = new FormControl('');
+  dateDeparture = new FormControl<string>('', { nonNullable: true });
   selectedWeekRange: string = '';
   formDepartureData: Departure[] = [] as Departure[];
+  meetingPoints = signal<MeetingPoint[]>([]);
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   isSaved: boolean = false;
+  saveTrigger = signal<number>(0);
+  isChildFormDirty = signal<boolean>(false);
   isAdmin: boolean = false;
   isCardsCollapsed: boolean = true;
   weeklyHistory: WeeklyDeparture[] = [];
@@ -63,98 +68,89 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     { offset: 6, schedule: '10:00', group: 1, color: 'info' },
     { offset: 6, schedule: '10:00', group: 2, color: 'info' },
   ];
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
   constructor() {
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    this.isAdmin = !!localStorage.getItem('tokenAdmin');
+    this.isAdmin = this.authService.isAdmin();
   }
   ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[11];
-
     // Calcular el lunes de la semana actual para el badge y el botón "Volver a hoy"
     const todayMonday = this.getMonday(new Date());
     this.currentMondayStr = todayMonday.toISOString().split('T')[0];
 
     // Escuchar cambios en la fecha (esto manejará la carga de datos)
-    this.dateDeparture.valueChanges.subscribe((value: string) => {
-      this.isSaved = false;
-      if (value) {
-        const dateObj = new Date(value + 'T00:00:00');
-        if (isNaN(dateObj.getTime())) return;
+    this.dateDeparture.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value: string) => {
+        this.isSaved = false;
+        if (value) {
+          const dateObj = new Date(value + 'T00:00:00');
+          if (Number.isNaN(dateObj.getTime())) return;
 
-        const monday = this.getMonday(dateObj);
-        if (isNaN(monday.getTime())) return;
+          const monday = this.getMonday(dateObj);
+          if (Number.isNaN(monday.getTime())) return;
 
-        const mondayStr = monday.toISOString().split('T')[0];
+          const mondayStr = monday.toISOString().split('T')[0];
 
-        // Ajustar al lunes si es necesario
-        if (value !== mondayStr) {
-          this.dateDeparture.setValue(mondayStr, { emitEvent: false });
+          // Ajustar al lunes si es necesario
+          if (value !== mondayStr) {
+            this.dateDeparture.setValue(mondayStr, { emitEvent: false });
+          }
+          this.selectedWeekRange = this.formatWeekRange(monday);
+
+          // Cargar los datos (buscar en historial y sino usar master)
+          this.loadDepartureData(mondayStr);
+
+          // Sincronizar el selector de historial
+          const historyMatch = this.weeklyHistory.find((w) => w.weekId === mondayStr);
+          this.selectedHistoryWeek = historyMatch ? historyMatch.id || '' : '';
         }
-        this.selectedWeekRange = this.formatWeekRange(monday);
+      });
 
-        // Cargar los datos (buscar en historial y sino usar master)
-        this.loadDepartureData(mondayStr);
-
-        // Sincronizar el selector de historial
-        const historyMatch = this.weeklyHistory.find(
-          (w) => w.weekId === mondayStr,
-        );
-        this.selectedHistoryWeek = historyMatch ? historyMatch.id || '' : '';
-      }
-    });
-
-    // Cargar historial
+    // Cargar historial y puntos de encuentro
     this.loadHistory();
+    this.loadMeetingPoints();
 
     // Cargar la semana inicial: siempre se usa la semana actual como punto de partida
+    // Arrancamos directamente, ignorando la fecha guardada en Firestore para evitar demoras
+    this.dateDeparture.setValue(this.currentMondayStr);
+    this.selectedWeekRange = this.formatWeekRange(todayMonday);
+    this.dateDeparture.markAsPristine();
+  }
+
+  loadHistory(): void {
     this.territoryDataService
-      .getDateDepartures()
-      .pipe(take(1))
-      .subscribe({
-        next: (res) => {
-          // Siempre arrancamos en la semana actual, ignorando la fecha guardada en Firestore
-          const mondayStr = this.currentMondayStr;
-          this.dateDeparture.setValue(mondayStr);
-          this.selectedWeekRange = this.formatWeekRange(todayMonday);
-          this.dateDeparture.markAsPristine();
-        },
-        error: () => {
-          // Si no hay datos, cargar igualmente con la semana actual
-          this.dateDeparture.setValue(this.currentMondayStr);
-          this.selectedWeekRange = this.formatWeekRange(todayMonday);
-          this.dateDeparture.markAsPristine();
-        },
+      .getWeeklyDepartures()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((history) => {
+        // Calcular la fecha lunes de hace 8 semanas
+        const today = new Date();
+        const currentMonday = this.getMonday(today);
+        const eightWeeksAgo = new Date(currentMonday);
+        eightWeeksAgo.setDate(currentMonday.getDate() - 7 * 8);
+        const eightWeeksAgoStr = eightWeeksAgo.toISOString().split('T')[0];
+
+        // Filtrar: solo semanas >= ocho semanas atrás y ordenar por fecha descendente
+        this.weeklyHistory = history
+          .filter((w) => w.weekId >= eightWeeksAgoStr)
+          .sort((a, b) => b.weekId.localeCompare(a.weekId));
+        this.cdr.markForCheck();
       });
   }
 
-  loadHistory() {
-    this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
-      // Calcular la fecha lunes de hace 8 semanas
-      const today = new Date();
-      const currentMonday = this.getMonday(today);
-      const eightWeeksAgo = new Date(currentMonday);
-      eightWeeksAgo.setDate(currentMonday.getDate() - 7 * 8);
-      const eightWeeksAgoStr = eightWeeksAgo.toISOString().split('T')[0];
-
-      // Filtrar: solo semanas >= ocho semanas atrás y ordenar por fecha descendente
-      this.weeklyHistory = history
-        .filter((w) => w.weekId >= eightWeeksAgoStr)
-        .sort((a, b) => b.weekId.localeCompare(a.weekId));
-    });
+  loadMeetingPoints(): void {
+    this.meetingPointService
+      .getMeetingPoints()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((points) => {
+        this.meetingPoints.set(points);
+        this.cdr.markForCheck();
+      });
   }
 
-  deleteWeek() {
+  deleteWeek(): void {
     if (!this.selectedHistoryWeek) return;
 
     // Buscar la semana en el historial local para obtener el weekId
-    const selected = this.weeklyHistory.find(
-      (w) => w.id === this.selectedHistoryWeek,
-    );
+    const selected = this.weeklyHistory.find((w) => w.id === this.selectedHistoryWeek);
     if (!selected) return;
 
     if (
@@ -173,6 +169,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
           this.formDepartureData = []; // Limpiar el formulario
           this.loadHistory(); // Recargar el historial
           this.spinner.cerrarSpinner();
+          this.cdr.markForCheck();
         })
         .catch((err) => {
           console.error(err);
@@ -180,11 +177,12 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
             duration: 3000,
           });
           this.spinner.cerrarSpinner();
+          this.cdr.markForCheck();
         });
     }
   }
 
-  loadDepartureData(weekId: string) {
+  loadDepartureData(weekId: string): void {
     const loadId = ++this.lastLoadId;
     this.spinner.cargarSpinner();
     this.dataLoaded = false;
@@ -194,20 +192,22 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     // reinicien el formulario mientras el usuario está editando
     this.territoryDataService
       .getWeeklyDeparture(weekId)
-      .pipe(take(1))
+      .pipe(
+        take(1),
+        catchError(() => this.territoryDataService.getDepartures().pipe(take(1))),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: (weeklyData) => {
+        next: (data: WeeklyDeparture | DepartureData | undefined) => {
           if (loadId !== this.lastLoadId) return;
 
-          if (
-            weeklyData &&
-            weeklyData.departure &&
-            weeklyData.departure.length > 0
-          ) {
-            this.formDepartureData = weeklyData.departure;
+          if (data && data.departure && data.departure.length > 0) {
+            this.formDepartureData = data.departure;
             this.dataLoaded = true;
             this.spinner.cerrarSpinner();
+            this.cdr.markForCheck();
           } else {
+            // If getWeeklyDeparture succeeds but has no departure data, fallback to master
             this.territoryDataService
               .getDepartures()
               .pipe(take(1))
@@ -217,44 +217,32 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
                   this.formDepartureData = masterData?.departure || [];
                   this.dataLoaded = true;
                   this.spinner.cerrarSpinner();
+                  this.cdr.markForCheck();
                 },
-                error: () => {
+                error: (err) => {
+                  console.error('Error loading fallback master data:', err);
                   if (loadId !== this.lastLoadId) return;
                   this.formDepartureData = [];
                   this.dataLoaded = true;
                   this.spinner.cerrarSpinner();
+                  this.cdr.markForCheck();
                 },
               });
           }
         },
         error: () => {
           if (loadId !== this.lastLoadId) return;
-          this.territoryDataService
-            .getDepartures()
-            .pipe(take(1))
-            .subscribe({
-              next: (masterData) => {
-                if (loadId !== this.lastLoadId) return;
-                this.formDepartureData = masterData?.departure || [];
-                this.dataLoaded = true;
-                this.spinner.cerrarSpinner();
-              },
-              error: () => {
-                if (loadId !== this.lastLoadId) return;
-                this.formDepartureData = [];
-                this.dataLoaded = true;
-                this.spinner.cerrarSpinner();
-              },
-            });
+          this.formDepartureData = [];
+          this.dataLoaded = true;
+          this.spinner.cerrarSpinner();
+          this.cdr.markForCheck();
         },
       });
   }
 
-  onWeekSelect() {
+  onWeekSelect(): void {
     if (this.selectedHistoryWeek) {
-      const selected = this.weeklyHistory.find(
-        (w) => w.id === this.selectedHistoryWeek,
-      );
+      const selected = this.weeklyHistory.find((w) => w.id === this.selectedHistoryWeek);
       if (selected) {
         this.dateDeparture.setValue(selected.weekId);
         // El valueChanges de dateDeparture se encargará de llamar a loadDepartureData
@@ -265,40 +253,38 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   getFormattedHistoryDate(weekId: string): string {
     return formatWeekRange(weekId);
   }
-  markAsReceivedQuick(departure: Departure) {
+  markAsReceivedQuick(departure: Departure): void {
     if (this.formEditComponent) {
-      const marked = this.formEditComponent.markDepartureAsReceived(departure);
-      if (marked) {
-        this.saveAll();
-      } else {
-        this._snackBar.open('No se pudo encontrar la salida en el formulario', 'Ok', { duration: 3000 });
-      }
+      this.formEditComponent.markDepartureAsReceived(departure);
     }
   }
 
-  saveAll() {
-    if (!this.dateDeparture.value) return;
+  onFormChanged(): void {
+    this.cdr.markForCheck();
+  }
 
-    // 1. Guardar la semana activa
-    this.territoryDataService.putDate({ date: this.dateDeparture.value });
+  triggerSave(): void {
+    if (!this.dateDeparture.value) return;
+    this.saveTrigger.set(this.saveTrigger() + 1);
+  }
+
+  onChildFormSubmit(savedData: Departure[]): void {
+    void this.territoryDataService.putDate({ date: this.dateDeparture.value });
     this.dateDeparture.markAsPristine();
     this.isSaved = true;
+    this.isChildFormDirty.set(false);
 
-    // 2. Guardar el formulario de salidas (componente hijo)
-    if (this.formEditComponent) {
-      const savedData = this.formEditComponent.submitForm();
-      if (savedData) {
-        this.formDepartureData = savedData;
-      }
-    } else {
-      this._snackBar.open(`Semana guardada: ${this.selectedWeekRange}`, 'Ok', {
-        verticalPosition: this.verticalPosition,
-        duration: 3000,
-      });
+    if (savedData) {
+      this.formDepartureData = savedData;
     }
+
+    this._snackBar.open(`Semana guardada: ${this.selectedWeekRange}`, 'Ok', {
+      verticalPosition: this.verticalPosition,
+      duration: 3000,
+    });
   }
 
-  createStandardWeek(copyTerritories: boolean = false) {
+  createStandardWeek(copyTerritories: boolean = false): void {
     if (!this.dateDeparture.value) return;
 
     const sourceWeek = this.weeklyHistory
@@ -309,7 +295,9 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
 
     if (copyTerritories) {
       if (!sourceWeek || !sourceWeek.departure || sourceWeek.departure.length === 0) {
-        this._snackBar.open('No hay salidas en la semana anterior para duplicar.', 'Ok', { duration: 4000 });
+        this._snackBar.open('No hay salidas en la semana anterior para duplicar.', 'Ok', {
+          duration: 4000,
+        });
         return;
       }
 
@@ -344,10 +332,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
       // Crear semana tipo usando los slots estándar
       departures = this.weeklySlots.map((slot, index) => {
         const source = this.findSourceDeparture(sourceWeek, slot);
-        const targetDate = this.getDateFromWeekOffset(
-          this.dateDeparture.value,
-          slot.offset,
-        );
+        const targetDate = this.getDateFromWeekOffset(this.dateDeparture.value, slot.offset);
 
         return this.territoryDataService.normalizeDepartureForCardTracking(
           {
@@ -389,7 +374,11 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     const sourceMonday = new Date(`${sourceWeekId}T00:00:00`);
     const targetMonday = new Date(`${targetWeekId}T00:00:00`);
 
-    if (isNaN(sourceDate.getTime()) || isNaN(sourceMonday.getTime()) || isNaN(targetMonday.getTime())) {
+    if (
+      Number.isNaN(sourceDate.getTime()) ||
+      Number.isNaN(sourceMonday.getTime()) ||
+      Number.isNaN(targetMonday.getTime())
+    ) {
       return dateStr;
     }
 
@@ -411,12 +400,22 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   getHumanDate(dateStr: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr + 'T00:00:00');
-    if (isNaN(date.getTime())) return dateStr;
+    if (Number.isNaN(date.getTime())) return dateStr;
 
     const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const monthsOfYear = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
     ];
     const dayName = daysOfWeek[date.getDay()];
     const day = date.getDate();
@@ -424,23 +423,34 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     return `${dayName} ${day} de ${month}`;
   }
 
+  getFormDepartures(): Departure[] {
+    if (this.formEditComponent && this.dataLoaded) {
+      const currentDepartures = this.formEditComponent.getCurrentDepartures();
+      if (currentDepartures) {
+        return currentDepartures;
+      }
+    }
+    return this.formDepartureData || [];
+  }
+
   getPendingCardDepartures(): Departure[] {
-    return (this.formDepartureData || [])
+    return this.getFormDepartures()
       .filter((departure) => !departure.isEvent)
       .filter((departure) => departure.cardStatus !== 'received')
       .filter((departure) => departure.cardStatus !== 'not_required')
       .filter((departure) => !this.isBeforeTrackingStart(departure.date))
-      .sort((a, b) => a.date.localeCompare(b.date));
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   }
 
   getReceivedCardCount(): number {
-    return (this.formDepartureData || []).filter(
-      (departure) => departure.cardStatus === 'received' || this.isBeforeTrackingStart(departure.date),
+    return this.getFormDepartures().filter(
+      (departure) =>
+        departure.cardStatus === 'received' || this.isBeforeTrackingStart(departure.date),
     ).length;
   }
 
   getNotRequiredCardCount(): number {
-    return (this.formDepartureData || []).filter(
+    return this.getFormDepartures().filter(
       (departure) => departure.isEvent || departure.cardStatus === 'not_required',
     ).length;
   }
@@ -451,9 +461,9 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     return `Hola ${departure.driver || ''}, falta cargar la tarjeta de la salida del ${humanDate} a las ${departure.schedule} (${territories}). Gracias.`;
   }
 
-  copyReminder(departure: Departure) {
+  copyReminder(departure: Departure): void {
     const reminder = this.getDepartureReminder(departure);
-    navigator.clipboard?.writeText(reminder);
+    void navigator.clipboard?.writeText(reminder);
     this._snackBar.open('Recordatorio copiado', 'Ok', { duration: 2500 });
   }
 
@@ -466,15 +476,13 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     return (
       sourceDepartures.find(
         (departure) =>
-          this.getWeekOffset(departure.date, sourceWeek?.weekId || '') ===
-            slot.offset &&
+          this.getWeekOffset(departure.date, sourceWeek?.weekId || '') === slot.offset &&
           departure.schedule === slot.schedule &&
           Number(departure.group) === slot.group,
       ) ||
       sourceDepartures.find(
         (departure) =>
-          departure.schedule === slot.schedule &&
-          Number(departure.group) === slot.group,
+          departure.schedule === slot.schedule && Number(departure.group) === slot.group,
       ) ||
       sourceDepartures.find((departure) => Number(departure.group) === slot.group)
     );
@@ -489,20 +497,16 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   private getWeekOffset(dateValue: string, weekId: string): number {
     const date = new Date(`${dateValue}T00:00:00`);
     const week = new Date(`${weekId}T00:00:00`);
-    if (isNaN(date.getTime()) || isNaN(week.getTime())) return -1;
+    if (Number.isNaN(date.getTime()) || Number.isNaN(week.getTime())) return -1;
 
     return Math.round((date.getTime() - week.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   canDeactivate(): boolean {
-    const isChildDirty =
-      this.formEditComponent && this.formEditComponent.isDirty();
+    const isChildDirty = this.isChildFormDirty();
     const isMainDirty = this.dateDeparture.dirty;
-    const childSaved = this.formEditComponent
-      ? this.formEditComponent.isSaved
-      : true;
 
-    if ((isChildDirty || isMainDirty) && (!this.isSaved || !childSaved)) {
+    if ((isChildDirty || isMainDirty) && !this.isSaved) {
       return confirm(
         '⚠️ Tienes cambios sin guardar. Si sales ahora, perderás lo que has editado. ¿Estás seguro de que quieres salir?',
       );
@@ -511,15 +515,10 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   @HostListener('window:beforeunload', ['$event'])
-  unloadNotification($event: any) {
-    const isChildDirty =
-      this.formEditComponent && this.formEditComponent.isDirty();
+  unloadNotification($event: BeforeUnloadEvent): void {
+    const isChildDirty = this.isChildFormDirty();
     const isMainDirty = this.dateDeparture.dirty;
-    const childSaved = this.formEditComponent
-      ? this.formEditComponent.isSaved
-      : true;
-
-    if ((isChildDirty || isMainDirty) && (!this.isSaved || !childSaved)) {
+    if ((isChildDirty || isMainDirty) && !this.isSaved) {
       $event.returnValue = 'Tienes cambios sin guardar.';
     }
   }
@@ -531,13 +530,13 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   /** Salta al lunes de la semana actual */
-  goToCurrentWeek() {
+  goToCurrentWeek(): void {
     if (!this.canDeactivate()) return;
     this.dateDeparture.setValue(this.currentMondayStr);
   }
 
   /** Navega a la semana anterior */
-  prevWeek() {
+  prevWeek(): void {
     if (!this.canDeactivate()) return;
     if (!this.dateDeparture.value) return;
     const current = new Date(this.dateDeparture.value + 'T00:00:00');
@@ -546,7 +545,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   }
 
   /** Navega a la semana siguiente */
-  nextWeek() {
+  nextWeek(): void {
     if (!this.canDeactivate()) return;
     if (!this.dateDeparture.value) return;
     const current = new Date(this.dateDeparture.value + 'T00:00:00');

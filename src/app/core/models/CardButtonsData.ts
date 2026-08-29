@@ -1,6 +1,8 @@
+import { SafeHtml } from '@angular/platform-browser';
+
 export interface CardButtonsData {
   name: string;
   src: string;
   link: string;
-  iframe?: any; // Using any for SafeHtml for now or string
+  iframe?: SafeHtml | string;
 }

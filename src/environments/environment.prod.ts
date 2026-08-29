@@ -1,12 +1,12 @@
 export const environment = {
   firebase: {
-    apiKey: "AIzaSyBdRptzrCwkDB1WvWNU1x-Pn22l48kslEs",
-    authDomain: "territorios---wheelwright.firebaseapp.com",
-    projectId: "territorios---wheelwright",
-    storageBucket: "territorios---wheelwright.firebasestorage.app",
-    messagingSenderId: "208368329126",
-    appId: "1:208368329126:web:157824c7b22b4bc7f0ef67",
-    measurementId: "G-XLQ9YJ42HL"
+    apiKey: 'AIzaSyBdRptzrCwkDB1WvWNU1x-Pn22l48kslEs',
+    authDomain: 'territorios---wheelwright.firebaseapp.com',
+    projectId: 'territorios---wheelwright',
+    storageBucket: 'territorios---wheelwright.firebasestorage.app',
+    messagingSenderId: '208368329126',
+    appId: '1:208368329126:web:157824c7b22b4bc7f0ef67',
+    measurementId: 'G-XLQ9YJ42HL',
   },
   googleMapsApiKey: 'AIzaSyCqn3TvPUjylJsZSWFchRJ9yeDmjMGiKXU',
   mapId: '5d8d6c22a66f94b7804fb3a7',
@@ -22,7 +22,7 @@ export const environment = {
       name: 'Wheelwright',
       territoryPrefix: 'TerritorioW',
       storageKey: 'registerStatisticDataTerritorioW',
-      hasNumberedTerritories: true
-    }
-  ]
+      hasNumberedTerritories: true,
+    },
+  ],
 };

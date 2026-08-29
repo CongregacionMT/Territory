@@ -1,74 +1,62 @@
-import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
-import { TerritoryDataService } from '@core/services/territory-data.service';
-import { NgClass } from '@angular/common';
-import { User } from '@core/models/User';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
-    selector: 'app-login-page',
-    templateUrl: './login-page.component.html',
-    styleUrls: ['./login-page.component.scss'],
-    imports: [ReactiveFormsModule, NgClass]
+  selector: 'app-login-page',
+  templateUrl: './login-page.component.html',
+  styleUrls: ['./login-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule],
 })
-export class LoginPageComponent implements OnInit {
-  private router = inject(Router);
-  private fb = inject(FormBuilder);
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
+export class LoginPageComponent {
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly spinner = inject(SpinnerService);
 
-
-  readonly errorMessage = viewChild<any>('errorMessage');
-
-  formLogin: FormGroup;
-  user = "";
-  password = "";
+  loginError = signal(false);
   passwordVisible = signal(false);
 
-  constructor() {
-    this.formLogin = this.fb.group({
-      user: new FormControl('', [Validators.required]),
-      password: new FormControl('', [Validators.required])
-    });
-  }
+  formLogin = this.fb.nonNullable.group({
+    user: ['', [Validators.required.bind(Validators)]],
+    password: ['', [Validators.required.bind(Validators)]],
+  });
 
-  ngOnInit(): void {
-    this.formLogin.get('user')?.valueChanges.subscribe(value => {
-      const lower = value;
-      if (value !== lower) {
-        this.formLogin.get('user')?.setValue(lower, { emitEvent: false });
-      }
-    });
-  }
+  loginWithUser(): void {
+    if (this.formLogin.invalid) return;
 
-  async loginWhitUser(){
     this.spinner.cargarSpinner();
-    const messageError = this.errorMessage().nativeElement;
-    this.territoryDataService.loginUser(
-      this.formLogin.value.user,
-      this.formLogin.value.password
-    ).subscribe((user: User[]) => {
-      if(user.length !== 0){
-        if(user[0].rol === "admin"){
-          localStorage.setItem("tokenAdmin", "lkjkldjfaklsdfjklasjdfkljkfaklsdjadminaklsjdfklajsdlfkjaskdlfjaskldfjklasdfa");
+    this.loginError.set(false);
+
+    const { user, password } = this.formLogin.getRawValue();
+
+    this.authService.login(user.toLowerCase(), password).subscribe({
+      next: (users) => {
+        if (users.length !== 0) {
+          void this.router.navigate(['home']);
         } else {
-          localStorage.setItem("tokenConductor", "ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk");
+          this.loginError.set(true);
         }
-        localStorage.setItem(user[0].user, JSON.stringify(user[0]));
-        localStorage.setItem('nombreConductor', user[0].user);
-        this.router.navigate(['home']);
         this.spinner.cerrarSpinner();
-      } else {
-        // Error handling
-        messageError.style.display = 'block';
+      },
+      error: () => {
+        this.loginError.set(true);
         this.spinner.cerrarSpinner();
-      }
-    })
+      },
+    });
   }
+
   togglePasswordVisibility(): void {
-    this.passwordVisible.set(!this.passwordVisible())
+    this.passwordVisible.update((v) => !v);
   }
-  get User(){return this.formLogin.get('user');}
-  get Password(){return this.formLogin.get('password');}
+
+  get User(): import('@angular/forms').AbstractControl | null {
+    return this.formLogin.get('user');
+  }
+  get Password(): import('@angular/forms').AbstractControl | null {
+    return this.formLogin.get('password');
+  }
 }

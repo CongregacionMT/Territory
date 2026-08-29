@@ -1,16 +1,13 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
 
 @Component({
-    selector: 'app-card-xl',
-    templateUrl: './card-xl.component.html',
-    styleUrls: ['./card-xl.component.scss']
+  selector: 'app-card-xl',
+  templateUrl: './card-xl.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./card-xl.component.scss'],
 })
-export class CardXlComponent implements OnInit {
+export class CardXlComponent {
   readonly mapSRC = input<SafeHtml | string>();
   readonly mapName = input<string>();
-  constructor() { }
-
-  ngOnInit(): void {}
-
 }

@@ -1,22 +1,22 @@
-const admin = require("firebase-admin");
-const inquirer = require("inquirer");
-const fs = require("fs");
-const path = require("path");
+const admin = require('firebase-admin');
+const inquirer = require('inquirer');
+const fs = require('fs');
+const path = require('path');
 
 function loadEnvironmentConfig(congregationFileName) {
   const envPath = path.join(
     __dirname,
-    "..",
-    "src",
-    "environments",
+    '..',
+    'src',
+    'environments',
     `environment.${congregationFileName}.ts`,
   );
 
   if (!fs.existsSync(envPath)) return null;
 
-  const content = fs.readFileSync(envPath, "utf8");
+  const content = fs.readFileSync(envPath, 'utf8');
   const config = {
-    congregationKey: extractValue(content, "congregationKey"),
+    congregationKey: extractValue(content, 'congregationKey'),
     localities: extractLocalities(content),
   };
 
@@ -41,9 +41,9 @@ function extractLocalities(content) {
   while ((match = localityRegex.exec(localitiesContent)) !== null) {
     const localityContent = match[1];
     localities.push({
-      key: extractValue(localityContent, "key"),
-      name: extractValue(localityContent, "name"),
-      territoryPrefix: extractValue(localityContent, "territoryPrefix"),
+      key: extractValue(localityContent, 'key'),
+      name: extractValue(localityContent, 'name'),
+      territoryPrefix: extractValue(localityContent, 'territoryPrefix'),
     });
   }
 
@@ -51,17 +51,17 @@ function extractLocalities(content) {
 }
 
 function findAvailableCongregations() {
-  const envDir = path.join(__dirname, "..", "src", "environments");
+  const envDir = path.join(__dirname, '..', 'src', 'environments');
   if (!fs.existsSync(envDir)) return [];
   return fs
     .readdirSync(envDir)
     .filter(
       (file) =>
-        file.startsWith("environment.") &&
-        file.endsWith(".ts") &&
-        !["environment.prod.ts", "environment.ts"].includes(file),
+        file.startsWith('environment.') &&
+        file.endsWith('.ts') &&
+        !['environment.prod.ts', 'environment.ts'].includes(file),
     )
-    .map((file) => file.replace("environment.", "").replace(".ts", ""));
+    .map((file) => file.replace('environment.', '').replace('.ts', ''));
 }
 
 async function repairCollection(db, collectionName) {
@@ -77,19 +77,13 @@ async function repairCollection(db, collectionName) {
     const data = doc.data();
 
     // Si isInitial es true, pero tiene conductor o comentarios o manzanas marcadas, entonces NO es el inicial real
-    const hasDriver = data.driver && data.driver.trim() !== "";
+    const hasDriver = data.driver && data.driver.trim() !== '';
     const hasComments =
-      data.comments &&
-      data.comments.trim() !== "" &&
-      data.comments !== "Inicializado por script";
-    const hasCheckedApples =
-      data.applesData && data.applesData.some((a) => a.checked === true);
-    const hasStart = data.start && data.start.trim() !== "";
+      data.comments && data.comments.trim() !== '' && data.comments !== 'Inicializado por script';
+    const hasCheckedApples = data.applesData && data.applesData.some((a) => a.checked === true);
+    const hasStart = data.start && data.start.trim() !== '';
 
-    if (
-      data.isInitial === true &&
-      (hasDriver || hasComments || hasCheckedApples || hasStart)
-    ) {
+    if (data.isInitial === true && (hasDriver || hasComments || hasCheckedApples || hasStart)) {
       batch.update(doc.ref, { isInitial: false });
       repairedCount++;
       currentBatchCount++;
@@ -110,11 +104,11 @@ async function repairCollection(db, collectionName) {
 }
 
 async function main() {
-  console.log("🔧 Script de Reparación de Banderas isInitial\n");
+  console.log('🔧 Script de Reparación de Banderas isInitial\n');
 
-  const serviceAccountPath = path.join(__dirname, "service-account.json");
+  const serviceAccountPath = path.join(__dirname, 'service-account.json');
   if (!fs.existsSync(serviceAccountPath)) {
-    console.error("❌ Error: service-account.json no encontrado.");
+    console.error('❌ Error: service-account.json no encontrado.');
     process.exit(1);
   }
 
@@ -129,9 +123,9 @@ async function main() {
 
   const { selectedCongregation } = await prompt([
     {
-      type: "list",
-      name: "selectedCongregation",
-      message: "Selecciona la congregación:",
+      type: 'list',
+      name: 'selectedCongregation',
+      message: 'Selecciona la congregación:',
       choices: availableCongregations,
     },
   ]);
@@ -140,9 +134,9 @@ async function main() {
 
   const { selectedLocalityKey } = await prompt([
     {
-      type: "list",
-      name: "selectedLocalityKey",
-      message: "Selecciona la localidad:",
+      type: 'list',
+      name: 'selectedLocalityKey',
+      message: 'Selecciona la localidad:',
       choices: config.localities.map((l) => ({ name: l.name, value: l.key })),
     },
   ]);
@@ -151,16 +145,16 @@ async function main() {
 
   const { territoryPrefix } = await prompt([
     {
-      type: "input",
-      name: "territoryPrefix",
-      message: "Prefijo:",
+      type: 'input',
+      name: 'territoryPrefix',
+      message: 'Prefijo:',
       default: locality.territoryPrefix,
     },
   ]);
 
   const { start, end } = await prompt([
-    { type: "number", name: "start", message: "Desde:", default: 1 },
-    { type: "number", name: "end", message: "Hasta:" },
+    { type: 'number', name: 'start', message: 'Desde:', default: 1 },
+    { type: 'number', name: 'end', message: 'Hasta:' },
   ]);
 
   const collections = [];
@@ -186,12 +180,8 @@ async function main() {
     }
   }
 
-  console.log(
-    `\n✨ Reparación finalizada. Total de documentos corregidos: ${totalRepaired}\n`,
-  );
-  console.log(
-    "👉 Ahora puedes ejecutar el script de limpieza clean-territories.js\n",
-  );
+  console.log(`\n✨ Reparación finalizada. Total de documentos corregidos: ${totalRepaired}\n`);
+  console.log('👉 Ahora puedes ejecutar el script de limpieza clean-territories.js\n');
 }
 
 main().catch(console.error);

@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, input, effect } from '@angular/core';
+import { Component, OnInit, inject, input, effect, ChangeDetectionStrategy } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { Departure } from '@core/models/Departures';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
@@ -7,10 +8,11 @@ import { environment } from '@environments/environment';
   selector: 'app-departures-cards',
   templateUrl: './departures-cards.component.html',
   styleUrls: ['./departures-cards.component.scss'],
-  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, NgClass],
 })
 export class DeparturesCardsComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+  private readonly route = inject(ActivatedRoute);
 
   readonly departures = input<Departure[]>([] as Departure[]);
   currentPath: number = 0;
@@ -31,10 +33,9 @@ export class DeparturesCardsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const lastPath =
-      this.route.snapshot.url[this.route.snapshot.url.length - 1]?.path;
+    const lastPath = this.route.snapshot.url.at(-1)?.path;
     const parsedPath = Number(lastPath);
-    this.currentPath = !isNaN(parsedPath) ? parsedPath : 0;
+    this.currentPath = !Number.isNaN(parsedPath) ? parsedPath : 0;
   }
 
   private scrollToToday(): boolean {
@@ -46,15 +47,7 @@ export class DeparturesCardsComponent implements OnInit {
     return false;
   }
   getDayOfWeek(dateString: string): string {
-    const daysOfWeek = [
-      'Domingo',
-      'Lunes',
-      'Martes',
-      'Miércoles',
-      'Jueves',
-      'Viernes',
-      'Sábado',
-    ];
+    const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const date = new Date(dateString + 'T00:00:00'); // Add time to avoid timezone shifts
     const dayOfWeekIndex = date.getDay();
     return daysOfWeek[dayOfWeekIndex];
@@ -64,9 +57,7 @@ export class DeparturesCardsComponent implements OnInit {
     const today = new Date();
     const [year, month, day] = dateString.split('-').map(Number);
     return (
-      today.getFullYear() === year &&
-      today.getMonth() === month - 1 &&
-      today.getDate() === day
+      today.getFullYear() === year && today.getMonth() === month - 1 && today.getDate() === day
     );
   }
 
@@ -81,7 +72,7 @@ export class DeparturesCardsComponent implements OnInit {
     const endDateTime = new Date(startDateTime.getTime() + 2 * 60 * 60 * 1000); // Default 2 hours duration
 
     // Format for Google Calendar: YYYYMMDDTHHmmss
-    const formatDate = (date: Date) => {
+    const formatDate = (date: Date): string => {
       return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
     };
 
@@ -97,7 +88,7 @@ export class DeparturesCardsComponent implements OnInit {
     if (departure.maps) {
       descriptionText += `\n🗺️ Ver ubicación: ${departure.maps}`;
     }
-    
+
     if (!departure.isEvent) {
       descriptionText += `\n\n👤 Conductor: ${departure.driver}`;
       descriptionText += `\n📋 Territorios: ${departure.territory?.join(', ') || ''}`;
@@ -125,5 +116,24 @@ export class DeparturesCardsComponent implements OnInit {
       '-' +
       territory.replace(/\D/g, '')
     );
+  }
+
+  getTailwindColor(color: string): { bg: string; border: string; text: string } {
+    switch (color) {
+      case 'primary':
+        return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800' };
+      case 'success':
+        return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800' };
+      case 'warning':
+        return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800' };
+      case 'danger':
+        return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800' };
+      case 'info':
+        return { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-800' };
+      case 'secondary':
+        return { bg: 'bg-slate-100', border: 'border-slate-300', text: 'text-slate-800' };
+      default:
+        return { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-800' };
+    }
   }
 }

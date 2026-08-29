@@ -4,95 +4,80 @@
   left: 0;
   width: 100%;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.966);
-  z-index: 999;
+  /* Fondo moderno con blur (Glassmorphism) */
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+
   .spinner-content {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    position: relative;
+
     .loader {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background-color: #fff;
-      box-shadow: 32px 0 #fff, -32px 0 #fff;
+      /* Diseño de un "Map Pin" (Marcador de Mapa) */
+      width: 48px;
+      height: 48px;
+      border-radius: 50% 50% 50% 0;
+      /* Gradiente rojo vibrante premium */
+      background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
       position: relative;
-      animation: flash 0.8s ease-in infinite alternate;
-      -webkit-animation: flash 0.8s ease-in infinite alternate;
-    }
-    .loader::before,
-    .loader::after {
-      content: "";
-      position: absolute;
-      left: -64px;
-      top: 0;
-      background: #fff;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      transform-origin: 35px -35px;
-      transform: rotate(45deg);
-      animation: hitL 0.8s ease-in infinite alternate;
-      -webkit-animation: hitL 0.8s ease-in infinite alternate;
-      -webkit-transform: rotate(45deg);
-      -moz-transform: rotate(45deg);
-      -ms-transform: rotate(45deg);
-      -o-transform: rotate(45deg);
-    }
-    .loader::after {
-      left: 64px;
+      /* Rotamos para que la punta mire hacia abajo */
       transform: rotate(-45deg);
-      transform-origin: -35px -35px;
-      animation: hitR 0.8s ease-out infinite alternate;
-      -webkit-animation: hitR 0.8s ease-out infinite alternate;
-    }
-    @keyframes flash {
-      0%,
-      100% {
-        background-color: rgba(255, 255, 255, 0.25);
-        box-shadow: 32px 0 rgba(255, 255, 255, 0.25),
-          -32px 0 rgba(255, 255, 255, 0.25);
-      }
-      25% {
-        background-color: rgba(255, 255, 255, 0.25);
-        box-shadow: 32px 0 rgba(255, 255, 255, 0.25), -32px 0 rgba(255, 255, 255, 1);
-      }
-      50% {
-        background-color: rgba(255, 255, 255, 1);
-        box-shadow: 32px 0 rgba(255, 255, 255, 0.25),
-          -32px 0 rgba(255, 255, 255, 0.25);
-      }
-      75% {
-        background-color: rgba(255, 255, 255, 0.25);
-        box-shadow: 32px 0 rgba(255, 255, 255, 1), -32px 0 rgba(255, 255, 255, 0.25);
+      /* Animación de rebote fluida */
+      animation: bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite alternate;
+
+      /* El agujerito blanco en el medio del pin */
+      &::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
       }
     }
-    
-    @keyframes hitL {
+
+    /* La sombra que se expande debajo del pin */
+    .shadow {
+      width: 32px;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      margin-top: 16px;
+      animation: shadow-pulse 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite alternate;
+    }
+
+    @keyframes bounce {
       0% {
-        transform: rotate(45deg);
-        background-color: rgba(255, 255, 255, 1);
+        /* Posición más alta (en el aire) */
+        transform: translateY(-30px) rotate(-45deg);
       }
-      25%,
       100% {
-        transform: rotate(0deg);
-        background-color: rgba(255, 255, 255, 0.25);
+        /* Posición de impacto en el suelo */
+        transform: translateY(0) rotate(-45deg);
       }
     }
-    
-    @keyframes hitR {
-      0%,
-      75% {
-        transform: rotate(0deg);
-        background-color: rgba(255, 255, 255, 0.25);
+
+    @keyframes shadow-pulse {
+      0% {
+        /* Sombra pequeña cuando el pin está arriba */
+        transform: scale(0.6);
+        opacity: 0.2;
       }
       100% {
-        transform: rotate(-45deg);
-        background-color: rgba(255, 255, 255, 1);
+        /* Sombra más grande cuando el pin golpea el suelo */
+        transform: scale(1.2);
+        opacity: 0.8;
       }
     }
   }
 }
-
-

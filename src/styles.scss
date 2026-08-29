@@ -1,40 +1,23 @@
-/* You can add global styles to this file, and also import other style files */
-@import "@angular/material/prebuilt-themes/indigo-pink.css";
-body {
-  background-color: #343a40;
-  color: white;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Base Styles
+   ========================================================================== */
 
 html,
 body {
   height: 100%;
 }
+
 body {
+  @apply bg-slate-900 text-slate-100;
   margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
-html,
-body {
-  height: 100%;
-}
-body {
-  margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-}
-
-/*
- * Fix para componentes que usan backdrop-filter (glassmorphism).
- * backdrop-filter en un ancestro crea un nuevo stacking context que "atrapa"
- * al .modal-backdrop de Bootstrap, haciendo que se superponga sobre la modal.
- * Esta regla global garantiza el orden correcto de capas.
- */
-.modal-backdrop {
-  z-index: 1040 !important;
-}
-.modal {
-  z-index: 1050 !important;
-}
-
+/* Import Bootstrap utility replacements */
 /* Common Animations */
 @keyframes fadeIn {
   from {

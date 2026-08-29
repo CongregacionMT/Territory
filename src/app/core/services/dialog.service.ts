@@ -2,27 +2,13 @@ import { ComponentType } from '@angular/cdk/portal';
 import { inject, Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class DialogService {
-  private dialog = inject(MatDialog);
+  private readonly matDialog = inject(MatDialog);
 
-  matDialog = inject(MatDialog);
-
-  private static instance: DialogService | null = null;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
-    DialogService.instance = this;
-  }
-  public static getInstance() {
-    return DialogService.instance;
-  }
-
-  openDialog<T, D = any, R = boolean>(
+  openDialog<T, D = unknown, R = boolean>(
     data: D,
     component: ComponentType<T>,
   ): Observable<R | undefined> {
@@ -31,6 +17,14 @@ export class DialogService {
         data: data,
         disableClose: true,
       })
-      .afterClosed();
+      .afterClosed() as Observable<R | undefined>;
+  }
+
+  confirmDialog(message: string, isAcepted: boolean = true): Observable<boolean | undefined> {
+    const dialogRef = this.matDialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { message, isAcepted },
+    });
+    return dialogRef.afterClosed() as Observable<boolean | undefined>;
   }
 }

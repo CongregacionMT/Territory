@@ -1,171 +1,128 @@
-<div class="container-fluid px-4 py-3 assignment-record-container">
-  <app-breadcrumb [routerBreadcrum]="routerBreadcrum()"></app-breadcrumb>
-
+<div class="max-w-[100vw] px-4 py-8 relative">
   @if (filterDataListFull() && filterDataListFull().length > 0) {
     <!-- Toolbar Controls -->
-    <div class="toolbar-card my-4 p-3 rounded-4 shadow-sm">
-      <div class="row align-items-center g-3">
-        <div class="col-12 col-md-auto d-flex align-items-center gap-2">
-          <label for="select-filter-register" class="fw-semibold text-nowrap text-light mb-0">
-            🔍 Filtrar por:
-          </label>
-          <select
-            id="select-filter-register"
-            class="form-select form-select-md custom-select shadow-sm"
-            [(ngModel)]="selectedValueFilter"
-            (ngModelChange)="sortByDate($event)"
-          >
-            <option value="1">Últimos 6 meses</option>
-            <option value="2">Último año</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-          </select>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Filter -->
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
         </div>
+        <select
+          class="bg-slate-800 border border-slate-700 text-white font-bold rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all cursor-pointer shadow-sm w-full md:w-auto"
+          [(ngModel)]="selectedValueFilter"
+          (ngModelChange)="sortByDate($event)"
+        >
+          <option value="1">Últimos 6 meses</option>
+          <option value="2">Último año</option>
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+        </select>
+      </div>
 
-        <div class="col-12 col-md d-flex flex-wrap align-items-center justify-content-md-end gap-2">
-          <button class="btn btn-outline-light btn-action shadow-sm" (click)="refreshData()" title="Refrescar datos">
-            🔄 Refrescar
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+        <button 
+          class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2" 
+          (click)="refreshData()" 
+          title="Refrescar datos"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 22v-6h6"/></svg>
+          Refrescar
+        </button>
+        
+        @if (hasPendingChanges()) {
+          <button 
+            class="bg-emerald-600 hover:bg-emerald-500 border border-transparent text-white px-5 py-2.5 rounded-xl font-bold transition-all cursor-pointer shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2" 
+            (click)="saveAllChanges()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Guardar cambios
           </button>
           
-          @if (hasPendingChanges) {
-            <button class="btn btn-success btn-action shadow-sm" (click)="saveAllChanges()">
-              💾 Guardar cambios
-            </button>
-            <button class="btn btn-outline-warning btn-action shadow-sm" (click)="discardAllChanges()">
-              ❌ Descartar
-            </button>
-          }
-          
-          <button class="btn btn-danger btn-action shadow-sm" (click)="downloadPDF()">
-            📄 Registro PDF
+          <button 
+            class="bg-rose-900/50 hover:bg-rose-800/80 border border-rose-800 text-rose-300 hover:text-white px-4 py-2.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2" 
+            (click)="discardAllChanges()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Descartar
           </button>
-        </div>
+        }
+        
+        <button 
+          class="bg-rose-600 hover:bg-rose-500 border border-transparent text-white px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer shadow-lg hover:shadow-rose-500/25 flex items-center gap-2" 
+          (click)="downloadPDF()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          PDF
+        </button>
       </div>
     </div>
 
-    <!-- Main Territory Grid Table -->
-    <div class="table-responsive-wrapper rounded-4 shadow-lg">
-      <table class="table table-dark table-hover align-middle mb-0 territory-grid-table">
-        <thead>
-          <tr>
-            @for (item of territoriesNumber(); track item.territorio; let i = $index) {
-              <th scope="col" class="territory-header-cell text-center py-3">
-                <div class="d-flex align-items-center justify-content-between px-2">
-                  <span class="header-title">Territorio {{ item.territorio }}</span>
-                  <button 
-                    class="btn btn-sm btn-primary rounded-circle btn-add-cell shadow-sm" 
-                    (click)="addCard(item.collection, i)" 
-                    title="Añadir registro nuevo"
-                  >
-                    ➕
-                  </button>
-                </div>
-              </th>
+    <!-- Main Territory Grid (Kanban style) -->
+    <div class="flex overflow-x-auto gap-6 pb-8 snap-x" style="scrollbar-width: thin;">
+      @for (item of territoriesNumber(); track item.territorio; let i = $index) {
+        <div class="flex flex-col min-w-[340px] max-w-[340px] flex-shrink-0 snap-start">
+          
+          <!-- Column Header -->
+          <div class="bg-slate-900 border-t-4 border-t-sky-500 border-x border-b border-slate-800 rounded-t-2xl p-4 flex items-center justify-between shadow-sm sticky top-0 z-20">
+            <h3 class="font-extrabold text-xl text-white tracking-wide">
+              Territorio {{ item.territorio }}
+            </h3>
+            <button 
+              class="w-10 h-10 bg-sky-900/30 text-sky-400 hover:bg-sky-500 hover:text-white rounded-full flex justify-center items-center transition-all border border-sky-800 hover:border-sky-400 hover:shadow-lg hover:shadow-sky-500/20 cursor-pointer"
+              (click)="addCard(item.collection, i)" 
+              title="Añadir registro nuevo"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+          
+          <!-- Column Body (Cards) -->
+          <div class="bg-slate-950/50 border-x border-b border-slate-800 rounded-b-2xl p-4 flex flex-col gap-4 min-h-[200px]">
+            @for (list of filterDataListFull()[i]; track list.id || list.start) {
+              @if (list.end) {
+                <app-territory-card
+                  [card]="list"
+                  [hasPendingChange]="list.id ? (pendingChanges()[territoriesNumber()[i].collection + '_' + list.id] !== undefined) : false"
+                  [isMarkedForDelete]="list.id ? (pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined) : false"
+                  [isEditing]="list.id ? editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id) : false"
+                  (editStart)="startEdit(list, territoriesNumber()[i].collection)"
+                  (editCancel)="cancelEdit()"
+                  (editApply)="applyEditLocally(list, territoriesNumber()[i].collection, $event)"
+                  (deleteMark)="markForDelete(list, territoriesNumber()[i].collection)"
+                  (deleteCancel)="cancelDelete(list, territoriesNumber()[i].collection)"
+                ></app-territory-card>
+              }
             }
-          </tr>
-        </thead>
-        <tbody class="table-group-divider">
-          <tr>
-            @for (dataList of filterDataListFull(); track $index; let i = $index) {
-              <td class="territory-column-cell align-top p-2">
-                <div class="d-flex flex-column gap-2">
-                  @for (list of dataList; track list.id || list.start) {
-                    @if (list.end) {
-                      <div 
-                        class="assignment-card rounded-3 p-2 transition-all position-relative"
-                        [class.pending-change]="list.id && pendingChanges()[territoriesNumber()[i].collection + '_' + list.id] !== undefined"
-                        [class.pending-delete]="list.id && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined"
-                      >
-                        <!-- Delete Overlay -->
-                        @if (list.id && pendingDeletes()[territoriesNumber()[i].collection + '_' + list.id] !== undefined) {
-                          <div class="delete-overlay rounded-3 d-flex flex-column align-items-center justify-content-center p-2 z-3">
-                            <span class="badge bg-danger mb-2">Marcado para eliminar</span>
-                            <button class="btn btn-sm btn-light shadow-sm" (click)="cancelDelete(list, territoriesNumber()[i].collection)">
-                              ↩️ Deshacer
-                            </button>
-                          </div>
-                        }
 
-                        <!-- Driver Section -->
-                        <div class="driver-header mb-2 p-1 rounded-2">
-                          @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
-                            <div class="edit-driver-group d-flex align-items-center gap-1">
-                              <input 
-                                type="text" 
-                                class="form-control form-control-sm text-center fw-bold custom-input" 
-                                placeholder="Conductor"
-                                [ngModel]="editFormData().driver" 
-                                (ngModelChange)="updateEditData('driver', $event)"
-                              >
-                              <button class="btn btn-sm btn-success rounded-circle px-2 py-1" (click)="applyEditLocally(list, territoriesNumber()[i].collection)" title="Confirmar">✔️</button>
-                              <button class="btn btn-sm btn-outline-light rounded-circle px-2 py-1" (click)="cancelEdit()" title="Cancelar">❌</button>
-                            </div>
-                          } @else {
-                            <div class="d-flex align-items-center justify-content-between position-relative px-2 py-1">
-                              <span class="driver-name fw-bold text-truncate me-2" [title]="list.driver || 'Sin Conductor'">
-                                👤 {{ list.driver || 'Sin Conductor' }}
-                              </span>
-                              @if (list.id && !list.id.startsWith('Campaña-undefined')) {
-                                <div class="action-buttons d-flex gap-1">
-                                  <button class="btn-icon btn-edit" (click)="startEdit(list, territoriesNumber()[i].collection)" title="Editar">✏️</button>
-                                  <button class="btn-icon btn-delete" (click)="markForDelete(list, territoriesNumber()[i].collection)" title="Eliminar">🗑️</button>
-                                </div>
-                              }
-                            </div>
-                          }
-                        </div>
-
-                        <!-- Dates Section -->
-                        <div class="dates-container p-2 rounded-2 border border-secondary border-opacity-25">
-                          <div class="row g-1 text-center align-items-center">
-                            <div class="col-6 border-end border-secondary border-opacity-25 pe-1">
-                              <div class="date-label">Entregó</div>
-                              @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
-                                <input 
-                                  type="date" 
-                                  class="form-control form-control-sm custom-date-input mt-1" 
-                                  [ngModel]="editFormData().start" 
-                                  (ngModelChange)="updateEditData('start', $event)"
-                                >
-                              } @else {
-                                <div class="date-value fw-medium text-info">
-                                  {{ (list.start || list.creation?.toDate?.() || (list.creation?.seconds ? list.creation.seconds * 1000 : list.creation)) | date: "dd/MM/yyyy" }}
-                                </div>
-                              }
-                            </div>
-                            <div class="col-6 ps-1">
-                              <div class="date-label">Devolvió</div>
-                              @if (editingCardKey() === (territoriesNumber()[i].collection + '_' + list.id)) {
-                                <input 
-                                  type="date" 
-                                  class="form-control form-control-sm custom-date-input mt-1" 
-                                  [ngModel]="editFormData().end" 
-                                  (ngModelChange)="updateEditData('end', $event)"
-                                >
-                              } @else {
-                                <div class="date-value fw-medium text-success">
-                                  {{ list.end | date: "dd/MM/yyyy" }}
-                                </div>
-                              }
-                            </div>
-                          </div>
-                        </div>
-
-                      </div>
-                    }
-                  }
+            @if (filterDataListFull()[i] && filterDataListFull()[i].length === 0) {
+              <div class="flex-1 flex flex-col items-center justify-center py-8 opacity-40">
+                <div class="w-12 h-12 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </div>
-              </td>
+                <span class="text-xs font-bold text-slate-500">Sin historial</span>
+              </div>
             }
-          </tr>
-        </tbody>
-      </table>
+          </div>
+        </div>
+      }
     </div>
   } @else {
-    <div class="empty-state-card alert alert-dark text-center my-5 p-5 rounded-4 shadow-sm border border-secondary border-opacity-25">
-      <div class="display-5 mb-3">📭</div>
-      <h4 class="alert-heading text-light">Sin datos disponibles</h4>
-      <p class="text-muted mb-0">No hay registros de territorios para mostrar en este momento.</p>
+    <div class="max-w-2xl mx-auto my-16 bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center shadow-2xl">
+      <div class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-600 shadow-inner">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 22v-6h6"/></svg>
+      </div>
+      <h4 class="text-3xl font-extrabold text-white mb-4">Sin datos disponibles</h4>
+      <p class="text-slate-400 text-lg mb-8">No hay registros de territorios para mostrar en este momento.</p>
+      
+      <button 
+        class="bg-sky-600 hover:bg-sky-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-sky-500/25 inline-flex items-center gap-3 cursor-pointer"
+        (click)="refreshData()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 22v-6h6"/></svg>
+        Recargar datos
+      </button>
     </div>
   }
 </div>

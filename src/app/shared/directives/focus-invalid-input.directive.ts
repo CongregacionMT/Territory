@@ -1,18 +1,14 @@
-import { Directive, HostListener, ElementRef, Input, inject } from '@angular/core';
+import { Directive, HostListener, ElementRef, inject } from '@angular/core';
 
 @Directive({ selector: '[appFocusInvalidInput]' })
 export class FocusInvalidInputDirective {
-  private el = inject(ElementRef);
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-
-  constructor() { }
   @HostListener('submit')
-  onFormSubmit() {
-    const invalidControl = this.el.nativeElement.querySelector('.ng-invalid');
+  onFormSubmit(): void {
+    const invalidControl = this.el.nativeElement.querySelector<HTMLElement>('.ng-invalid');
     if (invalidControl) {
-      invalidControl.focus();  
+      invalidControl.focus();
     }
   }
 }

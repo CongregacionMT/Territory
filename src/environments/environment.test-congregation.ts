@@ -1,12 +1,12 @@
 export const environment = {
   firebase: {
-    apiKey: "AIzaSyADgG8q9fYZ8eL7TNl1eRXYzhq2M4ShqX8",
-    authDomain: "test-territorios.firebaseapp.com",
-    projectId: "test-territorios",
-    storageBucket: "test-territorios.firebasestorage.app",
-    messagingSenderId: "391029463770",
-    appId: "1:391029463770:web:fc6155de15fd67b52663e3",
-    measurementId: ""
+    apiKey: 'AIzaSyADgG8q9fYZ8eL7TNl1eRXYzhq2M4ShqX8',
+    authDomain: 'test-territorios.firebaseapp.com',
+    projectId: 'test-territorios',
+    storageBucket: 'test-territorios.firebasestorage.app',
+    messagingSenderId: '391029463770',
+    appId: '1:391029463770:web:fc6155de15fd67b52663e3',
+    measurementId: '',
   },
   googleMapsApiKey: 'AIzaSyCqn3TvPUjylJsZSWFchRJ9yeDmjMGiKXU',
   mapId: '5d8d6c22a66f94b7804fb3a7',
@@ -22,28 +22,28 @@ export const environment = {
       name: 'Principal',
       territoryPrefix: 'TerritorioP',
       storageKey: 'registerStatisticDataTerritorioP',
-      hasNumberedTerritories: true
+      hasNumberedTerritories: true,
     },
     {
       key: 'calchin',
       name: 'Calchin',
       territoryPrefix: 'TerritorioC',
       storageKey: 'registerStatisticDataTerritorioC',
-      hasNumberedTerritories: true
+      hasNumberedTerritories: true,
     },
     {
       key: 'salsipuedes',
       name: 'Salsipuedes',
       territoryPrefix: 'TerritorioS',
       storageKey: 'registerStatisticDataTerritorioS',
-      hasNumberedTerritories: false
+      hasNumberedTerritories: false,
     },
     {
       key: 'caimancito',
       name: 'Caimancito',
       territoryPrefix: 'TerritorioCAI',
       storageKey: 'registerStatisticDataTerritorioCAI',
-      hasNumberedTerritories: true
-    }
-  ]
+      hasNumberedTerritories: true,
+    },
+  ],
 };

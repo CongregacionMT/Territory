@@ -1,10 +1,10 @@
-<div class="card">
-  <div class="card-body d-flex flex-column align-items-center">
+<div class="w-72 bg-slate-800/80 rounded-xl overflow-hidden mx-4 my-3 transition-all duration-300 hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1 cursor-pointer">
+  <div class="flex flex-col items-center p-6">
     <img
       [src]="mapSRC()"
       alt="map"
-      style="width: 10rem"
+      class="w-40 h-40 object-contain"
     />
-    <h2 class="card-title text-white mt-3">{{mapName()}}</h2>
+    <h2 class="text-white text-xl font-semibold mt-4 mb-0">{{ mapName() }}</h2>
   </div>
 </div>

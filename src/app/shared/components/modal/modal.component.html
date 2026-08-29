@@ -1,28 +1,77 @@
-<div
-  class="modal fade"
-  id="modalID"
-  tabindex="-1"
-  aria-labelledby="modalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark" style="--bs-bg-opacity: .5;">
-      <div class="modal-header bg-success border border-success">
-        <img src="../../../../assets/img/tildeVerde.png" style="width: 30px;">
-        <h1 class="modal-title text-white fs-5 text-center mx-3" id="modalLabel">Enviado al siervo de territorios</h1>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body bg-success border border-success">
-        <p class="fs-4 text-white text-center">✨ ¡Muchas gracias por tu trabajo! 😄</p>
-      </div>
-      <div class="modal-footer bg-success border border-success">
-        <button type="button" class="btn btn-dark" routerLink="../../" (click)="hideModal()">Finalizar</button>
+@if (isOpen()) {
+  <!-- Backdrop -->
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1050] transition-opacity duration-300" (click)="hideModal()"></div>
+  
+  <!-- Modal Dialog -->
+  <div class="fixed inset-0 z-[1055] overflow-y-auto outline-none flex items-center justify-center p-4 pointer-events-none">
+    <div class="relative w-full max-w-md pointer-events-auto transform transition-all duration-300 scale-100 opacity-100">
+      <div class="relative bg-slate-900 border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 bg-emerald-600 border-b border-emerald-500">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white m-0">Enviado con éxito</h3>
+          </div>
+          <button type="button" class="text-emerald-100 hover:text-white transition-colors" (click)="hideModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Body -->
+        <div class="p-6 bg-emerald-950/20 text-center relative overflow-hidden">
+          @switch (currentAnimation()) {
+            @case ('levelup') {
+              <div class="star-container">
+                <div class="star-particle"></div>
+                <div class="star-particle"></div>
+                <div class="star-particle"></div>
+                <div class="star-particle"></div>
+                <div class="star-particle"></div>
+              </div>
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4 relative z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </div>
+            }
+            @case ('check') {
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4 relative z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path class="animate-draw-check" stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </div>
+            }
+            @default {
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4 relative z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </div>
+            }
+          }
+          
+          <p class="text-lg text-emerald-400 font-medium mb-0 relative z-10">{{ currentMessage() }}</p>
+          <p class="text-slate-400 text-sm mt-2 relative z-10">La tarjeta fue enviada al siervo de territorios correctamente.</p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-slate-900 border-t border-slate-800 flex justify-end">
+          <button 
+            type="button" 
+            class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2.5 px-6 rounded-xl transition-all active:scale-95" 
+            (click)="hideModal()"
+          >
+            Finalizar
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+}

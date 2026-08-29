@@ -1,26 +1,16 @@
-import { Observable, Subject } from 'rxjs';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-
 export class SpinnerService {
-  public isLoading$: Subject<boolean>;
+  isLoading = signal<boolean>(false);
 
-  constructor(){
-    this.isLoading$ = new Subject();
+  cargarSpinner(): void {
+    this.isLoading.set(true);
   }
 
-  cargarSpinner(){
-    this.isLoading$.next(true);
-  }
-
-  cerrarSpinner(){
-    this.isLoading$.next(false);
-  }
-
-  getSpinner$(): Observable<boolean>{
-    return this.isLoading$.asObservable();
+  cerrarSpinner(): void {
+    this.isLoading.set(false);
   }
 }

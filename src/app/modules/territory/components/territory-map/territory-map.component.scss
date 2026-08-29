@@ -29,7 +29,9 @@
     }
   }
 
-  &:fullscreen, &:-webkit-full-screen, &:-ms-fullscreen {
+  &:fullscreen,
+  &:-webkit-full-screen,
+  &:-ms-fullscreen {
     width: 100vw !important;
     height: 100vh !important;
     max-height: none !important;

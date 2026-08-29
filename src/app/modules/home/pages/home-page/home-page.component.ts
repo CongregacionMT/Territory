@@ -1,223 +1,66 @@
-import { Component, OnInit, Signal, inject, signal } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router, RouterLink } from '@angular/router';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { CampaignService } from '@core/services/campaign.service';
-import { MessagingService } from '@core/services/messaging.service';
-import { CartDataService } from '@core/services/cart-data.service';
-import { SpinnerService } from '@core/services/spinner.service';
-import { TerritoryDataService } from '@core/services/territory-data.service';
-import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
-import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
-import { StatisticsButton } from '@core/models/StatisticsButton';
-import { filter } from 'rxjs';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '@core/services/auth.service';
+import { PwaService } from '@core/services/pwa.service';
 import { environment } from '@environments/environment';
+import { TitleCasePipe } from '@angular/common';
+import { HomeFacadeService } from '../../services/home-facade.service';
+
+export interface NavOption {
+  label: string;
+  route: string;
+  iconPath: string;
+  requireAdmin?: boolean;
+}
 
 @Component({
-    selector: 'app-home-page',
-    templateUrl: './home-page.component.html',
-    styleUrls: ['./home-page.component.scss'],
-    imports: [RouterLink]
+  selector: 'app-home-page',
+  templateUrl: './home-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, TitleCasePipe],
 })
 export class HomePageComponent implements OnInit {
-  private router = inject(Router);
-  private swUpdate = inject(SwUpdate);
-  private spinner = inject(SpinnerService);
-  private territorieDataService = inject(TerritoryDataService);
-  private campaignService = inject(CampaignService);
-  private messagingService = inject(MessagingService);
-  private cartDataService = inject(CartDataService);
-  private _snackBar = inject(MatSnackBar);
+  public readonly authService = inject(AuthService);
+  public readonly pwaService = inject(PwaService);
+  private readonly homeFacade = inject(HomeFacadeService);
 
-  isAdmin: boolean = false;
-  isDriver: boolean = false;
-  hasCartData: boolean = false;
-  btnLogin: boolean = false;
-  // Start visible (unless standalone checked below) so users can always see it
-  btnPWA: boolean = true;
-  isIos: boolean = false;
-  campaignInProgress = signal(false);
-  deferredPrompt: any;
-  nameDriver: string = '';
   congregationName: string = environment.congregationName;
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
-    if(this.deferredPrompt){
-      this.btnPWA = false;
-    }
-    this.nameDriver = localStorage.getItem('nombreConductor') as string;
+  navOptions = signal<NavOption[]>([
+    { label: 'Territorios', route: '../territorios', iconPath: 'assets/img/map.png' },
+    { label: 'Salidas', route: '../salidas', iconPath: 'assets/img/salidas.png' },
+    { label: 'Carrito', route: '../carrito', iconPath: 'assets/img/carrito.png' },
+    {
+      label: 'Campaña',
+      route: '../campaign',
+      iconPath: 'assets/img/campaign.png',
+      requireAdmin: true,
+    },
+    {
+      label: 'Estadísticas',
+      route: '../statistics',
+      iconPath: 'assets/img/statistics.png',
+      requireAdmin: true,
+    },
+    {
+      label: 'Registro de territorios',
+      route: '../registro-territorios',
+      iconPath: 'assets/img/asignacion.png',
+      requireAdmin: true,
+    },
+    {
+      label: 'Usuarios',
+      route: '../usuarios',
+      iconPath: 'assets/img/group.png',
+      requireAdmin: true,
+    },
+  ]);
+
+  ngOnInit(): void {
+    this.homeFacade.initializeHomeState();
   }
 
-  async ngOnInit() {
-    if (this.swUpdate.isEnabled) {
-      this.swUpdate.versionUpdates
-        .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
-        .subscribe(() => {
-          const snack = this._snackBar.openFromComponent(UpdateSnackbarComponent, {
-            duration: undefined,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-          });
-          snack.onAction().subscribe(() => {
-            this.swUpdate.activateUpdate().then(() => window.location.reload());
-          });
-        });
-
-      this.swUpdate.checkForUpdate(); // opcional
-    }
-
-    if(localStorage.getItem("tokenAdmin")){
-      this.isAdmin = true;
-    } else if(localStorage.getItem("tokenConductor")){
-      this.isDriver = true;
-    }
-
-    if(!sessionStorage.getItem("numberTerritory")){
-      this.spinner.cargarSpinner();
-      this.territorieDataService.getNumberTerritory()
-      .subscribe((numbers: TerritoryNumberData[]) => {
-        // Merge all documents into a single object
-        const mergedData = numbers.reduce((acc: any, curr: any) => {
-          return { ...acc, ...curr };
-        }, {});
-        sessionStorage.setItem("numberTerritory", JSON.stringify(mergedData));
-      });
-    }
-
-    if(!sessionStorage.getItem("territorioStatistics")){
-      this.spinner.cargarSpinner();
-      this.territorieDataService.getStatisticsButtons()
-      .subscribe((number: StatisticsButton[]) => {
-        if (number.length > 0) {
-            sessionStorage.setItem("territorioStatistics", JSON.stringify(number[0]));
-        }
-      });
-    }
-
-    if(sessionStorage.getItem("redirectedToGroup0")){
-      sessionStorage.removeItem("redirectedToGroup0");
-    }
-
-    // Mostrar boton de loguearse
-
-    this.isAdmin === true && this.isDriver === false ? this.btnLogin = false :this.btnLogin = true;
-
-    this.isAdmin === false && this.isDriver === true ? this.btnLogin = false :this.btnLogin = true;
-
-    this.isAdmin === false && this.isDriver === false ? this.btnLogin = true: this.btnLogin = false
-
-    this.spinner.cargarSpinner();
-    const activeCampaign = await this.campaignService.getActiveCampaign();
-    this.spinner.cerrarSpinner();
-    if (activeCampaign) {
-      localStorage.setItem('activeCampaign', JSON.stringify(activeCampaign));
-      this.campaignInProgress.set(true);
-    } else {
-      this.campaignInProgress.set(false);
-    }
-
-    // Init PWA
-    this.initPWA();
-
-    this.cartDataService.getCartAssignment().subscribe({
-      next: (cartArray) => {
-        if (cartArray.cart.length > 0) {
-          this.hasCartData = true;
-        }
-      }
-    });
-
-    this.spinner.cerrarSpinner();
-  }
-
-  logout(){
-    localStorage.clear();
-    this.router.navigate(['auth'])
-  }
-
-  // PWA
-
-  initPWA() {
-    // Detect iOS
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    this.isIos = /iphone|ipad|ipod/.test(userAgent);
-
-    // Check if standalone (installed)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         ((window.navigator as any).standalone === true);
-
-    if (isStandalone) {
-      this.btnPWA = false;
-    } else {
-      // If not standalone, we show the button by default (set to true above)
-      // We don't force it to false for Android anymore, just wait for the event to arguably "enable" the native prompt
-      // but keep the button visible so we can give feedback if clicked early.
-      this.btnPWA = true;
-    }
-
-    window.addEventListener('appinstalled', (e) => {
-      this.btnPWA = false;
-      this.deferredPrompt = null;
-    });
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      this.deferredPrompt = e;
-      this.btnPWA = true;
-    });
-  }
-
-  installPWA() {
-    if (this.isIos) {
-      this._snackBar.open('Para instalar en iOS: Presiona "Compartir" y de las opciones elige "Agregar a Inicio" 📲', 'Ok', {
-        duration: 8000,
-        verticalPosition: 'bottom',
-        horizontalPosition: 'center'
-      });
-      return;
-    }
-
-    if (!this.deferredPrompt) {
-      // If no deferred prompt (e.g. desktop, mismatched criteria, or already dismissed),
-      // show generic instructions.
-      this._snackBar.open(
-        'Para instalar la app: busca la opción "Instalar aplicación" o "Añadir a pantalla de inicio" en el menú de tu navegador  browser (⋮).', 
-        'Ok', 
-        {
-          duration: 8000,
-          verticalPosition: 'bottom',
-          horizontalPosition: 'center'
-        }
-      );
-      return;
-    }
-
-    this.deferredPrompt.prompt();
-    this.deferredPrompt.userChoice.then((choiceResult: any) => {
-      if (choiceResult.outcome === 'accepted') {
-        this.btnPWA = false;
-      }
-      this.deferredPrompt = null;
-    });
-  }
-  capitalizeFirstLetter(text: string): string {
-    if (!text) return '';
-    return text.charAt(0).toUpperCase() + text.slice(1);
-  }
-
-  activeNotification(){
-    this.messagingService.requestPermission().then((token) => {
-      let userData = JSON.parse(localStorage.getItem(this.nameDriver) as string);
-      if(!userData.tokens.includes(token)){
-        userData.tokens.push(token)
-        this.territorieDataService.updateUser(userData.user, userData);
-        localStorage.setItem(userData.user, JSON.stringify(userData));
-        this._snackBar.open('🔔 Notificaciones activadas! 😉', 'ok');
-      } else {
-        this._snackBar.open('Las notificaciones ya están activadas para este dispositivo 🔔', 'ok');
-      }
-    });
+  activeNotification(): void {
+    this.homeFacade.enableNotifications();
   }
 }

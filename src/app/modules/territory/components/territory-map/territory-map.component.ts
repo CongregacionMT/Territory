@@ -10,17 +10,17 @@ import {
   ElementRef,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { environment } from '@environments/environment';
+
 import { TerritoryMapService } from '../../services/territory-map.service';
 import { mapConfig } from '@core/config/maps.config';
+import { TerritoryMapConfig } from '@core/config/maps.types';
 import { NetworkService } from '@core/services/network.service';
 import { OfflineMapViewerComponent } from '../offline-map-viewer/offline-map-viewer.component';
 
 @Component({
   selector: 'app-territory-map',
   standalone: true,
-  imports: [CommonModule, OfflineMapViewerComponent],
+  imports: [OfflineMapViewerComponent],
   templateUrl: './territory-map.component.html',
   styleUrl: './territory-map.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +28,7 @@ import { OfflineMapViewerComponent } from '../offline-map-viewer/offline-map-vie
 export class TerritoryMapComponent implements OnInit, OnDestroy {
   collection = input.required<string>();
   congregationKey = input.required<string>();
+  forceFallback = input<boolean>(false);
 
   private mapService = inject(TerritoryMapService);
   public networkService = inject(NetworkService);
@@ -42,30 +43,44 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   isFullscreen = signal(false);
   error = signal<string | null>(null);
 
+  private headingSyncId: ReturnType<typeof setInterval> | null = null;
+  private readonly fullscreenHandler = (): void =>
+    this.isFullscreen.set(!!document.fullscreenElement);
+
   currentMapConfig = computed(() => {
     return mapConfig?.maps?.[this.collection()];
   });
 
   ngOnInit(): void {
-    this.initMap();
-    
-    document.addEventListener('fullscreenchange', () => {
-      this.isFullscreen.set(!!document.fullscreenElement);
-    });
+    void this.initMap();
+    document.addEventListener('fullscreenchange', this.fullscreenHandler);
   }
 
   ngOnDestroy(): void {
     this.mapService.destroy();
+    if (this.headingSyncId !== null) {
+      clearInterval(this.headingSyncId);
+    }
+    document.removeEventListener('fullscreenchange', this.fullscreenHandler);
   }
 
   private async initMap(): Promise<void> {
     const config = this.currentMapConfig();
     console.log('[TerritoryMapComponent] initMap invocado. Config:', config);
-    console.log('[TerritoryMapComponent] Estado de red detectado (online):', this.networkService.isOnline());
+    console.log(
+      '[TerritoryMapComponent] Estado de red detectado (online):',
+      this.networkService.isOnline(),
+    );
 
     if (!config) {
       console.warn('[TerritoryMapComponent] Mapa no configurado para este territorio.');
       this.error.set('Mapa no configurado para este territorio');
+      return;
+    }
+
+    if (this.forceFallback()) {
+      console.log('[TerritoryMapComponent] forceFallback activo, forzando mapa antiguo.');
+      this.fallbackToIframeOrOffline(config);
       return;
     }
 
@@ -81,10 +96,13 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
         await this.mapService.loadKml(map, absoluteKmlUrl, config.markerOverrides);
         this.mapLoaded.set(true);
         this.startHeadingSync();
-        this.mapService.trackUserLocation();
+        void this.mapService.trackUserLocation();
         console.log('[TerritoryMapComponent] Google Map dinámico cargado con éxito.');
       } catch (err) {
-        console.error('[TerritoryMapComponent] Error al inicializar mapa de Google dinámico, ejecutando fallback:', err);
+        console.error(
+          '[TerritoryMapComponent] Error al inicializar mapa de Google dinámico, ejecutando fallback:',
+          err,
+        );
         this.fallbackToIframeOrOffline(config);
       }
     } else if (config.iframeHtml) {
@@ -96,24 +114,33 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
     }
   }
 
-  private fallbackToIframeOrOffline(config: any): void {
-    console.log('[TerritoryMapComponent] fallbackToIframeOrOffline invocado. Online:', this.networkService.isOnline());
+  private fallbackToIframeOrOffline(config: TerritoryMapConfig): void {
+    console.log(
+      '[TerritoryMapComponent] fallbackToIframeOrOffline invocado. Online:',
+      this.networkService.isOnline(),
+    );
     if (this.networkService.isOnline()) {
       if (config.iframeHtml) {
         console.log('[TerritoryMapComponent] Dispositivo ONLINE. Cargando Iframe fallback.');
         this.mapService.createFallbackIframe(this.mapContainer().nativeElement, config.iframeHtml);
         this.useFallback.set(true);
       } else {
-        console.warn('[TerritoryMapComponent] Dispositivo ONLINE pero no hay iframeHtml configurado.');
+        console.warn(
+          '[TerritoryMapComponent] Dispositivo ONLINE pero no hay iframeHtml configurado.',
+        );
       }
     } else {
       // Offline: use offline viewer if KML exists
-      console.log('[TerritoryMapComponent] Dispositivo OFFLINE. Intentando activar visor offline con KML...');
+      console.log(
+        '[TerritoryMapComponent] Dispositivo OFFLINE. Intentando activar visor offline con KML...',
+      );
       if (config.kmlUrl) {
         console.log('[TerritoryMapComponent] Activando visor offline para KML:', config.kmlUrl);
         this.useOfflineViewer.set(true);
       } else {
-        console.error('[TerritoryMapComponent] Dispositivo OFFLINE pero no hay kmlUrl configurado para fallback.');
+        console.error(
+          '[TerritoryMapComponent] Dispositivo OFFLINE pero no hay kmlUrl configurado para fallback.',
+        );
         this.error.set('Mapa offline no disponible para este territorio');
       }
     }
@@ -128,11 +155,11 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   }
 
   private startHeadingSync(): void {
-    setInterval(() => {
+    this.headingSyncId = setInterval(() => {
       if (this.mapService.isMapLoaded() && !this.compassMode()) {
         this.heading.set(Math.round(this.mapService.getHeading()));
       }
-    }, 100);
+    }, 200);
   }
 
   async toggleCompass(): Promise<void> {
@@ -161,28 +188,36 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   }
 
   centerOnMe(): void {
-    this.mapService.centerOnUser();
+    void this.mapService.centerOnUser();
   }
 
   toggleFullscreen(): void {
-    const elem = this.mapContainer().nativeElement;
-    
+    const elem = this.mapContainer().nativeElement as HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void>;
+      msRequestFullscreen?: () => Promise<void>;
+    };
+
+    const doc = document as Document & {
+      webkitExitFullscreen?: () => Promise<void>;
+      msExitFullscreen?: () => Promise<void>;
+    };
+
     if (!document.fullscreenElement) {
       if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if ((elem as any).webkitRequestFullscreen) {
-        (elem as any).webkitRequestFullscreen();
-      } else if ((elem as any).msRequestFullscreen) {
-        (elem as any).msRequestFullscreen();
+        void elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        void elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        void elem.msRequestFullscreen();
       }
       this.isFullscreen.set(true);
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
-      } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
+      if (doc.exitFullscreen) {
+        void doc.exitFullscreen();
+      } else if (doc.webkitExitFullscreen) {
+        void doc.webkitExitFullscreen();
+      } else if (doc.msExitFullscreen) {
+        void doc.msExitFullscreen();
       }
       this.isFullscreen.set(false);
     }
@@ -200,6 +235,6 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
     this.mapLoaded.set(false);
     this.useFallback.set(false);
     this.useOfflineViewer.set(false);
-    this.initMap();
+    void this.initMap();
   }
 }

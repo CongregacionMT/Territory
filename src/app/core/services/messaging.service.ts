@@ -1,21 +1,21 @@
-import { Injectable } from '@angular/core';
-import { getMessaging, getToken, onMessage, MessagePayload } from '@firebase/messaging';
+import { Injectable, inject } from '@angular/core';
+import { getMessaging, getToken, onMessage } from '@angular/fire/messaging';
+import { FirebaseApp } from '@angular/fire/app';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MessagingService {
-  constructor() {}
+  private readonly firebaseApp = inject(FirebaseApp);
 
   requestPermission(): Promise<string> {
-    const messaging = getMessaging()
-    let token = getToken(messaging);
-    return token;
+    const messaging = getMessaging(this.firebaseApp);
+    return getToken(messaging);
   }
 
   receiveMessages(): void {
-    const messaging = getMessaging();
-    onMessage(messaging, (payload: MessagePayload) => {
+    const messaging = getMessaging(this.firebaseApp);
+    onMessage(messaging, () => {
       // console.log('Mensaje recibido:', payload);
       // Aquí puedes manejar la recepción de las notificaciones push y realizar las acciones correspondientes en tu aplicación
     });

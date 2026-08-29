@@ -8,8 +8,8 @@ describe('EditDeparturesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [EditDeparturesComponent]
-});
+      imports: [EditDeparturesComponent],
+    });
     fixture = TestBed.createComponent(EditDeparturesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

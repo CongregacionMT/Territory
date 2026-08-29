@@ -10,13 +10,15 @@ export class Card {
   location?: string;
   iframe?: SafeHtml;
   driver?: string;
-  start?: string;
-  end?: string;
+  start?: string | Date;
+  end?: string | Date;
+  isPlaceholder?: boolean;
   comments?: string;
   link?: string;
   applesData: CardApplesData[];
   revision?: boolean;
   revisionComplete?: boolean;
+  isInitial?: boolean;
   numberTerritory?: number;
   completed?: number;
   territory?: string;
@@ -24,7 +26,8 @@ export class Card {
   title?: string;
   territoryNumber?: number;
   publisher?: string;
-  creation?: any; // Timestamp or string
+  creation?:
+    Date | string | number | { seconds: number; nanoseconds?: number; toDate?: () => Date }; // Timestamp or string
 
   constructor() {
     this.applesData = [{ name: '', checked: false }];

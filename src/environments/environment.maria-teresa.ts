@@ -1,12 +1,12 @@
 export const environment = {
   firebase: {
-    apiKey: "AIzaSyBI1BYUtYjEeEWiFfpR_IwGFip4R54dbVk",
-    authDomain: "territorios-422c2.firebaseapp.com",
-    projectId: "territorios-422c2",
-    storageBucket: "territorios-422c2.appspot.com",
-    messagingSenderId: "1086542552314",
-    appId: "1:1086542552314:web:a5afc53afaa2f305ebfd43",
-    hostingSite: 'territorios-congregacionmt'
+    apiKey: 'AIzaSyBI1BYUtYjEeEWiFfpR_IwGFip4R54dbVk',
+    authDomain: 'territorios-422c2.firebaseapp.com',
+    projectId: 'territorios-422c2',
+    storageBucket: 'territorios-422c2.appspot.com',
+    messagingSenderId: '1086542552314',
+    appId: '1:1086542552314:web:a5afc53afaa2f305ebfd43',
+    hostingSite: 'territorios-congregacionmt',
   },
   googleMapsApiKey: 'AIzaSyCqn3TvPUjylJsZSWFchRJ9yeDmjMGiKXU',
   mapId: '5d8d6c22a66f94b7804fb3a7',
@@ -22,21 +22,21 @@ export const environment = {
       name: 'María Teresa',
       territoryPrefix: 'TerritorioMT',
       storageKey: 'registerStatisticDataTerritorioMT',
-      hasNumberedTerritories: true
+      hasNumberedTerritories: true,
     },
     {
       key: 'christophersen',
       name: 'Christophersen',
       territoryPrefix: 'TerritorioC',
       storageKey: 'registerStatisticDataTerritorioC',
-      hasNumberedTerritories: true
+      hasNumberedTerritories: true,
     },
     {
       key: 'rural',
       name: 'Rural',
       territoryPrefix: 'TerritorioR',
       storageKey: 'registerStatisticDataTerritorioR',
-      hasNumberedTerritories: false
-    }
-  ]
+      hasNumberedTerritories: false,
+    },
+  ],
 };

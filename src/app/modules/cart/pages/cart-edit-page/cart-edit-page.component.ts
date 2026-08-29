@@ -1,54 +1,37 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CartData, CartLocation } from '@core/models/Cart';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
 import { forkJoin } from 'rxjs';
-import { FormEditCartComponent } from '../../components/form-edit-cart/form-edit-cart.component';
+import { map, finalize } from 'rxjs/operators';
+import { CartAssignmentFormComponent } from '../../components/cart-assignment-form/cart-assignment-form.component';
+import { CartLocationsFormComponent } from '../../components/cart-locations-form/cart-locations-form.component';
 
 @Component({
-    selector: 'app-cart-edit-page',
-    templateUrl: './cart-edit-page.component.html',
-    styleUrls: ['./cart-edit-page.component.scss'],
-    imports: [FormEditCartComponent]
+  selector: 'app-cart-edit-page',
+  templateUrl: './cart-edit-page.component.html',
+  styleUrls: ['./cart-edit-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CartAssignmentFormComponent, CartLocationsFormComponent],
 })
-export class CartEditPageComponent implements OnInit {
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+export class CartEditPageComponent {
   private cartDataService = inject(CartDataService);
   private spinner = inject(SpinnerService);
 
-  dataLoaded: boolean = false;
-  routerBreadcrum: any = [];
-  formCartData: CartData[] = [] as CartData[];
-  formLocationsData: CartLocation[] = [] as CartLocation[];
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-
-  constructor(){
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-  }
-
-  ngOnInit(): void {
-    this.spinner.cargarSpinner();
-    this.routerBreadcrum = this.routerBreadcrum[14];
-
+  pageData = toSignal(
     forkJoin({
       cartAssignment: this.cartDataService.getCartAssignment(),
-      locations: this.cartDataService.getLocations()
-    }).subscribe({
-      next: ({ cartAssignment, locations }) => {
-        this.formCartData = cartAssignment.cart;
-        this.formLocationsData = locations.locations;
-        this.dataLoaded = true;
-        this.spinner.cerrarSpinner();
-      },
-      error: (error) => {
-        this.spinner.cerrarSpinner();
-        console.error('Error loading data', error);
-      }
-    });
+      locations: this.cartDataService.getLocations(),
+    }).pipe(
+      map((data) => ({
+        cart: data.cartAssignment.cart,
+        locations: data.locations.locations,
+      })),
+      finalize(() => this.spinner.cerrarSpinner()),
+    ),
+  );
+
+  constructor() {
+    this.spinner.cargarSpinner();
   }
 }

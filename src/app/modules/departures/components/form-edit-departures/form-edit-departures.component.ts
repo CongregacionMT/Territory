@@ -1,3 +1,4 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnInit,
@@ -5,8 +6,11 @@ import {
   input,
   signal,
   effect,
-  Output,
-  EventEmitter,
+  model,
+  output,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  DestroyRef,
 } from '@angular/core';
 import {
   AbstractControl,
@@ -16,81 +20,95 @@ import {
   FormGroup,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import { DepartureDayCardComponent } from '../departure-day-card/departure-day-card.component';
+import { TerritorySelectionModalComponent } from '../territory-selection-modal/territory-selection-modal.component';
 import { TerritoryDataService } from '@core/services/territory-data.service';
-import { Departure } from '../../../../core/models/Departures';
-import { SpinnerService } from '@core/services/spinner.service';
-import {
-  MatSnackBar,
-  MatSnackBarVerticalPosition,
-} from '@angular/material/snack-bar';
+import { DepartureFormService } from '@core/services/departure-form.service';
+import { Departure, WeeklyDeparture } from '../../../../core/models/Departures';
+import { MeetingPoint } from '@core/models/MeetingPoint';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
-import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
+
 import { User } from '@core/models/User';
-import { WeeklyDeparture } from '../../../../core/models/Departures';
 import { take } from 'rxjs';
 import { Card } from '@core/models/Card';
+import { Group } from '@core/models/Group';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-form-edit-departures',
   templateUrl: './form-edit-departures.component.html',
   styleUrls: ['./form-edit-departures.component.scss'],
-  imports: [ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    NgClass,
+    DepartureDayCardComponent,
+    TerritorySelectionModalComponent,
+  ],
 })
 export class FormEditDeparturesComponent implements OnInit {
-  private territoryDataService = inject(TerritoryDataService);
-  private fb = inject(FormBuilder);
-  private spinner = inject(SpinnerService);
-  private _snackBar = inject(MatSnackBar);
+  getFormGroup(control: AbstractControl): FormGroup {
+    return control as FormGroup;
+  }
 
-  numberGroup: number = 0;
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly departureFormService = inject(DepartureFormService);
+  private readonly fb = inject(FormBuilder);
+  // private fb = inject();
+  private readonly _snackBar = inject(MatSnackBar);
+  public readonly authService = inject(AuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
   formDeparture: FormGroup;
-  selectedColor: string = 'primary';
   groupKeys: number[] = [];
   groupedDepartures: { [key: string]: Departure[] } = {};
-  verticalPosition: MatSnackBarVerticalPosition = 'top';
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
   readonly dateDepartureInput = input<string>('');
-  @Output() requestSave = new EventEmitter<void>();
+  readonly meetingPointsInput = input<MeetingPoint[]>([]);
+  readonly saveTrigger = input<number>(0);
+  readonly isFormDirty = model<boolean>(false);
+  readonly saveCompleted = output<Departure[]>();
+  readonly formValueChanged = output<void>();
+
   drivers = signal<User[]>([]);
   congregationName = environment.congregationName;
   territoryPrefix = environment.territoryPrefix;
   congregationKey = environment.congregationKey;
   localities = environment.localities;
-  territoryOptionsMap: { [key: string]: string[] } = {};
-  isSaved: boolean = false;
+  territoryOptionsMap = signal<{ [key: string]: string[] }>({});
   isAdmin: boolean = false;
-  personalAssignments: Card[] = [];
+  activeModal = signal<{ dayIndex: number; groupKey: number } | null>(null);
+
+  get activeModalDays(): AbstractControl | null {
+    const modal = this.activeModal();
+    if (!modal) return null;
+    const controls = this.filterControlsByGroup(modal.groupKey);
+    return controls[modal.dayIndex] || null;
+  }
+  personalAssignments = signal<Card[]>([]);
   showPersonalTerritories: boolean = false;
   sortByAge: boolean = true;
-  weeklyHistory: WeeklyDeparture[] = [];
-  territoryLastCompletedDays: { [locationPrefix: string]: { [num: number]: number } } = {};
+  weeklyHistory = signal<WeeklyDeparture[]>([]);
+  territoryLastCompletedDays = signal<{ [locationPrefix: string]: { [num: number]: number } }>({});
   // territoryGroupsMap: { [locationPrefix: string]: { [territoryNum: number]: number } }
   // Maps location prefix -> territory number -> group number (1, 2, 3...)
-  territoryGroupsMap: { [locationPrefix: string]: { [territoryNum: number]: number } } = {};
+  territoryGroupsMap = signal<{ [locationPrefix: string]: { [territoryNum: number]: number } }>({});
   selectedTerritoryGroup: number | null = null; // null = todos
   availableGroupNumbers: number[] = []; // grupos disponibles para la localidad actual
-
-  colorSwatchMap: { [key: string]: string } = {
-    secondary: '#64748b',
-    primary: '#3b82f6',
-    success: '#22c55e',
-    danger: '#ef4444',
-    warning: '#f59e0b',
-    info: '#38bdf8',
-    light: '#f8fafc',
-    dark: '#0f172a',
-  };
-
+  publisherGroups = signal<Group[]>([]);
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
   constructor() {
-    this.isAdmin = !!localStorage.getItem('tokenAdmin');
-    this.formDeparture = this.fb.group({
-      departure0: new FormArray([]),
+    effect(() => {
+      if (this.saveTrigger() > 0) {
+        this.submitForm();
+      }
     });
+
+    this.isAdmin = this.authService.isAdmin();
+    this.formDeparture = this.departureFormService.createForm();
 
     // Efecto para reaccionar a cambios en los inputs y recargar el formulario
     effect(() => {
@@ -104,171 +122,169 @@ export class FormEditDeparturesComponent implements OnInit {
     this.loadPersonalAssignments();
     this.loadWeeklyHistory();
     this.loadTerritoryGroups();
+    this.loadPublisherGroups();
+
+    this.formDeparture.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.formDeparture.dirty && !this.isFormDirty()) {
+        this.isFormDirty.set(true);
+      }
+      this.formValueChanged.emit();
+    });
   }
 
-  initForm(departures: Departure[]) {
-    this.isSaved = false;
-    this.groupKeys = [];
-    this.groupedDepartures = {};
-
-    // Limpiar todos los FormArrays existentes
-    Object.keys(this.formDeparture.controls).forEach((key) => {
-      if (key.startsWith('departure')) {
-        (this.formDeparture.get(key) as FormArray).clear();
-      }
-    });
-
-    if (!departures || departures.length === 0) {
-      // Si no hay datos, inicializamos con un grupo vacío por defecto
-      this.groupKeys = [0];
-      return;
-    }
+  initForm(departures: Departure[]): void {
+    if (this.isFormDirty) this.isFormDirty.set(false);
 
     const targetMondayStr = this.dateDepartureInput();
-    const targetMonday = new Date(targetMondayStr + 'T00:00:00');
-    const targetSunday = new Date(targetMonday);
-    targetSunday.setDate(targetMonday.getDate() + 6);
+    const result = this.departureFormService.initForm(
+      this.formDeparture,
+      departures,
+      targetMondayStr,
+    );
+    this.groupKeys = result.groupKeys;
+    this.groupedDepartures = result.groupedDepartures;
 
-    // Filtrar: Solo salidas que pertenezcan a la semana seleccionada
-    const filteredDepartures = departures.filter((departure: Departure) => {
-      if (!departure.date) return true; // Permitir si no tiene fecha definida aún
-      const d = new Date(departure.date + 'T00:00:00');
-      if (isNaN(d.getTime())) return true;
-      return d >= targetMonday && d <= targetSunday;
-    });
+    this.ensureGroupKeys();
 
-    if (filteredDepartures.length === 0) {
-      this.groupKeys = [0];
-      return;
-    }
+    this.formDeparture.markAsPristine();
 
-    filteredDepartures.forEach((departure: Departure) => {
-      const rawGroup = Number(departure.group);
-      const groupKey = isNaN(rawGroup) ? 0 : rawGroup;
-
-      if (!this.groupedDepartures[groupKey]) {
-        this.groupKeys.push(groupKey);
-        this.groupedDepartures[groupKey] = [];
-      }
-      this.groupedDepartures[groupKey].push(departure);
-
-      const groupArrayKey = `departure${groupKey}`;
-      let groupArray = this.formDeparture.get(groupArrayKey) as FormArray;
-      if (!groupArray) {
-        groupArray = this.fb.array([]);
-        this.formDeparture.setControl(groupArrayKey, groupArray);
-      }
-
-      // Normalizar location
-      const locality = this.localities.find(
-        (l) => l.key === departure.location,
-      );
-      const normalizedLocation = locality
-        ? locality.territoryPrefix
-        : departure.location || 'Seleccionar localidad';
-
-      groupArray.push(
-        this.fb.group({
-          date: new FormControl(departure.date || targetMondayStr),
-          driver: new FormControl(departure.driver || ''),
-          schedule: new FormControl(departure.schedule || ''),
-          location: new FormControl(normalizedLocation),
-          territory: this.fb.array(
-            (departure.territory || []).map((t: string) => new FormControl(t)),
-          ),
-          point: new FormControl(departure.point || ''),
-          maps: new FormControl(departure.maps || ''),
-          color: new FormControl(departure.color || 'secondary'),
-          group: new FormControl(groupKey),
-          isEvent: new FormControl(departure.isEvent || false),
-          title: new FormControl(departure.title || ''),
-          cardStatus: new FormControl(
-            departure.isEvent
-              ? 'not_required'
-              : departure.cardStatus || 'pending',
-          ),
-        }),
-      );
-    });
-
-    // Asegurar que groupKeys esté ordenado y no tenga duplicados
-    // Siempre incluir el grupo 0 (Salidas Generales) para que el botón "Nueva salida +" esté disponible
-    this.groupKeys = [...new Set([0, ...this.groupKeys])].sort((a, b) => a - b);
+    this.cdr.markForCheck();
   }
-  loadTerritoryData() {
+
+  loadPublisherGroups(): void {
+    this.territoryDataService
+      .getGroupList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        let parsedGroups: Group[] = [];
+        if (Array.isArray(data)) {
+          parsedGroups = data.map((group) => ({
+            id: group.id,
+            publishers: Array.isArray(group.publishers) ? group.publishers : [],
+          }));
+        }
+
+        parsedGroups.sort((a, b) => {
+          const numA = Number.parseInt(a.id.replace('Grupo ', '')) || 0;
+          const numB = Number.parseInt(b.id.replace('Grupo ', '')) || 0;
+          return numA - numB;
+        });
+
+        this.publisherGroups.set(parsedGroups);
+        this.ensureGroupKeys();
+      });
+  }
+
+  ensureGroupKeys(): void {
+    const configuredGroups = [
+      0,
+      ...this.publisherGroups().map((g: Group) => parseInt(g.id.replace('Grupo ', '')) || 0),
+    ];
+    let changed = false;
+
+    // Remove groupKeys that are not in configuredGroups (except those that have actual departures)
+    // Actually, we should probably keep any group that has existing departures,
+    // even if it was deleted from manage-publishers, to avoid data loss.
+    // So we just ADD missing groups.
+
+    configuredGroups.forEach((g) => {
+      if (!this.groupKeys.includes(g)) {
+        this.groupKeys.push(g);
+        changed = true;
+      }
+      const groupArrayKey = `departure${g}`;
+      if (!this.formDeparture.get(groupArrayKey)) {
+        this.formDeparture.setControl(groupArrayKey, this.fb.array([]));
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      // Sort groupKeys numerically
+      this.groupKeys.sort((a, b) => a - b);
+      this.cdr.markForCheck();
+    }
+  }
+
+  loadTerritoryData(): void {
     const stored = sessionStorage.getItem('numberTerritory');
     if (stored) {
-      this.processTerritoryData(JSON.parse(stored));
+      this.processTerritoryData(JSON.parse(stored) as Record<string, unknown>);
     } else {
       this.territoryDataService
         .getNumberTerritory()
-        .subscribe((numbers: TerritoryNumberData[]) => {
-          const mergedData = numbers.reduce((acc: any, curr: any) => {
-            return { ...acc, ...curr };
-          }, {});
-          sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
-          this.processTerritoryData(mergedData);
-        });
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(
+          (numbers: import('@core/models/TerritoryNumberData').TerritoriesNumberData[]) => {
+            const mergedData = numbers.reduce(
+              (
+                acc: Record<string, unknown>,
+                curr: import('@core/models/TerritoryNumberData').TerritoriesNumberData,
+              ) => {
+                return { ...acc, ...curr };
+              },
+              {},
+            );
+            sessionStorage.setItem('numberTerritory', JSON.stringify(mergedData));
+            this.processTerritoryData(mergedData);
+          },
+        );
     }
   }
-  processTerritoryData(data: any) {
+  processTerritoryData(data: Record<string, unknown>): void {
     this.localities.forEach((loc) => {
       if (loc.hasNumberedTerritories) {
-        const rawData = data[loc.key] || [];
+        const rawData = (data[loc.key] as unknown[]) || [];
         const numbers = rawData
-          .map((item: any) => {
-            if (
-              typeof item === 'object' &&
-              item !== null &&
-              'territorio' in item
-            ) {
-              return item.territorio;
+          .map((item: unknown) => {
+            if (typeof item === 'object' && item !== null && 'territorio' in item) {
+              return (item as { territorio: number }).territorio;
             }
             return item;
           })
-          .filter((n: any) => typeof n === 'number' || !isNaN(Number(n)));
+          .filter((n: unknown) => typeof n === 'number' || !isNaN(Number(n)));
 
-        const sorted = numbers.sort(
-          (a: number, b: number) => Number(a) - Number(b),
-        );
-        const options = sorted.map((n: number) => `N°${n}`);
+        const sorted = numbers.sort((a: unknown, b: unknown) => Number(a) - Number(b));
+        const options = sorted.map((n: unknown) => `N°${String(n)}`);
 
-        this.territoryOptionsMap[loc.territoryPrefix] = options;
+        this.territoryOptionsMap.update((m) => ({ ...m, [loc.territoryPrefix]: options }));
         if (loc.key) {
-          this.territoryOptionsMap[loc.key] = options;
+          this.territoryOptionsMap.update((m) => ({ ...m, [loc.key]: options }));
         }
       } else {
         const options = ['Rural'];
-        this.territoryOptionsMap[loc.territoryPrefix] = options;
+        this.territoryOptionsMap.update((m) => ({ ...m, [loc.territoryPrefix]: options }));
         if (loc.key) {
-          this.territoryOptionsMap[loc.key] = options;
+          this.territoryOptionsMap.update((m) => ({ ...m, [loc.key]: options }));
         }
       }
     });
 
     if (
-      !this.territoryOptionsMap[this.territoryPrefix] &&
+      !this.territoryOptionsMap()[this.territoryPrefix] &&
       (!data || Object.keys(data).length === 0)
     ) {
-      this.territoryOptionsMap[this.territoryPrefix] = Array.from(
-        { length: TERRITORY_COUNT },
-        (_, i) => `N°${i + 1}`,
-      );
+      this.territoryOptionsMap.update((m) => ({
+        ...m,
+        [this.territoryPrefix]: Array.from({ length: TERRITORY_COUNT }, (_, i) => `N°${i + 1}`),
+      }));
     }
 
     const departures = this.formDepartureDataInput();
     if (departures.length > 0) {
       this.initForm(departures);
     }
-    this.loadAllTerritoryCompletionData(data);
+    void this.loadAllTerritoryCompletionData(data);
   }
 
-  async loadAllTerritoryCompletionData(data: any) {
+  async loadAllTerritoryCompletionData(data: Record<string, unknown>): Promise<void> {
     const promises = [];
     for (const loc of this.localities) {
       if (loc.hasNumberedTerritories) {
-        const rawData = data[loc.key] || [];
-        const territories = rawData.filter((t: any) => t && typeof t === 'object' && t.collection && t.territorio);
+        const rawData = (data[loc.key] as unknown[]) || [];
+        const territories = rawData.filter(
+          (t: unknown) => t && typeof t === 'object' && 'collection' in t && 'territorio' in t,
+        );
         if (territories.length > 0) {
           promises.push(this.loadTerritoryCompletionData(loc, territories));
         }
@@ -277,43 +293,64 @@ export class FormEditDeparturesComponent implements OnInit {
     await Promise.all(promises);
   }
 
-  async loadTerritoryCompletionData(loc: any, territories: any[]) {
+  async loadTerritoryCompletionData(
+    loc: { territoryPrefix: string; key: string; hasNumberedTerritories: boolean },
+    territories: unknown[],
+  ): Promise<void> {
     const locationPrefix = loc.territoryPrefix;
-    if (!this.territoryLastCompletedDays[locationPrefix]) {
-      this.territoryLastCompletedDays[locationPrefix] = {};
-    }
+    this.territoryLastCompletedDays.update((m) => ({
+      ...m,
+      [locationPrefix]: m[locationPrefix] || {},
+    }));
 
     const path = loc.key;
     const suffix = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, '');
-    
-    const storageKeys = [`statisticData${suffix}_6`, `statisticData${suffix}_12`, `statisticData${suffix}_24`];
+
+    const storageKeys = [
+      `statisticData${suffix}_6`,
+      `statisticData${suffix}_12`,
+      `statisticData${suffix}_24`,
+    ];
     for (const key of storageKeys) {
       const cachedData = sessionStorage.getItem(key);
       if (cachedData) {
         try {
-          const parsedData = JSON.parse(cachedData);
-          parsedData.forEach((territoryCards: any[]) => {
+          const parsedData = JSON.parse(cachedData) as Card[][];
+          parsedData.forEach((territoryCards: Card[]) => {
             if (territoryCards && territoryCards.length > 0) {
               const primaryCard = territoryCards[0];
               const num = primaryCard.numberTerritory || primaryCard.territory;
               if (num !== undefined) {
+                const numericNum = this.normalizeTerritoryNumber(String(num));
+                if (numericNum === -1) return;
+
                 let lastEnd = null;
                 for (let i = 0; i < 6 && i < territoryCards.length; i++) {
-                  if (territoryCards[i].end) {
+                  if (territoryCards[i].end && territoryCards[i].end !== '0') {
                     lastEnd = territoryCards[i].end;
                     break;
                   }
                 }
                 if (lastEnd) {
                   const today = new Date();
-                  const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                  const dateToday = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    today.getDate(),
+                  );
                   let dateCard: Date;
                   if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
                     dateCard = new Date(lastEnd);
-                  } else if (lastEnd && typeof (lastEnd as any).toDate === 'function') {
-                    dateCard = (lastEnd as any).toDate();
-                  } else if (lastEnd && typeof (lastEnd as any).seconds === 'number') {
-                    dateCard = new Date((lastEnd as any).seconds * 1000);
+                  } else if (
+                    lastEnd &&
+                    typeof (lastEnd as { toDate?: () => Date }).toDate === 'function'
+                  ) {
+                    dateCard = (lastEnd as unknown as { toDate: () => Date }).toDate();
+                  } else if (
+                    lastEnd &&
+                    typeof (lastEnd as { seconds?: number }).seconds === 'number'
+                  ) {
+                    dateCard = new Date((lastEnd as unknown as { seconds: number }).seconds * 1000);
                   } else {
                     dateCard = new Date(lastEnd);
                   }
@@ -321,204 +358,179 @@ export class FormEditDeparturesComponent implements OnInit {
                   if (!isNaN(dateCard.getTime())) {
                     const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
                     const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                    this.territoryLastCompletedDays[locationPrefix][num] = days;
+                    this.territoryLastCompletedDays.update((m) => {
+                      m[locationPrefix][numericNum] = days;
+                      return { ...m };
+                    });
                   } else {
-                    this.territoryLastCompletedDays[locationPrefix][num] = Infinity;
+                    this.territoryLastCompletedDays.update((m) => {
+                      m[locationPrefix][numericNum] = Infinity;
+                      return { ...m };
+                    });
                   }
                 } else {
-                  this.territoryLastCompletedDays[locationPrefix][num] = Infinity;
+                  this.territoryLastCompletedDays.update((m) => {
+                    m[locationPrefix][numericNum] = Infinity;
+                    return { ...m };
+                  });
                 }
               }
             }
           });
           return;
-        } catch (e) {}
+        } catch (e: unknown) {
+          console.error('Error parsing session storage', e);
+        }
       }
     }
 
-    const promises = territories.map((t: any) =>
-      new Promise<void>((resolve) => {
-        this.territoryDataService.getCardTerritorie(t.collection, 120).pipe(take(1)).subscribe(cards => {
-          let lastEnd = null;
-          for (const c of cards) {
-            if (c.end) {
-              lastEnd = c.end;
-              break;
-            }
-          }
-          if (lastEnd) {
-            const today = new Date();
-            const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            let dateCard: Date;
-            if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
-              dateCard = new Date(lastEnd);
-            } else if (lastEnd && typeof (lastEnd as any).toDate === 'function') {
-              dateCard = (lastEnd as any).toDate();
-            } else if (lastEnd && typeof (lastEnd as any).seconds === 'number') {
-              dateCard = new Date((lastEnd as any).seconds * 1000);
-            } else {
-              dateCard = new Date(lastEnd);
-            }
+    const promises = (territories as { collection: string; territorio: number }[]).map(
+      (t) =>
+        new Promise<void>((resolve) => {
+          this.territoryDataService
+            .getCardTerritorie(t.collection, 120)
+            .pipe(take(1))
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((cards) => {
+              let lastEnd = null;
+              for (const c of cards) {
+                if (c.end && c.end !== '0') {
+                  lastEnd = c.end;
+                  break;
+                }
+              }
+              if (lastEnd) {
+                const today = new Date();
+                const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                let dateCard: Date;
+                if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
+                  dateCard = new Date(lastEnd);
+                } else if (
+                  lastEnd &&
+                  typeof (lastEnd as { toDate?: () => Date }).toDate === 'function'
+                ) {
+                  dateCard = (lastEnd as unknown as { toDate: () => Date }).toDate();
+                } else if (
+                  lastEnd &&
+                  typeof (lastEnd as { seconds?: number }).seconds === 'number'
+                ) {
+                  dateCard = new Date((lastEnd as unknown as { seconds: number }).seconds * 1000);
+                } else {
+                  dateCard = new Date(lastEnd);
+                }
 
-            if (!isNaN(dateCard.getTime())) {
-              const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
-              const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-              this.territoryLastCompletedDays[locationPrefix][t.territorio] = days;
-            } else {
-              this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
-            }
-          } else {
-            this.territoryLastCompletedDays[locationPrefix][t.territorio] = Infinity;
-          }
-          resolve();
-        });
-      })
+                if (!isNaN(dateCard.getTime())) {
+                  const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
+                  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                  this.territoryLastCompletedDays.update((m) => {
+                    m[locationPrefix][t.territorio] = days;
+                    return { ...m };
+                  });
+                } else {
+                  this.territoryLastCompletedDays.update((m) => {
+                    m[locationPrefix][t.territorio] = Infinity;
+                    return { ...m };
+                  });
+                }
+              } else {
+                this.territoryLastCompletedDays.update((m) => {
+                  m[locationPrefix][t.territorio] = Infinity;
+                  return { ...m };
+                });
+              }
+              resolve();
+            });
+        }),
     );
     await Promise.all(promises);
   }
 
-  loadDrivers() {
-    this.territoryDataService.getUsers().subscribe((users) => {
-      this.drivers.set(users.sort((a, b) => a.user.localeCompare(b.user)));
-    });
+  loadDrivers(): void {
+    this.territoryDataService
+      .getUsers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((users) => {
+        this.drivers.set(users.sort((a, b) => a.user.localeCompare(b.user)));
+      });
   }
 
-  loadPersonalAssignments() {
+  loadPersonalAssignments(): void {
     this.territoryDataService
       .getCardAssigned()
-      .subscribe((cards) => (this.personalAssignments = cards || []));
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((cards) => this.personalAssignments.set(cards || []));
   }
 
-  loadWeeklyHistory() {
-    this.territoryDataService.getWeeklyDepartures().subscribe((history) => {
-      this.weeklyHistory = history;
-    });
+  loadWeeklyHistory(): void {
+    this.territoryDataService
+      .getWeeklyDepartures()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((history) => {
+        this.weeklyHistory.set(history);
+      });
   }
 
-  loadTerritoryGroups() {
-    this.territoryDataService.getTerritoryGroups().subscribe((data: any) => {
-      if (!data) return;
-      // data shape: { [locationPrefix]: { [territoryNum]: groupNumber } }
-      this.territoryGroupsMap = data;
-    });
+  loadTerritoryGroups(): void {
+    this.territoryDataService
+      .getTerritoryGroups()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: Record<string, Record<number, number>> | null) => {
+        if (!data) return;
+        // data shape: { [locationPrefix]: { [territoryNum]: groupNumber } }
+        this.territoryGroupsMap.set(data);
+      });
   }
 
-  async saveTerritoryGroups() {
-    await this.territoryDataService.saveTerritoryGroups(this.territoryGroupsMap);
+  async saveTerritoryGroups(): Promise<void> {
+    await this.territoryDataService.saveTerritoryGroups(this.territoryGroupsMap());
   }
 
   /**
    * Returns the group number assigned to a territory, or 0 if not assigned.
    */
-  getTerritoryGroupNumber(num: string, locationPrefix: string): number {
-    const n = this.normalizeTerritoryNumber(num);
-    const locMap = this.territoryGroupsMap[locationPrefix];
-    if (locMap && locMap[n] !== undefined) return locMap[n];
-    // fallback: check by alternate location names
-    for (const loc of this.localities) {
-      const names = [loc.territoryPrefix, loc.key, loc.name].map(s => s?.toLowerCase());
-      const locationNames = this.getLocationNames(locationPrefix);
-      if (locationNames.some(name => names.includes(name))) {
-        const altMap = this.territoryGroupsMap[loc.territoryPrefix];
-        if (altMap && altMap[n] !== undefined) return altMap[n];
-      }
-    }
-    return 0;
-  }
 
   /**
    * Assigns a territory to a departure group (for the admin config panel).
    */
-  setTerritoryGroupAssignment(num: string, locationPrefix: string, groupNum: number | null) {
-    if (!this.territoryGroupsMap[locationPrefix]) {
-      this.territoryGroupsMap[locationPrefix] = {};
+  setTerritoryGroupAssignment(num: string, locationPrefix: string, groupNum: number | null): void {
+    if (!this.territoryGroupsMap()[locationPrefix]) {
+      this.territoryGroupsMap()[locationPrefix] = {};
     }
     const n = this.normalizeTerritoryNumber(num);
     if (groupNum === null || groupNum === 0) {
-      delete this.territoryGroupsMap[locationPrefix][n];
+      delete this.territoryGroupsMap()[locationPrefix][n];
     } else {
-      this.territoryGroupsMap[locationPrefix][n] = groupNum;
+      this.territoryGroupsMap()[locationPrefix][n] = groupNum;
     }
   }
 
-  /**
-   * Returns distinct group numbers that have territories assigned in a location.
-   */
+  openModal(dayIndex: number, groupKey: number): void {
+    this.activeModal.set({ dayIndex, groupKey });
+    this.selectedTerritoryGroup = groupKey > 0 ? groupKey : null;
+    this.cdr.detectChanges();
+  }
+
+  closeModal(): void {
+    this.activeModal.set(null);
+    this.cdr.detectChanges();
+  }
+
+  isModalOpen(dayIndex: number, groupKey: number): boolean {
+    return this.activeModal()?.dayIndex === dayIndex && this.activeModal()?.groupKey === groupKey;
+  }
+
   getAvailableGroupNumbers(locationPrefix: string): number[] {
-    const locMap = this.territoryGroupsMap[locationPrefix] || {};
-    const nums = new Set<number>(Object.values(locMap).filter(v => v > 0));
-    return Array.from(nums).sort((a, b) => a - b);
-  }
-
-  getTerritoryList(locationPrefix: string): string[] {
-    if (!locationPrefix || locationPrefix === 'Seleccionar localidad')
-      return [];
-
-    // If exact match found
-    if (this.territoryOptionsMap[locationPrefix])
-      return this.territoryOptionsMap[locationPrefix];
-
-    // Fallback: search by checking against all prefixes if logic is complex,
-    // but here we just return empty or default.
-    // If 'Rural' (TerritorioR) was not in localities for some reason, we might miss it.
-    if (locationPrefix === 'TerritorioR') return ['Rural'];
-
-    return [];
-  }
-
-  getFilteredTerritoryList(
-    locationPrefix: string,
-    index: number,
-    group: number,
-  ): string[] {
-    return this.getTerritoryList(locationPrefix)
-      .filter((num) => {
-        // Always show already-checked territories
-        if (this.isTerritoryChecked(num, index, group)) return true;
-        // Filter by selected group
-        if (this.selectedTerritoryGroup !== null) {
-          const assignedGroup = this.getTerritoryGroupNumber(num, locationPrefix);
-          if (assignedGroup > 0 && assignedGroup !== this.selectedTerritoryGroup) return false;
-        }
-        // Filter personal territories
-        if (!this.showPersonalTerritories && this.isPersonalTerritory(num, locationPrefix)) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        // Territorios ya elegidos esta semana — siempre al final
-        const aUsed = this.isTerritoryUsedInWeek(a, locationPrefix, index, group) ? 1 : 0;
-        const bUsed = this.isTerritoryUsedInWeek(b, locationPrefix, index, group) ? 1 : 0;
-        if (aUsed !== bUsed) return aUsed - bUsed;
-
-        // Territorios personales — al final (antes de los ya elegidos)
-        const aPersonal = this.isPersonalTerritory(a, locationPrefix) && !this.isTerritoryChecked(a, index, group) ? 1 : 0;
-        const bPersonal = this.isPersonalTerritory(b, locationPrefix) && !this.isTerritoryChecked(b, index, group) ? 1 : 0;
-        if (aPersonal !== bPersonal) return aPersonal - bPersonal;
-
-        if (this.sortByAge) {
-          // Ordenar por antigüedad: más días sin usar primero (rojo antes que verde)
-          const aDays = this.getTerritoryLastUsedDays(a, locationPrefix);
-          const bDays = this.getTerritoryLastUsedDays(b, locationPrefix);
-          // Sin historial (Infinity) va primero
-          if (aDays !== bDays) return bDays - aDays;
-        }
-
-        // Mismo nivel de antigüedad o sin sortByAge: orden numérico
-        return this.normalizeTerritoryNumber(a) - this.normalizeTerritoryNumber(b);
-      });
-  }
-
-  getTerritoryLink(locationPrefix: string | undefined, territoryNum: string): string {
-    const prefix = locationPrefix || this.territoryPrefix;
-    const num = String(territoryNum).match(/\d+/)?.[0] || territoryNum;
-    return `${window.location.origin}/territorios/${prefix}-${num}`;
+    const locGroups = this.territoryGroupsMap()[locationPrefix];
+    if (!locGroups) return [];
+    const groups = new Set(Object.values(locGroups).filter((g) => g > 0));
+    return Array.from(groups).sort((a, b) => a - b);
   }
 
   isPersonalTerritory(num: string, locationPrefix: string): boolean {
     const territoryNumber = this.normalizeTerritoryNumber(num);
     const locationNames = this.getLocationNames(locationPrefix);
 
-    return this.personalAssignments.some((assignment) => {
+    return this.personalAssignments().some((assignment) => {
       const assignedTerritory = this.normalizeTerritoryNumber(
         String(assignment.territory || assignment.territoryNumber || ''),
       );
@@ -529,23 +541,6 @@ export class FormEditDeparturesComponent implements OnInit {
         locationNames.some((name) => assignedLocation.includes(name))
       );
     });
-  }
-
-  getPersonalPublisher(num: string, locationPrefix: string): string {
-    const territoryNumber = this.normalizeTerritoryNumber(num);
-    const locationNames = this.getLocationNames(locationPrefix);
-    const assignment = this.personalAssignments.find((item) => {
-      const assignedTerritory = this.normalizeTerritoryNumber(
-        String(item.territory || item.territoryNumber || ''),
-      );
-      const assignedLocation = String(item.location || '').toLowerCase();
-      return (
-        assignedTerritory === territoryNumber &&
-        locationNames.some((name) => assignedLocation.includes(name))
-      );
-    });
-
-    return assignment?.publisher || assignment?.driver || '';
   }
 
   isTerritoryUsedInWeek(
@@ -563,9 +558,7 @@ export class FormEditDeparturesComponent implements OnInit {
         if (group === currentGroup && index === currentIndex) return false;
         const controlLocation = String(control.get('location')?.value || '');
         const controlLocationNames = this.getLocationNames(controlLocation);
-        const sameLocation = locationNames.some((name) =>
-          controlLocationNames.includes(name),
-        );
+        const sameLocation = locationNames.some((name) => controlLocationNames.includes(name));
         if (!sameLocation) return false;
 
         return this.getTerritories(control).some(
@@ -573,6 +566,120 @@ export class FormEditDeparturesComponent implements OnInit {
         );
       });
     });
+  }
+
+  getTerritoryLastUsedDays(num: string, locationPrefix: string): number {
+    const territoryNumber = this.normalizeTerritoryNumber(num);
+    const locationNames = this.getLocationNames(locationPrefix);
+
+    let foundDays = Infinity;
+
+    if (
+      this.territoryLastCompletedDays()[locationPrefix] &&
+      this.territoryLastCompletedDays()[locationPrefix][territoryNumber] !== undefined
+    ) {
+      foundDays = this.territoryLastCompletedDays()[locationPrefix][territoryNumber];
+    } else {
+      for (const loc of this.localities) {
+        if (
+          locationNames.includes(loc.territoryPrefix.toLowerCase()) ||
+          locationNames.includes(loc.key.toLowerCase())
+        ) {
+          if (
+            this.territoryLastCompletedDays()[loc.territoryPrefix] &&
+            this.territoryLastCompletedDays()[loc.territoryPrefix][territoryNumber] !== undefined
+          ) {
+            foundDays = this.territoryLastCompletedDays()[loc.territoryPrefix][territoryNumber];
+            break;
+          }
+        }
+      }
+    }
+
+    return foundDays;
+  }
+
+  getTerritoryList(locationPrefix: string): string[] {
+    if (!locationPrefix || locationPrefix === 'Seleccionar localidad') return [];
+
+    // If exact match found
+    if (this.territoryOptionsMap()[locationPrefix])
+      return this.territoryOptionsMap()[locationPrefix];
+
+    // Fallback: search by checking against all prefixes if logic is complex,
+    // but here we just return empty or default.
+    // If 'Rural' (TerritorioR) was not in localities for some reason, we might miss it.
+    if (locationPrefix === 'TerritorioR') return ['Rural'];
+
+    return [];
+  }
+
+  getFilteredTerritoryList(locationPrefix: string, index: number, group: number): string[] {
+    return this.getTerritoryList(locationPrefix)
+      .filter((num) => {
+        if (this.isTerritoryChecked(num, index, group)) return true;
+        if (this.selectedTerritoryGroup !== null) {
+          const assignedGroup = this.getTerritoryGroupNumber(num, locationPrefix);
+          if (assignedGroup > 0 && assignedGroup !== this.selectedTerritoryGroup) return false;
+        }
+        if (!this.showPersonalTerritories && this.isPersonalTerritory(num, locationPrefix))
+          return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const aUsed = this.isTerritoryUsedInWeek(a, locationPrefix, index, group) ? 1 : 0;
+        const bUsed = this.isTerritoryUsedInWeek(b, locationPrefix, index, group) ? 1 : 0;
+        if (aUsed !== bUsed) return aUsed - bUsed;
+
+        const aPersonal =
+          this.isPersonalTerritory(a, locationPrefix) && !this.isTerritoryChecked(a, index, group)
+            ? 1
+            : 0;
+        const bPersonal =
+          this.isPersonalTerritory(b, locationPrefix) && !this.isTerritoryChecked(b, index, group)
+            ? 1
+            : 0;
+        if (aPersonal !== bPersonal) return aPersonal - bPersonal;
+
+        if (this.sortByAge) {
+          const aDays = this.getTerritoryLastUsedDays(a, locationPrefix);
+          const bDays = this.getTerritoryLastUsedDays(b, locationPrefix);
+          if (aDays !== bDays) return bDays - aDays;
+        }
+
+        return this.normalizeTerritoryNumber(a) - this.normalizeTerritoryNumber(b);
+      });
+  }
+
+  isTerritoryChecked(num: string, index: number, group: number): boolean {
+    const control = this.getCurrentDepartureControl(index, group);
+    if (!control) return false;
+    return this.getTerritories(control).includes(num);
+  }
+
+  getTerritoryGroupNumber(num: string, locationPrefix: string): number {
+    const numericNum = this.normalizeTerritoryNumber(num);
+    if (numericNum !== -1 && this.territoryGroupsMap()[locationPrefix]?.[numericNum]) {
+      return this.territoryGroupsMap()[locationPrefix][numericNum];
+    }
+    return 0;
+  }
+
+  getPersonalPublisher(num: string, locationPrefix: string): string {
+    const territoryNumber = this.normalizeTerritoryNumber(num);
+    const locationNames = this.getLocationNames(locationPrefix);
+    const assignment = this.personalAssignments().find((item) => {
+      const assignedTerritory = this.normalizeTerritoryNumber(
+        String(item.territory || item.territoryNumber || ''),
+      );
+      const assignedLocation = String(item.location || '').toLowerCase();
+      return (
+        assignedTerritory === territoryNumber &&
+        locationNames.some((name) => assignedLocation.includes(name))
+      );
+    });
+
+    return assignment?.publisher || assignment?.driver || '';
   }
 
   getTerritoryBadges(
@@ -595,25 +702,6 @@ export class FormEditDeparturesComponent implements OnInit {
     return badges;
   }
 
-  getCardStatusLabel(dayGroup: AbstractControl): string {
-    const isEvent = dayGroup.get('isEvent')?.value;
-    if (isEvent) return 'No requerida';
-    const status = dayGroup.get('cardStatus')?.value;
-    if (status === 'received') return 'Recibida';
-    return 'Pendiente';
-  }
-
-  getCardStatusClass(dayGroup: AbstractControl): string {
-    const isEvent = dayGroup.get('isEvent')?.value;
-    if (isEvent) 
-      return 'bg-secondary text-light';
-    const status = dayGroup.get('cardStatus')?.value;
-    if (status === 'received') 
-      return 'bg-success text-light';
-    return 'bg-warning text-dark';
-  }
-
-
   isBeforeTrackingStart(dateStr: string): boolean {
     if (!dateStr) return false;
     return dateStr < this.CARD_TRACKING_START_DATE;
@@ -623,61 +711,20 @@ export class FormEditDeparturesComponent implements OnInit {
    * Retorna cuántos días hace que se COMPLETÓ un territorio.
    * Infinity = nunca completado (prioridad máxima — aparece primero en rojo).
    */
-  getTerritoryLastUsedDays(num: string, locationPrefix: string): number {
-    const territoryNumber = this.normalizeTerritoryNumber(num);
-    const locationNames = this.getLocationNames(locationPrefix);
-
-    let foundDays = Infinity;
-
-    if (this.territoryLastCompletedDays[locationPrefix] && 
-        this.territoryLastCompletedDays[locationPrefix][territoryNumber] !== undefined) {
-      foundDays = this.territoryLastCompletedDays[locationPrefix][territoryNumber];
-    } else {
-      for (const loc of this.localities) {
-        if (locationNames.includes(loc.territoryPrefix.toLowerCase()) || 
-            locationNames.includes(loc.key.toLowerCase())) {
-          if (this.territoryLastCompletedDays[loc.territoryPrefix] && 
-              this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber] !== undefined) {
-            foundDays = this.territoryLastCompletedDays[loc.territoryPrefix][territoryNumber];
-            break;
-          }
-        }
-      }
-    }
-
-    return foundDays;
-  }
 
   /**
    * Retorna una etiqueta human-friendly de la antigüedad del territorio.
    * Ejemplos: "Nunca", "Hace 3 sem", "Hace 2 meses".
    */
-  getTerritoryAgeLabel(num: string, locationPrefix: string): string {
-    const days = this.getTerritoryLastUsedDays(num, locationPrefix);
-    if (!isFinite(days)) return 'Nunca';
-    if (days < 7) return `Hace ${days}d`;
-    if (days < 30) return `Hace ${Math.floor(days / 7)} sem`;
-    const months = Math.floor(days / 30);
-    return `Hace ${months} ${months === 1 ? 'mes' : 'meses'}`;
-  }
 
   /**
    * Retorna la clase de color de fila según antigüedad del territorio.
    * Misma lógica que paintRow() en la pantalla de estadísticas.
    */
-  getTerritoryPriorityColor(num: string, locationPrefix: string): string {
-    const days = this.getTerritoryLastUsedDays(num, locationPrefix);
-    if (!isFinite(days) || days >= 57) return 'danger';
-    if (days >= 43) return 'warning';
-    if (days >= 29) return 'primary';
-    return 'success';
-  }
 
   getCurrentDepartureControl(index: number, group: number): AbstractControl | null {
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     return departureFormArrayItem?.at(index) ?? null;
   }
 
@@ -685,14 +732,10 @@ export class FormEditDeparturesComponent implements OnInit {
     const control = this.getCurrentDepartureControl(index, group);
     if (!control) return [];
 
-    const location = this.getControlValue(index, group, 'location');
+    const location = this.getControlValue(index, group, 'location') as string;
     return this.getFilteredTerritoryList(location, index, group)
       .filter((territory) => !this.getTerritories(control).includes(territory))
       .slice(0, 3);
-  }
-
-  getColorSwatch(colorKey: string | null | undefined): string {
-    return this.colorSwatchMap[colorKey || 'secondary'] || this.colorSwatchMap['secondary'];
   }
 
   getQuickSuggestionText(index: number, group: number): string {
@@ -706,7 +749,7 @@ export class FormEditDeparturesComponent implements OnInit {
     return !!this.getQuickSuggestionText(index, group);
   }
 
-  getControlValue(index: number, group: number, key: string): any {
+  getControlValue(index: number, group: number, key: string): unknown {
     return this.getCurrentDepartureControl(index, group)?.get(key)?.value;
   }
 
@@ -714,7 +757,7 @@ export class FormEditDeparturesComponent implements OnInit {
     const control = this.getCurrentDepartureControl(index, group);
     if (!control) return { point: '', maps: '' };
 
-    const location = control.get('location')?.value;
+    const location = control.get('location')?.value as string;
     const selectedTerritories = this.getTerritories(control);
 
     if (!location || location === 'Seleccionar localidad') {
@@ -742,7 +785,7 @@ export class FormEditDeparturesComponent implements OnInit {
   ): { point: string; maps: string } {
     const normalizedTerritory = this.normalizeTerritoryNumber(territory);
 
-    const matches = (this.weeklyHistory || [])
+    const matches = (this.weeklyHistory() || [])
       .flatMap((week) => week.departure || [])
       .filter((departure) => departure.location === locationPrefix)
       .filter((departure) =>
@@ -764,7 +807,7 @@ export class FormEditDeparturesComponent implements OnInit {
     const control = this.getCurrentDepartureControl(index, group);
     if (!control) return;
 
-    const location = control.get('location')?.value;
+    const location = control.get('location')?.value as string;
     if (!location || location === 'Seleccionar localidad') return;
 
     const selectedTerritories = this.getTerritories(control);
@@ -793,19 +836,7 @@ export class FormEditDeparturesComponent implements OnInit {
     }
 
     this.syncMeetingDetails(index, group);
-    this.isSaved = false;
-  }
-
-  onToggleCardReceived(index: number, group: number, checked: boolean): void {
-    const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
-    const control = departureFormArrayItem?.at(index);
-    if (!control) return;
-
-    control.get('cardStatus')?.setValue(checked ? 'received' : 'pending');
-    this.isSaved = false;
+    if (this.isFormDirty) this.isFormDirty.set(true);
   }
 
   markDepartureAsReceived(departureToMark: Departure): boolean {
@@ -813,7 +844,7 @@ export class FormEditDeparturesComponent implements OnInit {
       const departureGroupKey = `departure${group}`;
       const groupArray = this.formDeparture.get(departureGroupKey) as FormArray;
       if (!groupArray) continue;
-      
+
       for (let i = 0; i < groupArray.length; i++) {
         const control = groupArray.at(i);
         if (
@@ -823,12 +854,20 @@ export class FormEditDeparturesComponent implements OnInit {
           control.get('driver')?.value === departureToMark.driver
         ) {
           control.get('cardStatus')?.setValue('received');
-          this.isSaved = false;
+          if (this.isFormDirty) this.isFormDirty.set(true);
           return true;
         }
       }
     }
     return false;
+  }
+
+  getCurrentDepartures(): Departure[] {
+    const formDepartures = this.groupKeys
+      .map((num) => (this.formDeparture.value as Record<string, Departure[]>)?.[`departure${num}`])
+      .flat()
+      .filter(Boolean);
+    return formDepartures;
   }
 
   private normalizeTerritoryNumber(value: string): number {
@@ -852,23 +891,14 @@ export class FormEditDeparturesComponent implements OnInit {
       String(locality?.territoryPrefix || '').toLowerCase(),
     ].filter(Boolean);
   }
-  openSnackBar(message: string, action: string) {
+  openSnackBar(message: string, action: string): void {
     this._snackBar.open(message, action, {
-      verticalPosition: this.verticalPosition,
+      verticalPosition: 'top',
     });
   }
-  get departureFormArray() {
-    const departureGroupKey = `departure${this.numberGroup}`;
-    if (!this.formDeparture.get(departureGroupKey)) {
-      this.formDeparture.setControl(departureGroupKey, new FormArray([]));
-    }
-    return this.formDeparture.get(departureGroupKey) as FormArray;
-  }
-  filterControlsByGroup(group: number) {
+  filterControlsByGroup(group: number): AbstractControl[] {
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     return departureFormArrayItem?.controls || [];
   }
   getGroupTitle(group: number | 'generales'): string {
@@ -880,122 +910,64 @@ export class FormEditDeparturesComponent implements OnInit {
     return 'Grupo ' + group;
   }
 
-  getDepartureTitle(dateStr: string, scheduleStr: string): string {
-    if (!dateStr) return 'Salida sin fecha';
-    
-    // Parse date (add time to prevent timezone shifts)
-    const date = new Date(dateStr + 'T00:00:00');
-    if (isNaN(date.getTime())) return 'Fecha inválida';
-
-    const daysOfWeek = [
-      'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
-    ];
-    const dayName = daysOfWeek[date.getDay()];
-
-    let timeLabel = '';
-    if (scheduleStr) {
-      const [hoursStr] = scheduleStr.split(':');
-      const hours = parseInt(hoursStr, 10);
-
-      if (!isNaN(hours)) {
-        if (hours < 12) {
-          timeLabel = ' (mañana)';
-        } else if (hours < 20) {
-          timeLabel = ' (tarde)';
-        } else {
-          timeLabel = ' (noche)';
-        }
-      }
-    }
-
-    return `${dayName}${timeLabel}`;
-  }
-  onChangeInput(e: any, key: string, index: number, group: number) {
+  onChangeColor(event: Event, index: number, group: number): void {
+    if (this.isFormDirty()) this.isFormDirty.set(true);
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
-    const control = departureFormArrayItem.at(index);
-
-    if (control) {
-      if (key === 'location') {
-        const territoryArray = control.get('territory') as FormArray;
-        if (territoryArray) {
-          territoryArray.clear();
-        }
-      }
-      control.get(key)?.setValue(e.target.value);
-    }
-    this.isSaved = false;
-  }
-  onChangeColor(event: any, index: number, group: number) {
-    this.isSaved = false;
-    const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     const control = departureFormArrayItem.at(index);
     if (control) {
-      control.get('color')?.setValue(event.target.value);
+      control.get('color')?.setValue((event.target as HTMLInputElement).value);
     }
   }
-  onChangeCheckbox(e: any, key: string, index: number, group: number) {
-    this.isSaved = false;
+
+  copyDay(index: number, group: number): void {
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(
-      departureGroupKey,
-    ) as FormArray;
-    const control = departureFormArrayItem.at(index);
-    if (control) {
-      if (key === 'isEvent') {
-        const checked = e.target.checked;
-        control.get(key)?.setValue(checked);
-        control.get('cardStatus')?.setValue(checked ? 'not_required' : 'pending');
-        if (checked) {
-          // Clear locations and territories if it's now an event
-          const territoryArray = control.get('territory') as FormArray;
-          if (territoryArray) {
-            territoryArray.clear();
-          }
-        }
-      } else {
-        control.get(key)?.setValue(e.target.checked);
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
+    const currentControl = departureFormArrayItem.at(index);
+    if (!currentControl) return;
+
+    // Add a new empty control, then patch with values from the current one
+    const targetMondayStr = this.dateDepartureInput();
+    this.departureFormService.addControl(this.formDeparture, group, targetMondayStr);
+    const newControl = departureFormArrayItem.at(departureFormArrayItem.length - 1);
+    newControl.patchValue(currentControl.value);
+
+    // Copy territory array values manually
+    const sourceTerritories =
+      ((currentControl.get('territory') as FormArray)?.value as string[]) || [];
+    const targetTerritoryArray = newControl.get('territory') as FormArray;
+    targetTerritoryArray.clear();
+    sourceTerritories.forEach((t: string) => targetTerritoryArray.push(new FormControl(t)));
+    if (this.isFormDirty) this.isFormDirty.set(true);
+  }
+
+  addControl(group: number): void {
+    const targetMondayStr = this.dateDepartureInput();
+    this.departureFormService.addControl(this.formDeparture, group, targetMondayStr);
+    if (this.isFormDirty) this.isFormDirty.set(true);
+  }
+
+  removeControl(index: number, group: number): void {
+    this.departureFormService.removeControl(this.formDeparture, index, group);
+    if (this.isFormDirty()) this.isFormDirty.set(true);
+  }
+
+  addInputForm(group: number): void {
+    this.addControl(group);
+  }
+  deleteInputForm(index: number, group: number): void {
+    if (this.isFormDirty()) this.isFormDirty.set(true);
+    const departureGroupKey = `departure${group}`;
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
+    if (departureFormArrayItem) {
+      departureFormArrayItem.removeAt(index);
+      if (departureFormArrayItem.length === 0 && group !== 0) {
+        this.groupKeys = this.groupKeys.filter((k) => k !== group);
       }
     }
   }
-  addInputForm(group: number) {
-    this.isSaved = false;
-    this.numberGroup = group;
-    const defaultDate = this.dateDepartureInput();
-    this.departureFormArray.push(
-      this.fb.group({
-        date: new FormControl(defaultDate),
-        driver: new FormControl(''),
-        schedule: new FormControl(''),
-        location: new FormControl(this.territoryPrefix),
-        territory: this.fb.array([]),
-        point: new FormControl(''),
-        maps: new FormControl(''),
-        color: new FormControl('secondary'),
-        group: new FormControl(group),
-        isEvent: new FormControl(false),
-        title: new FormControl(''),
-        cardStatus: new FormControl('pending'),
-      }),
-    );
-  }
-  deleteInputForm(index: number, group: number) {
-    this.isSaved = false;
-    this.numberGroup = group;
-    this.departureFormArray.removeAt(index);
-    // Si el grupo queda vacío, eliminarlo de groupKeys SOLO si NO es el grupo 0 (Salidas Generales)
-    // El grupo 0 siempre debe permanecer para que el botón "Nueva salida +" esté disponible
-    if (this.departureFormArray.length === 0 && group !== 0) {
-      this.groupKeys = this.groupKeys.filter((k) => k !== group);
-    }
-  }
-  rollbackInputForm() {
-    this.isSaved = false;
+  rollbackInputForm(): void {
+    if (this.isFormDirty()) this.isFormDirty.set(true);
     this.groupKeys = [];
     this.groupedDepartures = {};
 
@@ -1007,7 +979,7 @@ export class FormEditDeparturesComponent implements OnInit {
     });
 
     const departures = this.formDepartureDataInput();
-    departures.forEach((departure: any) => {
+    departures.forEach((departure: Departure & { day?: string }) => {
       const groupKey = Number(departure.group) || 0;
 
       if (!this.groupedDepartures[groupKey]) {
@@ -1020,16 +992,20 @@ export class FormEditDeparturesComponent implements OnInit {
         this.formDeparture.setControl(departureGroupKey, this.fb.array([]));
       }
 
-      const departureFormArrayItem = this.formDeparture.get(
-        departureGroupKey,
-      ) as FormArray;
+      const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
 
       departureFormArrayItem.push(
         this.fb.group({
           date: new FormControl(departure.date || departure.day),
           driver: new FormControl(departure.driver),
           schedule: new FormControl(departure.schedule),
-          location: new FormControl(departure.location),
+          location: new FormControl(
+            !departure.location || departure.location === 'Seleccionar localidad'
+              ? this.localities && this.localities.length > 0
+                ? this.localities[0].territoryPrefix
+                : ''
+              : departure.location,
+          ),
           territory: this.fb.array(
             (departure.territory || []).map((t: string) => new FormControl(t)),
           ),
@@ -1040,9 +1016,7 @@ export class FormEditDeparturesComponent implements OnInit {
           isEvent: new FormControl(departure.isEvent || false),
           title: new FormControl(departure.title || ''),
           cardStatus: new FormControl(
-            departure.isEvent
-              ? 'not_required'
-              : departure.cardStatus || 'pending',
+            departure.isEvent ? 'not_required' : departure.cardStatus || 'pending',
           ),
         }),
       );
@@ -1050,8 +1024,8 @@ export class FormEditDeparturesComponent implements OnInit {
 
     this.groupKeys = [...new Set(this.groupKeys)].sort((a, b) => a - b);
   }
-  addNewGroup() {
-    this.isSaved = false;
+  addNewGroup(): void {
+    if (this.isFormDirty) this.isFormDirty.set(true);
     this.groupKeys.push(this.groupKeys.length);
     this.addInputForm(this.groupKeys.length - 1);
   }
@@ -1064,17 +1038,13 @@ export class FormEditDeparturesComponent implements OnInit {
 
   // Devuelve lista de territorios actuales
   getTerritories(dayGroup: AbstractControl): string[] {
-    return (dayGroup.get('territory') as FormArray)?.value || [];
+    return ((dayGroup.get('territory') as FormArray)?.value as string[]) || [];
   }
 
   // Verifica si un territorio está seleccionado
-  isTerritoryChecked(num: string, i: number, group: number): boolean {
-    const current = this.getTerritoryArray(i, group).value;
-    return current.includes(num);
-  }
 
   // Agrega o quita un territorio
-  toggleTerritory(num: string, i: number, group: number, isChecked: boolean) {
+  toggleTerritory(num: string, i: number, group: number, isChecked: boolean): void {
     const control = this.getTerritoryArray(i, group);
     const current = control.value as string[];
 
@@ -1085,28 +1055,19 @@ export class FormEditDeparturesComponent implements OnInit {
       if (index !== -1) control.removeAt(index);
     }
   }
-  handleCheckboxChange(event: Event, num: string, i: number, group: number) {
-    this.isSaved = false;
-    const input = event.target as HTMLInputElement;
-    const isChecked = input.checked;
-    this.toggleTerritory(num, i, group, isChecked);
-    this.syncMeetingDetails(i, group);
-  }
 
   isDirty(): boolean {
     return this.formDeparture.dirty;
   }
 
   submitForm(): Departure[] {
-    this.isSaved = true;
-
     const targetMondayStr = this.dateDepartureInput();
     const targetMonday = new Date(targetMondayStr + 'T00:00:00');
     const targetSunday = new Date(targetMonday);
     targetSunday.setDate(targetMonday.getDate() + 6);
 
     const formDepartures = this.groupKeys
-      .map((number) => this.formDeparture.value?.[`departure${number}`])
+      .map((num) => (this.formDeparture.value as Record<string, Departure[]>)?.[`departure${num}`])
       .flat();
 
     // Separar salidas: las de esta semana vs. las de otras semanas
@@ -1119,10 +1080,7 @@ export class FormEditDeparturesComponent implements OnInit {
         return;
       }
       const date = new Date(d.date + 'T00:00:00');
-      if (
-        isNaN(date.getTime()) ||
-        (date >= targetMonday && date <= targetSunday)
-      ) {
+      if (isNaN(date.getTime()) || (date >= targetMonday && date <= targetSunday)) {
         weeklyOnly.push(d);
       } else {
         // Esta salida pertenece a otra semana: calcular su lunes
@@ -1152,7 +1110,7 @@ export class FormEditDeparturesComponent implements OnInit {
         weekId: targetMondayStr,
         createdAt: new Date(),
       };
-      this.territoryDataService.postWeeklyDeparture(weeklyDeparture);
+      void this.territoryDataService.postWeeklyDeparture(weeklyDeparture);
       weeklyOnly.splice(0, weeklyOnly.length, ...normalizedWeeklyOnly);
     }
 
@@ -1162,6 +1120,7 @@ export class FormEditDeparturesComponent implements OnInit {
       this.territoryDataService
         .getWeeklyDeparture(otherWeekId)
         .pipe(take(1))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((existing) => {
           const existingDepartures = existing?.departure || [];
           // Combinar sin duplicar (evitar agregar si ya existe)
@@ -1169,9 +1128,7 @@ export class FormEditDeparturesComponent implements OnInit {
           newDepartures.forEach((nd) => {
             const alreadyExists = existingDepartures.some(
               (ed: Departure) =>
-                ed.date === nd.date &&
-                ed.driver === nd.driver &&
-                ed.schedule === nd.schedule,
+                ed.date === nd.date && ed.driver === nd.driver && ed.schedule === nd.schedule,
             );
             if (!alreadyExists) {
               merged.push(nd);
@@ -1182,17 +1139,18 @@ export class FormEditDeparturesComponent implements OnInit {
             weekId: otherWeekId,
             createdAt: new Date(),
           };
-          this.territoryDataService.postWeeklyDeparture(otherWeeklyDeparture);
+          void this.territoryDataService.postWeeklyDeparture(otherWeeklyDeparture);
         });
     });
 
     this._snackBar.open('✅ Semana y salidas guardadas correctamente', 'Ok', {
-      verticalPosition: this.verticalPosition,
+      verticalPosition: 'top',
       duration: 3000,
     });
 
     // Re-inicializar el formulario mostrando solo las salidas de esta semana
     this.initForm(weeklyOnly);
+    this.saveCompleted.emit(weeklyOnly);
     return weeklyOnly;
   }
 }

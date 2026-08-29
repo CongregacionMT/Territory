@@ -1,25 +1,25 @@
-const admin = require("firebase-admin");
-const fs = require("fs");
-const path = require("path");
+const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
 async function main() {
-  console.log("🔙 Restoring Initial Territory Documents\n");
+  console.log('🔙 Restoring Initial Territory Documents\n');
 
   // 1. Verificar Service Account Key
-  const serviceAccountPath = path.join(__dirname, "service-account.json");
+  const serviceAccountPath = path.join(__dirname, 'service-account.json');
   if (!fs.existsSync(serviceAccountPath)) {
-    console.error("❌ Error: service-account.json no encontrado");
+    console.error('❌ Error: service-account.json no encontrado');
     process.exit(1);
   }
 
   // 2. Cargar last-config.json
-  const configPath = path.join(__dirname, "last-config.json");
+  const configPath = path.join(__dirname, 'last-config.json');
   if (!fs.existsSync(configPath)) {
-    console.error("❌ Error: last-config.json no encontrado");
+    console.error('❌ Error: last-config.json no encontrado');
     process.exit(1);
   }
 
-  const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   const serviceAccount = require(serviceAccountPath);
 
   if (admin.apps.length === 0) {
@@ -40,7 +40,7 @@ async function main() {
       const collectionRef = db.collection(collectionName);
 
       // Check if collection is empty or missing initial doc
-      const snapshot = await collectionRef.where("isInitial", "==", true).get();
+      const snapshot = await collectionRef.where('isInitial', '==', true).get();
 
       if (snapshot.empty) {
         process.stdout.write(`   Restoring ${collectionName}... `);
@@ -59,28 +59,26 @@ async function main() {
           creation: admin.firestore.Timestamp.now(),
           revision: false,
           completed: 0,
-          driver: "",
-          start: "",
-          end: "",
-          comments: "",
+          driver: '',
+          start: '',
+          end: '',
+          comments: '',
           link: collectionName,
           isInitial: true,
         };
 
         await collectionRef.add(initialCard);
-        process.stdout.write("✅\n");
+        process.stdout.write('✅\n');
       } else {
-        console.log(
-          `   ⊙ Skipping ${collectionName} (already has initial document)`,
-        );
+        console.log(`   ⊙ Skipping ${collectionName} (already has initial document)`);
       }
     }
   }
 
-  console.log("\n✨ Restore completed!\n");
+  console.log('\n✨ Restore completed!\n');
 }
 
 main().catch((error) => {
-  console.error("\n❌ Unexpected error:", error);
+  console.error('\n❌ Unexpected error:', error);
   process.exit(1);
 });

@@ -8,17 +8,17 @@ import { environment } from '@environments/environment';
   imports: [MatIconModule],
   templateUrl: './update-snackbar.component.html',
   styleUrl: './update-snackbar.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UpdateSnackbarComponent {
   private snackRef = inject(MatSnackBarRef<UpdateSnackbarComponent>);
   congregationName = environment.congregationName;
 
-  actualizarAhora() {
+  actualizarAhora(): void {
     this.snackRef.dismissWithAction();
   }
 
-  cerrar() {
+  cerrar(): void {
     this.snackRef.dismiss();
   }
 }

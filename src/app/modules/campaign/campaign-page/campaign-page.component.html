@@ -1,118 +1,107 @@
-<div class="py-5 campaign-container px-4">
-  <div class="text-center mb-5 header-animate">
-    @if (campaignInProgress() && activeCampaign) {
-      <div
-        class="badge bg-primary text-uppercase px-3 py-2 mb-3 tracking-widest fade-in"
-        style="font-size: 0.7rem; border-radius: 50px"
-      >
+<div class="py-8 px-6 min-h-screen">
+  <div class="text-center mb-10 max-w-3xl mx-auto">
+    @if (campaignInProgress() && activeCampaign()) {
+      <div class="inline-flex items-center px-4 py-1.5 mb-6 rounded-full text-xs font-bold bg-sky-500/20 text-sky-400 uppercase tracking-widest border border-sky-500/30">
+        <span class="relative flex h-2 w-2 mr-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+        </span>
         Campaña en curso
       </div>
-      <h1
-        class="display-1 fw-bold title-gradient mb-2 active-campaign-title scale-in"
-      >
-        {{ activeCampaign.name }}
+      <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight">
+        {{ activeCampaign()?.name }}
       </h1>
-      <p class="lead text-white-50 max-w-600 mx-auto fade-in">
-        {{ activeCampaign.description }}
+      <p class="text-lg md:text-xl text-slate-400 font-medium leading-relaxed">
+        {{ activeCampaign()?.description }}
       </p>
     } @else {
-      <h1 class="display-3 fw-bold title-gradient">Centro de Campañas</h1>
-      <p class="lead text-white">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-200 to-slate-400 mb-4">
+        Centro de Campañas
+      </h1>
+      <p class="text-lg text-slate-400">
         Gestión de recursos, territorios y progreso de campaña.
       </p>
     }
   </div>
 
   @if (daysLeft > 0) {
-    <div class="alert custom-alert text-center mb-5 shadow bounce-in">
-      <i class="bi bi-hourglass-split me-2"></i> Quedan
-      <strong>{{ daysLeft }}</strong> días para finalizar la campaña actual.
+    <div class="max-w-2xl mx-auto mb-10 bg-slate-800/80 backdrop-blur-sm border border-slate-700/80 rounded-2xl p-5 shadow-lg flex items-center justify-center gap-3">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+      <span class="text-slate-300 text-lg">Quedan <strong class="text-white font-bold text-xl">{{ daysLeft }}</strong> días para finalizar la campaña actual.</span>
     </div>
   }
 
   <!-- Nueva campaña -->
   @if (!campaignInProgress()) {
-    <div class="card glass-card shadow-lg border-0 mb-5 fade-in">
-      <div class="card-body p-4">
-        <h4 class="text-white mb-4 fw-bold">
-          <i class="bi bi-rocket-takeoff text-primary me-2"></i> Iniciar Nueva
-          Campaña
+    <div class="max-w-3xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden mb-10">
+      <div class="p-8">
+        <h4 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-500"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+          Iniciar Nueva Campaña
         </h4>
-        <form
-          (ngSubmit)="startCampaign()"
-          class="needs-validation row gx-4 gy-3"
-        >
-          <div class="col-md-6 mb-3">
-            <label for="campaignName" class="form-label text-white-50"
-              >Nombre de la campaña</label
-            >
-            <input
-              id="campaignName"
-              type="text"
-              class="form-control premium-input"
-              [ngModel]="campaignName()"
-              (ngModelChange)="onNameChange($event)"
-              name="campaignName"
-              placeholder="Ej. Campaña Especial 2026"
-              required
-              minlength="3"
-            />
-            @if (nameInvalid()) {
-              <div class="text-danger mt-2 small fade-in">
-                <i class="bi bi-exclamation-circle me-1"></i> Por favor, escriba
-                un nombre válido.
-              </div>
-            }
+        
+        <form class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="campaignName" class="block text-sm font-semibold text-slate-400 mb-2">Nombre de la campaña</label>
+              <input
+                id="campaignName"
+                type="text"
+                class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                [ngModel]="campaignName()"
+                (ngModelChange)="onNameChange($event)"
+                name="campaignName"
+                placeholder="Ej. Campaña Especial 2026"
+                required
+              />
+              @if (nameInvalid()) {
+                <div class="text-rose-500 text-sm mt-2 flex items-center gap-1">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  Por favor, escriba un nombre válido.
+                </div>
+              }
+            </div>
+
+            <div>
+              <label for="campaignEnd" class="block text-sm font-semibold text-slate-400 mb-2">Fecha de finalización</label>
+              <input
+                id="campaignEnd"
+                type="date"
+                class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors [color-scheme:dark]"
+                [ngModel]="campaignEnd()"
+                (ngModelChange)="onDateChange($event)"
+                name="campaignEnd"
+                required
+              />
+              @if (dateInvalid()) {
+                <div class="text-rose-500 text-sm mt-2 flex items-center gap-1">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  Seleccioná una fecha de finalización.
+                </div>
+              }
+            </div>
           </div>
 
-          <div class="col-md-6 mb-3">
-            <label for="campaignEnd" class="form-label text-white-50"
-              >Fecha de finalización</label
-            >
-            <input
-              id="campaignEnd"
-              type="date"
-              class="form-control premium-input"
-              [ngModel]="campaignEnd()"
-              (ngModelChange)="onDateChange($event)"
-              name="campaignEnd"
-              required
-            />
-            @if (dateInvalid()) {
-              <div class="text-danger mt-2 small fade-in">
-                <i class="bi bi-exclamation-circle me-1"></i> Seleccioná una
-                fecha de finalización.
-              </div>
-            }
-          </div>
-
-          <div class="col-12 mb-3">
-            <label for="initialInvitations" class="form-label text-white-50"
-              >Invitaciones Iniciales Planeadas</label
-            >
+          <div>
+            <label for="initialInvitations" class="block text-sm font-semibold text-slate-400 mb-2">Invitaciones Iniciales Planeadas</label>
             <input
               id="initialInvitations"
               type="number"
-              class="form-control premium-input"
+              class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
               [ngModel]="initialInvitations()"
               (ngModelChange)="initialInvitations.set($event)"
               name="initialInvitations"
               placeholder="Ej. 5000"
             />
-            <small class="text-muted"
-              >No es obligatorio. Útil para llevar la estadística al
-              terminar.</small
-            >
+            <p class="text-slate-500 text-sm mt-2">No es obligatorio. Útil para llevar la estadística al terminar.</p>
           </div>
 
-          <div class="col-12 mb-4">
-            <label for="campaignDescription" class="form-label text-white-50"
-              >Descripción / Notas</label
-            >
+          <div>
+            <label for="campaignDescription" class="block text-sm font-semibold text-slate-400 mb-2">Descripción / Notas</label>
             <textarea
               id="campaignDescription"
-              class="form-control premium-input"
-              rows="2"
+              rows="3"
+              class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors resize-none"
               [ngModel]="campaignDescription()"
               (ngModelChange)="campaignDescription.set($event)"
               name="campaignDescription"
@@ -120,14 +109,14 @@
             ></textarea>
           </div>
 
-          <div class="col-12 text-end">
+          <div class="pt-4">
             <button
               type="button"
-              class="btn btn-primary start-btn w-100 py-3 fw-bold"
-              data-bs-toggle="modal"
-              data-bs-target="#confirmStartModal"
+              class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-sky-900/20 transition-all flex justify-center items-center gap-2 focus-visible:ring-2 focus-visible:ring-sky-400 outline-none"
+              (click)="openStartModal()"
             >
-              🚀 NUEVA CAMPAÑA
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+              NUEVA CAMPAÑA
             </button>
           </div>
         </form>
@@ -136,363 +125,97 @@
   }
 
   <!-- Progreso campaña en curso -->
-  @if (campaignInProgress() && !showEndCampaignModal()) {
-    <div class="card glass-card shadow-lg border-0 mb-5 fade-in scale-in">
-      <div class="card-body p-4 p-md-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h3 class="fw-bold text-white mb-0">
-            <i class="bi bi-bar-chart-fill text-info me-2"></i> Progreso en
-            Tiempo Real
-          </h3>
-        </div>
+  @if (campaignInProgress()) {
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 md:p-10 mb-10 max-w-6xl mx-auto">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-slate-800">
+        <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-500"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Progreso en Tiempo Real
+        </h3>
+        
+        <button
+          class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-rose-900/20 transition-all flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-rose-400 outline-none"
+          (click)="openEndCampaignModal()"
+        >
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><rect width="6" height="6" x="9" y="9"/></svg>
+          FINALIZAR CAMPAÑA
+        </button>
+      </div>
 
-        @if (statsGlobal) {
-          <div
-            class="global-progress-wrapper text-center mb-5 p-4 rounded-4"
-            style="background: rgba(255, 255, 255, 0.03)"
-          >
-            <h5 class="text-white-50 mb-3 text-uppercase tracking-wide">
-              Avance Global
+      @if (statsGlobal()) {
+        <div class="bg-slate-950/50 rounded-2xl p-8 mb-12 text-center border border-slate-800/50">
+          <h5 class="text-slate-400 font-semibold tracking-widest uppercase text-sm mb-6">Avance Global</h5>
+          <app-progress-bar [percent]="statsGlobal()?.['percent'] || 0" sizeClass="h-4" [showInnerPattern]="true"></app-progress-bar>
+          <div class="flex items-baseline justify-center gap-1">
+            <span class="text-6xl font-black text-white">{{ statsGlobal()?.['percent'] || 0 }}</span>
+            <span class="text-3xl font-bold text-slate-500">%</span>
+          </div>
+        </div>
+      }
+
+      <div class="space-y-12">
+        @for (grupo of territoriosPorLocalidad(); track grupo.name) {
+          <div>
+            <h5 class="text-slate-400 font-semibold tracking-widest uppercase text-sm mb-6 pb-3 border-b border-slate-800 flex items-center gap-2">
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-500"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ grupo.name }}
             </h5>
-            <div class="progress global-progress">
-              <div
-                class="progress-bar custom-progress-bar"
-                [style.width.%]="statsGlobal.percent"
-                role="progressbar"
-              ></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              @for (territorio of grupo.territories; track territorio.id) {
+                <div class="bg-slate-950 border border-slate-800 hover:border-slate-700 hover:bg-slate-900 rounded-xl p-5 transition-all flex flex-col justify-between group">
+                  <div class="flex justify-between items-start mb-4">
+                    <span class="font-bold text-slate-200 text-lg group-hover:text-white transition-colors">{{ territorio.nombre }}</span>
+                    <span
+                      class="px-2.5 py-1 rounded-md text-xs font-bold"
+                      [ngClass]="territorio.porcentaje === 100 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'"
+                    >
+                      {{ territorio.porcentaje }}%
+                    </span>
+                  </div>
+                  <app-progress-bar 
+                    [percent]="territorio.porcentaje" 
+                    sizeClass="h-2 mt-auto" 
+                    [colorClass]="territorio.porcentaje === 100 ? 'bg-emerald-500' : 'bg-sky-500'">
+                  </app-progress-bar>
+                </div>
+              }
             </div>
-            <h2 class="display-5 fw-bold text-white mt-3">
-              {{ statsGlobal.percent }}<span class="fs-5 text-white-50">%</span>
-            </h2>
           </div>
         }
-
-        <div class="territories-grouped-list">
-          @for (grupo of territoriosPorLocalidad(); track grupo.name) {
-            <div class="locality-group mb-5">
-              <h5
-                class="text-white-50 mb-3 text-uppercase tracking-wide border-bottom border-white-10 pb-2"
-              >
-                <i class="bi bi-geo-alt-fill text-info me-2"></i>
-                {{ grupo.name }}
-              </h5>
-
-              <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @for (territorio of grupo.territories; track territorio.id) {
-                  <div class="col">
-                    <div
-                      class="territory-node card bg-darker border-0 p-3 h-100"
-                    >
-                      <div
-                        class="d-flex justify-content-between align-items-center mb-2"
-                      >
-                        <span class="fw-bold text-white fs-6">{{
-                          territorio.nombre
-                        }}</span>
-                        <span
-                          class="badge"
-                          [class.bg-success]="territorio.porcentaje === 100"
-                          [class.bg-secondary]="territorio.porcentaje < 100"
-                          >{{ territorio.porcentaje }}%</span
-                        >
-                      </div>
-                      <div class="progress territory-progress mt-auto">
-                        <div
-                          class="progress-bar territory-bar"
-                          role="progressbar"
-                          [style.width.%]="territorio.porcentaje"
-                          [class.bg-success]="territorio.porcentaje === 100"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
-
-    <div class="text-center mb-5 fade-in delay-2">
-      <button
-        class="btn btn-danger btn-lg px-5 py-3 fw-bold finish-campaign-btn shadow"
-        (click)="openEndCampaignModal()"
-      >
-        <i class="bi bi-stop-circle me-2"></i> FINALIZAR CAMPAÑA ACTUAL
-      </button>
-    </div>
-  }
-
-  <!-- Asistente de finalización (Modal Expandido embebido o fullscreen overlay) -->
-  @if (showEndCampaignModal()) {
-    <div
-      class="end-campaign-wizard glass-card p-4 p-md-5 rounded-4 shadow-lg mb-5 fade-in"
-    >
-      <h2 class="text-white fw-bold mb-4 text-center text-md-start">
-        <i class="bi bi-flag-fill text-danger me-2"></i> Resumen Final de
-        Campaña
-      </h2>
-
-      <div class="row g-5">
-        <!-- Paso 1: Stock de invitaciones -->
-        <div class="col-lg-5 border-end-lg border-white-10">
-          <h4 class="text-white mb-3">1. Stock de Invitaciones</h4>
-          <p class="text-white-50 small mb-4">
-            ¿Cuántas invitaciones quedaron al finalizar la campaña?
-          </p>
-
-          <div class="d-grid gap-2">
-            <input
-              type="radio"
-              class="btn-check"
-              name="leftovers"
-              id="l-muchas"
-              value="muchas"
-              [ngModel]="leftoverInvitations()"
-              (ngModelChange)="leftoverInvitations.set($event)"
-            />
-            <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
-              for="l-muchas"
-              >📦 Sobraron <strong>Muchas</strong></label
-            >
-
-            <input
-              type="radio"
-              class="btn-check"
-              name="leftovers"
-              id="l-algunas"
-              value="algunas"
-              [ngModel]="leftoverInvitations()"
-              (ngModelChange)="leftoverInvitations.set($event)"
-            />
-            <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
-              for="l-algunas"
-              >📦 Sobraron <strong>Algunas</strong></label
-            >
-
-            <input
-              type="radio"
-              class="btn-check"
-              name="leftovers"
-              id="l-pocas"
-              value="pocas"
-              [ngModel]="leftoverInvitations()"
-              (ngModelChange)="leftoverInvitations.set($event)"
-            />
-            <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
-              for="l-pocas"
-              >📦 Sobraron <strong>Pocas</strong></label
-            >
-
-            <input
-              type="radio"
-              class="btn-check"
-              name="leftovers"
-              id="l-ninguna"
-              value="ninguna"
-              [ngModel]="leftoverInvitations()"
-              (ngModelChange)="leftoverInvitations.set($event)"
-            />
-            <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
-              for="l-ninguna"
-              >🚫 No sobró <strong>Ninguna</strong></label
-            >
-
-            <input
-              type="radio"
-              class="btn-check"
-              name="leftovers"
-              id="l-faltaron"
-              value="faltaron"
-              [ngModel]="leftoverInvitations()"
-              (ngModelChange)="leftoverInvitations.set($event)"
-            />
-            <label
-              class="btn btn-outline-light text-start p-3 wizard-option"
-              for="l-faltaron"
-              >⚠️ <strong>Faltaron</strong> invitaciones</label
-            >
-
-            @if (leftoverInvitations() === 'faltaron') {
-              <div class="mt-2 p-3 bg-dark rounded border border-warning scale-in">
-                <label for="missingCount" class="form-label text-warning small mb-2 fw-bold"
-                  >¿Cuántas más recomendarías pedir para la próxima vez?</label
-                >
-                <input
-                  id="missingCount"
-                  type="number"
-                  class="form-control bg-transparent text-white border-warning"
-                  placeholder="Ej. 500"
-                  [ngModel]="missingInvitations()"
-                  (ngModelChange)="missingInvitations.set($event)"
-                  min="1"
-                />
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Paso 2: Salidas (Departures) -->
-        <div class="col-lg-7">
-          <h4 class="text-white mb-3">2. Salidas Registradas</h4>
-          <p class="text-white-50 small mb-4">
-            Marcá cuáles salidas se usaron para predicar esta campaña e indicá
-            cuántos publicadores asistieron (Opcional).
-          </p>
-
-          @if (filteredDepartures().length === 0) {
-            <div
-              class="alert bg-dark border-white-10 text-center text-white-50 p-4"
-            >
-              No se registraron salidas de grupo en las semanas que duró esta
-              campaña.
-            </div>
-          }
-
-          <div
-            class="departures-list flex-column gap-3 mb-4"
-            style="max-height: 400px; overflow-y: auto; padding-right: 8px"
-          >
-            @for (dep of filteredDepartures(); track dep.id; let idx = $index) {
-              <div
-                class="departure-item p-3 rounded border border-white-10 bg-dark d-flex flex-wrap align-items-center justify-content-between gap-3 shadow-sm"
-                [class.border-success]="dep.checked"
-                [style.background]="dep.checked ? 'rgba(25, 135, 84, 0.05)' : 'rgba(255,255,255,0.02)'"
-              >
-                <div class="d-flex align-items-center gap-3 flex-grow-1">
-                  <div class="form-check form-switch custom-switch me-0">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      role="switch"
-                      [id]="'depCheck' + idx"
-                      [checked]="dep.checked"
-                      (change)="toggleDepartureCheck(idx)"
-                    />
-                  </div>
-                  
-                  <label
-                    class="form-check-label text-white cursor-pointer m-0 flex-grow-1"
-                    [for]="'depCheck' + idx"
-                  >
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                      <span class="fw-bold" style="font-size: 0.95rem; text-transform: capitalize;">{{ dep.dateLabel }}</span>
-                      @if (dep.locality) {
-                        <span class="badge bg-primary rounded-pill" style="font-size: 0.65rem;">{{ dep.locality }}</span>
-                      }
-                    </div>
-                    <div class="d-flex flex-wrap gap-2 text-white-50" style="font-size: 0.8rem;">
-                      <span class="d-flex align-items-center"><i class="bi bi-geo-fill me-1 text-info"></i> {{ dep.point }}</span>
-                      <span class="d-flex align-items-center"><i class="bi bi-person-fill me-1 text-secondary"></i> {{ dep.driver }}</span>
-                    </div>
-                  </label>
-                </div>
-
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-
-      <!-- Paso 3: Detalles Finales -->
-      <div class="row mt-5">
-        <div class="col-lg-4 mb-4 mb-lg-0 border-end-lg">
-          <h4 class="text-white mb-3">3. Fecha de Cierre</h4>
-          <p class="text-white-50 small mb-3">
-            Confirmá la fecha en la que terminó la campaña.
-          </p>
-          <input
-            type="date"
-            class="form-control premium-input"
-            [ngModel]="finalEndDate()"
-            (ngModelChange)="finalEndDate.set($event)"
-          />
-        </div>
-        <div class="col-lg-8">
-          <h4 class="text-white mb-3">4. Comentarios Finales</h4>
-          <p class="text-white-50 small mb-3">
-            Agregá cualquier observación o resumen de la campaña.
-          </p>
-          <textarea
-            class="form-control premium-input w-100"
-            rows="3"
-            placeholder="Ej: Se recomienda para la siguiente campaña pedir más invitaciones..."
-            [ngModel]="finalComments()"
-            (ngModelChange)="finalComments.set($event)"
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Advertencia Final -->
-      <div class="row mt-5">
-        <div class="col-12">
-          <div class="alert alert-danger-premium d-flex align-items-center gap-3 p-4 rounded-4 shadow-sm">
-            <i class="fas fa-exclamation-triangle fs-3"></i>
-            <div>
-              <h5 class="fw-bold mb-1">¡Acción Definitiva!</h5>
-              <p class="mb-0 small" style="opacity: 0.9;">
-                Al finalizar esta campaña, se <strong>bloqueará todo cambio</strong> en los territorios asociados y los datos se archivarán permanentemente. Por favor, asegúrate de haber registrado todas las manzanas antes de confirmar.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top border-white-10"
-      >
-        <button class="btn btn-dark px-4 py-2" (click)="cancelEndCampaign()">
-          Cancelar
-        </button>
-        <button
-          class="btn btn-success px-5 py-2 fw-bold shadow glow"
-          [disabled]="!leftoverInvitations() || (leftoverInvitations() === 'faltaron' && !missingInvitations())"
-          (click)="confirmEndCampaign()"
-        >
-          ✓ CONFIRMAR Y FINALIZAR
-        </button>
       </div>
     </div>
   }
 
   <!-- Historial -->
-  @if (campaignHistory().length > 0 && !showEndCampaignModal()) {
-    <div class="mb-5 fade-in delay-3">
-      <h3 class="fw-bold text-white mb-4 d-flex align-items-center">
-        <i class="bi bi-journal-album text-primary me-2"></i> Archivo de
-        Campañas
+  @if (campaignHistory().length > 0) {
+    <div class="max-w-6xl mx-auto">
+      <h3 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        Archivo de Campañas
       </h3>
-      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         @for (history of campaignHistory(); track history) {
-          <div class="col">
-            <div
-              class="card bg-darker border-white-10 shadow-sm history-card h-100"
-              (click)="goToCampaignDetail(history.id)"
-            >
-              <div class="card-body p-4 d-flex flex-column hover-effect">
-                <h5 class="text-white fw-bold text-truncate mb-2">
-                  {{ history.nombre }}
-                </h5>
-                <p class="text-white-50 small mb-4 flex-grow-1">
-                  {{ history.descripcion || "Sin descripción." }}
-                </p>
-                <div
-                  class="d-flex justify-content-between align-items-end mt-auto"
-                >
-                  <span
-                    class="badge bg-secondary text-white-50 border border-white-10 fw-normal px-2 py-1"
-                    ><i class="bi bi-calendar3 me-1"></i> Fin:
-                    {{ history.fecha }}</span
-                  >
-                  <div class="link-circle">
-                    <i class="bi bi-arrow-right"></i>
-                  </div>
-                </div>
+          <div
+            class="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-6 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl group flex flex-col h-full focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+            tabindex="0"
+            role="button"
+            (click)="goToCampaignDetail(history.id)"
+            (keydown.enter)="goToCampaignDetail(history.id)"
+          >
+            <h5 class="text-lg font-bold text-white mb-3 truncate group-hover:text-indigo-400 transition-colors">
+              {{ history.nombre }}
+            </h5>
+            <p class="text-slate-400 text-sm mb-6 flex-grow line-clamp-3">
+              {{ history.descripcion || "Sin descripción." }}
+            </p>
+            <div class="flex justify-between items-end mt-auto pt-4 border-t border-slate-800/50">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-950 text-slate-400 text-xs font-medium border border-slate-800">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                Fin: {{ history.fecha }}
+              </span>
+              <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </div>
             </div>
           </div>
@@ -502,112 +225,57 @@
   }
 </div>
 
-<!-- Overlay de progreso para creación o finalización de campaña -->
+<!-- Modals -->
+<app-start-campaign-modal (confirmed)="confirmStartCampaign()"></app-start-campaign-modal>
+<app-end-campaign-modal 
+  [departures]="filteredDepartures()"
+  [initialEndDate]="initialEndDate()"
+  (confirmed)="handleEndCampaign($event)">
+</app-end-campaign-modal>
+
+<!-- Overlay de progreso (para operaciones asíncronas bloqueantes) -->
 @if (startingCampaign() || finishingCampaign()) {
-  <div class="campaign-loading-overlay">
-    <div class="campaign-loading-card">
+  <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-10 w-full max-w-lg text-center shadow-2xl">
       @if (campaignError()) {
-        <!-- Estado de Error -->
-        <div class="loading-rocket">⚠️</div>
-        <h3 class="loading-title text-danger">Error al Finalizar</h3>
-        <p class="loading-subtitle text-white-50">{{ campaignError() }}</p>
+        <div class="text-6xl mb-6" aria-hidden="true">⚠️</div>
+        <h3 class="text-2xl font-bold text-rose-500 mb-3">Error al Finalizar</h3>
+        <p class="text-slate-400 mb-8">{{ campaignError() }}</p>
         <button
-          class="btn btn-outline-light mt-3"
+          class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-rose-500 outline-none"
           (click)="window.location.reload()"
         >
-          <i class="bi bi-arrow-clockwise me-2"></i>Recargar Página
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Recargar Página
         </button>
       } @else {
-        <!-- Estado Normal de Progreso -->
-        <div class="loading-rocket">{{ startingCampaign() ? "🚀" : "🏁" }}</div>
-        <h3 class="loading-title">
+        <div class="text-6xl mb-6 inline-block animate-bounce" aria-hidden="true">{{ startingCampaign() ? "🚀" : "🏁" }}</div>
+        <h3 class="text-2xl font-bold text-white mb-2">
           {{ startingCampaign() ? "Iniciando Campaña" : "Finalizando Campaña" }}
         </h3>
-        <p class="loading-subtitle">
-          {{
-            startingCampaign()
-              ? "Reiniciando territorios... esto puede tardar unos momentos."
-              : "Guardando resultados..."
-          }}
+        <p class="text-slate-400 mb-10">
+          {{ startingCampaign() ? "Reiniciando territorios... esto puede tardar unos momentos." : "Guardando resultados..." }}
         </p>
 
-        <div class="loading-progress-wrap">
-          <div class="loading-progress-bar-bg">
-            <div
-              class="loading-progress-bar-fill"
-              [style.width.%]="
-                campaignProgressTotal() > 0
-                  ? (campaignProgress() / campaignProgressTotal()) * 100
-                  : 0
-              "
-            ></div>
-          </div>
-          <div class="loading-progress-label">
+        <div class="mb-4">
+          <app-progress-bar 
+            [percent]="campaignProgressTotal() > 0 ? (campaignProgress() / campaignProgressTotal()) * 100 : 0" 
+            sizeClass="h-3"
+            colorClass="bg-gradient-to-r from-sky-500 to-indigo-500">
+          </app-progress-bar>
+          
+          <div class="flex justify-between items-center text-sm px-1">
             @if (campaignProgressTotal() > 0) {
-              <span class="loading-count"
-                >{{ campaignProgress() }} / {{ campaignProgressTotal() }}</span
-              >
-              <span class="loading-pct"
-                >{{
-                  (
-                    (campaignProgress() / campaignProgressTotal()) *
-                    100
-                  ).toFixed(0)
-                }}%</span
-              >
+              <span class="text-slate-400">{{ campaignProgress() }} / {{ campaignProgressTotal() }}</span>
+              <span class="text-sky-400 font-bold">{{ ((campaignProgress() / campaignProgressTotal()) * 100).toFixed(0) }}%</span>
             } @else {
-              <span class="loading-count">Preparando...</span>
+              <span class="text-slate-400 mx-auto">Preparando...</span>
             }
           </div>
         </div>
 
-        <p class="loading-hint">No cierres esta pantalla hasta que finalice.</p>
+        <p class="text-slate-500 text-xs">No cierres esta pantalla hasta que finalice.</p>
       }
     </div>
   </div>
 }
-
-<!-- Modal de confirmación al final de la raíz para evitar problemas de stacking context con el fondo oscuro -->
-<div class="modal fade" id="confirmStartModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content glass-modal text-white bg-dark">
-      <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="modal-title fw-bold text-warning">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i>
-          Atención requerida
-        </h5>
-        <button
-          type="button"
-          class="btn-close btn-close-white"
-          data-bs-dismiss="modal"
-          aria-label="Cerrar"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <p>
-          Al iniciar una nueva campaña,
-          <strong
-            >todas las manzanas de todos los territorios se reiniciarán</strong
-          >
-          para poder cubrirlas desde cero.
-        </p>
-        <p class="text-white-50 small mb-0">
-          Esta acción no se puede deshacer de forma fácil.
-        </p>
-      </div>
-      <div class="modal-footer border-top-0 pt-0">
-        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">
-          Cancelar
-        </button>
-        <button
-          type="button"
-          class="btn btn-warning fw-bold text-dark"
-          (click)="confirmStartCampaign()"
-          data-bs-dismiss="modal"
-        >
-          Sí, estoy seguro
-        </button>
-      </div>
-    </div>
-  </div>
-</div>

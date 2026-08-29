@@ -1,55 +1,42 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, inject, ChangeDetectionStrategy, signal } from '@angular/core';
+
 import { CartData, CartDataArray } from '@core/models/Cart';
 import { CartDataService } from '@core/services/cart-data.service';
 import { SpinnerService } from '@core/services/spinner.service';
-import { RouterBreadcrumMockService } from '@shared/mocks/router-breadcrum-mock.service';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { TableCartAssignmentComponent } from '../../../../shared/components/table-cart-assignment/table-cart-assignment.component';
+import { CartAssignmentCardsComponent } from '../../../../shared/components/cart-assignment-cards/cart-assignment-cards.component';
 import { RouterLink } from '@angular/router';
+import { map, finalize } from 'rxjs/operators';
 
 @Component({
-    selector: 'app-cart-page',
-    templateUrl: './cart-page.component.html',
-    styleUrls: ['./cart-page.component.scss'],
-    imports: [BreadcrumbComponent, TableCartAssignmentComponent, RouterLink]
+  selector: 'app-cart-page',
+  templateUrl: './cart-page.component.html',
+  styleUrls: ['./cart-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CartAssignmentCardsComponent, RouterLink],
 })
-export class CartPageComponent implements OnInit{
-  private routerBreadcrumMockService = inject(RouterBreadcrumMockService);
+export class CartPageComponent {
   private cartDataService = inject(CartDataService);
-  private fb = inject(FormBuilder);
   private spinner = inject(SpinnerService);
 
-  isAdmin: boolean = false;
-  routerBreadcrum: any = [];
-  cartData$: CartData[] = [];
+  isAdmin = signal<boolean>(false);
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor(){
-    const routerBreadcrumMockService = this.routerBreadcrumMockService;
-
-    this.spinner.cargarSpinner();
-    this.routerBreadcrum = routerBreadcrumMockService.getBreadcrum();
-    localStorage.getItem('tokenAdmin') ? this.isAdmin = true : this.isAdmin = false;
-  }
-  ngOnInit(): void {
-    this.routerBreadcrum = this.routerBreadcrum[11];
-    this.cartDataService.getCartAssignment().subscribe({
-      next: (cartArray: CartDataArray) => {
-        // Tabla de asignación del carrito
-        this.cartData$ = cartArray.cart;
-        this.cartData$.sort((a, b) => {
+  cartData = toSignal(
+    this.cartDataService.getCartAssignment().pipe(
+      map((cartArray: CartDataArray) => {
+        return cartArray.cart.sort((a, b) => {
           const dateA = new Date(a.date);
           const dateB = new Date(b.date);
           return dateA.getTime() - dateB.getTime();
         });
-        this.cartDataService.getCartAssignment().subscribe({
-          next: () => {
-            this.spinner.cerrarSpinner();
-          }
-        });
-      }
-    })
+      }),
+      finalize(() => this.spinner.cerrarSpinner()),
+    ),
+    { initialValue: [] as CartData[] },
+  );
+
+  constructor() {
+    this.spinner.cargarSpinner();
+    this.isAdmin.set(!!localStorage.getItem('tokenAdmin'));
   }
 }

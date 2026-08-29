@@ -1,52 +1,49 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
 import { DataRural } from '@core/models/DataRural';
 import { FormRuralComponent } from '../form-rural/form-rural.component';
 
-declare var window: any;
+declare let window: Window &
+  typeof globalThis & {
+    bootstrap: { Modal: new (el: HTMLElement | null) => { show: () => void; hide: () => void } };
+  };
 
 @Component({
-    selector: 'app-modal-form-rural',
-    templateUrl: './modal-form-rural.component.html',
-    styleUrls: ['./modal-form-rural.component.scss'],
-    imports: [FormRuralComponent]
+  selector: 'app-modal-form-rural',
+  templateUrl: './modal-form-rural.component.html',
+  styleUrls: ['./modal-form-rural.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormRuralComponent],
 })
 export class ModalFormRuralComponent implements OnInit {
-  private router = inject(Router);
-
-  modalElement: any;
-  stateModal: 'open' | 'close' = 'close';
-  title: string = 'Crear camino'
-  editionForm: DataRural | undefined;
-
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() { }
+  modalElement: { show: () => void; hide: () => void } | undefined;
+  stateModal = signal<'open' | 'close'>('close');
+  title = signal<string>('Crear camino');
+  editionForm = signal<DataRural | undefined>(undefined);
+  constructor() {}
 
   ngOnInit(): void {
-    let modalID = document.getElementById("modalID");
+    const modalID = document.getElementById('modalID');
     this.modalElement = new window.bootstrap.Modal(modalID);
-    modalID?.addEventListener('hidden.bs.modal', (event: any) => {
-      this.stateModal = 'close';
-      this.editionForm = undefined;
+    modalID?.addEventListener('hidden.bs.modal', () => {
+      this.stateModal.set('close');
+      this.editionForm.set(undefined);
     });
   }
 
-  openModalCreation(){
-    this.modalElement.show();
-    this.title = 'Crear camino';
-    this.stateModal = 'open';
+  openModalCreation(): void {
+    this.modalElement?.show();
+    this.title.set('Crear camino');
+    this.stateModal.set('open');
   }
 
-  openModalEdition(form: DataRural | undefined){
-    this.modalElement.show();
-    this.title = 'Editar camino';
-    this.editionForm = form;
-    this.stateModal = 'open';
+  openModalEdition(form: DataRural | undefined): void {
+    this.modalElement?.show();
+    this.title.set('Editar camino');
+    this.editionForm.set(form);
+    this.stateModal.set('open');
   }
 
-  hideModal(){
-    this.modalElement.hide();
+  hideModal(): void {
+    this.modalElement?.hide();
   }
-
 }

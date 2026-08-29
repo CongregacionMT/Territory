@@ -1,30 +1,30 @@
-<section class="d-flex justify-content-center rounded formRoad">
-  <form [formGroup]="formRoad" (ngSubmit)="postForm(this.editionForm()?.id)">
-    <div class="mb-3">
-      <label for="title" class="form-label text-dark">Nombre</label>
+<section class="flex justify-center rounded formRoad">
+  <form [formGroup]="formRoad" (ngSubmit)="postForm($safeNavigationMigration(this.editionForm()?.id))">
+    <div class="mb-4">
+      <label for="title" class="form-label text-slate-900">Nombre</label>
       <input id="title" type="text" class="form-control" formControlName="title" placeholder="Ingresar un nombre">
     </div>
-    <div class="mb-3">
-      <label for="distance" class="form-label text-dark">Distancia</label>
+    <div class="mb-4">
+      <label for="distance" class="form-label text-slate-900">Distancia</label>
       <input id="distance" type="text" class="form-control" formControlName="distance" placeholder="Distancia total">
     </div>
-    <div class="mb-3">
-      <label for="vehicle" class="form-label text-dark">Vehiculo</label>
+    <div class="mb-4">
+      <label for="vehicle" class="form-label text-slate-900">Vehiculo</label>
       <input id="vehicle" type="text" class="form-control" formControlName="vehicle" placeholder="Vehiculo">
     </div>
-    <div class="mb-3">
-      <label for="time" class="form-label text-dark">Tiempo aproximado</label>
+    <div class="mb-4">
+      <label for="time" class="form-label text-slate-900">Tiempo aproximado</label>
       <input id="time" type="text" class="form-control" formControlName="time" placeholder="Ejemplo: 2hs aprox">
     </div>
-    <div class="mb-3">
-      <label for="lastDate" class="form-label text-dark">Ultima vez que se completó (opcional)</label>
+    <div class="mb-4">
+      <label for="lastDate" class="form-label text-slate-900">Ultima vez que se completó (opcional)</label>
       <input id="lastDate" type="date" class="form-control"
         placeholder="dd-mm-yyyy" formControlName="lastDate">
       </div>
       <div>
         <button
           type="submit"
-          class="btn btn-primary"
+          class="bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 inline-block px-4 py-2 text-center rounded transition cursor-pointer"
           data-bs-dismiss="modal"
           [disabled]="formRoad.invalid"
           >

@@ -1,8 +1,14 @@
 @if (isLoading$()) {
   <div class="spinner">
     <div class="spinner-content">
-      <span class="loader"></span>
+      <div class="loader"></div>
+      <div class="shadow"></div>
     </div>
+  </div>
+}
+@if (showBreadcrumb()) {
+  <div class="container px-4 mx-auto">
+    <app-breadcrumb></app-breadcrumb>
   </div>
 }
 <router-outlet></router-outlet>

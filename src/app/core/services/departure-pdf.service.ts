@@ -1,7 +1,23 @@
 import { Injectable } from '@angular/core';
 import { Departure } from '@core/models/Departures';
-import { PDFDocument, rgb, StandardFonts, PDFPage, PDFFont } from 'pdf-lib';
+import type { PDFPage, PDFFont, RGB } from 'pdf-lib';
 import { environment } from '@environments/environment';
+
+interface PdfColors {
+  primary: RGB;
+  primaryLight: RGB;
+  headerBg: RGB;
+  white: RGB;
+  black: RGB;
+  gray: RGB;
+  lightGray: RGB;
+  veryLightGray: RGB;
+  rowAlt: RGB;
+  eventBg: RGB;
+  specificGroupBg: RGB;
+  borderGray: RGB;
+  groupHeader: RGB;
+}
 
 /**
  * Modes for PDF generation:
@@ -40,39 +56,41 @@ export class DeparturePdfService {
   private readonly MARGIN = 10; // Minimal margins to maximize space
   private readonly CONTENT_WIDTH = 595.28 - 20; // PAGE_WIDTH - 2*MARGIN
 
-  // Color palette for the color mode
-  private readonly COLORS = {
-    primary: rgb(0.01, 0.47, 0.74),      // #0277bd
-    primaryLight: rgb(0.88, 0.96, 0.99),  // #e1f5fe
-    headerBg: rgb(0.01, 0.34, 0.61),      // #01579b
-    white: rgb(1, 1, 1),
-    black: rgb(0, 0, 0),
-    gray: rgb(0.42, 0.42, 0.42),          // #6c6c6c
-    lightGray: rgb(0.93, 0.93, 0.93),     // #ededed
-    veryLightGray: rgb(0.97, 0.97, 0.97), // #f8f8f8
-    rowAlt: rgb(0.96, 0.98, 1),           // #f5f9ff
-    eventBg: rgb(1, 0.98, 0.88),          // #fff9e0
-    specificGroupBg: rgb(0.85, 0.94, 0.85), // Light green for specific group
-    borderGray: rgb(0.78, 0.78, 0.78),    // #c8c8c8
-    groupHeader: rgb(0.01, 0.47, 0.74),   // #0277bd
-  };
-
-  // B&W palette
-  private readonly BW_COLORS = {
-    primary: rgb(0, 0, 0),
-    primaryLight: rgb(0.93, 0.93, 0.93),
-    headerBg: rgb(0.15, 0.15, 0.15),
-    white: rgb(1, 1, 1),
-    black: rgb(0, 0, 0),
-    gray: rgb(0.35, 0.35, 0.35),
-    lightGray: rgb(0.9, 0.9, 0.9),
-    veryLightGray: rgb(0.96, 0.96, 0.96),
-    rowAlt: rgb(0.94, 0.94, 0.94),
-    eventBg: rgb(0.92, 0.92, 0.92),
-    specificGroupBg: rgb(0.86, 0.86, 0.86), // Noticeable gray
-    borderGray: rgb(0.7, 0.7, 0.7),
-    groupHeader: rgb(0, 0, 0),
-  };
+  // Get color palette for the mode
+  private getColors(rgbFn: typeof import('pdf-lib').rgb, mode: PrintMode): PdfColors {
+    if (mode === 'color') {
+      return {
+        primary: rgbFn(0.01, 0.47, 0.74), // #0277bd
+        primaryLight: rgbFn(0.88, 0.96, 0.99), // #e1f5fe
+        headerBg: rgbFn(0.01, 0.34, 0.61), // #01579b
+        white: rgbFn(1, 1, 1),
+        black: rgbFn(0, 0, 0),
+        gray: rgbFn(0.42, 0.42, 0.42), // #6c6c6c
+        lightGray: rgbFn(0.93, 0.93, 0.93), // #ededed
+        veryLightGray: rgbFn(0.97, 0.97, 0.97), // #f8f8f8
+        rowAlt: rgbFn(0.96, 0.98, 1), // #f5f9ff
+        eventBg: rgbFn(1, 0.98, 0.88), // #fff9e0
+        specificGroupBg: rgbFn(0.85, 0.94, 0.85), // Light green for specific group
+        borderGray: rgbFn(0.78, 0.78, 0.78), // #c8c8c8
+        groupHeader: rgbFn(0.01, 0.47, 0.74), // #0277bd
+      };
+    }
+    return {
+      primary: rgbFn(0, 0, 0),
+      primaryLight: rgbFn(0.93, 0.93, 0.93),
+      headerBg: rgbFn(0.15, 0.15, 0.15),
+      white: rgbFn(1, 1, 1),
+      black: rgbFn(0, 0, 0),
+      gray: rgbFn(0.35, 0.35, 0.35),
+      lightGray: rgbFn(0.9, 0.9, 0.9),
+      veryLightGray: rgbFn(0.96, 0.96, 0.96),
+      rowAlt: rgbFn(0.94, 0.94, 0.94),
+      eventBg: rgbFn(0.92, 0.92, 0.92),
+      specificGroupBg: rgbFn(0.86, 0.86, 0.86), // Noticeable gray
+      borderGray: rgbFn(0.7, 0.7, 0.7),
+      groupHeader: rgbFn(0, 0, 0),
+    };
+  }
 
   /**
    * Calculate the Friday-to-Thursday print range from a Monday-based weekId.
@@ -85,18 +103,28 @@ export class DeparturePdfService {
   getPrintWeekRange(weekId: string): PrintWeekRange {
     // Parse the weekId as a Monday date
     const monday = new Date(weekId + 'T12:00:00');
-    
+
     // Friday of the same week = Monday + 4 days
     const friday = new Date(monday);
     friday.setDate(monday.getDate() + 4);
-    
+
     // Thursday of the next week = Monday + 10 days
     const thursday = new Date(monday);
     thursday.setDate(monday.getDate() + 10);
 
     const months = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
     ];
 
     const label = `Viernes ${friday.getDate()} de ${months[friday.getMonth()]} al Jueves ${thursday.getDate()} de ${months[thursday.getMonth()]}`;
@@ -112,7 +140,7 @@ export class DeparturePdfService {
   getDeparturesForPrintWeek(
     currentWeekDepartures: Departure[],
     nextWeekDepartures: Departure[],
-    weekId: string
+    weekId: string,
   ): Departure[] {
     const { friday, thursday } = this.getPrintWeekRange(weekId);
 
@@ -123,7 +151,7 @@ export class DeparturePdfService {
     const allDepartures = [...currentWeekDepartures, ...nextWeekDepartures];
 
     return allDepartures
-      .filter(dep => {
+      .filter((dep) => {
         const depDate = dep.date; // Format: YYYY-MM-DD
         return depDate >= fridayStr && depDate <= thursdayStr;
       })
@@ -161,15 +189,16 @@ export class DeparturePdfService {
     departures: Departure[],
     weekLabel: string,
     mode: PrintMode,
-    groupNumbers: number[]
+    groupNumbers: number[],
   ): Promise<Uint8Array> {
+    const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
     const pdfDoc = await PDFDocument.create();
 
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
-    const colors = mode === 'color' ? this.COLORS : this.BW_COLORS;
+    const colors = this.getColors(rgb, mode);
 
     // Column widths — optimized for max readability
     const colWidths: ColWidths = {
@@ -193,9 +222,7 @@ export class DeparturePdfService {
       const groupNum = sortedGroups[gIdx];
 
       // Filter departures for this group
-      const groupDepartures = departures.filter(
-        dep => dep.group === groupNum || dep.group === 0
-      );
+      const groupDepartures = departures.filter((dep) => dep.group === groupNum || dep.group === 0);
 
       if (groupDepartures.length === 0) continue;
 
@@ -218,10 +245,9 @@ export class DeparturePdfService {
       // Group departures by date
       const groupedByDate = this.groupDeparturesByDate(groupDepartures);
 
-      for (const [dateStr, deps] of groupedByDate) {
+      for (const [, deps] of groupedByDate) {
         for (let i = 0; i < deps.length; i++) {
           const dep = deps[i];
-          const isFirstOfDay = i === 0;
 
           // Estimate row height
           const rowHeight = this.estimateRowHeightCompact(dep, fontRegular, colWidths);
@@ -234,15 +260,28 @@ export class DeparturePdfService {
 
             // Re-draw table header on new page
             if (sortedGroups.length > 1) {
-              yPos = this.drawGroupSectionHeader(page, yPos, fontBold, fontRegular, colors, groupNum);
+              yPos = this.drawGroupSectionHeader(
+                page,
+                yPos,
+                fontBold,
+                fontRegular,
+                colors,
+                groupNum,
+              );
             }
             yPos = this.drawTableHeaderCompact(page, yPos, fontBold, colors, colWidths);
           }
 
           const isEvenRow = i % 2 === 0;
           yPos = this.drawDepartureRowCompact(
-            page, yPos, dep, isEvenRow,
-            fontBold, fontRegular, colors, colWidths
+            page,
+            yPos,
+            dep,
+            isEvenRow,
+            fontBold,
+            fontRegular,
+            colors,
+            colWidths,
           );
         }
         // Small separator between days
@@ -271,8 +310,8 @@ export class DeparturePdfService {
     yPos: number,
     fontBold: PDFFont,
     fontRegular: PDFFont,
-    colors: typeof this.COLORS,
-    weekLabel: string
+    colors: ReturnType<typeof this.getColors>,
+    weekLabel: string,
   ): number {
     const congregationName = environment.congregationName;
 
@@ -319,8 +358,8 @@ export class DeparturePdfService {
     yPos: number,
     fontBold: PDFFont,
     fontRegular: PDFFont,
-    colors: typeof this.COLORS,
-    groupNumber: number
+    colors: ReturnType<typeof this.getColors>,
+    groupNumber: number,
   ): number {
     const groupText = groupNumber === 0 ? 'General' : `Grupo ${groupNumber}`;
     const textSize = 11;
@@ -364,8 +403,8 @@ export class DeparturePdfService {
     page: PDFPage,
     yPos: number,
     fontBold: PDFFont,
-    colors: typeof this.COLORS,
-    colWidths: ColWidths
+    colors: ReturnType<typeof this.getColors>,
+    colWidths: ColWidths,
   ): number {
     const headerHeight = 18;
     const headerY = yPos - headerHeight;
@@ -389,7 +428,13 @@ export class DeparturePdfService {
 
     // Column headers
     const headers = ['Día', 'Hora', 'Conductor', 'Punto de encuentro', 'Territorios'];
-    const widths: number[] = [colWidths.day, colWidths.schedule, colWidths.driver, colWidths.point, colWidths.territories];
+    const widths: number[] = [
+      colWidths.day,
+      colWidths.schedule,
+      colWidths.driver,
+      colWidths.point,
+      colWidths.territories,
+    ];
     const textSize = 9;
     let xPos = this.MARGIN;
 
@@ -428,8 +473,8 @@ export class DeparturePdfService {
     isEvenRow: boolean,
     fontBold: PDFFont,
     fontRegular: PDFFont,
-    colors: typeof this.COLORS,
-    colWidths: ColWidths
+    colors: ReturnType<typeof this.getColors>,
+    colWidths: ColWidths,
   ): number {
     const rowHeight = this.estimateRowHeightCompact(dep, fontRegular, colWidths);
     const rowY = yPos - rowHeight;
@@ -485,7 +530,13 @@ export class DeparturePdfService {
     });
 
     // Column separators
-    const widths: number[] = [colWidths.day, colWidths.schedule, colWidths.driver, colWidths.point, colWidths.territories];
+    const widths: number[] = [
+      colWidths.day,
+      colWidths.schedule,
+      colWidths.driver,
+      colWidths.point,
+      colWidths.territories,
+    ];
     let sepX = this.MARGIN;
     for (let i = 0; i < widths.length - 1; i++) {
       sepX += widths[i];
@@ -516,7 +567,7 @@ export class DeparturePdfService {
       wrappedLines.forEach((line, idx) => {
         page.drawText(line, {
           x: xPos + 4,
-          y: textY - (idx * 12),
+          y: textY - idx * 12,
           size: textSize,
           font: fontBold,
           color: colors.gray,
@@ -531,7 +582,7 @@ export class DeparturePdfService {
       wrappedDriver.forEach((line, idx) => {
         page.drawText(line, {
           x: xPos + 4,
-          y: textY - (idx * 12),
+          y: textY - idx * 12,
           size: textSize,
           font: fontRegular,
           color: textColor,
@@ -545,7 +596,7 @@ export class DeparturePdfService {
     wrappedPoint.forEach((line, idx) => {
       page.drawText(line, {
         x: xPos + 4,
-        y: textY - (idx * 11),
+        y: textY - idx * 11,
         size: smallTextSize,
         font: fontRegular,
         color: textColor,
@@ -556,11 +607,16 @@ export class DeparturePdfService {
     // Territories column
     if (!dep.isEvent && dep.territory?.length > 0) {
       const territoriesText = dep.territory.join(', ');
-      const wrappedTerritories = this.wrapText(territoriesText, colWidths.territories - 8, smallTextSize, fontRegular);
+      const wrappedTerritories = this.wrapText(
+        territoriesText,
+        colWidths.territories - 8,
+        smallTextSize,
+        fontRegular,
+      );
       wrappedTerritories.forEach((line, idx) => {
         page.drawText(line, {
           x: xPos + 4,
-          y: textY - (idx * 11),
+          y: textY - idx * 11,
           size: smallTextSize,
           font: fontRegular,
           color: textColor,
@@ -595,7 +651,7 @@ export class DeparturePdfService {
       maxExtraLines = Math.max(maxExtraLines, lines.length - 1);
     }
 
-    return baseHeight + (maxExtraLines * lineHeight);
+    return baseHeight + maxExtraLines * lineHeight;
   }
 
   // ============================================================
@@ -609,14 +665,18 @@ export class DeparturePdfService {
     departures: Departure[],
     weekLabel: string,
     mode: PrintMode,
-    groupNumber: string
+    groupNumber: string,
   ): Promise<Uint8Array> {
     // Delegate to the all-groups method with a single group
     const groupNum = parseInt(groupNumber, 10);
     return this.generateAllGroupsPdf(departures, weekLabel, mode, [groupNum]);
   }
 
-  private drawFooter(page: PDFPage, fontItalic: PDFFont, colors: typeof this.COLORS): void {
+  private drawFooter(
+    page: PDFPage,
+    fontItalic: PDFFont,
+    colors: ReturnType<typeof this.getColors>,
+  ): void {
     const footerText = `Generado el ${new Date().toLocaleDateString('es-AR')}`;
     const footerSize = 7;
     const footerWidth = fontItalic.widthOfTextAtSize(footerText, footerSize);
@@ -632,7 +692,7 @@ export class DeparturePdfService {
 
   private wrapText(text: string, maxWidth: number, fontSize: number, font: PDFFont): string[] {
     if (!text) return [''];
-    
+
     const words = text.split(' ');
     const lines: string[] = [];
     let currentLine = '';
@@ -667,10 +727,7 @@ export class DeparturePdfService {
   }
 
   private getDayOfWeek(dateString: string): string {
-    const daysOfWeek = [
-      'Domingo', 'Lunes', 'Martes', 'Miércoles',
-      'Jueves', 'Viernes', 'Sábado',
-    ];
+    const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const date = new Date(dateString + 'T00:00:00');
     return daysOfWeek[date.getDay()];
   }
@@ -679,8 +736,18 @@ export class DeparturePdfService {
     const date = new Date(dateString + 'T00:00:00');
     const day = date.getDate();
     const months = [
-      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-      'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+      'ene',
+      'feb',
+      'mar',
+      'abr',
+      'may',
+      'jun',
+      'jul',
+      'ago',
+      'sep',
+      'oct',
+      'nov',
+      'dic',
     ];
     return `${day} ${months[date.getMonth()]}`;
   }
@@ -689,7 +756,7 @@ export class DeparturePdfService {
    * Trigger download of the generated PDF.
    */
   downloadPdf(pdfBytes: Uint8Array, filename: string): void {
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

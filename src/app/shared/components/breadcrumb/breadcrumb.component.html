@@ -1,20 +1,19 @@
-<nav style="--bs-breadcrumb-divider: &quot;>&quot;" aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    @for (
-      route of breadcrumbItems();
-      track route;
-      let c = $count;
-      let i = $index
-    ) {
-      <li class="breadcrumb-item d-flex">
-        <a [routerLink]="returnBack.repeat(c - i)" class="route">{{
-          route.route
-        }}</a>
-        <p class="slash ms-3 me-2 my-0">/</p>
-      </li>
+<nav aria-label="breadcrumb" class="mt-6 mb-4 print:hidden">
+  <ol class="flex flex-wrap items-center gap-1 bg-slate-800/80 border border-slate-700/60 shadow-lg shadow-sky-900/10 rounded-xl px-3 py-2 text-base list-none m-0">
+    @for (item of breadcrumbItems(); track item.route; let isLast = $last) {
+      @if (!isLast) {
+        <li class="flex items-center">
+          <a
+            [routerLink]="item.route"
+            class="block px-3 py-2 rounded-lg text-sky-400 font-medium hover:text-sky-300 hover:bg-sky-900/30 transition-colors no-underline"
+          >{{ item.name }}</a>
+          <span class="text-slate-600 mx-1 select-none">/</span>
+        </li>
+      } @else {
+        <li class="text-white font-semibold px-3 py-2" aria-current="page">
+          {{ item.name }}
+        </li>
+      }
     }
-    <li class="breadcrumb-item active" aria-current="page">
-      {{ ultimateElement() }}
-    </li>
   </ol>
 </nav>

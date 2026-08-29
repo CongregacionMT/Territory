@@ -1,16 +1,16 @@
 import { Injectable, signal, OnDestroy } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NetworkService implements OnDestroy {
   public isOnline = signal<boolean>(navigator.onLine);
-  
-  private onlineHandler = () => {
+
+  private onlineHandler = (): void => {
     console.log('[NetworkService] Dispositivo cambió a ONLINE');
     this.isOnline.set(true);
   };
-  private offlineHandler = () => {
+  private offlineHandler = (): void => {
     console.log('[NetworkService] Dispositivo cambió a OFFLINE');
     this.isOnline.set(false);
   };

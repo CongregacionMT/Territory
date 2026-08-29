@@ -1,84 +1,133 @@
-import { Component, inject, viewChild, signal } from '@angular/core';
-import { TerritoryDataService } from '../../../core/services/territory-data.service';
-import { SpinnerService } from '@core/services/spinner.service';
+import { Component, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
   ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
 } from '@angular/forms';
-import { needConfirmation } from '@shared/decorators/confirm-dialog.decorator';
-
+import { filter } from 'rxjs';
+import { DialogService } from '@core/services/dialog.service';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { User } from '@core/models/User';
+import { UsersFeatureService } from '../services/users-feature.service';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-users-page',
   templateUrl: './users-page.component.html',
   styleUrls: ['./users-page.component.scss'],
-  imports: [ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule, MatDialogModule],
+  providers: [UsersFeatureService, DialogService],
 })
 export class UsersPageComponent {
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private fb = inject(FormBuilder);
-  private _snackBar = inject(MatSnackBar);
+  featureService = inject(UsersFeatureService);
+  private readonly _snackBar = inject(MatSnackBar);
+  private readonly dialogService = inject(DialogService);
+  private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly errorMessage = viewChild<any>('errorMessage');
+  showError = signal<boolean>(false);
 
-  users = signal<User[]>([]);
+  formUser = this.fb.nonNullable.group({
+    user: [
+      '',
+      [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
+    ],
+    password: [
+      '',
+      [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
+    ],
+    tokens: this.fb.nonNullable.control<string[]>([]),
+    rol: this.fb.nonNullable.control<'admin' | 'conductor'>('conductor'),
+  });
 
-  formUser: FormGroup;
+  async copyToClipboard(token: string | string[]): Promise<void> {
+    const textToCopy = Array.isArray(token) ? token.join(', ') : String(token);
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        const dummyInput = document.createElement('input');
+        document.body.appendChild(dummyInput);
+        dummyInput.value = textToCopy;
+        dummyInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummyInput);
+      }
+      this.alertSnack();
+    } catch {
+      this.alertSnack();
+    }
+  }
 
-  /** Inserted by Angular inject() migration for backwards compatibility */
-  constructor(...args: unknown[]);
-  constructor() {
-    this.spinner.cargarSpinner();
-    this.formUser = this.fb.group({
-      user: new FormControl(null, [Validators.required]),
-      password: new FormControl(null, [Validators.required]),
-      tokens: new FormControl([], [Validators.required]),
-      rol: new FormControl('conductor'),
+  alertSnack(): void {
+    this._snackBar.open('📝 Token copiado al portapapeles!', 'ok', {
+      duration: 3000,
     });
-    this.territoryDataService.getUsers().subscribe((users) => {
-      this.spinner.cerrarSpinner();
-      this.users.set(users);
-    });
   }
-  copyToClipboard(token: any): void {
-    const dummyInput = document.createElement('input');
-    document.body.appendChild(dummyInput);
-    dummyInput.value = token;
-    dummyInput.select();
-    document.execCommand('copy');
-    document.body.removeChild(dummyInput);
-  }
-  alertSnack() {
-    this._snackBar.open('📝 Copiado al portapapeles!', 'ok');
-  }
-  createUser() {
-    const messageError = this.errorMessage().nativeElement;
-    if (
-      this.formUser.controls?.['user'].invalid ||
-      this.formUser.controls?.['password'].invalid
-    ) {
-      messageError.style.display = 'block';
-    } else {
-      this.territoryDataService.postUser(this.formUser.value);
-      this.formUser.reset({ rol: 'conductor' });
-      messageError.style.display = 'none';
+
+  async createUser(): Promise<void> {
+    if (this.formUser.invalid) {
+      this.showError.set(true);
+      return;
+    }
+    this.showError.set(false);
+
+    const rawVal = this.formUser.getRawValue();
+    const userPayload: User = {
+      user: rawVal.user,
+      password: rawVal.password,
+      rol: rawVal.rol,
+      tokens: rawVal.tokens,
+    };
+
+    const success = await this.featureService.createUser(userPayload);
+    if (success) {
+      this.formUser.reset({ rol: 'conductor', tokens: [] });
       this._snackBar.open('👤 Usuario creado con éxito', 'ok', {
+        duration: 3000,
+      });
+    } else {
+      this._snackBar.open('❌ Error al crear usuario', 'ok', {
         duration: 3000,
       });
     }
   }
 
-  @needConfirmation({
-    title: 'Eliminar usuario',
-    message: '¿Estás seguro de eliminar este usuario?',
-  })
-  deleteUser(idUser: string) {
-    this.territoryDataService.deleteUser(idUser);
+  deleteUser(userOrName: User | string): void {
+    const userName = typeof userOrName === 'string' ? userOrName : userOrName.user;
+    if (!userName) return;
+
+    const dialogData = {
+      title: 'Eliminar usuario',
+      message: `¿Estás seguro de que deseas eliminar al usuario "${userName}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+    };
+
+    this.dialogService
+      .openDialog(dialogData, ConfirmDialogComponent)
+      .pipe(
+        filter((confirmed): confirmed is boolean => confirmed === true),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        void (async (): Promise<void> => {
+          const success = await this.featureService.deleteUser(userName);
+          if (success) {
+            this._snackBar.open('🗑️ Usuario eliminado con éxito', 'ok', {
+              duration: 3000,
+            });
+          } else {
+            this._snackBar.open('❌ Error al eliminar usuario', 'ok', {
+              duration: 3000,
+            });
+          }
+        })();
+      });
   }
 }

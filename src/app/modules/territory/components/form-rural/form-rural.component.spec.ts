@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { describe, it, expect, beforeEach } from 'vitest';
 import { FormRuralComponent } from './form-rural.component';
 
 describe('FormRuralComponent', () => {
@@ -8,9 +8,8 @@ describe('FormRuralComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [FormRuralComponent]
-})
-    .compileComponents();
+      imports: [FormRuralComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(FormRuralComponent);
     component = fixture.componentInstance;
