@@ -28,6 +28,7 @@ import { OfflineMapViewerComponent } from '../offline-map-viewer/offline-map-vie
 export class TerritoryMapComponent implements OnInit, OnDestroy {
   collection = input.required<string>();
   congregationKey = input.required<string>();
+  forceFallback = input<boolean>(false);
 
   private mapService = inject(TerritoryMapService);
   public networkService = inject(NetworkService);
@@ -74,6 +75,12 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
     if (!config) {
       console.warn('[TerritoryMapComponent] Mapa no configurado para este territorio.');
       this.error.set('Mapa no configurado para este territorio');
+      return;
+    }
+
+    if (this.forceFallback()) {
+      console.log('[TerritoryMapComponent] forceFallback activo, forzando mapa antiguo.');
+      this.fallbackToIframeOrOffline(config);
       return;
     }
 

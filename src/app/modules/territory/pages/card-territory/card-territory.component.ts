@@ -22,7 +22,7 @@ import {
   ValidationErrors,
 } from '@angular/forms';
 import { Timestamp } from '@angular/fire/firestore';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CardService } from '@core/services/card.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Subscription } from 'rxjs';
@@ -57,6 +57,7 @@ import { TerritoryMapComponent } from '../../components/territory-map/territory-
 export class CardTerritoryComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   public readonly cardService = inject(CardService);
   private readonly territorieDataService = inject(TerritoryDataService);
   private readonly spinner = inject(SpinnerService);
@@ -105,14 +106,27 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   checkedApples = computed(
     () => this.card().applesData?.filter((apple: CardApplesData) => apple.checked)?.length ?? 0,
   );
-  isRevisionMode = computed(() => this.card().revision === true);
+  applesProgress = computed(() => {
+    const total = this.totalApples();
+    return total === 0 ? 0 : Math.round((this.checkedApples() / total) * 100);
+  });
+  isRevisionMode = signal<boolean>(false);
 
   constructor() {}
 
   ngOnInit(): void {
     this.spinner.cargarSpinner();
 
+    const collectionParam = String(this.activatedRoute.snapshot.params['collection'] || '');
+    if (collectionParam) {
+      this.path.set(collectionParam);
+    } else if (this.cardService.dataCard.link) {
+      // Como fallback por si en la ruta no está y sí en la card
+      this.path.set(this.cardService.dataCard.link);
+    }
+
     if (this.cardService.dataCard.revision === true) {
+      this.isRevisionMode.set(true);
       this.card.set(this.cardService.dataCard);
 
       const form = this.formCard();
@@ -128,8 +142,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       this.dataLoaded.set(true);
       this.spinner.cerrarSpinner();
     } else {
-      const collectionParam = String(this.activatedRoute.snapshot.params['collection'] || '');
-      this.path.set(collectionParam);
+      this.isRevisionMode.set(false);
       const subscription = this.territorieDataService
         .getCardTerritorie(this.path())
         .pipe(takeUntilDestroyed(this.destroyRef))
@@ -226,6 +239,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     apple.checked = input.checked;
     this.onCheckboxChange({ target: { value: apple.name, checked: input.checked } });
+    this.card.update((c) => {
+      const apples = c.applesData ? [...c.applesData] : [];
+      return { ...c, applesData: apples };
+    });
   }
 
   get driver(): AbstractControl | null {
@@ -329,6 +346,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
           currentCard,
         );
       }
+      await this.router.navigate(['/registro-territorios']);
+      this.spinner.cerrarSpinner();
     } else {
       const updatedCard = {
         ...currentCard,

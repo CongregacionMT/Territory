@@ -25,14 +25,40 @@
         </div>
         
         <!-- Body -->
-        <div class="p-6 bg-emerald-950/20 text-center">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </div>
-          <p class="text-lg text-emerald-400 font-medium mb-0">¡Muchas gracias por tu trabajo!</p>
-          <p class="text-slate-400 text-sm mt-2">La tarjeta fue enviada al siervo de territorios correctamente.</p>
+        <div class="p-6 bg-emerald-950/20 text-center relative overflow-hidden">
+          @switch (currentAnimation()) {
+            @case ('levelup') {
+              <div class="star-container">
+                <div class="star-particle"></div>
+                <div class="star-particle"></div>
+                <div class="star-particle"></div>
+                <div class="star-particle"></div>
+                <div class="star-particle"></div>
+              </div>
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4 relative z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </div>
+            }
+            @case ('check') {
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4 relative z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path class="animate-draw-check" stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </div>
+            }
+            @default {
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4 relative z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </div>
+            }
+          }
+          
+          <p class="text-lg text-emerald-400 font-medium mb-0 relative z-10">{{ currentMessage() }}</p>
+          <p class="text-slate-400 text-sm mt-2 relative z-10">La tarjeta fue enviada al siervo de territorios correctamente.</p>
         </div>
         
         <!-- Footer -->

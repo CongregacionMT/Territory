@@ -177,11 +177,9 @@ export class TerritoryDataService {
           await this.incrementSalidasTx(campaignIdValid, territorioKey);
         }
       }
-      void this.router.navigate(['home']);
     } catch (err: unknown) {
       console.error(err);
     } finally {
-      this.spinner?.cerrarSpinner?.();
       this.isCreating = false;
     }
   }
