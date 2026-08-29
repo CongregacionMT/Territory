@@ -1,4 +1,4 @@
-<nav aria-label="breadcrumb" class="mt-6 mb-4">
+<nav aria-label="breadcrumb" class="mt-6 mb-4 print:hidden">
   <ol class="flex flex-wrap items-center gap-1 bg-slate-800/80 border border-slate-700/60 shadow-lg shadow-sky-900/10 rounded-xl px-3 py-2 text-base list-none m-0">
     @for (item of breadcrumbItems(); track item.route; let isLast = $last) {
       @if (!isLast) {
