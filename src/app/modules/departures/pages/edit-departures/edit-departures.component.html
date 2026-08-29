@@ -151,6 +151,7 @@
             #formEditDepartures
             [formDepartureDataInput]="formDepartureData"
             [dateDepartureInput]="dateDeparture.value"
+            [meetingPointsInput]="meetingPoints()"
             (saveCompleted)="onChildFormSubmit($event)"
             [(isFormDirty)]="isChildFormDirty"
             [saveTrigger]="saveTrigger()"

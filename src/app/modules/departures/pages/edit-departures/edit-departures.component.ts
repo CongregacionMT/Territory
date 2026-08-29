@@ -22,6 +22,8 @@ import { formatWeekRange } from '@shared/utils/date-utils';
 import { catchError, take } from 'rxjs';
 import { environment } from '@environments/environment';
 import { AuthService } from '@core/services/auth.service';
+import { MeetingPointService } from '@core/services/meeting-point.service';
+import { MeetingPoint } from '@core/models/MeetingPoint';
 
 @Component({
   selector: 'app-edit-departures',
@@ -34,6 +36,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly meetingPointService = inject(MeetingPointService);
   private readonly spinner = inject(SpinnerService);
   private readonly _snackBar = inject(MatSnackBar);
   public readonly authService = inject(AuthService);
@@ -45,6 +48,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   dateDeparture = new FormControl<string>('', { nonNullable: true });
   selectedWeekRange: string = '';
   formDepartureData: Departure[] = [] as Departure[];
+  meetingPoints = signal<MeetingPoint[]>([]);
   verticalPosition: MatSnackBarVerticalPosition = 'top';
   isSaved: boolean = false;
   saveTrigger = signal<number>(0);
@@ -101,8 +105,9 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
         }
       });
 
-    // Cargar historial
+    // Cargar historial y puntos de encuentro
     this.loadHistory();
+    this.loadMeetingPoints();
 
     // Cargar la semana inicial: siempre se usa la semana actual como punto de partida
     // Arrancamos directamente, ignorando la fecha guardada en Firestore para evitar demoras
@@ -127,6 +132,16 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
         this.weeklyHistory = history
           .filter((w) => w.weekId >= eightWeeksAgoStr)
           .sort((a, b) => b.weekId.localeCompare(a.weekId));
+        this.cdr.markForCheck();
+      });
+  }
+
+  loadMeetingPoints(): void {
+    this.meetingPointService
+      .getMeetingPoints()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((points) => {
+        this.meetingPoints.set(points);
         this.cdr.markForCheck();
       });
   }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormArray, FormControl } from '@angular/forms';
 import { User } from '@core/models/User';
 import { LocalityConfig } from '@core/models/LocalityData';
+import { MeetingPoint } from '@core/models/MeetingPoint';
 
 @Component({
   selector: 'app-departure-day-card',
@@ -22,6 +23,7 @@ export class DepartureDayCardComponent {
 
   suggestedTerritories = input<string[]>([]);
   quickSuggestionText = input<string | null>(null);
+  meetingPoints = input<MeetingPoint[]>([]);
 
   delete = output<void>();
   dayCopy = output<void>();
@@ -109,6 +111,16 @@ export class DepartureDayCardComponent {
     const val = (event.target as HTMLInputElement | HTMLSelectElement).value;
     this.dayFormGroup().get(controlName)?.markAsDirty();
     this.dayFormGroup().get(controlName)?.setValue(val);
+
+    if (controlName === 'point' && val) {
+      const pointMatch = this.meetingPoints().find(
+        (p) => p.name.toLowerCase() === val.toLowerCase(),
+      );
+      if (pointMatch && pointMatch.mapsUrl) {
+        this.dayFormGroup().get('maps')?.setValue(pointMatch.mapsUrl);
+        this.dayFormGroup().get('maps')?.markAsDirty();
+      }
+    }
   }
 
   onChangeCheckbox(event: Event, controlName: string): void {

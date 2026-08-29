@@ -19,6 +19,7 @@
               [localities]="localities"
               [suggestedTerritories]="getSuggestedTerritories(i, group)"
               [quickSuggestionText]="getQuickSuggestionText(i, group)"
+              [meetingPoints]="meetingPointsInput()"
               (delete)="deleteInputForm(i, group)"
               (dayCopy)="copyDay(i, group)"
               (openModal)="openModal(i, group)"

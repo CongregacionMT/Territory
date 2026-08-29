@@ -26,7 +26,7 @@ import { TerritorySelectionModalComponent } from '../territory-selection-modal/t
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { DepartureFormService } from '@core/services/departure-form.service';
 import { Departure, WeeklyDeparture } from '../../../../core/models/Departures';
-import { SpinnerService } from '@core/services/spinner.service';
+import { MeetingPoint } from '@core/models/MeetingPoint';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
@@ -54,20 +54,20 @@ export class FormEditDeparturesComponent implements OnInit {
     return control as FormGroup;
   }
 
-  private destroyRef = inject(DestroyRef);
-  private territoryDataService = inject(TerritoryDataService);
-  private departureFormService = inject(DepartureFormService);
-  private fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly departureFormService = inject(DepartureFormService);
+  private readonly fb = inject(FormBuilder);
   // private fb = inject();
-  private spinner = inject(SpinnerService);
-  private _snackBar = inject(MatSnackBar);
-  public authService = inject(AuthService);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly _snackBar = inject(MatSnackBar);
+  public readonly authService = inject(AuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
   formDeparture: FormGroup;
   groupKeys: number[] = [];
   groupedDepartures: { [key: string]: Departure[] } = {};
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
   readonly dateDepartureInput = input<string>('');
+  readonly meetingPointsInput = input<MeetingPoint[]>([]);
   readonly saveTrigger = input<number>(0);
   readonly isFormDirty = model<boolean>(false);
   readonly saveCompleted = output<Departure[]>();

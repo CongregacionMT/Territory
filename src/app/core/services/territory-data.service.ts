@@ -15,9 +15,7 @@ import {
   setDoc,
   runTransaction,
 } from '@angular/fire/firestore';
-import { Router } from '@angular/router';
 import { Observable, tap, of } from 'rxjs';
-import { SpinnerService } from './spinner.service';
 import { DataRural } from '@core/models/DataRural';
 import { CampaignService } from './campaign.service';
 import { MapData } from '@core/models/MapData';
@@ -28,6 +26,7 @@ import { User } from '@core/models/User';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
 import { FirestoreProviderService } from './firestore-provider.service';
+import { MeetingPointService } from './meeting-point.service';
 
 @Injectable({
   providedIn: 'root',
@@ -37,9 +36,8 @@ export class TerritoryDataService {
   private get firestore(): Firestore {
     return this.firestoreProvider.getFirestore();
   }
-  private readonly router = inject(Router);
-  private readonly spinner = inject(SpinnerService);
   private readonly campaignService = inject(CampaignService);
+  private readonly meetingPointService = inject(MeetingPointService);
 
   // Cached state via Signals to avoid relying on sessionStorage everywhere
   private readonly _cachedNumberTerritory = signal<TerritoriesNumberData | null>(null);
@@ -362,6 +360,17 @@ export class TerritoryDataService {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
     // Usamos weekId como ID del documento para que sea único por semana y sea fácil de actualizar si se vuelve a guardar
     const docRef = doc(departuresRef, weeklyDeparture.weekId);
+
+    // Guardar automáticamente los puntos de encuentro
+    for (const departure of weeklyDeparture.departure || []) {
+      if (departure.point && departure.maps) {
+        // No esperamos que termine para no bloquear, o podemos usar Promise.all
+        this.meetingPointService
+          .saveMeetingPoint(departure.point, departure.maps)
+          .catch(console.error);
+      }
+    }
+
     const normalizedDepartures = (weeklyDeparture.departure || []).map((departure, index) =>
       this.normalizeDepartureForCardTracking(departure, weeklyDeparture.weekId, index),
     );

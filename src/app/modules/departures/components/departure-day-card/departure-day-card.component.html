@@ -195,11 +195,17 @@
         <input
           type="text"
           aria-label="point"
+          list="meeting-points-list"
           class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
           placeholder="Punto de encuentro"
           [value]="dayFormGroup().get('point')?.value || ''"
           (input)="onChangeInput($event, 'point')"
         />
+        <datalist id="meeting-points-list">
+          @for (point of meetingPoints(); track point.id) {
+            <option [value]="point.name"></option>
+          }
+        </datalist>
         @if (quickSuggestionText()) {
           <div class="text-[0.78rem] text-blue-300 mt-1">
             <i class="fas fa-lightbulb mr-1"></i>
