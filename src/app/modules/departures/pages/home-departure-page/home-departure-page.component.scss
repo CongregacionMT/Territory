@@ -1,16 +1,3 @@
-/* Card container responsive layout (used by app-card-xl) */
-@media (max-width: 990px) {
-  .card-container {
-    flex-wrap: wrap;
-  }
-}
-@media (max-width: 768px) {
-  .card-container {
-    align-items: center;
-    flex-direction: column;
-  }
-}
-
 /* Print modal styles */
 .print-modal {
   overflow: hidden;

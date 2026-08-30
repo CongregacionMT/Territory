@@ -1,9 +1,9 @@
 <div class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-6">
   @for (departure of departures(); track departure) {
     @if (currentPath === departure.group || departure.group === 0) {
-      <div class="bg-white rounded-2xl border border-black/5 shadow-sm flex flex-col relative transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl departure-card" 
+      <div class="bg-white rounded-2xl border-2 shadow-sm flex flex-col relative transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl departure-card" 
            [class.is-today]="isToday(departure.date)"
-           [ngClass]="isToday(departure.date) ? 'border-2 border-sky-600 shadow-lg shadow-sky-600/10' : ''">
+           [ngClass]="isToday(departure.date) ? 'border-sky-500 shadow-lg shadow-sky-500/20' : getTailwindColor(departure.color).border">
         
         @if (isToday(departure.date)) {
           <div class="absolute -top-3 left-3 bg-sky-700 text-white px-3 py-1 rounded-md text-sm font-extrabold z-10 flex items-center gap-1.5 shadow-md">
@@ -19,26 +19,25 @@
 
         <!-- Header -->
         <div
-          class="p-4 md:p-5 flex justify-between items-center border-b border-black/5 rounded-t-2xl transition-colors duration-300"
-          [ngClass]="isToday(departure.date) ? 'bg-sky-50' : getTailwindColor(departure.color).bg"
+          class="p-4 md:p-5 flex justify-between items-center rounded-t-2xl transition-colors duration-300"
+          [ngClass]="isToday(departure.date) ? 'bg-sky-600' : getTailwindColor(departure.color).bg"
         >
           <div class="flex items-center gap-3">
-            <span class="text-lg md:text-xl font-extrabold capitalize transition-colors duration-300"
-                  [ngClass]="isToday(departure.date) ? 'text-sky-800' : 'text-slate-800'">
+            <span class="text-lg md:text-xl font-extrabold capitalize transition-colors duration-300 text-white">
               {{ getDayOfWeek(departure.date) }}
             </span>
-            <span class="text-white px-3 py-1 rounded-lg text-sm md:text-base font-bold transition-colors duration-300"
-                  [ngClass]="isToday(departure.date) ? 'bg-sky-700' : 'bg-slate-700'">
+            <span class="text-white px-3 py-1 rounded-lg text-sm md:text-base font-bold transition-colors duration-300 shadow-sm"
+                  [ngClass]="isToday(departure.date) ? 'bg-sky-800/50' : 'bg-black/20'">
               {{ departure.schedule }}hs
             </span>
           </div>
           <button
-            class="bg-white/70 border border-black/10 rounded-full w-11 h-11 flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-white hover:scale-110 active:scale-95 shrink-0"
+            class="bg-white/20 hover:bg-white/30 border border-white/20 rounded-full w-11 h-11 flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 shrink-0"
             (click)="addToCalendar(departure)"
             title="Agendar salida"
           >
             <img
-              src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=%23475569"
+              src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=white"
               width="22"
               height="22"
               alt="Notificarme"
