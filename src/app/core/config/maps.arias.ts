@@ -210,7 +210,9 @@ export const mapConfig: MapConfig = {
       iframeHtml:
         '<iframe src="https://www.google.com/maps/d/u/7/embed?mid=1IXGfMh6CajmNx2FEMkWijWjtvMiJwSo&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>',
     },
-    'ubications-overseer':
-      '<iframe src="https://www.google.com/maps/d/u/7/embed?mid=1XTP2CBIWxaNllc6zDMXt8c_pUNhTtPs&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>',
+    'ubications-overseer': {
+      iframeHtml:
+        '<iframe src="https://www.google.com/maps/d/embed?mid=1JgsdBk9nOo153ANYwK7YGZ6R4J62pUQ&ehbc=2E312F" width="100%" height="100%" style="border: 0" loading="lazy" allowfullscreen></iframe>',
+    },
   },
 };
