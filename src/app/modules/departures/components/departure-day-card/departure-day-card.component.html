@@ -103,8 +103,8 @@
               Conductor
             </option>
             @for (driver of drivers(); track driver.user) {
-              <option [value]="driver.user" [selected]="driver.user === dayFormGroup().get('driver')?.value">
-                {{ driver.user }}
+              <option [value]="driver.displayName || driver.user" [selected]="(driver.displayName || driver.user) === dayFormGroup().get('driver')?.value">
+                {{ driver.displayName || driver.user }}
               </option>
             }
           </select>

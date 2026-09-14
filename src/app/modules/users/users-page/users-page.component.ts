@@ -37,6 +37,7 @@ export class UsersPageComponent {
       '',
       [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
     ],
+    displayName: [''],
     password: [
       '',
       [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
@@ -80,6 +81,7 @@ export class UsersPageComponent {
     const rawVal = this.formUser.getRawValue();
     const userPayload: User = {
       user: rawVal.user,
+      displayName: rawVal.displayName,
       password: rawVal.password,
       rol: rawVal.rol,
       tokens: rawVal.tokens,
@@ -87,7 +89,7 @@ export class UsersPageComponent {
 
     const success = await this.featureService.createUser(userPayload);
     if (success) {
-      this.formUser.reset({ rol: 'conductor', tokens: [] });
+      this.formUser.reset({ rol: 'conductor', tokens: [], displayName: '' });
       this._snackBar.open('👤 Usuario creado con éxito', 'ok', {
         duration: 3000,
       });

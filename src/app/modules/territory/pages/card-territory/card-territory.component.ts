@@ -276,11 +276,11 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
   fillCard(): void {
     const form = this.formCard();
-    const rawApples = (form.value as { applesData?: CardApplesData[] }).applesData || [];
+    const rawApples = (form.getRawValue() as { applesData?: CardApplesData[] }).applesData || [];
     const uniqueCheck = this.verifyUniqueCheck(rawApples);
 
     const currentCard = this.card();
-    const formVal = form.value as Partial<Card>;
+    const formVal = form.getRawValue() as Partial<Card>;
     const updatedCard: Card = {
       ...currentCard,
       driver: formVal.driver ?? '',
@@ -306,7 +306,7 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     }
     if (form.controls?.['end'].value === '') {
       this.countFalseApples.set(0);
-      const apples = (form.value as { applesData?: CardApplesData[] }).applesData || [];
+      const apples = (form.getRawValue() as { applesData?: CardApplesData[] }).applesData || [];
       apples.forEach((apple: CardApplesData) => {
         if (apple.checked === false) {
           this.countFalseApples.update((count) => count + 1);
@@ -392,13 +392,8 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
     const ownName = this.loggedDriverName()?.trim() ?? '';
     if (!ownName) return;
 
-    const ownUserExists = this.availableDrivers().some(
-      (user) => user.user.toLowerCase() === ownName.toLowerCase(),
-    );
-
-    if (ownUserExists) {
-      form.patchValue({ driver: ownName });
-    }
+    form.patchValue({ driver: ownName });
+    form.get('driver')?.disable();
   }
 
   ngOnDestroy(): void {

@@ -22,8 +22,9 @@
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <div class="flex items-center gap-3 flex-wrap">
             <span class="text-lg font-bold text-white tracking-tight truncate">
-              {{ user.user }}
+              {{ user.displayName || user.user }}
             </span>
+            <span class="text-sm text-slate-400">(@{{ user.user }})</span>
             <span
               class="px-2.5 py-0.5 text-xs font-bold rounded-full uppercase tracking-wider"
               [class]="user.rol === 'admin'
@@ -101,14 +102,28 @@
       <!-- Usuario -->
       <div class="flex flex-col gap-1.5">
         <label for="new-user" class="text-slate-300 font-semibold text-sm">
-          Nombre de usuario
+          Nombre de usuario (Login)
         </label>
         <input
           id="new-user"
           type="text"
           class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors placeholder:text-slate-600"
-          placeholder="Ej: Juan Pérez"
+          placeholder="Ej: jperez (sin espacios)"
           formControlName="user"
+        />
+      </div>
+
+      <!-- Display Name -->
+      <div class="flex flex-col gap-1.5">
+        <label for="new-display-name" class="text-slate-300 font-semibold text-sm">
+          Nombre para mostrar
+        </label>
+        <input
+          id="new-display-name"
+          type="text"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors placeholder:text-slate-600"
+          placeholder="Ej: Juan Pérez"
+          formControlName="displayName"
         />
       </div>
 

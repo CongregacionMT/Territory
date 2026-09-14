@@ -81,7 +81,7 @@ export class AuthService {
           }
 
           localStorage.setItem(loggedUser.user, JSON.stringify(loggedUser));
-          localStorage.setItem('nombreConductor', loggedUser.user);
+          localStorage.setItem('nombreConductor', loggedUser.displayName || loggedUser.user);
 
           // Update auth state directly to avoid needing to reload or check again
           this.checkAuthStatus();

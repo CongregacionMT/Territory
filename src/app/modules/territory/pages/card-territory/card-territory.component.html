@@ -48,26 +48,13 @@
             <label for="driver" class="text-slate-200 font-semibold text-base">
               Conductor
             </label>
-            @if (isConductorMode()) {
-              <select
-                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
-                id="driver"
-                formControlName="driver"
-              >
-                <option value="" disabled>Seleccionar conductor</option>
-                @for (driver of availableDrivers(); track driver.user) {
-                  <option [value]="driver.user">{{ driver.user }}</option>
-                }
-              </select>
-            } @else {
-              <input
-                type="text"
-                placeholder="Nombre del conductor"
-                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors placeholder:text-slate-600"
-                id="driver"
-                formControlName="driver"
-              />
-            }
+            <input
+              type="text"
+              placeholder="Nombre del conductor"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors placeholder:text-slate-600 disabled:opacity-75 disabled:cursor-not-allowed"
+              id="driver"
+              formControlName="driver"
+            />
             @if (driverError()) {
               <div class="text-rose-400 text-sm mt-0.5">
                 <i class="fas fa-exclamation-circle mr-1"></i>Ingresá tu nombre por favor
