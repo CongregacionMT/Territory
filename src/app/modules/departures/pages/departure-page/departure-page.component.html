@@ -169,6 +169,7 @@
     <div class="mb-10">
       <app-departures-cards
         [departures]="departures$()"
+        [weekId]="selectedWeekId()"
       ></app-departures-cards>
     </div>
   } @else {

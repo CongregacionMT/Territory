@@ -122,6 +122,7 @@
                     <a
                       class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm md:text-base font-semibold text-slate-700 no-underline hover:border-sky-600 hover:text-sky-700 hover:bg-sky-50 transition-colors cursor-pointer"
                       [routerLink]="getTerritoryRoute(departure, territory)"
+                      [queryParams]="{ departureId: departure.departureId, weekId: weekId() }"
                     >
                       <span>{{ territory }}</span>
                       <img

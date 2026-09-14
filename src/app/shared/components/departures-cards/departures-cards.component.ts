@@ -15,6 +15,7 @@ export class DeparturesCardsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   readonly departures = input<Departure[]>([] as Departure[]);
+  readonly weekId = input<string>('');
   currentPath: number = 0;
   private hasScrolled: boolean = false;
 

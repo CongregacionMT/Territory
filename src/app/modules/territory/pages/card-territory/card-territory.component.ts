@@ -92,6 +92,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
   countTrueApples = signal<number>(0);
   countFalseApples = signal<number>(0);
+
+  private weekId = signal<string | null>(null);
+  private departureId = signal<string | null>(null);
+
   driverError = signal<boolean>(false);
   startError = signal<boolean>(false);
   endError = signal<boolean>(false);
@@ -116,6 +120,10 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.spinner.cargarSpinner();
+
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+    if (queryParams['weekId']) this.weekId.set(String(queryParams['weekId']));
+    if (queryParams['departureId']) this.departureId.set(String(queryParams['departureId']));
 
     const collectionParam = String(this.activatedRoute.snapshot.params['collection'] || '');
     if (collectionParam) {
@@ -356,6 +364,12 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
       this.card.set(updatedCard);
 
       await this.territorieDataService.sendRevisionCardTerritorie(updatedCard);
+
+      const wId = this.weekId();
+      const dId = this.departureId();
+      if (wId && dId) {
+        await this.territorieDataService.markDepartureAsReceived(wId, dId);
+      }
 
       this.spinner.cerrarSpinner();
       this.openModal();
