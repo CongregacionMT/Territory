@@ -405,6 +405,25 @@ export class TerritoryDataService {
     }
   }
 
+  async markDepartureAsCanceled(weekId: string, departureId: string): Promise<void> {
+    const ref = doc(this.firestore, 'WeeklyDepartures', weekId);
+    try {
+      await runTransaction(this.firestore, async (tx) => {
+        const snap = await tx.get(ref);
+        if (!snap.exists()) return;
+        const data = snap.data() as WeeklyDeparture;
+        const departures = data.departure || [];
+        const index = departures.findIndex((d: Departure) => d.departureId === departureId);
+        if (index !== -1) {
+          departures[index].cardStatus = 'canceled';
+          tx.update(ref, { departure: departures });
+        }
+      });
+    } catch (err) {
+      console.error('Error marking departure as canceled:', err);
+    }
+  }
+
   // RURAL
   getTerritorieRural(): Observable<DataRural[]> {
     const collectionRef = collection(this.firestore, 'TerritorioRural');

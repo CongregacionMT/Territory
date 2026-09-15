@@ -49,6 +49,14 @@ export const routes: Routes = [
     data: { breadcrumb: 'Usuarios' },
   },
   {
+    path: 'mis-tarjetas',
+    loadChildren: () =>
+      import('./modules/driver-dashboard/driver-dashboard.routes').then(
+        (m) => m.DRIVER_DASHBOARD_ROUTES,
+      ),
+    data: { breadcrumb: 'Mis Tarjetas' },
+  },
+  {
     path: 'auth',
     loadChildren: () => import('./modules/auth/auth.routes').then((m) => m.ROUTES),
     data: { breadcrumb: 'Autenticación' },
