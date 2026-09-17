@@ -1,9 +1,11 @@
 <div class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-6">
   @for (departure of departures(); track departure) {
     @if (currentPath === departure.group || departure.group === 0) {
-      <div class="bg-white rounded-2xl border-2 shadow-sm flex flex-col relative transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl departure-card" 
+      <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm flex flex-col relative transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl departure-card" 
            [class.is-today]="isToday(departure.date)"
-           [ngClass]="isToday(departure.date) ? 'border-sky-500 shadow-lg shadow-sky-500/20' : getTailwindColor(departure.color).border">
+           [class.border-sky-500]="isToday(departure.date)"
+           [class.shadow-sky-500/20]="isToday(departure.date)"
+           [class.shadow-lg]="isToday(departure.date)">
         
         @if (isToday(departure.date)) {
           <div class="absolute -top-3 left-3 bg-sky-700 text-white px-3 py-1 rounded-md text-sm font-extrabold z-10 flex items-center gap-1.5 shadow-md">
@@ -49,48 +51,48 @@
         <div class="p-4 md:p-5 flex flex-col gap-5">
           @if (departure.isEvent) {
              <div class="flex gap-4">
-               <div class="w-11 h-11 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center shrink-0">
-                 <img src="https://api.iconify.design/mdi:calendar-star.svg?color=%2364748b" width="22" height="22" alt="Event" />
+               <div class="w-11 h-11 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center shrink-0">
+                 <img src="https://api.iconify.design/mdi:calendar-star.svg?color=%23cbd5e1" width="22" height="22" alt="Event" />
                </div>
                <div class="flex flex-col justify-center">
-                 <label class="text-xs md:text-sm font-bold text-slate-500 uppercase mb-0.5">Evento especial</label>
-                 <strong class="text-base md:text-lg font-semibold text-slate-800">{{ departure.title }}</strong>
+                 <label class="text-xs md:text-sm font-bold text-slate-400 uppercase mb-0.5">Evento especial</label>
+                 <strong class="text-base md:text-lg font-semibold text-slate-200">{{ departure.title }}</strong>
                </div>
              </div>
           } @else {
             <!-- Driver -->
             <div class="flex gap-4">
-              <div class="w-11 h-11 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center shrink-0">
+              <div class="w-11 h-11 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center shrink-0">
                 <img
-                  src="https://api.iconify.design/mdi:account-tie.svg?color=%2364748b"
+                  src="https://api.iconify.design/mdi:account-tie.svg?color=%23cbd5e1"
                   width="22"
                   height="22"
                   alt="Leader"
                 />
               </div>
               <div class="flex flex-col justify-center">
-                <label class="text-xs md:text-sm font-bold text-slate-500 uppercase mb-0.5">Conductor</label>
-                <strong class="text-base md:text-lg font-semibold text-slate-800">{{ departure.driver }}</strong>
+                <label class="text-xs md:text-sm font-bold text-slate-400 uppercase mb-0.5">Conductor</label>
+                <strong class="text-base md:text-lg font-semibold text-slate-200">{{ departure.driver }}</strong>
               </div>
             </div>
           }
 
           <!-- Location -->
           <div class="flex gap-4">
-            <div class="w-11 h-11 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center shrink-0">
+            <div class="w-11 h-11 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center shrink-0">
               <img
-                src="https://api.iconify.design/mdi:map-marker.svg?color=%2364748b"
+                src="https://api.iconify.design/mdi:map-marker.svg?color=%23cbd5e1"
                 width="22"
                 height="22"
                 alt="Location"
               />
             </div>
             <div class="flex flex-col justify-center w-full">
-              <label class="text-xs md:text-sm font-bold text-slate-500 uppercase mb-0.5">Punto de encuentro</label>
-              <strong class="text-base md:text-lg font-semibold text-slate-800 break-words">{{ departure.point }}</strong>
+              <label class="text-xs md:text-sm font-bold text-slate-400 uppercase mb-0.5">Punto de encuentro</label>
+              <strong class="text-base md:text-lg font-semibold text-slate-200 break-words">{{ departure.point }}</strong>
 
               @if (departure.maps) {
-                <a [href]="departure.maps" target="_blank" class="mt-2.5 inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3.5 py-1.5 rounded-xl text-sm md:text-base font-semibold no-underline border border-blue-200 w-fit hover:bg-blue-100 transition-colors cursor-pointer">
+                <a [href]="departure.maps" target="_blank" class="mt-2.5 inline-flex items-center gap-2 bg-slate-800 text-sky-400 px-3.5 py-1.5 rounded-xl text-sm md:text-base font-semibold no-underline border border-slate-700 w-fit hover:bg-slate-700 transition-colors cursor-pointer">
                   <img
                     src="https://api.iconify.design/logos:google-maps.svg"
                     width="18"
@@ -106,26 +108,26 @@
           <!-- Territories -->
           @if (!departure.isEvent) {
             <div class="flex gap-4">
-              <div class="w-11 h-11 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center shrink-0">
+              <div class="w-11 h-11 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center shrink-0">
                 <img
-                  src="https://api.iconify.design/mdi:map-legend.svg?color=%2364748b"
+                  src="https://api.iconify.design/mdi:map-legend.svg?color=%23cbd5e1"
                   width="22"
                   height="22"
                   alt="Territories"
                 />
               </div>
               <div class="flex flex-col justify-center w-full">
-                <label class="text-xs md:text-sm font-bold text-slate-500 uppercase mb-1">Territorios</label>
+                <label class="text-xs md:text-sm font-bold text-slate-400 uppercase mb-1">Territorios</label>
                 <div class="flex flex-wrap gap-2 mt-0.5">
                   @for (territory of departure.territory; track territory) {
                     <a
-                      class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm md:text-base font-semibold text-slate-700 no-underline hover:border-sky-600 hover:text-sky-700 hover:bg-sky-50 transition-colors cursor-pointer"
+                      class="inline-flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm md:text-base font-semibold text-slate-200 no-underline hover:border-sky-500 hover:text-sky-400 hover:bg-slate-700 transition-colors cursor-pointer"
                       [routerLink]="getTerritoryRoute(departure, territory)"
                       [queryParams]="{ departureId: departure.departureId, weekId: weekId() }"
                     >
                       <span>{{ territory }}</span>
                       <img
-                        src="https://api.iconify.design/mdi:chevron-right.svg?color=%2364748b"
+                        src="https://api.iconify.design/mdi:chevron-right.svg?color=%23cbd5e1"
                         width="16"
                         height="16"
                       />
