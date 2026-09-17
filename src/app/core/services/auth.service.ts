@@ -36,7 +36,7 @@ export class AuthService {
 
     if (adminToken) {
       this._isAdmin.set(true);
-      this._isDriver.set(false);
+      this._isDriver.set(true); // Admins can also be drivers
     } else if (driverToken) {
       this._isAdmin.set(false);
       this._isDriver.set(true);

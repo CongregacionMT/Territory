@@ -32,6 +32,28 @@ export class UsersFeatureService {
     }
   }
 
+  async updateUser(oldUsername: string, newUser: User): Promise<boolean> {
+    this.loading.set(true);
+    this.error.set(null);
+    this.spinner.cargarSpinner();
+    try {
+      if (oldUsername !== newUser.user) {
+        await this.territoryData.postUser(newUser);
+        this.territoryData.deleteUser(oldUsername);
+      } else {
+        await this.territoryData.postUser(newUser);
+      }
+      return true;
+    } catch (e) {
+      console.error('Error updating user:', e);
+      this.error.set('Error al actualizar el usuario.');
+      return false;
+    } finally {
+      this.loading.set(false);
+      this.spinner.cerrarSpinner();
+    }
+  }
+
   async deleteUser(idUser: string): Promise<boolean> {
     this.loading.set(true);
     this.error.set(null);
