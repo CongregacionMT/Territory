@@ -73,7 +73,7 @@ async function main() {
 
   const { selectedCongregation } = await prompt([
     {
-      type: 'list',
+      type: 'select',
       name: 'selectedCongregation',
       message: 'Selecciona la congregación para desplegar:',
       choices: availableCongregations,

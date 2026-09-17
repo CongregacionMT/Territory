@@ -122,19 +122,19 @@ export class DeparturesCardsComponent implements OnInit {
   getTailwindColor(color: string): { bg: string; border: string; text: string } {
     switch (color) {
       case 'primary':
-        return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800' };
+        return { bg: 'bg-blue-600', border: 'border-blue-700', text: 'text-white' };
       case 'success':
-        return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800' };
+        return { bg: 'bg-emerald-600', border: 'border-emerald-700', text: 'text-white' };
       case 'warning':
-        return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800' };
+        return { bg: 'bg-amber-500', border: 'border-amber-600', text: 'text-white' };
       case 'danger':
-        return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800' };
+        return { bg: 'bg-red-600', border: 'border-red-700', text: 'text-white' };
       case 'info':
-        return { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-800' };
+        return { bg: 'bg-cyan-600', border: 'border-cyan-700', text: 'text-white' };
       case 'secondary':
-        return { bg: 'bg-slate-100', border: 'border-slate-300', text: 'text-slate-800' };
+        return { bg: 'bg-slate-600', border: 'border-slate-700', text: 'text-white' };
       default:
-        return { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-800' };
+        return { bg: 'bg-slate-600', border: 'border-slate-700', text: 'text-white' };
     }
   }
 }

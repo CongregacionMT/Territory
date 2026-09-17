@@ -76,23 +76,31 @@ function getCardProperty(card: Card, prop: string): string | number | undefined 
             @for (dataList of sortedData(); track dataList) {
               @let rowStatus = paintRow(dataList);
               <tr
-                class="transition-colors hover:bg-slate-800/30"
+                class="transition-colors duration-150"
                 [ngClass]="{
-                  'bg-emerald-900/10 border-l-4 border-l-emerald-500': rowStatus === 'success',
-                  'bg-sky-900/10 border-l-4 border-l-sky-500': rowStatus === 'primary',
-                  'bg-amber-900/10 border-l-4 border-l-amber-500': rowStatus === 'warning',
-                  'bg-rose-900/10 border-l-4 border-l-rose-500': rowStatus === 'danger',
+                  'bg-green-500/20 hover:bg-green-500/30': rowStatus === 'success',
+                  'bg-blue-500/20 hover:bg-blue-500/30': rowStatus === 'primary',
+                  'bg-yellow-500/20 hover:bg-yellow-500/30': rowStatus === 'warning',
+                  'bg-red-500/20 hover:bg-red-500/30': rowStatus === 'danger',
                 }"
               >
-                <td class="pl-6 py-4">
+                <td
+                  class="pl-6 py-4 border-l-[6px] border-solid"
+                  [ngClass]="{
+                    'border-green-500': rowStatus === 'success',
+                    'border-blue-500': rowStatus === 'primary',
+                    'border-yellow-400': rowStatus === 'warning',
+                    'border-red-500': rowStatus === 'danger',
+                  }"
+                >
                   <div class="flex items-center gap-3 flex-wrap">
-                    <span class="font-semibold text-slate-200">
+                    <span class="font-bold text-white text-base tracking-wide">
                       Número {{ dataList[0].numberTerritory }}
                     </span>
                     @let personalEntry = getPersonalEntry(dataList[0].numberTerritory);
                     @if (personalEntry) {
                       <span
-                        class="px-2.5 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-bold rounded-md flex items-center gap-1"
+                        class="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold rounded-md flex items-center gap-1 shadow-sm"
                         [title]="'Publicador: ' + (personalEntry.publisher || '')"
                       >
                         <i class="fas fa-home"></i> Territorio Personal
@@ -103,28 +111,28 @@ function getCardProperty(card: Card, prop: string): string | number | undefined 
                 <td class="py-4">
                   @if (dataList[0].applesData && dataList[0].applesData.length > 0) {
                     <span
-                      class="px-3 py-1 bg-slate-800 text-slate-300 border border-slate-700 text-xs font-medium rounded-full"
+                      class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold rounded-full shadow-sm"
                     >
                       {{ dataList[0].applesData.length }} manzanas
                     </span>
                   } @else {
-                    <span class="text-slate-500 text-xs italic">Sin actividad</span>
+                    <span class="text-slate-400 text-xs italic font-medium">Sin actividad</span>
                   }
                 </td>
                 <td class="pr-6 py-4 text-right">
                   <div class="flex flex-col items-end">
-                    <span class="font-medium text-slate-200">
+                    <span class="font-bold text-white text-sm md:text-base">
                       @let lastEnd = getLastEnd(dataList);
                       @if (lastEnd) {
                         {{ lastEnd | date: 'dd/MM/yyyy' }}
                       } @else {
                         <span
-                          class="px-3 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-bold rounded-full"
+                          class="px-3 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold rounded-full shadow-sm"
                           >NUNCA</span
                         >
                       }
                     </span>
-                    <span class="text-slate-500 text-xs mt-1">
+                    <span class="text-slate-300 text-xs mt-1 font-medium">
                       {{
                         dataList[0].driver && dataList[0].driver !== 'Nadie'
                           ? 'Por ' + dataList[0].driver
