@@ -300,7 +300,13 @@ Ve a Firebase Console y actualiza:
 { path: 'congregation', component: TerritoryAssignmentComponent},
 ```
 
-### 4. Probar la aplicación
+### 4. Habilitar dominio en Google Maps API (Google Cloud)
+Para que el mapa interactivo cargue sin el error de "Referer", debes autorizar el nuevo dominio:
+1. Ve a la Consola de Google Cloud: **API y Servicios > Credenciales**.
+2. Edita la Clave de API que usas para mapas.
+3. En **Restricciones de aplicación** (Sitios web), agrega el nuevo dominio (ej: `*midominio.com/*`).
+
+### 5. Probar la aplicación
 
 ```bash
 npm run [localidad]
