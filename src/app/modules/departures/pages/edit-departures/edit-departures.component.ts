@@ -437,6 +437,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
     return this.getFormDepartures()
       .filter((departure) => !departure.isEvent)
       .filter((departure) => departure.cardStatus !== 'received')
+      .filter((departure) => departure.cardStatus !== 'canceled')
       .filter((departure) => departure.cardStatus !== 'not_required')
       .filter((departure) => !this.isBeforeTrackingStart(departure.date))
       .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
@@ -445,7 +446,9 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
   getReceivedCardCount(): number {
     return this.getFormDepartures().filter(
       (departure) =>
-        departure.cardStatus === 'received' || this.isBeforeTrackingStart(departure.date),
+        departure.cardStatus === 'received' ||
+        departure.cardStatus === 'canceled' ||
+        this.isBeforeTrackingStart(departure.date),
     ).length;
   }
 

@@ -242,6 +242,33 @@ export class DriverDashboardPageComponent implements OnInit {
     }
   }
 
+  async markAsReceived(card: DriverCard): Promise<void> {
+    if (
+      !confirm(
+        `¿Estás seguro de que querés marcar la salida del ${this.getDayOfWeek(card.departure.date || '')} como recibida?`,
+      )
+    ) {
+      return;
+    }
+
+    this.spinner.cargarSpinner();
+    try {
+      const weekId = card.weekId;
+      const departureId = card.departure.departureId;
+
+      if (!departureId) {
+        console.error('No departureId found');
+        return;
+      }
+
+      await this.territoryDataService.markDepartureAsReceived(weekId, departureId);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      this.spinner.cerrarSpinner();
+    }
+  }
+
   getNormalizedLocation(location: string): string {
     const locality = environment.localities.find((l) => l.key === location);
     return locality ? locality.territoryPrefix : location;

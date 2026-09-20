@@ -163,7 +163,7 @@
                   </span>
                 } @else if (card.status === 'canceled') {
                   <span class="text-slate-400 text-xs font-bold bg-slate-800 px-2 py-0.5 rounded flex items-center gap-1">
-                    <i class="fas fa-ban"></i> Cancelada
+                    <i class="fas fa-ban"></i> No se hizo
                   </span>
                 }
               </div>
@@ -245,9 +245,20 @@
                       </div>
                     </div>
 
-                    <!-- Only View or Notify action could be added here in the future -->
-                    <div class="text-sm font-semibold text-slate-500 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
-                      Asignada a {{ driver.driverName | titlecase }}
+                    <div class="flex flex-col sm:flex-row gap-2 mt-3 sm:mt-0 w-full sm:w-auto">
+                      @if (card.departure.territory && card.departure.territory.length > 0) {
+                        <a [routerLink]="getTerritoryRoute(card.departure.location, card.departure.territory[0])"
+                           [queryParams]="{ departureId: card.departure.departureId, weekId: card.weekId }"
+                           class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-center transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm">
+                          <i class="fas fa-paper-plane"></i>
+                          Enviar
+                        </a>
+                      }
+                      <button (click)="markAsReceived(card)"
+                              class="flex-1 sm:flex-none bg-slate-800 hover:bg-emerald-950/40 text-slate-300 hover:text-emerald-400 border border-slate-700 font-bold py-2 px-3 rounded-xl text-center transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm">
+                        <i class="fas fa-check"></i>
+                        Recibida
+                      </button>
                     </div>
 
                   </div>
