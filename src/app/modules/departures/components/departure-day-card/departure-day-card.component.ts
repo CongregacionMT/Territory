@@ -107,7 +107,7 @@ export class DepartureDayCardComponent {
       return '#';
     }
     const cleanNumber = territoryNumber.replace(/\D/g, '');
-    return `https://territorios-wheelwright.web.app/territorios/${locationPrefix}-${cleanNumber}`;
+    return `${window.location.origin}/territorios/${locationPrefix}-${cleanNumber}`;
   }
 
   onChangeInput(event: Event, controlName: string): void {

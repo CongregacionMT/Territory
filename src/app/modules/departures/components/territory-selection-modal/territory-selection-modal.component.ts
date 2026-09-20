@@ -228,7 +228,8 @@ export class TerritorySelectionModalComponent {
     ) {
       return '#';
     }
-    return `https://www.territoryhelper.com/es/Territory/${locationPrefix}-${territoryNumber}`;
+    const cleanNumber = territoryNumber.replace(/\D/g, '');
+    return `${window.location.origin}/territorios/${locationPrefix}-${cleanNumber}`;
   }
 
   closeModal(): void {
