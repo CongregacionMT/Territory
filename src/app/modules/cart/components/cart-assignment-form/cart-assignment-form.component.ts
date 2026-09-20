@@ -72,7 +72,7 @@ export class CartAssignmentFormComponent implements OnInit {
     return this.fb.group({
       assignment: new FormControl(cart.assignment || '', Validators.required.bind(Validators)),
       date: new FormControl(cart.date || '', Validators.required.bind(Validators)),
-      schedule: new FormControl(cart.schedule || '', Validators.required.bind(Validators)),
+      schedule: new FormControl(cart.schedule || ''),
       location: new FormControl(cart.location?.name || '', Validators.required.bind(Validators)),
       color: new FormControl(cart.color || 'secondary', Validators.required.bind(Validators)),
     });
