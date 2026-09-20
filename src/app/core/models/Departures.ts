@@ -1,4 +1,4 @@
-export type DepartureCardStatus = 'pending' | 'received' | 'not_required';
+export type DepartureCardStatus = 'pending' | 'received' | 'not_required' | 'canceled';
 
 export interface Departure {
   departureId?: string;

@@ -1,8 +1,8 @@
-<div class="container px-4">
+<div class="container px-4 mx-auto">
 
   @if(groupKeys().length > 1){
-    <div class="flex justify-center">
-      <h1 class="text-3xl md:text-4xl font-bold text-white mt-2 mb-6">Selecciona tu grupo</h1>
+    <div class="flex justify-center text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-white mt-2 mb-6 leading-tight">Selecciona tu grupo</h1>
     </div>
   }
 
@@ -25,7 +25,7 @@
     </div>
   }
 
-  <div class="card-container flex justify-center mb-6">
+  <div class="flex flex-wrap justify-center gap-6 mb-6">
     @for (group of groupKeys(); track group) {
       <app-card-xl
         [mapName]="group.name"
@@ -38,7 +38,7 @@
   @if(groupKeys().length > 1){
     <div class="flex justify-center mb-8">
       <button
-        class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer"
+        class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg font-semibold transition-colors shadow-md cursor-pointer w-full sm:w-auto"
         routerLink="publicadores"
       >No sé en qué grupo estoy 🤔</button>
     </div>
@@ -46,10 +46,10 @@
 
   <!-- Admin actions -->
   @if (isAdmin) {
-    <div class="flex flex-col items-center gap-4 my-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-8 w-full max-w-5xl mx-auto">
       <button
         type="button"
-        class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer w-full max-w-xs text-center"
+        class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg font-semibold transition-colors shadow-md cursor-pointer w-full text-center"
         routerLink="editar"
       >
         Editar salidas
@@ -57,7 +57,7 @@
 
       <button
         type="button"
-        class="px-8 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer w-full max-w-xs text-center"
+        class="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white text-base sm:text-lg font-semibold transition-colors shadow-md cursor-pointer w-full text-center"
         routerLink="gestion-publicadores"
       >
         Gestionar Publicadores
@@ -65,14 +65,15 @@
 
       <button
         type="button"
-        class="px-8 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer w-full max-w-xs text-center"
+        class="px-6 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-base sm:text-lg font-semibold transition-colors shadow-md cursor-pointer w-full text-center"
         routerLink="/usuarios"
       >
         Gestionar Conductores
       </button>
+
       <button
         type="button"
-        class="px-8 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-lg font-semibold transition-colors shadow-md cursor-pointer w-full max-w-xs text-center"
+        class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-base sm:text-lg font-semibold transition-colors shadow-md cursor-pointer w-full text-center"
         routerLink="estadisticas"
       >
         Estadísticas

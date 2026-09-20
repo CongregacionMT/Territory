@@ -1,4 +1,5 @@
 import { Component, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
@@ -20,7 +21,7 @@ import { MatDialogModule } from '@angular/material/dialog';
   templateUrl: './users-page.component.html',
   styleUrls: ['./users-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, MatDialogModule],
+  imports: [ReactiveFormsModule, MatDialogModule, NgClass],
   providers: [UsersFeatureService, DialogService],
 })
 export class UsersPageComponent {
@@ -31,18 +32,20 @@ export class UsersPageComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   showError = signal<boolean>(false);
+  editingUserId = signal<string | null>(null);
 
   formUser = this.fb.nonNullable.group({
     user: [
       '',
       [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
     ],
+    displayName: [''],
     password: [
       '',
       [(control: AbstractControl): ValidationErrors | null => Validators.required(control)],
     ],
     tokens: this.fb.nonNullable.control<string[]>([]),
-    rol: this.fb.nonNullable.control<'admin' | 'conductor'>('conductor'),
+    isAdmin: this.fb.nonNullable.control<boolean>(false),
   });
 
   async copyToClipboard(token: string | string[]): Promise<void> {
@@ -70,7 +73,25 @@ export class UsersPageComponent {
     });
   }
 
-  async createUser(): Promise<void> {
+  editUser(user: User): void {
+    this.editingUserId.set(user.user);
+    this.formUser.patchValue({
+      user: user.user,
+      displayName: user.displayName || '',
+      password: user.password || '',
+      isAdmin: user.rol === 'admin',
+      tokens: user.tokens || [],
+    });
+    // Scroll to form smoothly
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  cancelEdit(): void {
+    this.editingUserId.set(null);
+    this.formUser.reset({ isAdmin: false, tokens: [], displayName: '' });
+  }
+
+  async submitUser(): Promise<void> {
     if (this.formUser.invalid) {
       this.showError.set(true);
       return;
@@ -80,21 +101,38 @@ export class UsersPageComponent {
     const rawVal = this.formUser.getRawValue();
     const userPayload: User = {
       user: rawVal.user,
+      displayName: rawVal.displayName,
       password: rawVal.password,
-      rol: rawVal.rol,
+      rol: rawVal.isAdmin ? 'admin' : 'conductor',
       tokens: rawVal.tokens,
     };
 
-    const success = await this.featureService.createUser(userPayload);
-    if (success) {
-      this.formUser.reset({ rol: 'conductor', tokens: [] });
-      this._snackBar.open('👤 Usuario creado con éxito', 'ok', {
-        duration: 3000,
-      });
+    const editingId = this.editingUserId();
+
+    if (editingId) {
+      const success = await this.featureService.updateUser(editingId, userPayload);
+      if (success) {
+        this.cancelEdit();
+        this._snackBar.open('👤 Usuario actualizado con éxito', 'ok', {
+          duration: 3000,
+        });
+      } else {
+        this._snackBar.open('❌ Error al actualizar usuario', 'ok', {
+          duration: 3000,
+        });
+      }
     } else {
-      this._snackBar.open('❌ Error al crear usuario', 'ok', {
-        duration: 3000,
-      });
+      const success = await this.featureService.createUser(userPayload);
+      if (success) {
+        this.cancelEdit();
+        this._snackBar.open('👤 Usuario creado con éxito', 'ok', {
+          duration: 3000,
+        });
+      } else {
+        this._snackBar.open('❌ Error al crear usuario', 'ok', {
+          duration: 3000,
+        });
+      }
     }
   }
 

@@ -22,16 +22,21 @@
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <div class="flex items-center gap-3 flex-wrap">
             <span class="text-lg font-bold text-white tracking-tight truncate">
-              {{ user.user }}
+              {{ user.displayName || user.user }}
             </span>
+            <span class="text-sm text-slate-400">(@{{ user.user }})</span>
             <span
-              class="px-2.5 py-0.5 text-xs font-bold rounded-full uppercase tracking-wider"
-              [class]="user.rol === 'admin'
-                ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
-                : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'"
+              class="px-2.5 py-0.5 text-xs font-bold rounded-full uppercase tracking-wider bg-sky-500/15 text-sky-400 border border-sky-500/30"
             >
-              {{ user.rol }}
+              Conductor
             </span>
+            @if (user.rol === 'admin') {
+              <span
+                class="px-2.5 py-0.5 text-xs font-bold rounded-full uppercase tracking-wider bg-purple-500/15 text-purple-400 border border-purple-500/30"
+              >
+                Administrador
+              </span>
+            }
           </div>
 
           <div class="flex items-center text-sm text-slate-400 gap-2">
@@ -65,7 +70,16 @@
         </div>
 
         <!-- Acciones -->
-        <div class="flex sm:flex-col items-end justify-end flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/80">
+        <div class="flex sm:flex-col items-end justify-end flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/80 gap-2">
+          <button
+            type="button"
+            (click)="editUser(user)"
+            class="w-full sm:w-auto bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 hover:border-sky-500/50 font-semibold px-3.5 py-2 rounded-lg text-sm transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            aria-label="Editar usuario {{ user.user }}"
+          >
+            <i class="fas fa-edit text-xs"></i>
+            <span>Editar</span>
+          </button>
           <button
             type="button"
             (click)="deleteUser(user.user)"
@@ -86,29 +100,54 @@
     }
   </div>
 
-  <!-- Formulario de Creación -->
+  <!-- Formulario de Creación / Edición -->
   <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm">
     <div class="mb-5">
       <h2 class="text-xl font-bold text-white tracking-tight m-0 flex items-center gap-2">
-        <i class="fas fa-user-plus text-sky-400 text-lg"></i>
-        Crear nuevo usuario
+        @if (editingUserId()) {
+          <i class="fas fa-user-edit text-purple-400 text-lg"></i>
+          Editar usuario
+        } @else {
+          <i class="fas fa-user-plus text-sky-400 text-lg"></i>
+          Crear nuevo usuario
+        }
       </h2>
-      <p class="text-slate-400 text-sm mt-1 mb-0">Agregá un nuevo conductor o administrador</p>
+      <p class="text-slate-400 text-sm mt-1 mb-0">
+        @if (editingUserId()) {
+          Modificá los datos o permisos de este usuario
+        } @else {
+          Agregá un nuevo conductor o administrador
+        }
+      </p>
     </div>
 
-    <form [formGroup]="formUser" (ngSubmit)="createUser()" class="flex flex-col gap-4">
+    <form [formGroup]="formUser" (ngSubmit)="submitUser()" class="flex flex-col gap-4">
       
       <!-- Usuario -->
       <div class="flex flex-col gap-1.5">
         <label for="new-user" class="text-slate-300 font-semibold text-sm">
-          Nombre de usuario
+          Nombre de usuario (Login)
         </label>
         <input
           id="new-user"
           type="text"
           class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors placeholder:text-slate-600"
-          placeholder="Ej: Juan Pérez"
+          placeholder="Ej: jperez (sin espacios)"
           formControlName="user"
+        />
+      </div>
+
+      <!-- Display Name -->
+      <div class="flex flex-col gap-1.5">
+        <label for="new-display-name" class="text-slate-300 font-semibold text-sm">
+          Nombre para mostrar
+        </label>
+        <input
+          id="new-display-name"
+          type="text"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors placeholder:text-slate-600"
+          placeholder="Ej: Juan Pérez"
+          formControlName="displayName"
         />
       </div>
 
@@ -123,22 +162,21 @@
           class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors placeholder:text-slate-600 font-mono"
           placeholder="Contraseña de acceso"
           formControlName="password"
+          autocomplete="new-password"
+          spellcheck="false"
+          autocapitalize="none"
         />
       </div>
 
       <!-- Rol -->
-      <div class="flex flex-col gap-1.5">
-        <label for="new-rol" class="text-slate-300 font-semibold text-sm">
-          Rol asignado
+      <div class="flex items-center gap-3 bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-3 cursor-pointer hover:border-sky-500/50 transition-colors">
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" formControlName="isAdmin" class="sr-only peer">
+          <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
         </label>
-        <select
-          id="new-rol"
-          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-base text-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
-          formControlName="rol"
-        >
-          <option value="conductor">Conductor</option>
-          <option value="admin">Administrador</option>
-        </select>
+        <span class="text-slate-300 font-semibold text-sm cursor-pointer">
+          Dar permisos de Administrador
+        </span>
       </div>
 
       <!-- Mensaje de Error -->
@@ -156,14 +194,31 @@
       }
 
       <!-- Botón de Envío -->
-      <div class="pt-2">
+      <div class="pt-2 flex flex-col sm:flex-row gap-3">
         <button
           type="submit"
-          class="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-sky-900/20"
+          class="w-full sm:w-auto text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+          [ngClass]="editingUserId() ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/20' : 'bg-sky-600 hover:bg-sky-500 shadow-sky-900/20'"
         >
-          <i class="fas fa-plus"></i>
-          <span>Crear usuario</span>
+          @if (editingUserId()) {
+            <i class="fas fa-save"></i>
+            <span>Guardar cambios</span>
+          } @else {
+            <i class="fas fa-plus"></i>
+            <span>Crear usuario</span>
+          }
         </button>
+        
+        @if (editingUserId()) {
+          <button
+            type="button"
+            (click)="cancelEdit()"
+            class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-6 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i class="fas fa-times"></i>
+            <span>Cancelar</span>
+          </button>
+        }
       </div>
 
     </form>

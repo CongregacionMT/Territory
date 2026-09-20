@@ -1,4 +1,5 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { NgStyle } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
@@ -9,7 +10,7 @@ import { AuthService } from '@core/services/auth.service';
   templateUrl: './login-page.component.html',
   styleUrls: ['./login-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, NgStyle],
 })
 export class LoginPageComponent {
   private readonly router = inject(Router);

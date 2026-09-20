@@ -1,0 +1,281 @@
+<div class="min-h-screen py-4 sm:py-8 px-4 sm:px-6 lg:px-8 text-slate-200">
+  <!-- Header -->
+  <div class="max-w-5xl mx-auto mb-8 sm:mb-12">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2 flex items-center gap-3 tracking-tight">
+          <i class="fas fa-steering-wheel text-sky-400"></i>
+          Mis Tarjetas
+        </h1>
+        <p class="text-slate-400 text-sm sm:text-base">
+          Hola <strong class="text-sky-300 font-bold">{{ driverName() | titlecase }}</strong>. Revisá si estás al día con tus tarjetas y asegurate de enviarlas al siervo de territorios.
+        </p>
+      </div>
+      <button
+        routerLink="/home"
+        class="bg-slate-800/80 hover:bg-slate-700 border border-slate-700/50 text-slate-200 font-semibold py-2.5 px-5 rounded-xl transition-all active:scale-95 text-sm flex items-center gap-2 backdrop-blur-sm"
+      >
+        <i class="fas fa-home"></i> Volver al inicio
+      </button>
+    </div>
+  </div>
+
+  @if (isAdmin()) {
+    <div class="max-w-5xl mx-auto mb-8 flex border-b border-slate-800">
+      <button
+        type="button"
+        (click)="activeTab.set('mis-tarjetas')"
+        class="px-6 py-3 font-semibold text-sm sm:text-base transition-colors border-b-2"
+        [ngClass]="activeTab() === 'mis-tarjetas' ? 'border-sky-500 text-sky-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+      >
+        <i class="fas fa-user-circle mr-2"></i> Mis Tarjetas
+      </button>
+      <button
+        type="button"
+        (click)="activeTab.set('control')"
+        class="px-6 py-3 font-semibold text-sm sm:text-base transition-colors border-b-2"
+        [ngClass]="activeTab() === 'control' ? 'border-purple-500 text-purple-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+      >
+        <i class="fas fa-users-cog mr-2"></i> Control de Conductores
+      </button>
+    </div>
+  }
+
+  @if (activeTab() === 'mis-tarjetas') {
+    <div class="max-w-5xl mx-auto space-y-10">
+    
+    <!-- Pending & Delayed Cards -->
+    <section>
+      <div class="flex items-center justify-between mb-6 border-b border-slate-800 pb-3">
+        <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+            <i class="fas fa-clock text-blue-400 text-sm"></i>
+          </div>
+          Pendientes
+        </h2>
+        <span class="bg-slate-800 text-slate-300 text-xs font-bold px-3 py-1 rounded-full">
+          {{ pendingCards().length }}
+        </span>
+      </div>
+
+      @if (pendingCards().length === 0) {
+        <div class="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-8 sm:p-12 text-center flex flex-col items-center justify-center">
+          <div class="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4">
+            <i class="fas fa-check-circle text-3xl text-emerald-500/50"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-300 mb-1">¡Todo al día!</h3>
+          <p class="text-slate-500 text-sm">No tenés ninguna tarjeta de territorio pendiente.</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          @for (card of pendingCards(); track card.departure.departureId) {
+            <div class="group relative bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+                 [ngClass]="card.status === 'delayed' ? 'border-rose-500/30 hover:border-rose-500/60 hover:shadow-rose-500/10' : 'hover:border-sky-500/50 hover:shadow-sky-500/10'">
+              
+              <!-- Indicator ring -->
+              <div class="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                   [ngClass]="card.status === 'delayed' ? 'bg-gradient-to-r from-rose-500/10 to-transparent' : 'bg-gradient-to-r from-sky-500/10 to-transparent'"></div>
+              
+              <div class="relative z-10 flex flex-col h-full">
+                <!-- Card Header -->
+                <div class="flex justify-between items-start mb-4">
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold uppercase tracking-wider mb-1"
+                          [ngClass]="card.status === 'delayed' ? 'text-rose-400' : 'text-sky-400'">
+                      {{ getDayOfWeek(card.departure.date || '') }} • {{ card.departure.schedule }}hs
+                    </span>
+                    <h3 class="text-xl font-extrabold text-white leading-tight break-words">
+                      {{ card.departure.point }}
+                    </h3>
+                  </div>
+                  @if (card.status === 'delayed') {
+                    <div class="flex items-center gap-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap animate-pulse">
+                      <i class="fas fa-exclamation-circle"></i>
+                      Atrasada
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-1.5 bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
+                      <i class="fas fa-hourglass-half"></i>
+                      En fecha
+                    </div>
+                  }
+                </div>
+
+                <!-- Territories -->
+                <div class="mb-6 flex-grow">
+                  <p class="text-slate-400 text-xs font-semibold uppercase mb-2">Territorios a cubrir:</p>
+                  <div class="flex flex-wrap gap-2">
+                    @for (territory of card.departure.territory; track territory) {
+                      <span class="bg-slate-800 text-slate-200 text-sm font-semibold px-3 py-1.5 rounded-lg border border-slate-700/50">
+                        {{ territory }}
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row gap-3 mt-auto pt-4 border-t border-slate-800/60">
+                  @if (card.departure.territory && card.departure.territory.length > 0) {
+                    <a [routerLink]="getTerritoryRoute(card.departure.location, card.departure.territory[0])"
+                       [queryParams]="{ departureId: card.departure.departureId, weekId: card.weekId }"
+                       class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-center transition-all active:scale-95 flex items-center justify-center gap-2">
+                      <i class="fas fa-paper-plane text-sm"></i>
+                      Enviar tarjeta
+                    </a>
+                  }
+                  <button (click)="markAsCanceled(card)"
+                          class="flex-1 sm:flex-none bg-slate-800 hover:bg-rose-950/40 text-slate-300 hover:text-rose-400 border border-slate-700 font-bold py-2.5 px-4 rounded-xl text-center transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fas fa-times text-sm"></i>
+                    No se hizo
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- History Cards (Received & Canceled) -->
+    @if (historyCards().length > 0) {
+      <section>
+        <div class="flex items-center justify-between mb-6 border-b border-slate-800 pb-3">
+          <h2 class="text-lg sm:text-xl font-bold text-slate-300 flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+              <i class="fas fa-history text-slate-400 text-sm"></i>
+            </div>
+            Historial de salidas
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          @for (card of historyCards(); track card.departure.departureId) {
+            <div class="bg-slate-900/40 border border-slate-800/60 rounded-xl p-4 flex flex-col relative overflow-hidden transition-colors hover:bg-slate-900/60">
+              
+              <div class="flex justify-between items-start mb-2">
+                <span class="text-xs font-bold text-slate-500 uppercase">
+                  {{ getDayOfWeek(card.departure.date || '') }} {{ card.departure.date | date:'dd/MM' }} • {{ card.departure.schedule }}hs
+                </span>
+                
+                @if (card.status === 'received') {
+                  <span class="text-emerald-500 text-xs font-bold bg-emerald-500/10 px-2 py-0.5 rounded flex items-center gap-1">
+                    <i class="fas fa-check"></i> Enviada
+                  </span>
+                } @else if (card.status === 'canceled') {
+                  <span class="text-slate-400 text-xs font-bold bg-slate-800 px-2 py-0.5 rounded flex items-center gap-1">
+                    <i class="fas fa-ban"></i> No se hizo
+                  </span>
+                }
+              </div>
+              
+              <h4 class="text-sm font-bold text-slate-300 mb-2 truncate" [title]="card.departure.point">
+                {{ card.departure.point }}
+              </h4>
+              
+              <div class="flex flex-wrap gap-1 mt-auto">
+                @for (territory of card.departure.territory; track territory) {
+                  <span class="text-[10px] font-semibold text-slate-400 bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-700/30">
+                    {{ territory }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    </div>
+  }
+
+  @if (activeTab() === 'control') {
+    <div class="max-w-5xl mx-auto space-y-10">
+      <div class="flex flex-col gap-6">
+        @for (driver of allDriversControlCards(); track driver.driverName) {
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
+            
+            <!-- Driver Header -->
+            <div class="bg-slate-800/50 p-4 sm:p-5 flex justify-between items-center border-b border-slate-800">
+              <h3 class="text-xl font-bold text-white flex items-center gap-3 m-0">
+                <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-300">
+                  <i class="fas fa-user"></i>
+                </div>
+                {{ driver.driverName | titlecase }}
+              </h3>
+              <div class="flex gap-3">
+                @if (driver.delayed > 0) {
+                  <span class="bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-3 py-1 rounded-lg text-sm flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i> {{ driver.delayed }} Atrasadas
+                  </span>
+                }
+                <span class="bg-sky-500/10 border border-sky-500/20 text-sky-400 font-bold px-3 py-1 rounded-lg text-sm flex items-center gap-2">
+                  <i class="fas fa-clock"></i> {{ driver.pending }} Pendientes
+                </span>
+              </div>
+            </div>
+
+            <!-- Driver Cards List -->
+            <div class="p-4 sm:p-5">
+              <div class="flex flex-col gap-3">
+                @for (card of driver.cards; track card.departure.departureId) {
+                  <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors hover:border-slate-700"
+                       [ngClass]="{'border-rose-900/50 bg-rose-950/10': card.status === 'delayed'}">
+                    
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider"
+                              [ngClass]="card.status === 'delayed' ? 'text-rose-400' : 'text-slate-400'">
+                          {{ getDayOfWeek(card.departure.date || '') }} {{ card.departure.date | date:'dd/MM' }} • {{ card.departure.schedule }}hs
+                        </span>
+                        @if (card.status === 'delayed') {
+                          <span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse">
+                            RETRASADA {{ card.daysDelayed }} DÍAS
+                          </span>
+                        }
+                      </div>
+                      <h4 class="text-lg font-bold text-slate-200 m-0">
+                        {{ card.departure.point }}
+                      </h4>
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        @for (territory of card.departure.territory; track territory) {
+                          <span class="text-xs font-semibold text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                            {{ territory }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2 mt-3 sm:mt-0 w-full sm:w-auto">
+                      @if (card.departure.territory && card.departure.territory.length > 0) {
+                        <a [routerLink]="getTerritoryRoute(card.departure.location, card.departure.territory[0])"
+                           [queryParams]="{ departureId: card.departure.departureId, weekId: card.weekId }"
+                           class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-center transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm">
+                          <i class="fas fa-paper-plane"></i>
+                          Enviar
+                        </a>
+                      }
+                      <button (click)="markAsReceived(card)"
+                              class="flex-1 sm:flex-none bg-slate-800 hover:bg-emerald-950/40 text-slate-300 hover:text-emerald-400 border border-slate-700 font-bold py-2 px-3 rounded-xl text-center transition-all active:scale-95 flex items-center justify-center gap-1.5 text-sm">
+                        <i class="fas fa-check"></i>
+                        Recibida
+                      </button>
+                    </div>
+
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
+            <div class="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4">
+              <i class="fas fa-check-double text-3xl text-emerald-500/50"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-300 mb-1">Todos los conductores al día</h3>
+            <p class="text-slate-500 text-sm">No hay tarjetas pendientes ni retrasadas en el sistema.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

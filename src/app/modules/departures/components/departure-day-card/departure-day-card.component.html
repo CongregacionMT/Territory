@@ -40,7 +40,7 @@
               class="w-5 h-5 cursor-pointer accent-green-500 rounded border-slate-600 bg-slate-800"
               type="checkbox"
               [id]="'cardReceived_' + index() + '_' + groupIndex()"
-              [checked]="cardStatus === 'received'"
+              [checked]="cardStatus === 'received' || cardStatus === 'canceled'"
               (change)="onToggleCardReceived($event)"
             />
             <label class="text-sm font-bold text-slate-300 cursor-pointer select-none" [for]="'cardReceived_' + index() + '_' + groupIndex()">
@@ -103,8 +103,8 @@
               Conductor
             </option>
             @for (driver of drivers(); track driver.user) {
-              <option [value]="driver.user" [selected]="driver.user === dayFormGroup().get('driver')?.value">
-                {{ driver.user }}
+              <option [value]="driver.displayName || driver.user" [selected]="(driver.displayName || driver.user) === dayFormGroup().get('driver')?.value">
+                {{ driver.displayName || driver.user }}
               </option>
             }
           </select>

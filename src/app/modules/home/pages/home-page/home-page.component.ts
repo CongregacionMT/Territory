@@ -11,6 +11,7 @@ export interface NavOption {
   route: string;
   iconPath: string;
   requireAdmin?: boolean;
+  requireDriver?: boolean;
 }
 
 @Component({
@@ -28,6 +29,12 @@ export class HomePageComponent implements OnInit {
 
   navOptions = signal<NavOption[]>([
     { label: 'Territorios', route: '../territorios', iconPath: 'assets/img/map.png' },
+    {
+      label: 'Mis Tarjetas',
+      route: '../mis-tarjetas',
+      iconPath: 'assets/img/asignacion.png',
+      requireDriver: true,
+    },
     { label: 'Salidas', route: '../salidas', iconPath: 'assets/img/salidas.png' },
     { label: 'Carrito', route: '../carrito', iconPath: 'assets/img/carrito.png' },
     {
