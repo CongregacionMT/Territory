@@ -47,6 +47,22 @@ export class StorageService {
   }
 
   /**
+   * Elimina todos los elementos del sessionStorage que empiecen con un prefijo.
+   */
+  removeItemsByPrefix(prefix: string): void {
+    if (!this.isBrowser) return;
+    try {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith(prefix)) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.error(`Error removing items by prefix ${prefix} from sessionStorage`, error);
+    }
+  }
+
+  /**
    * Limpia todo el sessionStorage.
    */
   clear(): void {

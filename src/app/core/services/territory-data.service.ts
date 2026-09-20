@@ -15,6 +15,7 @@ import {
   setDoc,
   runTransaction,
 } from '@angular/fire/firestore';
+import { getDocsFromServer } from 'firebase/firestore';
 import { Observable, tap, of } from 'rxjs';
 import { DataRural } from '@core/models/DataRural';
 import { CampaignService } from './campaign.service';
@@ -460,6 +461,18 @@ export class TerritoryDataService {
     const cardRef = collection(this.firestore, collectionParam);
     const q = query(cardRef, orderBy('creation', 'asc'));
     return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
+  }
+
+  async getCardTerritorieRegisterTableOnce(collectionParam: string): Promise<Card[]> {
+    const cardRef = collection(this.firestore, collectionParam);
+    const q = query(cardRef, orderBy('creation', 'asc'));
+    try {
+      const snapshot = await getDocsFromServer(q);
+      return snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }) as Card);
+    } catch (e) {
+      console.error(`Error fetching once for ${collectionParam}:`, e);
+      return [];
+    }
   }
 
   async updateCardInCollection(

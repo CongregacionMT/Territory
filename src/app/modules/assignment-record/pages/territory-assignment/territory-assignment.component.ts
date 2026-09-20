@@ -14,7 +14,6 @@ import { HttpClient } from '@angular/common/http';
 import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin, take } from 'rxjs';
 
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { environment } from '@environments/environment';
@@ -47,6 +46,7 @@ export class TerritoryAssignmentComponent implements OnInit {
   dataListFull = signal<Card[][]>([]);
   filterDataListFull = signal<Card[][]>([]);
   selectedValueFilter = signal<string>('1');
+  availableYears = signal<number[]>([]);
   appleCount = signal<number>(0);
   s13JPG = signal<ArrayBuffer | null>(null);
   loadingData = signal(false);
@@ -116,7 +116,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     }
 
     const requests = territories.map((territory: TerritoryNumberData) =>
-      this.territoryDataService.getCardTerritorieRegisterTable(territory.collection).pipe(take(1)),
+      this.territoryDataService.getCardTerritorieRegisterTableOnce(territory.collection),
     );
 
     if (requests.length === 0) {
@@ -126,109 +126,138 @@ export class TerritoryAssignmentComponent implements OnInit {
       return;
     }
 
-    forkJoin(requests)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (results: Card[][]) => {
-          const filteredResults = results.map((cardList: Card[]) => {
-            if (!cardList) return [];
-            const list = cardList.filter((card) => {
-              if ((card as unknown as { isReset?: boolean })?.isReset) return false;
-              let checkedAppleCount = 0;
-              if (card.applesData) {
-                checkedAppleCount = card.applesData.filter((apple) => apple.checked).length;
-              }
-              const hasDriver = card.driver && card.driver.trim() !== '';
-              return (
-                checkedAppleCount > 0 ||
-                hasDriver ||
-                (card.applesData && card.applesData.length > 1) ||
-                (card.id &&
-                  (card.id.startsWith('PostCampaña') || card.id.startsWith('Campaña-undefined')))
-              );
-            });
-
-            // Deduplicate entries by driver + start + end. If duplicates exist, prefer:
-            // 1) entry with a non-'0' end date
-            // 2) entry with more checked apples
-            // 3) newer creation date
-            const map = new Map<string, Card>();
-            for (const card of list) {
-              const keyDriver = (card.driver || '').trim();
-              const keyStart = String(card.start || '');
-              const keyEnd = String(card.end || '');
-              const key = `${keyDriver}||${keyStart}||${keyEnd}`;
-
-              const existing = map.get(key);
-              if (!existing) {
-                map.set(key, card);
-                continue;
-              }
-
-              const existingEnd = String(existing.end || '');
-              const cardEnd = String(card.end || '');
-              const existingChecked = (existing.applesData || []).filter((a) => a.checked).length;
-              const cardChecked = (card.applesData || []).filter((a) => a.checked).length;
-
-              // Prefer one with non-'0' end
-              if (existingEnd === '0' && cardEnd !== '0') {
-                map.set(key, card);
-                continue;
-              }
-              if (existingEnd !== '0' && cardEnd === '0') {
-                continue;
-              }
-
-              // Prefer more checked apples
-              if (cardChecked > existingChecked) {
-                map.set(key, card);
-                continue;
-              }
-              if (cardChecked < existingChecked) {
-                continue;
-              }
-
-              // As last resort prefer newer creation
-              try {
-                const existingDate = this.getCardDate(existing).getTime();
-                const cardDate = this.getCardDate(card).getTime();
-                if (cardDate > existingDate) map.set(key, card);
-              } catch {
-                // keep existing
-              }
+    Promise.all(requests)
+      .then((results: Card[][]) => {
+        const filteredResults = results.map((cardList: Card[]) => {
+          if (!cardList) return [];
+          const list = cardList.filter((card) => {
+            if ((card as unknown as { isReset?: boolean })?.isReset) return false;
+            let checkedAppleCount = 0;
+            if (card.applesData) {
+              checkedAppleCount = card.applesData.filter((apple) => apple.checked).length;
             }
-
-            return Array.from(map.values());
+            const hasDriver = card.driver && card.driver.trim() !== '';
+            return (
+              checkedAppleCount > 0 ||
+              hasDriver ||
+              (card.applesData && card.applesData.length > 1) ||
+              (card.id &&
+                (card.id.startsWith('PostCampaña') || card.id.startsWith('Campaña-undefined')))
+            );
           });
 
-          if (updateState) {
-            this.dataListFull.set(filteredResults);
-            this.sortByDate(this.selectedValueFilter());
-            this.spinner.cerrarSpinner();
-            this.loadingData.set(true);
+          // Deduplicate entries by driver + start + end. If duplicates exist, prefer:
+          // 1) entry with a non-'0' end date
+          // 2) entry with more checked apples
+          // 3) newer creation date
+          const map = new Map<string, Card>();
+          for (const card of list) {
+            const keyDriver = (card.driver || '').trim();
+            const keyStart = String(card.start || '');
+            const keyEnd = String(card.end || '');
+            const key = `${keyDriver}||${keyStart}||${keyEnd}`;
+
+            const existing = map.get(key);
+            if (!existing) {
+              map.set(key, card);
+              continue;
+            }
+
+            const existingEnd = String(existing.end || '');
+            const cardEnd = String(card.end || '');
+            const existingChecked = (existing.applesData || []).filter((a) => a.checked).length;
+            const cardChecked = (card.applesData || []).filter((a) => a.checked).length;
+
+            // Prefer one with non-'0' end
+            if (existingEnd === '0' && cardEnd !== '0') {
+              map.set(key, card);
+              continue;
+            }
+            if (existingEnd !== '0' && cardEnd === '0') {
+              continue;
+            }
+
+            // Prefer more checked apples
+            if (cardChecked > existingChecked) {
+              map.set(key, card);
+              continue;
+            }
+            if (cardChecked < existingChecked) {
+              continue;
+            }
+
+            // As last resort prefer newer creation
+            try {
+              const existingDate = this.getCardDate(existing).getTime();
+              const cardDate = this.getCardDate(card).getTime();
+              if (cardDate > existingDate) map.set(key, card);
+            } catch {
+              // keep existing
+            }
           }
-        },
-        error: (err) => {
-          console.error('Error fetching territory data:', err);
-          if (updateState) {
-            this.spinner.cerrarSpinner();
+
+          return Array.from(map.values());
+        });
+
+        if (updateState) {
+          // Extraer años disponibles basados en la tarjeta más antigua
+          const currentYear = new Date().getFullYear();
+          let minYear = currentYear;
+
+          filteredResults.forEach((territoryCards) => {
+            territoryCards.forEach((card) => {
+              const date = this.getCardDate(card);
+              if (date && !Number.isNaN(date.getTime()) && date.getTime() > 0) {
+                const y = date.getFullYear();
+                if (y > 2000 && y < minYear) {
+                  minYear = y;
+                }
+              }
+            });
+          });
+
+          const years = [];
+          for (let y = currentYear; y >= minYear; y--) {
+            years.push(y);
           }
-        },
+          this.availableYears.set(years);
+
+          this.dataListFull.set(filteredResults);
+          this.sortByDate(this.selectedValueFilter());
+          this.spinner.cerrarSpinner();
+          this.loadingData.set(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching territory data:', err);
+        if (updateState) {
+          this.spinner.cerrarSpinner();
+        }
       });
   }
 
   refreshData(): void {
+    if (this.hasPendingChanges()) {
+      if (
+        !confirm(
+          'Tenés cambios sin guardar. Si recargás la página, vas a perder esos cambios locales. ¿Querés continuar?',
+        )
+      ) {
+        return;
+      }
+      // Limpiamos los cambios locales si decidió continuar
+      this.pendingChanges.set({});
+      this.pendingDeletes.set({});
+      this.editingCardKey.set(null);
+    }
+
     this.spinner.cargarSpinner();
     const currentPath = this.territoryPath();
     const storageKey = this.getStorageKeyByPath(currentPath);
 
     this.storageService.removeItem(storageKey);
     this.storageService.removeItem('numberTerritory');
-    Object.keys(sessionStorage).forEach((key) => {
-      if (key.startsWith('statisticData')) {
-        sessionStorage.removeItem(key);
-      }
-    });
+    this.storageService.removeItemsByPrefix('statisticData');
 
     this.dataListFull.set([]);
     this.filterDataListFull.set([]);
@@ -419,7 +448,8 @@ export class TerritoryAssignmentComponent implements OnInit {
     newCard.driver = '';
     newCard.start = today;
     newCard.end = '0';
-    newCard.completed = 0;
+    const maxCompleted = existingCards.reduce((max, c) => Math.max(max, c.completed || 0), 0);
+    newCard.completed = maxCompleted;
     newCard.revision = false;
     newCard.revisionComplete = false;
     newCard.creation = new Date().toISOString();
@@ -544,12 +574,37 @@ export class TerritoryAssignmentComponent implements OnInit {
           delete cleanData.id;
           if (!cleanData.applesData)
             cleanData.applesData = [{ name: 'Registro manual', checked: false }];
-          await this.territoryDataService.addCardInCollection(collectionName, cleanData);
+
+          if (cleanData.end && cleanData.end !== '0') {
+            cleanData.completed = (cleanData.completed || 0) + 1;
+            cleanData.isInitial = false;
+            await this.territoryDataService.addCardInCollection(collectionName, cleanData);
+
+            const resetCard = {
+              ...cleanData,
+              isReset: true,
+              driver: '',
+              start: '',
+              end: '0',
+              comments: '',
+              creation: new Date().toISOString(),
+              isInitial: false,
+              applesData: cleanData.applesData.map((a: CardApplesData) => ({
+                ...a,
+                checked: false,
+              })),
+            };
+            await this.territoryDataService.addCardInCollection(collectionName, resetCard);
+          } else {
+            await this.territoryDataService.addCardInCollection(collectionName, cleanData);
+          }
         } else {
+          const cleanUpdateData = { ...sanitizedData };
+          delete cleanUpdateData.id;
           await this.territoryDataService.updateCardInCollection(
             collectionName,
             cardId,
-            sanitizedData,
+            cleanUpdateData,
           );
         }
       }

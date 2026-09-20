@@ -15,8 +15,9 @@
         >
           <option value="1">Últimos 6 meses</option>
           <option value="2">Último año</option>
-          <option value="2023">2023</option>
-          <option value="2022">2022</option>
+          @for (year of availableYears(); track year) {
+            <option [value]="year">{{ year }}</option>
+          }
         </select>
       </div>
 
