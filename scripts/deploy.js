@@ -71,14 +71,17 @@ async function main() {
 
   const prompt = inquirer.createPromptModule();
 
-  const { selectedCongregation } = await prompt([
-    {
-      type: 'select',
-      name: 'selectedCongregation',
-      message: 'Selecciona la congregación para desplegar:',
-      choices: availableCongregations,
-    },
-  ]);
+  let continueDeploying = true;
+
+  while (continueDeploying) {
+    const { selectedCongregation } = await prompt([
+      {
+        type: 'select',
+        name: 'selectedCongregation',
+        message: 'Selecciona la congregación para desplegar:',
+        choices: availableCongregations,
+      },
+    ]);
 
   // 2. Obtener configuración
   const config = loadEnvironmentConfig(selectedCongregation);
@@ -106,9 +109,8 @@ async function main() {
   ]);
 
   if (!confirm) {
-    console.log('Operación cancelada.');
-    process.exit(0);
-  }
+    console.log('Operación cancelada para esta congregación.');
+  } else {
 
   try {
     // 4. Configurar firebase.json dinámicamente
@@ -147,7 +149,40 @@ async function main() {
 
     execSync(`npx ng build --configuration=${selectedCongregation}`, { stdio: 'inherit' });
 
-    // 6. Deploy a Firebase
+    // 6. Verificar sesión de Firebase
+    console.log('\n🔍 Verificando usuario de Firebase...');
+    let currentUser = 'Desconocido';
+    try {
+      const authOutput = execSync('npx --yes firebase-tools login:list', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      const match = authOutput.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/);
+      if (match) {
+        currentUser = match[1];
+      }
+    } catch (e) {
+      // Ignorar si falla, puede que no haya sesión
+    }
+
+    const { confirmUser } = await prompt([
+      {
+        type: 'confirm',
+        name: 'confirmUser',
+        message: `El usuario actual de Firebase parece ser "${currentUser}". ¿Estás seguro de que quieres usar este usuario para desplegar?`,
+        default: true,
+      }
+    ]);
+
+    if (!confirmUser) {
+      console.log('\nCerrando sesión actual...');
+      try {
+        execSync('npx --yes firebase-tools logout', { stdio: 'inherit' });
+      } catch(e) {
+        console.log('Error al cerrar sesión o no había sesión activa.');
+      }
+      console.log('\nPor favor, inicia sesión con el usuario correcto:');
+      execSync('npx --yes firebase-tools login', { stdio: 'inherit' });
+    }
+
+    // 7. Deploy a Firebase
     console.log('\n🔥 Desplegando a Firebase Hosting...');
 
     // Ya no necesitamos flags especiales porque el target está en firebase.json
@@ -161,8 +196,23 @@ async function main() {
   } catch (error) {
     console.error('\n❌ Error durante el proceso de despliegue.');
     // El error ya se habrá mostrado en stdio: inherit
-    process.exit(1);
   }
+  } // fin del else (!confirm)
+
+  const { deployAnother } = await prompt([
+    {
+      type: 'confirm',
+      name: 'deployAnother',
+      message: '¿Quieres desplegar otra congregación?',
+      default: false,
+    }
+  ]);
+  continueDeploying = deployAnother;
+  
+  if (continueDeploying) {
+    console.log('\n------------------------------------------------------------\n');
+  }
+ }
 }
 
 main().catch((error) => {
