@@ -12,10 +12,11 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { NetworkService } from '@core/services/network.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Departure, WeeklyDeparture, DepartureData } from '@core/models/Departures';
+import { WeeklyDeparture, DepartureData } from '@core/models/Departures';
 import { NgClass } from '@angular/common';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils';
+import { sortDeparturesByDateTime } from '@shared/utils/departure-sort.utils';
 
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
@@ -53,24 +54,14 @@ export class DeparturePageComponent implements OnInit {
       tap(() => this.spinner.cargarSpinner()),
       switchMap((weekId) =>
         this.territoryDataService.getWeeklyDeparture(weekId).pipe(
-          map((weeklyData: WeeklyDeparture | undefined) => {
-            const deps = weeklyData?.departure || [];
-            deps.sort(
-              (a: Departure, b: Departure) =>
-                new Date(a.date || '').getTime() - new Date(b.date || '').getTime(),
-            );
-            return deps;
-          }),
+          map((weeklyData: WeeklyDeparture | undefined) =>
+            sortDeparturesByDateTime(weeklyData?.departure ?? []),
+          ),
           catchError(() =>
             this.territoryDataService.getDepartures().pipe(
-              map((masterData: DepartureData | undefined) => {
-                const deps = masterData?.departure || [];
-                deps.sort(
-                  (a: Departure, b: Departure) =>
-                    new Date(a.date || '').getTime() - new Date(b.date || '').getTime(),
-                );
-                return deps;
-              }),
+              map((masterData: DepartureData | undefined) =>
+                sortDeparturesByDateTime(masterData?.departure ?? []),
+              ),
               catchError(() => of([])),
             ),
           ),

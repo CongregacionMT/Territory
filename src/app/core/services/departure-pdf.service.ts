@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Departure } from '@core/models/Departures';
 import type { PDFPage, PDFFont, RGB } from 'pdf-lib';
 import { environment } from '@environments/environment';
+import { compareDeparturesByDateTime } from '@shared/utils/departure-sort.utils';
 
 interface PdfColors {
   primary: RGB;
@@ -155,11 +156,7 @@ export class DeparturePdfService {
         const depDate = dep.date; // Format: YYYY-MM-DD
         return depDate >= fridayStr && depDate <= thursdayStr;
       })
-      .sort((a, b) => {
-        const dateComp = a.date.localeCompare(b.date);
-        if (dateComp !== 0) return dateComp;
-        return a.schedule.localeCompare(b.schedule);
-      });
+      .sort(compareDeparturesByDateTime);
   }
 
   /**
