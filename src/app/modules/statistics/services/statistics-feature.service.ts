@@ -57,7 +57,7 @@ export class StatisticsFeatureService {
     if (!locality) return;
     this.currentLocality.set(locality);
 
-    const suffix = locality.charAt(0).toUpperCase() + locality.slice(1).replace(/-/g, '');
+    const suffix = locality.charAt(0).toUpperCase() + locality.slice(1).replaceAll('-', '');
     const storageKey = `statisticData${suffix}_${this.timeRange()}`;
 
     if (!forceRefresh && sessionStorage.getItem(storageKey)) {
