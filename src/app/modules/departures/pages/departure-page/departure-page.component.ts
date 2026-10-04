@@ -1,6 +1,5 @@
 import {
   Component,
-  OnInit,
   inject,
   signal,
   computed,
@@ -8,7 +7,6 @@ import {
   effect,
 } from '@angular/core';
 import { FormControl, FormsModule } from '@angular/forms';
-import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { NetworkService } from '@core/services/network.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -19,8 +17,8 @@ import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils'
 import { sortDeparturesByDateTime } from '@shared/utils/departure-sort.utils';
 
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { of, concat } from 'rxjs';
 
 @Component({
   selector: 'app-departure-page',
@@ -29,9 +27,8 @@ import { of } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DeparturesCardsComponent, RouterLink, NgClass, FormsModule],
 })
-export class DeparturePageComponent implements OnInit {
+export class DeparturePageComponent {
   private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
   private rutaActiva = inject(ActivatedRoute);
   public networkService = inject(NetworkService);
 
@@ -47,34 +44,30 @@ export class DeparturePageComponent implements OnInit {
   isCurrentWeek = computed(() => this.selectedWeekId() === getWeekId(new Date()));
 
   // Data streams converted to Signals
-  weeklyHistory = toSignal(this.territoryDataService.getWeeklyDepartures(), { initialValue: [] });
+  weeklyHistory = toSignal(this.territoryDataService.getWeeklyDepartures(15), { initialValue: [] });
 
   departures$ = toSignal(
     toObservable(this.selectedWeekId).pipe(
-      tap(() => this.spinner.cargarSpinner()),
       switchMap((weekId) =>
-        this.territoryDataService.getWeeklyDeparture(weekId).pipe(
-          map((weeklyData: WeeklyDeparture | undefined) =>
-            sortDeparturesByDateTime(weeklyData?.departure ?? []),
-          ),
-          catchError(() =>
-            this.territoryDataService.getDepartures().pipe(
-              map((masterData: DepartureData | undefined) =>
-                sortDeparturesByDateTime(masterData?.departure ?? []),
+        concat(
+          of(undefined),
+          this.territoryDataService.getWeeklyDeparture(weekId).pipe(
+            map((weeklyData: WeeklyDeparture | undefined) =>
+              sortDeparturesByDateTime(weeklyData?.departure ?? []),
+            ),
+            catchError(() =>
+              this.territoryDataService.getDepartures().pipe(
+                map((masterData: DepartureData | undefined) =>
+                  sortDeparturesByDateTime(masterData?.departure ?? []),
+                ),
+                catchError(() => of([])),
               ),
-              catchError(() => of([])),
             ),
           ),
         ),
       ),
-      tap(() => {
-        this.spinner.cerrarSpinner();
-        if (!this.networkService.isOnline()) {
-          setTimeout(() => this.spinner.cerrarSpinner(), 1500);
-        }
-      }),
     ),
-    { initialValue: [] },
+    { initialValue: undefined },
   );
 
   pastWeeks = computed(() => {
@@ -115,7 +108,6 @@ export class DeparturePageComponent implements OnInit {
   });
 
   constructor() {
-    this.spinner.cargarSpinner();
     this.numberGroup = this.rutaActiva.snapshot.params;
     if (this.numberGroup['number'] && this.numberGroup['number'] !== '0') {
       this.titleGroup.set(`(Grupo ${this.numberGroup['number']})`);
@@ -125,12 +117,6 @@ export class DeparturePageComponent implements OnInit {
     effect(() => {
       this.dateDeparture.setValue(this.selectedWeekId(), { emitEvent: false });
     });
-  }
-
-  ngOnInit(): void {
-    if (!this.networkService.isOnline()) {
-      setTimeout(() => this.spinner.cerrarSpinner(), 1500);
-    }
   }
 
   selectWeek(id: string): void {
@@ -200,31 +186,31 @@ export class DeparturePageComponent implements OnInit {
       return {
         label: 'Esta semana',
         badgeClass: 'badge-current-week',
-        icon: 'https://api.iconify.design/mdi:calendar-check.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-check-ffffff.svg',
       };
     } else if (diffWeeks === 1) {
       return {
         label: 'Semana próxima',
         badgeClass: 'badge-future-week',
-        icon: 'https://api.iconify.design/mdi:calendar-arrow-right.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-arrow-right-ffffff.svg',
       };
     } else if (diffWeeks > 1) {
       return {
         label: `En ${diffWeeks} semanas`,
         badgeClass: 'badge-future-week',
-        icon: 'https://api.iconify.design/mdi:calendar-arrow-right.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-arrow-right-ffffff.svg',
       };
     } else if (diffWeeks === -1) {
       return {
         label: 'La semana pasada',
         badgeClass: 'badge-past-week',
-        icon: 'https://api.iconify.design/mdi:calendar-arrow-left.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-arrow-left-ffffff.svg',
       };
     } else {
       return {
         label: `Hace ${Math.abs(diffWeeks)} semanas`,
         badgeClass: 'badge-past-week',
-        icon: 'https://api.iconify.design/mdi:calendar-arrow-left.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-arrow-left-ffffff.svg',
       };
     }
   }

@@ -36,7 +36,7 @@
           class="w-72 bg-slate-800/80 rounded-xl overflow-hidden shadow-lg hover:shadow-[2px_2px_32px_1px_rgba(0,0,0,0.75)] hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col no-underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           <div class="flex flex-col items-center p-6 flex-1 justify-center">
-            <img [src]="'../../../../../' + option.iconPath" alt="" aria-hidden="true" class="w-36 h-36 object-contain">
+            <img [src]="'/' + option.iconPath" alt="" aria-hidden="true" class="w-36 h-36 object-contain">
             <h2 class="text-xl md:text-2xl font-bold text-white mt-5 mb-0 text-center leading-tight">
               {{ option.label }}
             </h2>
@@ -54,7 +54,7 @@
         routerLink="/auth"
       >
         <img
-          src="https://api.iconify.design/mdi:login.svg?color=%230a0a0a"
+          src="assets/icons/ui/mdi-login-0a0a0a.svg"
           width="22"
           height="22"
           alt="Login"
@@ -68,7 +68,7 @@
         (click)="activeNotification()"
       >
         <img
-          src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=white"
+          src="assets/icons/ui/mdi-bell-ring-outline-white.svg"
           width="22"
           height="22"
           alt="Bell"
@@ -82,7 +82,7 @@
         (click)="authService.logout()"
       >
         <img
-          src="https://api.iconify.design/mdi:logout.svg?color=white"
+          src="assets/icons/ui/mdi-logout-white.svg"
           width="22"
           height="22"
           alt="Logout"
@@ -101,7 +101,7 @@
         (click)="pwaService.installPWA()"
       >
         <img
-          src="https://api.iconify.design/mdi:download.svg?color=white"
+          src="assets/icons/ui/mdi-download-white.svg"
           width="22"
           height="22"
           alt="Install"

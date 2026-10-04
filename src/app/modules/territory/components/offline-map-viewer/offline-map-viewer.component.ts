@@ -7,6 +7,7 @@ import {
   viewChild,
   AfterViewInit,
   ChangeDetectionStrategy,
+  ViewEncapsulation,
 } from '@angular/core';
 
 import type * as L from 'leaflet';
@@ -24,6 +25,7 @@ interface KmlFeatureProperties {
   imports: [],
   templateUrl: './offline-map-viewer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   styleUrl: './offline-map-viewer.component.scss',
 })
 export class OfflineMapViewerComponent implements AfterViewInit, OnDestroy {

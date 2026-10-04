@@ -10,7 +10,7 @@
         @if (isToday(departure.date)) {
           <div class="absolute -top-3 left-3 bg-sky-700 text-white px-3 py-1 rounded-md text-sm font-extrabold z-10 flex items-center gap-1.5 shadow-md">
             <img
-              src="https://api.iconify.design/mdi:star-circle.svg?color=white"
+              src="assets/icons/ui/mdi-star-circle-white.svg"
               width="16"
               height="16"
               alt="Star"
@@ -39,7 +39,7 @@
             title="Agendar salida"
           >
             <img
-              src="https://api.iconify.design/mdi:bell-ring-outline.svg?color=white"
+              src="assets/icons/ui/mdi-bell-ring-outline-white.svg"
               width="22"
               height="22"
               alt="Notificarme"
@@ -52,7 +52,7 @@
           @if (departure.isEvent) {
              <div class="flex gap-4">
                <div class="w-11 h-11 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center shrink-0">
-                 <img src="https://api.iconify.design/mdi:calendar-star.svg?color=%23cbd5e1" width="22" height="22" alt="Event" />
+                 <img src="assets/icons/ui/mdi-calendar-star-cbd5e1.svg" width="22" height="22" alt="Event" />
                </div>
                <div class="flex flex-col justify-center">
                  <label class="text-xs md:text-sm font-bold text-slate-400 uppercase mb-0.5">Evento especial</label>
@@ -64,7 +64,7 @@
             <div class="flex gap-4">
               <div class="w-11 h-11 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center shrink-0">
                 <img
-                  src="https://api.iconify.design/mdi:account-tie.svg?color=%23cbd5e1"
+                  src="assets/icons/ui/mdi-account-tie-cbd5e1.svg"
                   width="22"
                   height="22"
                   alt="Leader"
@@ -81,7 +81,7 @@
           <div class="flex gap-4">
             <div class="w-11 h-11 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center shrink-0">
               <img
-                src="https://api.iconify.design/mdi:map-marker.svg?color=%23cbd5e1"
+                src="assets/icons/ui/mdi-map-marker-cbd5e1.svg"
                 width="22"
                 height="22"
                 alt="Location"
@@ -94,7 +94,7 @@
               @if (departure.maps) {
                 <a [href]="departure.maps" target="_blank" class="mt-2.5 inline-flex items-center gap-2 bg-slate-800 text-sky-400 px-3.5 py-1.5 rounded-xl text-sm md:text-base font-semibold no-underline border border-slate-700 w-fit hover:bg-slate-700 transition-colors cursor-pointer">
                   <img
-                    src="https://api.iconify.design/logos:google-maps.svg"
+                    src="assets/icons/ui/logos-google-maps-default.svg"
                     width="18"
                     height="18"
                     alt="Maps"
@@ -110,7 +110,7 @@
             <div class="flex gap-4">
               <div class="w-11 h-11 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center shrink-0">
                 <img
-                  src="https://api.iconify.design/mdi:map-legend.svg?color=%23cbd5e1"
+                  src="assets/icons/ui/mdi-map-legend-cbd5e1.svg"
                   width="22"
                   height="22"
                   alt="Territories"
@@ -127,7 +127,7 @@
                     >
                       <span>{{ territory }}</span>
                       <img
-                        src="https://api.iconify.design/mdi:chevron-right.svg?color=%23cbd5e1"
+                        src="assets/icons/ui/mdi-chevron-right-cbd5e1.svg"
                         width="16"
                         height="16"
                       />

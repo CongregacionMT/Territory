@@ -50,7 +50,7 @@ bootstrapApplication(AppComponent, {
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker
-    .register('./firebase-messaging-sw.js')
+    .register('./firebase-messaging-sw.js', { scope: '/firebase-cloud-messaging-push-scope' })
     .then((registration) => {
       console.log('Service Worker registrado correctamentes:', registration);
     })

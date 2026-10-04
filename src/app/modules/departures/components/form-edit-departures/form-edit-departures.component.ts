@@ -463,7 +463,7 @@ export class FormEditDeparturesComponent implements OnInit {
 
   loadWeeklyHistory(): void {
     this.territoryDataService
-      .getWeeklyDepartures()
+      .getWeeklyDepartures(15)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((history) => {
         this.weeklyHistory.set(history);

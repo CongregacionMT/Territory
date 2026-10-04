@@ -12,7 +12,7 @@
     <!-- Modal Header -->
     <div class="bg-white border-b flex justify-between items-center p-4 rounded-t-lg">
       <h5 class="mb-0 font-bold text-slate-900 flex items-center text-lg">
-        <img src="https://api.iconify.design/mdi:printer.svg?color=%230277bd" width="24" height="24" class="mr-2" alt="Print" />
+        <img src="assets/icons/ui/mdi-printer-0277bd.svg" width="24" height="24" class="mr-2" alt="Print" />
         Imprimir salidas
       </h5>
       <button type="button" class="text-slate-400 hover:text-slate-900 text-2xl font-bold leading-none cursor-pointer" (click)="closeModal()" aria-label="Close">&times;</button>
@@ -24,7 +24,7 @@
         Se generará un PDF con las salidas de <strong>todos los grupos</strong> en una misma hoja, optimizado para imprimir.
       </p>
       <p class="text-slate-500 mb-6 text-sm flex items-start">
-        <img src="https://api.iconify.design/mdi:information-outline.svg?color=%236c757d" width="16" height="16" class="mr-1 mt-0.5" alt="Info" />
+        <img src="assets/icons/ui/mdi-information-outline-6c757d.svg" width="16" height="16" class="mr-1 mt-0.5" alt="Info" />
         <span>El rango de impresión es de <strong>viernes a jueves</strong> para colocar en el tablero.</span>
       </p>
 
@@ -36,7 +36,7 @@
           [disabled]="isPrintingPdf()"
           id="btn-print-all-bw"
         >
-          <img src="https://api.iconify.design/mdi:printer-outline.svg?color=%23333333" width="24" height="24" alt="B&W" />
+          <img src="assets/icons/ui/mdi-printer-outline-333333.svg" width="24" height="24" alt="B&W" />
           <div class="text-left">
             <div class="font-bold text-slate-800 leading-tight">Blanco y negro</div>
             <div class="text-xs text-slate-500">Ahorra tinta</div>
@@ -50,7 +50,7 @@
           [disabled]="isPrintingPdf()"
           id="btn-print-all-color"
         >
-          <img src="https://api.iconify.design/mdi:palette.svg?color=%23ffffff" width="24" height="24" alt="Color" />
+          <img src="assets/icons/ui/mdi-palette-ffffff.svg" width="24" height="24" alt="Color" />
           <div class="text-left">
             <div class="font-bold leading-tight text-white">Imprimir en color</div>
             <div class="text-xs text-blue-200">Diseño completo</div>
@@ -66,7 +66,7 @@
       }
       @if (pdfGenerated()) {
         <div class="text-center mt-6 text-green-600 flex justify-center items-center animate__animated animate__fadeIn">
-          <img src="https://api.iconify.design/mdi:check-circle.svg?color=%23198754" width="20" height="20" class="mr-2" alt="Success" />
+          <img src="assets/icons/ui/mdi-check-circle-198754.svg" width="20" height="20" class="mr-2" alt="Success" />
           <span class="font-bold text-sm">¡PDF generado con éxito!</span>
         </div>
       }

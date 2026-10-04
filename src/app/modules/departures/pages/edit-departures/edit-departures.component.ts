@@ -118,7 +118,7 @@ export class EditDeparturesComponent implements OnInit, CanComponentDeactivate {
 
   loadHistory(): void {
     this.territoryDataService
-      .getWeeklyDepartures()
+      .getWeeklyDepartures(15)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((history) => {
         // Calcular la fecha lunes de hace 8 semanas

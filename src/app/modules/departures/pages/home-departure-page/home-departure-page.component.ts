@@ -9,7 +9,6 @@ import {
   effect,
   untracked,
 } from '@angular/core';
-import { SpinnerService } from '@core/services/spinner.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { Router, RouterLink } from '@angular/router';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
@@ -17,7 +16,7 @@ import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.c
 import { Departure, WeeklyDeparture, DepartureData } from '@core/models/Departures';
 import { DeparturePdfService, PrintMode } from '@core/services/departure-pdf.service';
 import { getWeekId } from '@shared/utils/date-utils';
-import { forkJoin, take, tap } from 'rxjs';
+import { forkJoin, take } from 'rxjs';
 
 @Component({
   selector: 'app-home-departure-page',
@@ -29,15 +28,12 @@ import { forkJoin, take, tap } from 'rxjs';
 export class HomeDeparturePageComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly territoryDataService = inject(TerritoryDataService);
-  private readonly spinner = inject(SpinnerService);
   private readonly router = inject(Router);
   private readonly pdfService = inject(DeparturePdfService);
 
   isAdmin: boolean = false;
 
-  groups = toSignal(
-    this.territoryDataService.getGroupList().pipe(tap(() => this.spinner.cerrarSpinner())),
-  );
+  groups = toSignal(this.territoryDataService.getGroupList());
 
   groupKeys = computed(() => {
     const groupData = this.groups();
@@ -80,7 +76,6 @@ export class HomeDeparturePageComponent {
 
   constructor() {
     this.isAdmin = !!localStorage.getItem('tokenAdmin');
-    this.spinner.cargarSpinner();
 
     effect(() => {
       const keys = this.groupKeys();

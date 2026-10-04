@@ -14,6 +14,7 @@ import {
   where,
   setDoc,
   runTransaction,
+  limit,
 } from '@angular/fire/firestore';
 import { getDocsFromServer } from 'firebase/firestore';
 import { Observable, tap, of } from 'rxjs';
@@ -346,9 +347,11 @@ export class TerritoryDataService {
   }
 
   // HISTORIAL DE SALIDAS
-  getWeeklyDepartures(): Observable<WeeklyDeparture[]> {
+  getWeeklyDepartures(limitValue?: number): Observable<WeeklyDeparture[]> {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
-    const q = query(departuresRef, orderBy('weekId', 'desc'));
+    const q = limitValue
+      ? query(departuresRef, orderBy('weekId', 'desc'), limit(limitValue))
+      : query(departuresRef, orderBy('weekId', 'desc'));
     return collectionData(q, { idField: 'id' }) as Observable<WeeklyDeparture[]>;
   }
 

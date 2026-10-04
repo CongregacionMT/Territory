@@ -39,7 +39,7 @@ export class DriverDashboardPageComponent implements OnInit {
   activeTab = signal<'mis-tarjetas' | 'control'>('mis-tarjetas');
 
   // Data
-  private weeklyDepartures = toSignal(this.territoryDataService.getWeeklyDepartures(), {
+  private weeklyDepartures = toSignal(this.territoryDataService.getWeeklyDepartures(15), {
     initialValue: [],
   });
 
