@@ -89,4 +89,23 @@ export class AuthService {
       }),
     );
   }
+
+  getDrivers(): Observable<User[]> {
+    const firestore = this.firestoreProvider.getFirestore();
+    const userRef = collection(firestore, 'users');
+    const q = query(userRef, where('rol', '==', 'conductor'));
+
+    return collectionData(q) as Observable<User[]>;
+  }
+
+  loginAsDriver(loggedUser: User): void {
+    localStorage.setItem(
+      'tokenConductor',
+      'ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk',
+    );
+    localStorage.setItem(loggedUser.user, JSON.stringify(loggedUser));
+    localStorage.setItem('nombreConductor', loggedUser.displayName || loggedUser.user);
+
+    this.checkAuthStatus();
+  }
 }
