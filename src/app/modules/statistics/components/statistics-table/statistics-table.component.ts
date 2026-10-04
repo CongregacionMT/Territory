@@ -109,11 +109,12 @@ function getCardProperty(card: Card, prop: string): string | number | undefined 
                   </div>
                 </td>
                 <td class="py-4">
-                  @if (dataList[0].applesData && dataList[0].applesData.length > 0) {
+                  @let displayCard = getDisplayCard(dataList);
+                  @if (displayCard?.applesData && displayCard.applesData.length > 0) {
                     <span
                       class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold rounded-full shadow-sm"
                     >
-                      {{ dataList[0].applesData.length }} manzanas
+                      {{ displayCard.applesData.length }} manzanas
                     </span>
                   } @else {
                     <span class="text-slate-400 text-xs italic font-medium">Sin actividad</span>
@@ -134,8 +135,8 @@ function getCardProperty(card: Card, prop: string): string | number | undefined 
                     </span>
                     <span class="text-slate-300 text-xs mt-1 font-medium">
                       {{
-                        dataList[0].driver && dataList[0].driver !== 'Nadie'
-                          ? 'Por ' + dataList[0].driver
+                        displayCard?.driver && displayCard.driver !== 'Nadie'
+                          ? 'Por ' + displayCard.driver
                           : 'Sin asignar'
                       }}
                     </span>
@@ -250,6 +251,11 @@ export class StatisticsTableComponent {
 
   getLastEnd(dataList: Card[]): string | Date | undefined {
     return getLastEndData(dataList);
+  }
+
+  getDisplayCard(dataList: Card[]): Card {
+    const completedCard = dataList.find(c => c.end);
+    return completedCard || dataList[0];
   }
 
   paintRow(dataList: Card[]): string {

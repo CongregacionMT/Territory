@@ -63,7 +63,7 @@ export class StatisticsPageComponent {
   }
 
   refreshData(): void {
-    void this.statsService.loadLocalityData(this.locality(), true);
+    void this.statsService.loadLocalityData(this.locality());
   }
 
   onSortChanged(prop: string): void {

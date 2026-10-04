@@ -39,6 +39,12 @@ export class StatisticsFeatureService {
   });
 
   constructor() {
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith('statisticData')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+
     this.territorieDataService
       .getCardAssigned()
       .pipe(take(1))
@@ -50,25 +56,12 @@ export class StatisticsFeatureService {
 
   async setTimeRange(months: number): Promise<void> {
     this.timeRange.set(months);
-    await this.loadLocalityData(this.currentLocality(), true);
+    await this.loadLocalityData(this.currentLocality());
   }
 
-  async loadLocalityData(locality: string, forceRefresh = false): Promise<void> {
+  async loadLocalityData(locality: string): Promise<void> {
     if (!locality) return;
     this.currentLocality.set(locality);
-
-    const suffix = locality.charAt(0).toUpperCase() + locality.slice(1).replaceAll('-', '');
-    const storageKey = `statisticData${suffix}_${this.timeRange()}`;
-
-    if (!forceRefresh && sessionStorage.getItem(storageKey)) {
-      const storedStatisticData = sessionStorage.getItem(storageKey);
-      this.dataListFull.set(
-        storedStatisticData ? (JSON.parse(storedStatisticData) as Card[][]) : [],
-      );
-      this.calculateSummary();
-      this.loadingData.set(true);
-      return;
-    }
 
     this.loadingData.set(false);
     this.spinner.cargarSpinner();

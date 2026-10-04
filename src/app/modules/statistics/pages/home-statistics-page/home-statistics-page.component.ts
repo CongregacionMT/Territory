@@ -105,7 +105,7 @@ export class HomeStatisticsPageComponent implements OnInit {
     });
 
     await Promise.all(territoryPromises);
-    sessionStorage.setItem(storageKey, JSON.stringify(initialStatisticData));
+
   }
 
   getStorageKeyForLocality(localityKey: string): string {
