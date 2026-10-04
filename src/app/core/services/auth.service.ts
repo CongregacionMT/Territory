@@ -9,13 +9,13 @@ import { FirestoreProviderService } from './firestore-provider.service';
   providedIn: 'root',
 })
 export class AuthService {
-  private router = inject(Router);
-  private firestoreProvider = inject(FirestoreProviderService);
+  private readonly router = inject(Router);
+  private readonly firestoreProvider = inject(FirestoreProviderService);
 
   // Private signals for state
-  private _isAdmin = signal<boolean>(false);
-  private _isDriver = signal<boolean>(false);
-  private _driverName = signal<string>('');
+  private readonly _isAdmin = signal<boolean>(false);
+  private readonly _isDriver = signal<boolean>(false);
+  private readonly _driverName = signal<string>('');
 
   // Public computed signals
   isAdmin = computed(() => this._isAdmin());

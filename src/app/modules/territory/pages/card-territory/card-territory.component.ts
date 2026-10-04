@@ -93,14 +93,14 @@ export class CardTerritoryComponent implements OnInit, OnDestroy {
   countTrueApples = signal<number>(0);
   countFalseApples = signal<number>(0);
 
-  private weekId = signal<string | null>(null);
-  private departureId = signal<string | null>(null);
+  private readonly weekId = signal<string | null>(null);
+  private readonly departureId = signal<string | null>(null);
 
   driverError = signal<boolean>(false);
   startError = signal<boolean>(false);
   endError = signal<boolean>(false);
 
-  private cardSubscription = signal<Subscription>(new Subscription());
+  private readonly cardSubscription = signal<Subscription>(new Subscription());
 
   formCard = signal<FormGroup>(this.createFormCard());
 

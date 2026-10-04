@@ -8,9 +8,9 @@ import { take, firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class StatisticsFeatureService {
-  private destroyRef = inject(DestroyRef);
-  private territorieDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly territorieDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
 
   // State
   readonly loadingData = signal<boolean>(false);
@@ -92,65 +92,64 @@ export class StatisticsFeatureService {
     }
 
     const fetchedData: Card[][] = [];
-    const promises = localityTerritories.map(
-      (t: TerritoryNumberData) =>
-        new Promise<void>((resolve) => {
-          this.territorieDataService
-            .getCardTerritorie(t.collection, 120)
-            .pipe(take(1))
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((allCards) => {
-              const blueprintCard = allCards[0];
-
-              const filterMonths = this.timeRange();
-              const fromDateLimit = new Date();
-              fromDateLimit.setMonth(fromDateLimit.getMonth() - filterMonths);
-
-              const periodCards = allCards.filter((c) => {
-                const creation = c.creation as { toDate?: () => Date; seconds?: number };
-                let cardDate: Date;
-
-                if (creation && typeof creation.toDate === 'function') {
-                  cardDate = creation.toDate();
-                } else if (creation && typeof creation.seconds === 'number') {
-                  cardDate = new Date(creation.seconds * 1000);
-                } else {
-                  cardDate = new Date(creation as unknown as string);
-                }
-
-                return !isNaN(cardDate.getTime()) && cardDate >= fromDateLimit;
-              });
-
-              const activityCards = periodCards.filter(
-                (c) =>
-                  (c.applesData || []).some((a: CardApplesData) => a.checked) ||
-                  (c.id &&
-                    (c.id.startsWith('PostCampaña') || c.id.startsWith('Campaña-undefined'))),
-              );
-
-              if (activityCards.length > 0) {
-                fetchedData.push(activityCards);
-              } else {
-                fetchedData.push([
-                  {
-                    numberTerritory: t.territorio,
-                    applesData: blueprintCard?.applesData || [],
-                    driver: '',
-                    end: '',
-                    isPlaceholder: true,
-                  },
-                ]);
-              }
-              resolve();
-            });
-        }),
-    );
+    const promises = localityTerritories.map(async (t: TerritoryNumberData) => {
+      const allCards = await firstValueFrom(
+        this.territorieDataService.getCardTerritorie(t.collection, 120).pipe(take(1)),
+      );
+      this.processTerritoryCards(allCards, t, fetchedData);
+    });
 
     await Promise.all(promises);
     this.dataListFull.set(fetchedData);
     this.calculateSummary();
     this.spinner.cerrarSpinner();
     this.loadingData.set(true);
+  }
+
+  private processTerritoryCards(
+    allCards: Card[],
+    t: TerritoryNumberData,
+    fetchedData: Card[][],
+  ): void {
+    const blueprintCard = allCards[0];
+    const filterMonths = this.timeRange();
+    const fromDateLimit = new Date();
+    fromDateLimit.setMonth(fromDateLimit.getMonth() - filterMonths);
+
+    const periodCards = allCards.filter((c) => {
+      const creation = c.creation as { toDate?: () => Date; seconds?: number };
+      let cardDate: Date;
+
+      if (creation && typeof creation.toDate === 'function') {
+        cardDate = creation.toDate();
+      } else if (creation && typeof creation.seconds === 'number') {
+        cardDate = new Date(creation.seconds * 1000);
+      } else {
+        cardDate = new Date(creation as unknown as string);
+      }
+
+      return !isNaN(cardDate.getTime()) && cardDate >= fromDateLimit;
+    });
+
+    const activityCards = periodCards.filter(
+      (c) =>
+        (c.applesData || []).some((a: CardApplesData) => a.checked) ||
+        (c.id && (c.id.startsWith('PostCampaña') || c.id.startsWith('Campaña-undefined'))),
+    );
+
+    if (activityCards.length > 0) {
+      fetchedData.push(activityCards);
+    } else {
+      fetchedData.push([
+        {
+          numberTerritory: t.territorio,
+          applesData: blueprintCard?.applesData || [],
+          driver: '',
+          end: '',
+          isPlaceholder: true,
+        },
+      ]);
+    }
   }
 
   private calculateSummary(): void {

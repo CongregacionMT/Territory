@@ -27,10 +27,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [ReactiveFormsModule, NgClass],
 })
 export class CartAssignmentFormComponent implements OnInit {
-  private cartDataService = inject(CartDataService);
-  private fb = inject(FormBuilder);
-  private _snackBar = inject(MatSnackBar);
-  private destroyRef = inject(DestroyRef);
+  private readonly cartDataService = inject(CartDataService);
+  private readonly fb = inject(FormBuilder);
+  private readonly _snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly cartData = input.required<CartData[]>();
 

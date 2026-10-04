@@ -8,13 +8,13 @@ import { take } from 'rxjs';
   providedIn: 'root',
 })
 export class TerritoryPriorityService {
-  private territoryDataService = inject(TerritoryDataService);
+  private readonly territoryDataService = inject(TerritoryDataService);
 
   // Cache for territory last completed days
   // Maps location prefix -> territory number -> days since last completion
   public territoryLastCompletedDays: { [locationPrefix: string]: { [num: number]: number } } = {};
 
-  private localities = environment.localities;
+  private readonly localities = environment.localities;
 
   /**
    * Initializes the cache of territory completion data
@@ -150,7 +150,7 @@ export class TerritoryPriorityService {
   }
 
   private normalizeTerritoryNumber(value: string): number {
-    const match = String(value).match(/\d+/);
+    const match = /\d+/.exec(String(value));
     return match ? Number(match[0]) : -1;
   }
 

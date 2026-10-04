@@ -42,14 +42,14 @@ import { parseFirebaseDate } from '@shared/utils/date-utils';
   imports: [CardXlComponent, RouterLink, ReactiveFormsModule, DatePipe, TitleCasePipe, NgClass],
 })
 export class AssignmentRecordPageComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private territorieDataService = inject(TerritoryDataService);
-  private cardService = inject(CardService);
-  private router = inject(Router);
-  private spinner = inject(SpinnerService);
-  private fb = inject(FormBuilder);
-  private cdRef = inject(ChangeDetectorRef);
-  private storageService = inject(StorageService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly territorieDataService = inject(TerritoryDataService);
+  private readonly cardService = inject(CardService);
+  private readonly router = inject(Router);
+  private readonly spinner = inject(SpinnerService);
+  private readonly fb = inject(FormBuilder);
+  private readonly cdRef = inject(ChangeDetectorRef);
+  private readonly storageService = inject(StorageService);
 
   // Signals para el estado del componente
   territorioMaps = signal<CardButtonsData[]>([]);

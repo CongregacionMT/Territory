@@ -14,13 +14,13 @@ interface BeforeInstallPromptEvent extends Event {
   providedIn: 'root',
 })
 export class PwaService {
-  private swUpdate = inject(SwUpdate);
-  private _snackBar = inject(MatSnackBar);
-  private destroyRef = inject(DestroyRef);
+  private readonly swUpdate = inject(SwUpdate);
+  private readonly _snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   private deferredPrompt: BeforeInstallPromptEvent | null = null;
-  private _isIos = signal<boolean>(false);
-  private _btnPWA = signal<boolean>(true);
+  private readonly _isIos = signal<boolean>(false);
+  private readonly _btnPWA = signal<boolean>(true);
 
   // Expose as readonly computed properties
   isIos = computed(() => this._isIos());

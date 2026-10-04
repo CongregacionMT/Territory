@@ -34,12 +34,12 @@ import { MatDialogModule } from '@angular/material/dialog';
   imports: [OfflineMapViewerComponent, MatDialogModule],
 })
 export class MapasComponent implements OnInit {
-  private activatedRoute = inject(ActivatedRoute);
-  private domSanitizer = inject(DomSanitizer);
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private dialogService = inject(DialogService);
-  private destroyRef = inject(DestroyRef);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly domSanitizer = inject(DomSanitizer);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
+  private readonly dialogService = inject(DialogService);
+  private readonly destroyRef = inject(DestroyRef);
   public networkService = inject(NetworkService);
   public authService = inject(AuthService);
   mapa: SafeHtml | undefined;
@@ -69,6 +69,7 @@ export class MapasComponent implements OnInit {
     }
 
     if (mapHtml?.iframeHtml) {
+      // eslint-disable-next-line sonarjs/no-angular-bypass-sanitization
       this.mapa = this.domSanitizer.bypassSecurityTrustHtml(mapHtml.iframeHtml);
       console.log('[MapasComponent] Iframe HTML configurado.');
     }
@@ -108,7 +109,7 @@ export class MapasComponent implements OnInit {
         )
         .subscribe((confirmed) => {
           if (confirmed) {
-            void this.territoryDataService.deleteRoad(roadId);
+            this.territoryDataService.deleteRoad(roadId);
           }
         });
     }

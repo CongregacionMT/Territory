@@ -15,8 +15,8 @@ import { CartLocationsFormComponent } from '../../components/cart-locations-form
   imports: [CartAssignmentFormComponent, CartLocationsFormComponent],
 })
 export class CartEditPageComponent {
-  private cartDataService = inject(CartDataService);
-  private spinner = inject(SpinnerService);
+  private readonly cartDataService = inject(CartDataService);
+  private readonly spinner = inject(SpinnerService);
 
   pageData = toSignal(
     forkJoin({

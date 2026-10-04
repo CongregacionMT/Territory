@@ -6,7 +6,7 @@ import { Injectable, NgZone, inject } from '@angular/core';
 export class UserLocationService {
   private compassHandler: ((event: DeviceOrientationEvent) => void) | null = null;
   private watchPositionId: number | null = null;
-  private ngZone = inject(NgZone);
+  private readonly ngZone = inject(NgZone);
 
   enableCompassMode(onHeadingUpdate: (heading: number) => void): Promise<void> {
     return new Promise((resolve, reject) => {

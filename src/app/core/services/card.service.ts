@@ -6,7 +6,7 @@ import { Card } from '@core/models/Card';
   providedIn: 'root',
 })
 export class CardService {
-  private router = inject(Router);
+  private readonly router = inject(Router);
 
   dataCard: Card;
   constructor() {

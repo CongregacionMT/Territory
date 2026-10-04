@@ -7,7 +7,7 @@ import { environment } from '@environments/environment';
   providedIn: 'root',
 })
 export class DepartureFormService {
-  private fb = inject(FormBuilder);
+  private readonly fb = inject(FormBuilder);
   public localities = environment.localities;
 
   createForm(): FormGroup {

@@ -28,8 +28,8 @@ import { of, concat } from 'rxjs';
   imports: [DeparturesCardsComponent, RouterLink, NgClass, FormsModule],
 })
 export class DeparturePageComponent {
-  private territoryDataService = inject(TerritoryDataService);
-  private rutaActiva = inject(ActivatedRoute);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly rutaActiva = inject(ActivatedRoute);
   public networkService = inject(NetworkService);
 
   // Simple state

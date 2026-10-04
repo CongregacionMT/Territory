@@ -11,7 +11,7 @@ import { environment } from '@environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UpdateSnackbarComponent {
-  private snackRef = inject(MatSnackBarRef<UpdateSnackbarComponent>);
+  private readonly snackRef = inject(MatSnackBarRef<UpdateSnackbarComponent>);
   congregationName = environment.congregationName;
 
   actualizarAhora(): void {

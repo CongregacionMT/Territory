@@ -5,7 +5,7 @@ import { isPlatformBrowser } from '@angular/common';
   providedIn: 'root',
 })
 export class StorageService {
-  private platformId = inject(PLATFORM_ID);
+  private readonly platformId = inject(PLATFORM_ID);
 
   private get isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);

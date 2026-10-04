@@ -18,9 +18,9 @@ import { CartDataService } from '@core/services/cart-data.service';
   imports: [ReactiveFormsModule],
 })
 export class CartLocationsFormComponent implements OnInit {
-  private cartDataService = inject(CartDataService);
-  private fb = inject(FormBuilder);
-  private _snackBar = inject(MatSnackBar);
+  private readonly cartDataService = inject(CartDataService);
+  private readonly fb = inject(FormBuilder);
+  private readonly _snackBar = inject(MatSnackBar);
 
   readonly locationsData = input.required<CartLocation[]>();
 

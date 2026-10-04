@@ -46,9 +46,9 @@ export interface CampaignData {
 export class CampaignDetailComponent implements OnInit {
   campaign = signal<CampaignData>({});
   territorios = signal<TerritorioStats[]>([]);
-  private spinner = inject(SpinnerService);
-  private route = inject(ActivatedRoute);
-  private campaignService = inject(CampaignService);
+  private readonly spinner = inject(SpinnerService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly campaignService = inject(CampaignService);
 
   // Fechas parseadas para la vista
   parsedDateInit = computed(() => parseFirebaseDate(this.campaign().dateInit));
@@ -93,40 +93,43 @@ export class CampaignDetailComponent implements OnInit {
         }
 
         if (data.stats) {
-          const localityGroups = groupStatsByLocality(data.stats);
-          this.territoriosPorLocalidad.set(localityGroups);
-
-          // Calcular totales globales iterando sobre los grupos limpios
-          this.manzanasCompletadas = 0;
-          this.manzanasTotales = 0;
-          this.territoriosCompletados = 0;
-          this.totalTerritorios = 0;
-          this.salidasTotales = 0;
-
-          const allTerritories: TerritorioStats[] = [];
-
-          for (const group of localityGroups) {
-            this.manzanasCompletadas += group.applesDone;
-            this.manzanasTotales += group.applesTotal;
-            this.territoriosCompletados += group.completed;
-            this.totalTerritorios += group.total;
-
-            for (const t of group.territories) {
-              this.salidasTotales += t.salidas || 0;
-              allTerritories.push(t);
-            }
-          }
-
-          this.territorios.set(allTerritories);
-
-          this.territorioPercent =
-            this.manzanasTotales > 0
-              ? Math.round((this.manzanasCompletadas / this.manzanasTotales) * 100)
-              : 0;
+          this.processCampaignData(data.stats);
         }
       }
     } finally {
       this.spinner.cerrarSpinner();
     }
+  }
+
+  private processCampaignData(stats: Record<string, TerritorioStats>): void {
+    const localityGroups = groupStatsByLocality(stats);
+    this.territoriosPorLocalidad.set(localityGroups);
+
+    this.manzanasCompletadas = 0;
+    this.manzanasTotales = 0;
+    this.territoriosCompletados = 0;
+    this.totalTerritorios = 0;
+    this.salidasTotales = 0;
+
+    const allTerritories: TerritorioStats[] = [];
+
+    for (const group of localityGroups) {
+      this.manzanasCompletadas += group.applesDone;
+      this.manzanasTotales += group.applesTotal;
+      this.territoriosCompletados += group.completed;
+      this.totalTerritorios += group.total;
+
+      for (const t of group.territories) {
+        this.salidasTotales += t.salidas || 0;
+        allTerritories.push(t);
+      }
+    }
+
+    this.territorios.set(allTerritories);
+
+    this.territorioPercent =
+      this.manzanasTotales > 0
+        ? Math.round((this.manzanasCompletadas / this.manzanasTotales) * 100)
+        : 0;
   }
 }

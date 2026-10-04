@@ -13,8 +13,8 @@ import { tap } from 'rxjs/operators';
   imports: [],
 })
 export class TablePublishersPageComponent {
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
 
   groupList = toSignal(
     this.territoryDataService.getGroupList().pipe(tap(() => this.spinner.cerrarSpinner())),

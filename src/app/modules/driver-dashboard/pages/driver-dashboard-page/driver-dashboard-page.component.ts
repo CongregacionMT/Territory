@@ -23,6 +23,29 @@ interface DriverCard {
   daysDelayed: number;
 }
 
+function getCardStatusInfo(
+  dep: Departure,
+  today: Date,
+): { status: DriverCard['status']; daysDelayed: number; skip: boolean } {
+  let daysDelayed = 0;
+  if (dep.date) {
+    const depDate = new Date(dep.date + 'T00:00:00');
+    daysDelayed = Math.floor((today.getTime() - depDate.getTime()) / (1000 * 3600 * 24));
+    if (daysDelayed > 15) return { status: 'pending', daysDelayed: 0, skip: true };
+  }
+
+  let status: DriverCard['status'] = 'pending';
+  if (dep.cardStatus === 'received') {
+    status = 'received';
+  } else if (dep.cardStatus === 'canceled') {
+    status = 'canceled';
+  } else if (daysDelayed > 0) {
+    status = 'delayed';
+  }
+
+  return { status, daysDelayed: daysDelayed > 0 ? daysDelayed : 0, skip: false };
+}
+
 @Component({
   selector: 'app-driver-dashboard-page',
   templateUrl: './driver-dashboard-page.component.html',
@@ -30,16 +53,16 @@ interface DriverCard {
   imports: [RouterLink, NgClass, TitleCasePipe, DatePipe],
 })
 export class DriverDashboardPageComponent implements OnInit {
-  private territoryDataService = inject(TerritoryDataService);
-  private authService = inject(AuthService);
-  private spinner = inject(SpinnerService);
+  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly authService = inject(AuthService);
+  private readonly spinner = inject(SpinnerService);
 
   readonly driverName = this.authService.driverName;
   readonly isAdmin = this.authService.isAdmin;
   activeTab = signal<'mis-tarjetas' | 'control'>('mis-tarjetas');
 
   // Data
-  private weeklyDepartures = toSignal(this.territoryDataService.getWeeklyDepartures(15), {
+  private readonly weeklyDepartures = toSignal(this.territoryDataService.getWeeklyDepartures(15), {
     initialValue: [],
   });
 
@@ -60,37 +83,14 @@ export class DriverDashboardPageComponent implements OnInit {
         if (dep.isEvent || !dep.driver) continue;
         if (dep.driver.toLowerCase().trim() !== name) continue;
 
-        // Determinar estado actual
-        let currentStatus: DriverCard['status'] = 'pending';
-        let daysDelayed = 0;
-
-        if (dep.date) {
-          const depDate = new Date(dep.date + 'T00:00:00');
-          const diffTime = today.getTime() - depDate.getTime();
-          daysDelayed = Math.floor(diffTime / (1000 * 3600 * 24));
-
-          // Ignorar tarjetas que tengan una antigüedad mayor a 15 días
-          if (daysDelayed > 15) continue;
-        }
-
-        if (dep.cardStatus === 'received') {
-          currentStatus = 'received';
-        } else if (dep.cardStatus === 'canceled') {
-          currentStatus = 'canceled';
-        } else {
-          // Si no fue recibida ni cancelada, ver si está retrasada
-          if (daysDelayed > 0) {
-            currentStatus = 'delayed';
-          } else {
-            currentStatus = 'pending';
-          }
-        }
+        const info = getCardStatusInfo(dep, today);
+        if (info.skip) continue;
 
         cards.push({
           weekId: weekly.weekId,
           departure: dep,
-          status: currentStatus,
-          daysDelayed: daysDelayed > 0 ? daysDelayed : 0,
+          status: info.status,
+          daysDelayed: info.daysDelayed,
         });
       }
     }
@@ -127,55 +127,33 @@ export class DriverDashboardPageComponent implements OnInit {
       { pending: number; delayed: number; cards: DriverCard[]; originalName: string }
     >();
 
-    for (const weekly of deps) {
-      if (!weekly.departure) continue;
-      for (const dep of weekly.departure) {
-        if (dep.isEvent || !dep.driver) continue;
-        const driverNameOriginal = dep.driver;
-        const driverKey = driverNameOriginal.toLowerCase().trim();
+    const allDepartures = deps.flatMap((w) =>
+      (w.departure || []).map((dep) => ({ dep, weekId: w.weekId })),
+    );
 
-        let currentStatus: DriverCard['status'] = 'pending';
-        let daysDelayed = 0;
+    for (const { dep, weekId } of allDepartures) {
+      if (dep.isEvent || !dep.driver) continue;
+      const driverNameOriginal = dep.driver;
+      const driverKey = driverNameOriginal.toLowerCase().trim();
 
-        if (dep.date) {
-          const depDate = new Date(dep.date + 'T00:00:00');
-          const diffTime = today.getTime() - depDate.getTime();
-          daysDelayed = Math.floor(diffTime / (1000 * 3600 * 24));
+      const info = getCardStatusInfo(dep, today);
+      if (info.skip || (info.status !== 'pending' && info.status !== 'delayed')) continue;
 
-          // Ignorar tarjetas que tengan una antigüedad mayor a 15 días
-          if (daysDelayed > 15) continue;
-        }
+      const card: DriverCard = {
+        weekId,
+        departure: dep,
+        status: info.status,
+        daysDelayed: info.daysDelayed,
+      };
 
-        if (dep.cardStatus === 'received') {
-          currentStatus = 'received';
-        } else if (dep.cardStatus === 'canceled') {
-          currentStatus = 'canceled';
-        } else {
-          if (daysDelayed > 0) {
-            currentStatus = 'delayed';
-          } else {
-            currentStatus = 'pending';
-          }
-        }
-
-        if (currentStatus !== 'pending' && currentStatus !== 'delayed') continue;
-
-        const card: DriverCard = {
-          weekId: weekly.weekId,
-          departure: dep,
-          status: currentStatus,
-          daysDelayed,
-        };
-
-        let driverData = driversMap.get(driverKey);
-        if (!driverData) {
-          driverData = { pending: 0, delayed: 0, cards: [], originalName: driverNameOriginal };
-          driversMap.set(driverKey, driverData);
-        }
-        driverData.cards.push(card);
-        if (currentStatus === 'pending') driverData.pending++;
-        if (currentStatus === 'delayed') driverData.delayed++;
+      let driverData = driversMap.get(driverKey);
+      if (!driverData) {
+        driverData = { pending: 0, delayed: 0, cards: [], originalName: driverNameOriginal };
+        driversMap.set(driverKey, driverData);
       }
+      driverData.cards.push(card);
+      if (info.status === 'pending') driverData.pending++;
+      if (info.status === 'delayed') driverData.delayed++;
     }
 
     return Array.from(driversMap.values())
