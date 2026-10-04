@@ -101,7 +101,9 @@ export class CampaignDetailComponent implements OnInit {
     }
   }
 
-  private processCampaignData(stats: Record<string, TerritorioStats>): void {
+  private processCampaignData(
+    stats: Record<string, { percent: number; total: number; salidas?: number; done: number }>,
+  ): void {
     const localityGroups = groupStatsByLocality(stats);
     this.territoriosPorLocalidad.set(localityGroups);
 
