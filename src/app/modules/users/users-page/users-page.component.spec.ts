@@ -20,6 +20,7 @@ describe('UsersPageComponent', () => {
       users: signal([{ user: 'test', rol: 'admin' }]),
       error: signal<string | null>(null),
       createUser: vi.fn(),
+      updateUser: vi.fn(),
       deleteUser: vi.fn(),
     };
 
@@ -39,8 +40,13 @@ describe('UsersPageComponent', () => {
       ],
     })
       .overrideComponent(UsersPageComponent, {
-        remove: { providers: [UsersFeatureService] },
-        add: { providers: [{ provide: UsersFeatureService, useValue: mockFeatureService }] },
+        remove: { providers: [UsersFeatureService, DialogService] },
+        add: {
+          providers: [
+            { provide: UsersFeatureService, useValue: mockFeatureService },
+            { provide: DialogService, useValue: mockDialogService },
+          ],
+        },
       })
       .compileComponents();
   });
@@ -59,23 +65,41 @@ describe('UsersPageComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should not call createUser if form is invalid', async () => {
+  it('should not call createUser on submit if form is invalid', async () => {
     component.formUser.patchValue({ user: '', password: '' });
-    await component.createUser();
+    await component.submitUser();
     expect(component.showError()).toBe(true);
     expect(mockFeatureService.createUser).not.toHaveBeenCalled();
   });
 
-  it('should call createUser and reset form on success', async () => {
+  it('should call createUser on submit and reset form on success', async () => {
     component.formUser.patchValue({ user: 'new_user', password: '123', rol: 'admin' });
     mockFeatureService.createUser.mockResolvedValue(true);
 
-    await component.createUser();
+    await component.submitUser();
 
     expect(mockFeatureService.createUser).toHaveBeenCalled();
     expect(component.formUser.value.user).toBe(''); // Form reset
     expect(mockSnackBar.open).toHaveBeenCalledWith(
       '👤 Usuario creado con éxito',
+      'ok',
+      expect.any(Object),
+    );
+  });
+
+  it('should call updateUser when editing an existing user', async () => {
+    mockFeatureService.updateUser.mockResolvedValue(true);
+    component.editUser({ user: 'test', rol: 'admin', password: '123' } as never);
+
+    await component.submitUser();
+
+    expect(mockFeatureService.updateUser).toHaveBeenCalledWith(
+      'test',
+      expect.objectContaining({ user: 'test', rol: 'admin' }),
+    );
+    expect(component.editingUserId()).toBeNull();
+    expect(mockSnackBar.open).toHaveBeenCalledWith(
+      '👤 Usuario actualizado con éxito',
       'ok',
       expect.any(Object),
     );

@@ -5,12 +5,11 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { CardService } from '@core/services/card.service';
 import { CampaignService } from '@core/services/campaign.service';
 import { NetworkService } from '@core/services/network.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { of } from 'rxjs';
 import { Component, Input } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
 import { TerritoryMapComponent } from '../../components/territory-map/territory-map.component';
 import { ModalComponent as ModalComponent_1 } from '../../../../shared/components/modal/modal.component';
 
@@ -79,12 +78,13 @@ describe('CardTerritoryComponent', () => {
     };
 
     mockActivatedRoute = {
-      snapshot: { params: { collection: 'test-coll' } },
+      snapshot: { params: { collection: 'test-coll' }, queryParams: {} },
     };
 
     await TestBed.configureTestingModule({
-      imports: [CardTerritoryComponent, ReactiveFormsModule, RouterTestingModule],
+      imports: [CardTerritoryComponent, ReactiveFormsModule],
       providers: [
+        provideRouter([]),
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: CardService, useValue: mockCardService },
         { provide: SpinnerService, useValue: mockSpinnerService },
@@ -117,7 +117,7 @@ describe('CardTerritoryComponent', () => {
     expect(component).toBeTruthy();
     expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(mockTerritoryDataService.getCardTerritorie).toHaveBeenCalledWith('test-coll');
-    expect(component.card().applesData.length).toBe(1);
+    expect(component.card().applesData).toHaveLength(1);
     expect(component.dataLoaded()).toBe(true);
   });
 
@@ -193,7 +193,7 @@ describe('CardTerritoryComponent', () => {
     ];
 
     const result = component.verifyUniqueCheck(duplicateApples);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].checked).toBe(true);
   });
 
@@ -223,6 +223,8 @@ describe('CardTerritoryComponent', () => {
       applesData: [{ name: 'A1', checked: false }],
     };
 
+    const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
     fixture = TestBed.createComponent(CardTerritoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -231,5 +233,6 @@ describe('CardTerritoryComponent', () => {
 
     expect(mockTerritoryDataService.postCardTerritorie).toHaveBeenCalled();
     expect(mockTerritoryDataService.putCardTerritorie).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith(['/registro-territorios']);
   });
 });

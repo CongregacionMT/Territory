@@ -110,7 +110,17 @@ interface WindowWithBootstrap extends Window {
 }
 
 (window as WindowWithBootstrap).bootstrap = { Modal: vi.fn() };
-window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+window.matchMedia = (query: string): MediaQueryList =>
+  ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: () => false,
+  }) as MediaQueryList;
 
 const storageMock = (): Storage => {
   let storage: Record<string, string> = {};

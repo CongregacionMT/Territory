@@ -33,8 +33,11 @@ class MockModalFormRuralComponent {
 vi.mock('@core/config/maps.config', () => ({
   mapConfig: {
     maps: {
-      'test-map': { kmlUrl: 'http://test.com/map.kml', iframeHtml: '<iframe src="test"></iframe>' },
-      rural: { kmlUrl: 'http://test.com/rural.kml' },
+      'test-map': {
+        kmlUrl: 'https://test.com/map.kml',
+        iframeHtml: '<iframe src="test"></iframe>',
+      },
+      rural: { kmlUrl: 'https://test.com/rural.kml' },
     },
   },
 }));
@@ -82,8 +85,11 @@ describe('MapasComponent', () => {
       ],
     })
       .overrideComponent(MapasComponent, {
-        remove: { imports: [] },
-        add: { imports: [MockOfflineMapViewerComponent, MockModalFormRuralComponent] },
+        remove: { imports: [], providers: [DialogService] },
+        add: {
+          imports: [MockOfflineMapViewerComponent, MockModalFormRuralComponent],
+          providers: [{ provide: DialogService, useValue: mockDialogService }],
+        },
       })
       .compileComponents();
   });
@@ -98,7 +104,7 @@ describe('MapasComponent', () => {
     fixture.detectChanges();
 
     expect(component).toBeTruthy();
-    expect(component.kmlUrl).toBe('http://test.com/map.kml');
+    expect(component.kmlUrl).toBe('https://test.com/map.kml');
     expect(component.mapa).toBeDefined();
     expect(mockTerritoryDataService.getTerritorieRural).not.toHaveBeenCalled();
   });
@@ -113,7 +119,7 @@ describe('MapasComponent', () => {
 
     expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(mockTerritoryDataService.getTerritorieRural).toHaveBeenCalled();
-    expect(component.dataRural.length).toBe(1);
+    expect(component.dataRural).toHaveLength(1);
     expect(component.showRural).toBe(true);
     expect(component.authService.isAdmin()).toBe(true);
     expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
