@@ -31,6 +31,7 @@ export class PrintPdfModalComponent {
 
   isPrintingPdf = signal<boolean>(false);
   pdfGenerated = signal<boolean>(false);
+  readonly printRangeDescription = this.pdfService.getPrintRangeDescription();
 
   closeModal(): void {
     this.closeModalEvent.emit();

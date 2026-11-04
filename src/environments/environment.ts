@@ -18,6 +18,8 @@ export const environment = {
   congregationName: 'Wheelwright',
   congregationKey: 'wheelwright',
   territoryPrefix: 'TerritorioW',
+  // Midweek meeting day (0 = Sunday ... 6 = Saturday). Defines the print range for departures.
+  meetingDay: 4,
 
   // Configuración de localidades
   localities: [

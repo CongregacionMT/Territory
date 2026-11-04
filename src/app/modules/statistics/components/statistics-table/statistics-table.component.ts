@@ -1,13 +1,54 @@
 import { ChangeDetectionStrategy, Component, input, output, computed } from '@angular/core';
 import { Card } from '@core/models/Card';
 import { DatePipe, NgClass } from '@angular/common';
+import {
+  calculateDaysSinceTerritoryCompletion,
+  getMostRecentCompletedTerritoryCard,
+  getMostRecentTerritoryCompletionDate,
+} from '@shared/utils/territory-completion.utils';
 
-function getLastEndData(dataList: Card[]): string | Date | undefined {
-  return dataList.find((card: Card) => card.end)?.end;
+function getPriorityColor(days: number, green: number, blue: number, yellow: number): string {
+  if (days < green) return 'success';
+  if (days < blue) return 'primary';
+  return days < yellow ? 'warning' : 'danger';
 }
 
-function getCardProperty(card: Card, prop: string): string | number | undefined {
-  return (card as unknown as Record<string, string | number | undefined>)[prop];
+function getLastEndData(dataList: Card[]): Date | undefined {
+  return getMostRecentTerritoryCompletionDate(dataList) ?? undefined;
+}
+
+type CardPropertyValue = string | number | undefined;
+
+function getCardProperty(card: Card, prop: string): CardPropertyValue {
+  return (card as unknown as Record<string, CardPropertyValue>)[prop];
+}
+
+function compareTerritoryCards(a: Card[], b: Card[], prop: string): number {
+  if (prop === 'start' || prop === 'end') {
+    const timeA = getLastEndData(a)?.getTime() ?? 0;
+    const timeB = getLastEndData(b)?.getTime() ?? 0;
+    return timeA - timeB;
+  }
+
+  if (prop === 'numberTerritory' || prop === 'territory') {
+    const valA = a[0] ? getCardProperty(a[0], prop) : null;
+    const valB = b[0] ? getCardProperty(b[0], prop) : null;
+    const numA = Number.parseInt(String(valA), 10);
+    const numB = Number.parseInt(String(valB), 10);
+    if (!Number.isNaN(numA) && !Number.isNaN(numB)) return numA - numB;
+  }
+
+  if (prop === 'applesData') {
+    const lenA = a[0]?.applesData?.length || 0;
+    const lenB = b[0]?.applesData?.length || 0;
+    return lenA - lenB;
+  }
+
+  const valA = a[0] ? getCardProperty(a[0], prop) : null;
+  const valB = b[0] ? getCardProperty(b[0], prop) : null;
+  if (valA == null || valB == null) return 0;
+  if (valA < valB) return -1;
+  return valA > valB ? 1 : 0;
 }
 
 @Component({
@@ -183,45 +224,10 @@ export class StatisticsTableComponent {
   sortedData = computed(() => {
     const dataArray = [...this.data()];
     const prop = this.path();
-    const orderNum = this.order();
 
-    dataArray.sort((a: Card[], b: Card[]) => {
-      if (prop === 'start' || prop === 'end') {
-        const dateA = getLastEndData(a);
-        const dateB = getLastEndData(b);
-        const timeA = dateA ? new Date(dateA).getTime() : 0;
-        const timeB = dateB ? new Date(dateB).getTime() : 0;
-        return timeA - timeB;
-      }
+    dataArray.sort((a, b) => compareTerritoryCards(a, b, prop));
 
-      if (prop === 'numberTerritory' || prop === 'territory') {
-        const valA = a[0] ? getCardProperty(a[0], prop) : null;
-        const valB = b[0] ? getCardProperty(b[0], prop) : null;
-        const numA = Number.parseInt(String(valA), 10);
-        const numB = Number.parseInt(String(valB), 10);
-        if (!Number.isNaN(numA) && !Number.isNaN(numB)) {
-          return numA - numB;
-        }
-      }
-
-      if (prop === 'applesData') {
-        const lenA = a[0]?.applesData?.length || 0;
-        const lenB = b[0]?.applesData?.length || 0;
-        return lenA - lenB;
-      }
-
-      // Fallback genérico para otros campos
-      const valA = a[0] ? getCardProperty(a[0], prop) : null;
-      const valB = b[0] ? getCardProperty(b[0], prop) : null;
-
-      if (valA != null && valB != null) {
-        if (valA < valB) return -1;
-        if (valA > valB) return 1;
-      }
-      return 0;
-    });
-
-    if (orderNum !== 1) {
+    if (this.order() !== 1) {
       dataArray.reverse();
     }
 
@@ -249,31 +255,27 @@ export class StatisticsTableComponent {
     return this.order() === 1 ? 'ascending' : 'descending';
   }
 
-  getLastEnd(dataList: Card[]): string | Date | undefined {
+  getLastEnd(dataList: Card[]): Date | undefined {
     return getLastEndData(dataList);
   }
 
   getDisplayCard(dataList: Card[]): Card {
-    const completedCard = dataList.find(c => c.end);
+    const completedCard = getMostRecentCompletedTerritoryCard(dataList);
     return completedCard || dataList[0];
   }
 
   paintRow(dataList: Card[]): string {
-    const today = new Date();
-    const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
     const lastEnd = this.getLastEnd(dataList);
 
     if (!lastEnd) return 'danger';
 
-    const dateCard = new Date(lastEnd);
-    const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
-    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-
-    if (days < this.greenThreshold()) return 'success';
-    if (days < this.blueThreshold()) return 'primary';
-    if (days < this.yellowThreshold()) return 'warning';
-    return 'danger';
+    const days = calculateDaysSinceTerritoryCompletion(lastEnd);
+    return getPriorityColor(
+      days,
+      this.greenThreshold(),
+      this.blueThreshold(),
+      this.yellowThreshold(),
+    );
   }
 
   getPersonalEntry(number: string | number | undefined): Card | undefined {

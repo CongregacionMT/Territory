@@ -86,9 +86,7 @@ export class StatisticsFeatureService {
 
     const fetchedData: Card[][] = [];
     const promises = localityTerritories.map(async (t: TerritoryNumberData) => {
-      const allCards = await firstValueFrom(
-        this.territorieDataService.getCardTerritorie(t.collection, 120).pipe(take(1)),
-      );
+      const allCards = await this.territorieDataService.getCardTerritorieFromServer(t.collection);
       this.processTerritoryCards(allCards, t, fetchedData);
     });
 

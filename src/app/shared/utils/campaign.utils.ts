@@ -34,6 +34,15 @@ export interface DepartureInfo {
   publishers?: number;
 }
 
+/** Extrae solo el número del final de un texto (ej: "MT-5" -> "5"). */
+function extractTrailingNumber(text: string): string | null {
+  let index = text.length;
+  while (index > 0 && /\d/.test(text.charAt(index - 1))) {
+    index--;
+  }
+  return index < text.length ? text.slice(index) : null;
+}
+
 export function formatTerritoryName(key: string): string {
   if (!key) return 'Territorio';
   if (key.startsWith('Territorio ')) return key;
@@ -42,11 +51,10 @@ export function formatTerritoryName(key: string): string {
   if (key.includes('Territorio')) {
     const parts = key.split(/[- ]/);
     // El número suele ser la última parte (ej: "5" en "TerritorioMT-5" o "MT-5")
-    const lastPart = parts[parts.length - 1];
-    const match = lastPart.match(/\d+$/); // Extraer solo el número del final
+    const trailingNumber = extractTrailingNumber(parts[parts.length - 1]);
 
-    if (match) {
-      return `Territorio ${match[0]}`;
+    if (trailingNumber) {
+      return `Territorio ${trailingNumber}`;
     }
   }
 
@@ -172,6 +180,19 @@ export function groupStatsByLocality(
     });
 }
 
+function parseCampaignDate(value: FirebaseDate): Date | null {
+  if (typeof value === 'string') {
+    return new Date(value.includes('T') ? value : value + 'T12:00:00');
+  }
+  if (typeof value === 'number') return new Date(value);
+  if (value instanceof Date) return value;
+  if (value && typeof value === 'object') {
+    if (typeof value.toDate === 'function') return value.toDate();
+    if (typeof value.seconds === 'number') return new Date(value.seconds * 1000);
+  }
+  return null;
+}
+
 export function filterDeparturesByCampaignDates(
   departures: WeeklyDeparture[],
   dateInit: FirebaseDate,
@@ -180,55 +201,12 @@ export function filterDeparturesByCampaignDates(
   if (!departures || !departures.length) return [];
 
   // Extraer fecha de inicio de forma robusta
-  let initTime = 0;
-  if (typeof dateInit === 'string') {
-    const dateObj = new Date(dateInit.includes('T') ? dateInit : dateInit + 'T12:00:00');
-    initTime = dateObj.getTime();
-  } else if (
-    dateInit &&
-    typeof dateInit === 'object' &&
-    'toDate' in dateInit &&
-    typeof dateInit.toDate === 'function'
-  ) {
-    initTime = dateInit.toDate().getTime();
-  } else if (
-    dateInit &&
-    typeof dateInit === 'object' &&
-    'seconds' in dateInit &&
-    typeof dateInit.seconds === 'number'
-  ) {
-    initTime = dateInit.seconds * 1000;
-  } else if (dateInit instanceof Date) {
-    initTime = dateInit.getTime();
-  } else if (typeof dateInit === 'number') {
-    initTime = new Date(dateInit).getTime();
-  }
+  const initTime = parseCampaignDate(dateInit)?.getTime() ?? 0;
 
   // Calcular fecha fin (límite superior)
   let endTime = Infinity;
   if (dateEnd) {
-    let endDate: Date = new Date();
-    if (typeof dateEnd === 'string') {
-      endDate = new Date(dateEnd.includes('T') ? dateEnd : dateEnd + 'T12:00:00');
-    } else if (
-      dateEnd &&
-      typeof dateEnd === 'object' &&
-      'toDate' in dateEnd &&
-      typeof dateEnd.toDate === 'function'
-    ) {
-      endDate = dateEnd.toDate();
-    } else if (
-      dateEnd &&
-      typeof dateEnd === 'object' &&
-      'seconds' in dateEnd &&
-      typeof dateEnd.seconds === 'number'
-    ) {
-      endDate = new Date(dateEnd.seconds * 1000);
-    } else if (dateEnd instanceof Date) {
-      endDate = dateEnd;
-    } else if (typeof dateEnd === 'number') {
-      endDate = new Date(dateEnd);
-    }
+    const endDate = parseCampaignDate(dateEnd) ?? new Date();
     // Forzamos al último milisegundo del día en hora LOCAL
     endDate.setHours(23, 59, 59, 999);
     endTime = endDate.getTime();
@@ -282,7 +260,6 @@ export function filterDeparturesByCampaignDates(
             locality: localityName || null,
             point: dep.point || 'Sin punto de encuentro',
             checked: false,
-            publishers: undefined,
           });
         }
       });
@@ -292,4 +269,25 @@ export function filterDeparturesByCampaignDates(
   allIndividualDepartures.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return allIndividualDepartures;
+}
+
+export function removeUndefined<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj instanceof Date || typeof (obj as { toDate?: unknown }).toDate === 'function') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return (obj as unknown[])
+      .filter((item: unknown) => item !== undefined)
+      .map((item: unknown) => removeUndefined(item)) as unknown as T;
+  }
+  const result: Record<string, unknown> = {};
+  const objRecord = obj as Record<string, unknown>;
+  for (const k of Object.keys(objRecord)) {
+    const val = objRecord[k];
+    if (val !== undefined) {
+      result[k] = removeUndefined(val);
+    }
+  }
+  return result as T;
 }

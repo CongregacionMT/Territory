@@ -27,7 +27,8 @@
           }
         ]
       }
-    ]
+    ],
+    "site": "territorios-wheelwright"
   },
   "firestore": {
     "database": "(default)",

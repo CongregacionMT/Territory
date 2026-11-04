@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Departure } from '@core/models/Departures';
-import type { PDFPage, PDFFont, RGB } from 'pdf-lib';
+import type { PDFDocument, PDFPage, PDFFont, RGB } from 'pdf-lib';
 import { environment } from '@environments/environment';
 import { compareDeparturesByDateTime } from '@shared/utils/departure-sort.utils';
 
@@ -28,13 +28,34 @@ interface PdfColors {
 export type PrintMode = 'color' | 'bw';
 
 /**
- * Represents the Friday-to-Thursday print week range.
+ * Represents the print week range: from the day after the meeting
+ * up to (and including) the next meeting day.
  */
 interface PrintWeekRange {
-  friday: Date;
-  thursday: Date;
+  start: Date;
+  end: Date;
   label: string;
 }
+
+/** Default meeting day when not configured (JS getDay convention: 4 = Thursday). */
+const DEFAULT_MEETING_DAY = 4;
+
+const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+const MONTH_NAMES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
 
 /**
  * Column widths for the PDF table.
@@ -45,6 +66,21 @@ interface ColWidths {
   driver: number;
   point: number;
   territories: number;
+}
+
+/**
+ * Mutable state shared while rendering the all-groups PDF.
+ */
+interface PdfRenderContext {
+  pdfDoc: PDFDocument;
+  page: PDFPage;
+  yPos: number;
+  fontBold: PDFFont;
+  fontRegular: PDFFont;
+  fontItalic: PDFFont;
+  colors: PdfColors;
+  colWidths: ColWidths;
+  showGroupHeaders: boolean;
 }
 
 @Injectable({
@@ -94,67 +130,75 @@ export class DeparturePdfService {
   }
 
   /**
-   * Calculate the Friday-to-Thursday print range from a Monday-based weekId.
-   *
-   * The DB stores weeks as Mon–Sun. For printing we want Fri–Thu:
-   * - Given a weekId (e.g. "2026-04-20" = Monday Apr 20),
-   *   the print range is Friday of *that same week* (Apr 24)
-   *   through Thursday of *the next week* (Apr 30).
+   * Configured midweek meeting day (JS getDay convention: 0 = Sunday ... 6 = Saturday).
+   * Falls back to Thursday when missing or invalid.
    */
-  getPrintWeekRange(weekId: string): PrintWeekRange {
-    // Parse the weekId as a Monday date
-    const monday = new Date(weekId + 'T12:00:00');
-
-    // Friday of the same week = Monday + 4 days
-    const friday = new Date(monday);
-    friday.setDate(monday.getDate() + 4);
-
-    // Thursday of the next week = Monday + 10 days
-    const thursday = new Date(monday);
-    thursday.setDate(monday.getDate() + 10);
-
-    const months = [
-      'enero',
-      'febrero',
-      'marzo',
-      'abril',
-      'mayo',
-      'junio',
-      'julio',
-      'agosto',
-      'septiembre',
-      'octubre',
-      'noviembre',
-      'diciembre',
-    ];
-
-    const label = `Viernes ${friday.getDate()} de ${months[friday.getMonth()]} al Jueves ${thursday.getDate()} de ${months[thursday.getMonth()]}`;
-
-    return { friday, thursday, label };
+  getMeetingDay(): number {
+    const configured = environment.meetingDay;
+    return Number.isInteger(configured) && configured >= 0 && configured <= 6
+      ? configured
+      : DEFAULT_MEETING_DAY;
   }
 
   /**
-   * Filter and reorder departures for the print week range (Fri–Thu).
-   * Takes the current week departures and the next week departures,
-   * then picks only the dates that fall within Friday–Thursday.
+   * Human-readable description of the print range, e.g. "viernes a jueves".
+   */
+  getPrintRangeDescription(): string {
+    const meetingDay = this.getMeetingDay();
+    const startDay = (meetingDay + 1) % 7;
+    return `${DAY_NAMES[startDay].toLowerCase()} a ${DAY_NAMES[meetingDay].toLowerCase()}`;
+  }
+
+  /**
+   * Calculate the print range from a Monday-based weekId.
+   *
+   * The DB stores weeks as Mon–Sun. For printing we want the day after the
+   * meeting through the next meeting day (inclusive). With a Thursday meeting,
+   * given weekId "2026-04-20" (Monday Apr 20), the range is Fri Apr 24 – Thu Apr 30.
+   *
+   * The range always falls within the selected week and the following one,
+   * so callers only need to fetch those two weeks.
+   */
+  getPrintWeekRange(weekId: string): PrintWeekRange {
+    const monday = new Date(weekId + 'T12:00:00');
+    const meetingDay = this.getMeetingDay();
+
+    // Offset of the meeting day from Monday (Mon = 0 ... Sun = 6)
+    const meetingOffset = (meetingDay + 6) % 7;
+
+    const start = new Date(monday);
+    start.setDate(monday.getDate() + meetingOffset + 1);
+
+    const end = new Date(monday);
+    end.setDate(monday.getDate() + meetingOffset + 7);
+
+    const label = `${DAY_NAMES[start.getDay()]} ${start.getDate()} de ${MONTH_NAMES[start.getMonth()]} al ${DAY_NAMES[end.getDay()]} ${end.getDate()} de ${MONTH_NAMES[end.getMonth()]}`;
+
+    return { start, end, label };
+  }
+
+  /**
+   * Filter and reorder departures for the print week range.
+   * Takes the selected week departures and the next week departures,
+   * then picks only the dates that fall within the range.
    */
   getDeparturesForPrintWeek(
     currentWeekDepartures: Departure[],
     nextWeekDepartures: Departure[],
     weekId: string,
   ): Departure[] {
-    const { friday, thursday } = this.getPrintWeekRange(weekId);
+    const { start, end } = this.getPrintWeekRange(weekId);
 
     // Normalize dates for comparison (strip time)
-    const fridayStr = this.dateToString(friday);
-    const thursdayStr = this.dateToString(thursday);
+    const startStr = this.dateToString(start);
+    const endStr = this.dateToString(end);
 
     const allDepartures = [...currentWeekDepartures, ...nextWeekDepartures];
 
     return allDepartures
       .filter((dep) => {
         const depDate = dep.date; // Format: YYYY-MM-DD
-        return depDate >= fridayStr && depDate <= thursdayStr;
+        return depDate >= startStr && depDate <= endStr;
       })
       .sort(compareDeparturesByDateTime);
   }
@@ -206,96 +250,123 @@ export class DeparturePdfService {
       territories: this.CONTENT_WIDTH - 80 - 50 - 145 - 145,
     };
 
-    let page = pdfDoc.addPage([this.PAGE_WIDTH, this.PAGE_HEIGHT]);
-    let yPos = this.PAGE_HEIGHT - this.MARGIN;
-
-    // Draw lightweight page header (ink-efficient)
-    yPos = this.drawLightHeader(page, yPos, fontBold, fontRegular, colors, weekLabel);
+    const page = pdfDoc.addPage([this.PAGE_WIDTH, this.PAGE_HEIGHT]);
 
     // Sort group numbers
     const sortedGroups = [...groupNumbers].sort((a, b) => a - b);
 
-    for (let gIdx = 0; gIdx < sortedGroups.length; gIdx++) {
-      const groupNum = sortedGroups[gIdx];
+    const ctx: PdfRenderContext = {
+      pdfDoc,
+      page,
+      // Draw lightweight page header (ink-efficient)
+      yPos: this.drawLightHeader(
+        page,
+        this.PAGE_HEIGHT - this.MARGIN,
+        fontBold,
+        fontRegular,
+        colors,
+        weekLabel,
+      ),
+      fontBold,
+      fontRegular,
+      fontItalic,
+      colors,
+      colWidths,
+      showGroupHeaders: sortedGroups.length > 1,
+    };
 
+    sortedGroups.forEach((groupNum, gIdx) => {
       // Filter departures for this group
       const groupDepartures = departures.filter((dep) => dep.group === groupNum || dep.group === 0);
+      if (groupDepartures.length === 0) return;
 
-      if (groupDepartures.length === 0) continue;
-
-      // Group section header — check if enough space
-      const groupHeaderHeight = sortedGroups.length > 1 ? 22 : 0;
-      if (yPos - groupHeaderHeight - 20 < this.MARGIN + 20) {
-        this.drawFooter(page, fontItalic, colors);
-        page = pdfDoc.addPage([this.PAGE_WIDTH, this.PAGE_HEIGHT]);
-        yPos = this.PAGE_HEIGHT - this.MARGIN;
-      }
-
-      // Draw group section header (only if multiple groups)
-      if (sortedGroups.length > 1) {
-        yPos = this.drawGroupSectionHeader(page, yPos, fontBold, fontRegular, colors, groupNum);
-      }
-
-      // Draw table header
-      yPos = this.drawTableHeaderCompact(page, yPos, fontBold, colors, colWidths);
-
-      // Group departures by date
-      const groupedByDate = this.groupDeparturesByDate(groupDepartures);
-
-      for (const [, deps] of groupedByDate) {
-        for (let i = 0; i < deps.length; i++) {
-          const dep = deps[i];
-
-          // Estimate row height
-          const rowHeight = this.estimateRowHeightCompact(dep, fontRegular, colWidths);
-
-          // Check if we need a new page
-          if (yPos - rowHeight < this.MARGIN + 15) {
-            this.drawFooter(page, fontItalic, colors);
-            page = pdfDoc.addPage([this.PAGE_WIDTH, this.PAGE_HEIGHT]);
-            yPos = this.PAGE_HEIGHT - this.MARGIN;
-
-            // Re-draw table header on new page
-            if (sortedGroups.length > 1) {
-              yPos = this.drawGroupSectionHeader(
-                page,
-                yPos,
-                fontBold,
-                fontRegular,
-                colors,
-                groupNum,
-              );
-            }
-            yPos = this.drawTableHeaderCompact(page, yPos, fontBold, colors, colWidths);
-          }
-
-          const isEvenRow = i % 2 === 0;
-          yPos = this.drawDepartureRowCompact(
-            page,
-            yPos,
-            dep,
-            isEvenRow,
-            fontBold,
-            fontRegular,
-            colors,
-            colWidths,
-          );
-        }
-        // Small separator between days
-        yPos -= 1;
-      }
+      this.renderGroupSection(ctx, groupNum, groupDepartures);
 
       // Spacing between groups
       if (gIdx < sortedGroups.length - 1) {
-        yPos -= 8;
+        ctx.yPos -= 8;
       }
-    }
+    });
 
     // Draw footer on last page
-    this.drawFooter(page, fontItalic, colors);
+    this.drawFooter(ctx.page, fontItalic, colors);
 
     const pdfBytes = await pdfDoc.save();
     return pdfBytes;
+  }
+
+  /**
+   * Render one group's section: section header, table header and rows,
+   * adding new pages as needed.
+   */
+  private renderGroupSection(
+    ctx: PdfRenderContext,
+    groupNum: number,
+    groupDepartures: Departure[],
+  ): void {
+    // Group section header — check if enough space
+    const groupHeaderHeight = ctx.showGroupHeaders ? 22 : 0;
+    if (ctx.yPos - groupHeaderHeight - 20 < this.MARGIN + 20) {
+      this.startNewPage(ctx);
+    }
+
+    this.drawGroupHeaders(ctx, groupNum);
+
+    // Group departures by date
+    const groupedByDate = this.groupDeparturesByDate(groupDepartures);
+
+    for (const [, deps] of groupedByDate) {
+      deps.forEach((dep, i) => {
+        const rowHeight = this.estimateRowHeightCompact(dep, ctx.fontRegular, ctx.colWidths);
+
+        // Check if we need a new page, re-drawing headers on it
+        if (ctx.yPos - rowHeight < this.MARGIN + 15) {
+          this.startNewPage(ctx);
+          this.drawGroupHeaders(ctx, groupNum);
+        }
+
+        ctx.yPos = this.drawDepartureRowCompact(
+          ctx.page,
+          ctx.yPos,
+          dep,
+          i % 2 === 0,
+          ctx.fontBold,
+          ctx.fontRegular,
+          ctx.colors,
+          ctx.colWidths,
+        );
+      });
+      // Small separator between days
+      ctx.yPos -= 1;
+    }
+  }
+
+  /** Close the current page with a footer and continue on a fresh one. */
+  private startNewPage(ctx: PdfRenderContext): void {
+    this.drawFooter(ctx.page, ctx.fontItalic, ctx.colors);
+    ctx.page = ctx.pdfDoc.addPage([this.PAGE_WIDTH, this.PAGE_HEIGHT]);
+    ctx.yPos = this.PAGE_HEIGHT - this.MARGIN;
+  }
+
+  /** Draw the group section header (only for multiple groups) and the table header. */
+  private drawGroupHeaders(ctx: PdfRenderContext, groupNum: number): void {
+    if (ctx.showGroupHeaders) {
+      ctx.yPos = this.drawGroupSectionHeader(
+        ctx.page,
+        ctx.yPos,
+        ctx.fontBold,
+        ctx.fontRegular,
+        ctx.colors,
+        groupNum,
+      );
+    }
+    ctx.yPos = this.drawTableHeaderCompact(
+      ctx.page,
+      ctx.yPos,
+      ctx.fontBold,
+      ctx.colors,
+      ctx.colWidths,
+    );
   }
 
   /**

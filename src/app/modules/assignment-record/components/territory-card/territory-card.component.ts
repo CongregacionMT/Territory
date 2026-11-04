@@ -3,6 +3,7 @@ import { DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Card } from '@core/models/Card';
 import { parseFirebaseDate } from '@shared/utils/date-utils';
+import { isCompletionEnd } from '@shared/utils/territory-completion.utils';
 
 @Component({
   selector: 'app-territory-card',
@@ -36,7 +37,8 @@ export class TerritoryCardComponent {
           const startVal = c.start
             ? new Date(c.start).toISOString().split('T')[0]
             : parseFirebaseDate(c.creation).toISOString().split('T')[0];
-          const endVal = c.end && c.end !== '0' ? new Date(c.end).toISOString().split('T')[0] : '';
+          const endVal =
+            c.end && isCompletionEnd(c.end) ? new Date(c.end).toISOString().split('T')[0] : '';
 
           this.editFormData.set({
             driver: c.driver,

@@ -21,8 +21,99 @@ import { PdfService } from '@core/services/pdf.service';
 import { StorageService } from '@core/services/storage.service';
 import { TerritoryCardComponent } from '../../components/territory-card/territory-card.component';
 import { parseFirebaseDate } from '@shared/utils/date-utils';
+import { isCompletionEnd } from '@shared/utils/territory-completion.utils';
 
 import { Card, CardApplesData } from '@core/models/Card';
+
+const countCheckedApples = (card: Card): number =>
+  (card.applesData ?? []).filter((apple) => apple.checked).length;
+
+const isMeaningfulCard = (card: Card): boolean => {
+  if ((card as unknown as { isReset?: boolean })?.isReset) return false;
+  const hasDriver = !!card.driver && card.driver.trim() !== '';
+  const isCampaignCard =
+    !!card.id && (card.id.startsWith('PostCampaña') || card.id.startsWith('Campaña-undefined'));
+  return (
+    countCheckedApples(card) > 0 ||
+    hasDriver ||
+    (card.applesData?.length ?? 0) > 1 ||
+    isCampaignCard
+  );
+};
+
+/**
+ * Picks the preferred card between two duplicates:
+ * 1) the one with a completion end date, 2) the one with more checked apples,
+ * 3) the one with the newer creation date.
+ */
+const pickPreferredCard = (existing: Card, card: Card, getCardDate: (card: Card) => Date): Card => {
+  const existingCompleted = isCompletionEnd(String(existing.end || ''));
+  const cardCompleted = isCompletionEnd(String(card.end || ''));
+  if (existingCompleted !== cardCompleted) return cardCompleted ? card : existing;
+
+  const existingChecked = countCheckedApples(existing);
+  const cardChecked = countCheckedApples(card);
+  if (existingChecked !== cardChecked) return cardChecked > existingChecked ? card : existing;
+
+  try {
+    return getCardDate(card).getTime() > getCardDate(existing).getTime() ? card : existing;
+  } catch {
+    return existing;
+  }
+};
+
+/** Deduplicates entries by driver + start + end. */
+const dedupeCards = (cards: Card[], getCardDate: (card: Card) => Date): Card[] => {
+  const byKey = new Map<string, Card>();
+  for (const card of cards) {
+    const key = `${(card.driver || '').trim()}||${String(card.start || '')}||${String(card.end || '')}`;
+    const existing = byKey.get(key);
+    byKey.set(key, existing ? pickPreferredCard(existing, card, getCardDate) : card);
+  }
+  return Array.from(byKey.values());
+};
+
+/** Years from the current one down to the oldest card (ignoring invalid dates and years <= 2000). */
+const computeAvailableYears = (
+  territoryCards: Card[][],
+  getCardDate: (card: Card) => Date,
+): number[] => {
+  const currentYear = new Date().getFullYear();
+  let minYear = currentYear;
+  for (const card of territoryCards.flat()) {
+    const date = getCardDate(card);
+    if (!date || Number.isNaN(date.getTime()) || date.getTime() <= 0) continue;
+    const year = date.getFullYear();
+    if (year > 2000 && year < minYear) minYear = year;
+  }
+  return Array.from({ length: currentYear - minYear + 1 }, (_, i) => currentYear - i);
+};
+
+const removeUndefined = (obj: unknown): unknown => {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj instanceof Date || typeof (obj as { toDate?: unknown }).toDate === 'function') return obj;
+  if (Array.isArray(obj)) return obj.map(removeUndefined);
+  const result: Record<string, unknown> = {};
+  for (const [k, val] of Object.entries(obj as Record<string, unknown>)) {
+    if (val !== undefined) result[k] = removeUndefined(val);
+  }
+  return result;
+};
+
+const isMissingRequiredFields = (data: Partial<Card>): boolean =>
+  !data.driver || data.driver.trim() === '' || !data.start || !isCompletionEnd(data.end);
+
+const buildResetCard = (card: Partial<Card>): Partial<Card> & { isReset: boolean } => ({
+  ...card,
+  isReset: true,
+  driver: '',
+  start: '',
+  end: '',
+  comments: '',
+  creation: new Date().toISOString(),
+  isInitial: false,
+  applesData: (card.applesData ?? []).map((a: CardApplesData) => ({ ...a, checked: false })),
+});
 
 @Component({
   selector: 'app-territory-assignment',
@@ -128,99 +219,14 @@ export class TerritoryAssignmentComponent implements OnInit {
 
     Promise.all(requests)
       .then((results: Card[][]) => {
-        const filteredResults = results.map((cardList: Card[]) => {
-          if (!cardList) return [];
-          const list = cardList.filter((card) => {
-            if ((card as unknown as { isReset?: boolean })?.isReset) return false;
-            let checkedAppleCount = 0;
-            if (card.applesData) {
-              checkedAppleCount = card.applesData.filter((apple) => apple.checked).length;
-            }
-            const hasDriver = card.driver && card.driver.trim() !== '';
-            return (
-              checkedAppleCount > 0 ||
-              hasDriver ||
-              (card.applesData && card.applesData.length > 1) ||
-              (card.id &&
-                (card.id.startsWith('PostCampaña') || card.id.startsWith('Campaña-undefined')))
-            );
-          });
-
-          // Deduplicate entries by driver + start + end. If duplicates exist, prefer:
-          // 1) entry with a non-'0' end date
-          // 2) entry with more checked apples
-          // 3) newer creation date
-          const map = new Map<string, Card>();
-          for (const card of list) {
-            const keyDriver = (card.driver || '').trim();
-            const keyStart = String(card.start || '');
-            const keyEnd = String(card.end || '');
-            const key = `${keyDriver}||${keyStart}||${keyEnd}`;
-
-            const existing = map.get(key);
-            if (!existing) {
-              map.set(key, card);
-              continue;
-            }
-
-            const existingEnd = String(existing.end || '');
-            const cardEnd = String(card.end || '');
-            const existingChecked = (existing.applesData || []).filter((a) => a.checked).length;
-            const cardChecked = (card.applesData || []).filter((a) => a.checked).length;
-
-            // Prefer one with non-'0' end
-            if (existingEnd === '0' && cardEnd !== '0') {
-              map.set(key, card);
-              continue;
-            }
-            if (existingEnd !== '0' && cardEnd === '0') {
-              continue;
-            }
-
-            // Prefer more checked apples
-            if (cardChecked > existingChecked) {
-              map.set(key, card);
-              continue;
-            }
-            if (cardChecked < existingChecked) {
-              continue;
-            }
-
-            // As last resort prefer newer creation
-            try {
-              const existingDate = this.getCardDate(existing).getTime();
-              const cardDate = this.getCardDate(card).getTime();
-              if (cardDate > existingDate) map.set(key, card);
-            } catch {
-              // keep existing
-            }
-          }
-
-          return Array.from(map.values());
-        });
+        const filteredResults = results.map((cardList: Card[]) =>
+          dedupeCards((cardList ?? []).filter(isMeaningfulCard), (card) => this.getCardDate(card)),
+        );
 
         if (updateState) {
-          // Extraer años disponibles basados en la tarjeta más antigua
-          const currentYear = new Date().getFullYear();
-          let minYear = currentYear;
-
-          filteredResults.forEach((territoryCards) => {
-            territoryCards.forEach((card) => {
-              const date = this.getCardDate(card);
-              if (date && !Number.isNaN(date.getTime()) && date.getTime() > 0) {
-                const y = date.getFullYear();
-                if (y > 2000 && y < minYear) {
-                  minYear = y;
-                }
-              }
-            });
-          });
-
-          const years = [];
-          for (let y = currentYear; y >= minYear; y--) {
-            years.push(y);
-          }
-          this.availableYears.set(years);
+          this.availableYears.set(
+            computeAvailableYears(filteredResults, (card) => this.getCardDate(card)),
+          );
 
           this.dataListFull.set(filteredResults);
           this.sortByDate(this.selectedValueFilter());
@@ -360,7 +366,7 @@ export class TerritoryAssignmentComponent implements OnInit {
       const existing = pending[key];
 
       let updatedApples = existing?.data?.applesData || card.applesData || [];
-      if (editData.end && editData.end !== '0') {
+      if (isCompletionEnd(editData.end)) {
         updatedApples = updatedApples.map((a: CardApplesData) => ({ ...a, checked: true }));
       }
 
@@ -373,7 +379,7 @@ export class TerritoryAssignmentComponent implements OnInit {
             ...existing?.data,
             driver: editData.driver,
             start: editData.start,
-            end: editData.end || '0',
+            end: editData.end || '',
             applesData: updatedApples,
           },
           ...(existing?.isNew && { isNew: true }),
@@ -382,7 +388,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     });
 
     let localApples = card.applesData || [];
-    if (editData.end && editData.end !== '0') {
+    if (isCompletionEnd(editData.end)) {
       localApples = localApples.map((a) => ({ ...a, checked: true }));
     }
 
@@ -390,7 +396,7 @@ export class TerritoryAssignmentComponent implements OnInit {
       ...card,
       driver: editData.driver,
       start: editData.start,
-      end: editData.end || '0',
+      end: editData.end || '',
       applesData: localApples,
     };
 
@@ -447,7 +453,7 @@ export class TerritoryAssignmentComponent implements OnInit {
     newCard.id = fakeId;
     newCard.driver = '';
     newCard.start = today;
-    newCard.end = '0';
+    newCard.end = '';
     const maxCompleted = existingCards.reduce((max, c) => Math.max(max, c.completed || 0), 0);
     newCard.completed = maxCompleted;
     newCard.revision = false;
@@ -517,6 +523,22 @@ export class TerritoryAssignmentComponent implements OnInit {
     });
   }
 
+  private async saveNewCard(collectionName: string, sanitizedData: Partial<Card>): Promise<void> {
+    const cleanData = { ...sanitizedData };
+    delete cleanData.id;
+    cleanData.applesData ??= [{ name: 'Registro manual', checked: false }];
+
+    if (!isCompletionEnd(cleanData.end)) {
+      await this.territoryDataService.addCardInCollection(collectionName, cleanData);
+      return;
+    }
+
+    cleanData.completed = (cleanData.completed || 0) + 1;
+    cleanData.isInitial = false;
+    await this.territoryDataService.addCardInCollection(collectionName, cleanData);
+    await this.territoryDataService.addCardInCollection(collectionName, buildResetCard(cleanData));
+  }
+
   async saveAllChanges(): Promise<void> {
     const changes = this.pendingChanges();
     const deletes = this.pendingDeletes();
@@ -528,20 +550,11 @@ export class TerritoryAssignmentComponent implements OnInit {
       return;
 
     // Validación estricta: ningún cambio puede tener campos vacíos
-    for (const key of Object.keys(changes)) {
-      const data = changes[key].data;
-      if (
-        !data.driver ||
-        data.driver.trim() === '' ||
-        !data.start ||
-        !data.end ||
-        data.end === '0'
-      ) {
-        alert(
-          'No se puede guardar. Hay un registro pendiente que no tiene conductor, fecha de entrega o fecha de devolución. Por favor, completa todos los campos requeridos.',
-        );
-        return;
-      }
+    if (Object.values(changes).some((change) => isMissingRequiredFields(change.data))) {
+      alert(
+        'No se puede guardar. Hay un registro pendiente que no tiene conductor, fecha de entrega o fecha de devolución. Por favor, completa todos los campos requeridos.',
+      );
+      return;
     }
 
     this.spinner.cargarSpinner();
@@ -554,50 +567,10 @@ export class TerritoryAssignmentComponent implements OnInit {
         const change = changes[key];
         const { collectionName, cardId, data, isNew } = change;
 
-        const removeUndefined = (obj: unknown): unknown => {
-          if (obj === null || typeof obj !== 'object') return obj;
-          if (obj instanceof Date || typeof (obj as { toDate?: unknown }).toDate === 'function')
-            return obj;
-          if (Array.isArray(obj)) return obj.map(removeUndefined);
-          const result: Record<string, unknown> = {};
-          const objRecord = obj as Record<string, unknown>;
-          for (const k of Object.keys(objRecord)) {
-            const val = objRecord[k];
-            if (val !== undefined) result[k] = removeUndefined(val);
-          }
-          return result;
-        };
         const sanitizedData = removeUndefined(data) as Card;
 
         if (isNew) {
-          const cleanData = { ...sanitizedData };
-          delete cleanData.id;
-          if (!cleanData.applesData)
-            cleanData.applesData = [{ name: 'Registro manual', checked: false }];
-
-          if (cleanData.end && cleanData.end !== '0') {
-            cleanData.completed = (cleanData.completed || 0) + 1;
-            cleanData.isInitial = false;
-            await this.territoryDataService.addCardInCollection(collectionName, cleanData);
-
-            const resetCard = {
-              ...cleanData,
-              isReset: true,
-              driver: '',
-              start: '',
-              end: '0',
-              comments: '',
-              creation: new Date().toISOString(),
-              isInitial: false,
-              applesData: cleanData.applesData.map((a: CardApplesData) => ({
-                ...a,
-                checked: false,
-              })),
-            };
-            await this.territoryDataService.addCardInCollection(collectionName, resetCard);
-          } else {
-            await this.territoryDataService.addCardInCollection(collectionName, cleanData);
-          }
+          await this.saveNewCard(collectionName, sanitizedData);
         } else {
           const cleanUpdateData = { ...sanitizedData };
           delete cleanUpdateData.id;

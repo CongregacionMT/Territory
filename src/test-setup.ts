@@ -1,10 +1,8 @@
 import '@analogjs/vitest-angular/setup-zone';
+import '@angular/compiler';
 import { vi, beforeEach } from 'vitest';
 import { of } from 'rxjs';
-import {
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting,
-} from '@angular/platform-browser-dynamic/testing';
+import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { getTestBed, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { ElementRef } from '@angular/core';
@@ -17,6 +15,7 @@ import { SwUpdate, ServiceWorkerModule } from '@angular/service-worker';
 
 import { DialogService } from './app/core/services/dialog.service';
 import { TerritoryDataService } from './app/core/services/territory-data.service';
+import { FirestoreProviderService } from './app/core/services/firestore-provider.service';
 import { CampaignService } from './app/core/services/campaign.service';
 import { SpinnerService } from './app/core/services/spinner.service';
 import { CartDataService } from './app/core/services/cart-data.service';
@@ -44,8 +43,23 @@ vi.mock('@angular/fire/firestore', () => {
       fromDate: vi.fn(() => ({ seconds: 12345, nanoseconds: 0 })),
     },
     runTransaction: vi.fn(),
+    documentId: vi.fn(() => '__name__'),
+    writeBatch: vi.fn(() => ({
+      set: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      commit: vi.fn().mockResolvedValue(undefined),
+    })),
     Firestore: class Firestore {},
     getFirestore: vi.fn(),
+  };
+});
+
+vi.mock('firebase/firestore', async (importOriginal) => {
+  const firebaseFirestore = await importOriginal<typeof import('firebase/firestore')>();
+  return {
+    ...firebaseFirestore,
+    getDocsFromServer: vi.fn(),
   };
 });
 
@@ -72,7 +86,7 @@ vi.mock('@angular/fire/database', () => {
   };
 });
 
-getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
+getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
 
 function createSpyObj(
   _baseName: string,
@@ -154,6 +168,8 @@ beforeEach(() => {
           getCongregacion: of({}),
           getGroupList: of([{ id: 'Grupo 1' }]),
           getCardTerritorie: of([{ applesData: [] }]),
+          getRecentCardsFromServer: Promise.resolve([]),
+          getCardTerritorieFromServer: Promise.resolve([]),
           getCardAssigned: of([{ applesData: [] }]),
           getNumberTerritory: of([{}]),
           getWeeklyDepartures: of([{}]),
@@ -203,6 +219,10 @@ beforeEach(() => {
       {
         provide: Firestore,
         useValue: {},
+      },
+      {
+        provide: FirestoreProviderService,
+        useValue: { getFirestore: (): Record<string, never> => ({}) },
       },
       {
         provide: Auth,

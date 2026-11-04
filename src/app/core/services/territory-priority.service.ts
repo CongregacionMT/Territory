@@ -3,6 +3,7 @@ import { TerritoryDataService } from './territory-data.service';
 import { Card } from '../models/Card';
 import { environment } from '@environments/environment';
 import { take } from 'rxjs';
+import { isCompletionEnd } from '@shared/utils/territory-completion.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -65,7 +66,7 @@ export class TerritoryPriorityService {
               if (num !== undefined) {
                 let lastEnd = null;
                 for (let i = 0; i < 6 && i < territoryCards.length; i++) {
-                  if (territoryCards[i].end) {
+                  if (isCompletionEnd(territoryCards[i].end)) {
                     lastEnd = territoryCards[i].end;
                     break;
                   }
@@ -93,7 +94,7 @@ export class TerritoryPriorityService {
             .subscribe((cards) => {
               let lastEnd = null;
               for (const c of cards) {
-                if (c.end) {
+                if (isCompletionEnd(c.end)) {
                   lastEnd = c.end;
                   break;
                 }

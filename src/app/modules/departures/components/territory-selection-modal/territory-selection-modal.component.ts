@@ -19,6 +19,7 @@ export class TerritorySelectionModalComponent {
   formDeparture = input.required<FormGroup>();
 
   territoryLastCompletedDays = input.required<Record<string, Record<number, number>>>();
+  territoryCompletionDataStatus = input<Record<string, 'loading' | 'ready' | 'error'>>({});
   territoryGroupsMap = input.required<Record<string, Record<number, number>>>();
   territoryNumbersCache = input.required<Record<string, string[]>>();
   personalAssignments = input.required<Card[]>();
@@ -64,7 +65,8 @@ export class TerritorySelectionModalComponent {
       });
     }
 
-    if (this.sortByAge) {
+    const completionStatus = this.territoryCompletionDataStatus()[locPrefix];
+    if (this.sortByAge && (!completionStatus || completionStatus === 'ready')) {
       list.sort((a, b) => {
         const aUsed = this.isTerritoryUsedInWeek(a) ? 1 : 0;
         const bUsed = this.isTerritoryUsedInWeek(b) ? 1 : 0;
@@ -189,8 +191,17 @@ export class TerritorySelectionModalComponent {
   }
 
   getTerritoryAgeLabel(num: string, locationPrefix: string): string {
+    const completionStatus = this.territoryCompletionDataStatus()[locationPrefix];
     const days = this.getTerritoryLastUsedDays(num, locationPrefix);
+    if (completionStatus === 'loading' && !isFinite(days)) return 'Actualizando…';
+    if (completionStatus === 'error' && !isFinite(days)) return 'Error al actualizar';
     if (!isFinite(days)) return 'Nunca';
+
+    const label = this.formatDaysAgo(days);
+    return completionStatus === 'error' ? `${label} (sin actualizar)` : label;
+  }
+
+  private formatDaysAgo(days: number): string {
     if (days < 7) return `Hace ${days}d`;
     if (days < 30) return `Hace ${Math.floor(days / 7)} sem`;
     const months = Math.floor(days / 30);
@@ -206,6 +217,12 @@ export class TerritorySelectionModalComponent {
   }
 
   getPriorityColorClass(num: string, locationPrefix: string): string {
+    const completionStatus = this.territoryCompletionDataStatus()[locationPrefix];
+    const isUnknown = !isFinite(this.getTerritoryLastUsedDays(num, locationPrefix));
+    if (isUnknown && (completionStatus === 'loading' || completionStatus === 'error')) {
+      return 'border-l-[6px] border-l-slate-500 border-slate-700/50 bg-slate-800/80 hover:bg-slate-700/80';
+    }
+
     const color = this.getTerritoryPriorityColor(num, locationPrefix);
     switch (color) {
       case 'danger':
@@ -237,7 +254,7 @@ export class TerritorySelectionModalComponent {
   }
 
   private normalizeTerritoryNumber(value: string): number {
-    const match = String(value).match(/\d+/);
+    const match = /\d+/.exec(String(value));
     return match ? Number(match[0]) : -1;
   }
 

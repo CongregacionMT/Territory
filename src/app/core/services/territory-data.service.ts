@@ -29,6 +29,7 @@ import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
 import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
 import { FirestoreProviderService } from './firestore-provider.service';
 import { MeetingPointService } from './meeting-point.service';
+import { isCompletionEnd } from '@shared/utils/territory-completion.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -90,6 +91,37 @@ export class TerritoryDataService {
     return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
   }
 
+  async getCardTerritorieFromServer(collectionParam: string): Promise<Card[]> {
+    const cardRef = collection(this.firestore, collectionParam);
+    const snapshot = await getDocsFromServer(cardRef);
+    return this.mapCardDocuments(snapshot.docs);
+  }
+
+  /**
+   * Reads only the newest cards from the server. The full collection is read
+   * only when none of them is a completion, so a completion hidden further back
+   * (or in a card without `creation`) is still found.
+   */
+  async getRecentCardsFromServer(
+    collectionParam: string,
+    recentLimit: number = 10,
+  ): Promise<Card[]> {
+    const cardRef = collection(this.firestore, collectionParam);
+    const recentQuery = query(cardRef, orderBy('creation', 'desc'), limit(recentLimit));
+    const snapshot = await getDocsFromServer(recentQuery);
+    const recentCards = this.mapCardDocuments(snapshot.docs);
+
+    const hasCompletion = recentCards.some((card) => isCompletionEnd(card.end));
+    return hasCompletion ? recentCards : this.getCardTerritorieFromServer(collectionParam);
+  }
+
+  private mapCardDocuments(documents: readonly { id: string; data: () => unknown }[]): Card[] {
+    return documents.map((cardDocument) => ({
+      ...(cardDocument.data() as object),
+      id: cardDocument.id,
+    })) as Card[];
+  }
+
   async sendRevisionCardTerritorie(card: Card): Promise<void> {
     const cardRef = collection(this.firestore, 'revision');
     await addDoc(cardRef, { ...card });
@@ -103,6 +135,66 @@ export class TerritoryDataService {
   }
 
   private isCreating = false;
+  private async saveCompletedCardFlow(
+    card: Card,
+    collectionName: string,
+    campaignIdValid: string | null,
+    territorioKey: string,
+  ): Promise<void> {
+    const completedCard = {
+      ...card,
+      creation: Timestamp.now(),
+      completed: (card.completed ?? 0) + 1,
+      isInitial: false,
+    };
+
+    const completedId = campaignIdValid
+      ? `Campaña-${campaignIdValid}-${Date.now()}-completed`
+      : null;
+    await this.saveDocument(collectionName, completedId, completedCard);
+    if (completedId && campaignIdValid) {
+      await this.incrementSalidasTx(campaignIdValid, territorioKey);
+    }
+
+    const resetCard = {
+      ...card,
+      isReset: true,
+      driver: '',
+      start: '',
+      end: '',
+      comments: '',
+      creation: Timestamp.now(),
+      completed: (card.completed ?? 0) + 1,
+      isInitial: false,
+      applesData: (card.applesData ?? []).map((a) => ({
+        ...a,
+        checked: false,
+      })),
+    };
+
+    const resetId = campaignIdValid ? `Campaña-${campaignIdValid}-${Date.now()}-reset` : null;
+    await this.saveDocument(collectionName, resetId, resetCard);
+  }
+
+  private async savePartialCardFlow(
+    card: Card,
+    collectionName: string,
+    campaignIdValid: string | null,
+    territorioKey: string,
+  ): Promise<void> {
+    const partialCard = {
+      ...card,
+      creation: Timestamp.now(),
+      isInitial: false,
+    };
+
+    const cardId = campaignIdValid ? `Campaña-${campaignIdValid}-${Date.now()}` : null;
+    await this.saveDocument(collectionName, cardId, partialCard);
+    if (cardId && campaignIdValid) {
+      await this.incrementSalidasTx(campaignIdValid, territorioKey);
+    }
+  }
+
   async postCardTerritorie(card: Card, collectionName: string): Promise<void> {
     if (this.isCreating) {
       return;
@@ -126,56 +218,11 @@ export class TerritoryDataService {
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
       const campaignIdValid =
         activeCampaign?.id && activeCampaign.id !== 'undefined' ? activeCampaign.id : null;
-      const isInCampaignMode = campaignIdValid != null;
 
       if (countFalseApples === 0) {
-        const completedCard = {
-          ...card,
-          creation: Timestamp.now(),
-          completed: (card.completed ?? 0) + 1,
-          isInitial: false,
-        };
-
-        const completedId =
-          isInCampaignMode && activeCampaign
-            ? `Campaña-${campaignIdValid}-${Date.now()}-completed`
-            : null;
-        await this.saveDocument(collectionName, completedId, completedCard);
-        if (completedId && campaignIdValid) {
-          await this.incrementSalidasTx(campaignIdValid, territorioKey);
-        }
-
-        const resetCard = {
-          ...card,
-          isReset: true,
-          driver: '',
-          start: '',
-          end: '0',
-          comments: '',
-          creation: Timestamp.now(),
-          completed: (card.completed ?? 0) + 1,
-          isInitial: false,
-          applesData: (card.applesData ?? []).map((a) => ({
-            ...a,
-            checked: false,
-          })),
-        };
-
-        const resetId = isInCampaignMode ? `Campaña-${campaignIdValid}-${Date.now()}-reset` : null;
-        await this.saveDocument(collectionName, resetId, resetCard);
+        await this.saveCompletedCardFlow(card, collectionName, campaignIdValid, territorioKey);
       } else {
-        const partialCard = {
-          ...card,
-          creation: Timestamp.now(),
-          isInitial: false,
-        };
-
-        const cardId =
-          isInCampaignMode && activeCampaign ? `Campaña-${campaignIdValid}-${Date.now()}` : null;
-        await this.saveDocument(collectionName, cardId, partialCard);
-        if (cardId && campaignIdValid) {
-          await this.incrementSalidasTx(campaignIdValid, territorioKey);
-        }
+        await this.savePartialCardFlow(card, collectionName, campaignIdValid, territorioKey);
       }
     } catch (err: unknown) {
       console.error(err);
@@ -237,10 +284,10 @@ export class TerritoryDataService {
       String(collectionName ?? ''),
     ];
     for (const s of sources) {
-      const m = /(\d+)(?=\D*$)/.exec(s);
-      if (m) {
-        const key = `Territorio ${m[1]}`;
-        return key;
+      const match = s.match(/\d+/g);
+      if (match && match.length > 0) {
+        const lastNum = match[match.length - 1];
+        return `Territorio ${lastNum}`;
       }
     }
     return 'Territorio 0';

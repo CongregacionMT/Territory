@@ -35,7 +35,13 @@ import { User } from '@core/models/User';
 import { take } from 'rxjs';
 import { Card } from '@core/models/Card';
 import { Group } from '@core/models/Group';
+import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { AuthService } from '@core/services/auth.service';
+import {
+  calculateDaysSinceTerritoryCompletion,
+  getMostRecentTerritoryCompletionDate,
+} from '@shared/utils/territory-completion.utils';
+import { normalizeTerritoryNumberDataList } from '@shared/utils/territory-number-data.utils';
 
 @Component({
   selector: 'app-form-edit-departures',
@@ -81,7 +87,7 @@ export class FormEditDeparturesComponent implements OnInit {
   territoryOptionsMap = signal<{ [key: string]: string[] }>({});
   isAdmin: boolean = false;
   activeModal = signal<{ dayIndex: number; groupKey: number } | null>(null);
-
+  territoryCompletionDataStatus = signal<Record<string, 'loading' | 'ready' | 'error'>>({});
   get activeModalDays(): AbstractControl | null {
     const modal = this.activeModal();
     if (!modal) return null;
@@ -99,6 +105,8 @@ export class FormEditDeparturesComponent implements OnInit {
   selectedTerritoryGroup: number | null = null; // null = todos
   availableGroupNumbers: number[] = []; // grupos disponibles para la localidad actual
   publisherGroups = signal<Group[]>([]);
+  private readonly territoryCompletionRequestIds = new Map<string, number>();
+  numberTerritoryData: Record<string, unknown> = {};
   private readonly CARD_TRACKING_START_DATE = '2026-05-11';
   constructor() {
     effect(() => {
@@ -232,6 +240,7 @@ export class FormEditDeparturesComponent implements OnInit {
     }
   }
   processTerritoryData(data: Record<string, unknown>): void {
+    this.numberTerritoryData = data;
     this.localities.forEach((loc) => {
       if (loc.hasNumberedTerritories) {
         const rawData = (data[loc.key] as unknown[]) || [];
@@ -244,7 +253,7 @@ export class FormEditDeparturesComponent implements OnInit {
           })
           .filter((n: unknown) => typeof n === 'number' || !isNaN(Number(n)));
 
-        const sorted = numbers.sort((a: unknown, b: unknown) => Number(a) - Number(b));
+        const sorted = [...numbers].sort((a: unknown, b: unknown) => Number(a) - Number(b));
         const options = sorted.map((n: unknown) => `N°${String(n)}`);
 
         this.territoryOptionsMap.update((m) => ({ ...m, [loc.territoryPrefix]: options }));
@@ -274,17 +283,16 @@ export class FormEditDeparturesComponent implements OnInit {
     if (departures.length > 0) {
       this.initForm(departures);
     }
-    void this.loadAllTerritoryCompletionData(data);
+    void this.loadAllTerritoryCompletionData(data).catch((error: unknown) => {
+      this.reportTerritoryCompletionDataError(error);
+    });
   }
 
   async loadAllTerritoryCompletionData(data: Record<string, unknown>): Promise<void> {
     const promises = [];
     for (const loc of this.localities) {
       if (loc.hasNumberedTerritories) {
-        const rawData = (data[loc.key] as unknown[]) || [];
-        const territories = rawData.filter(
-          (t: unknown) => t && typeof t === 'object' && 'collection' in t && 'territorio' in t,
-        );
+        const territories = normalizeTerritoryNumberDataList(data[loc.key]);
         if (territories.length > 0) {
           promises.push(this.loadTerritoryCompletionData(loc, territories));
         }
@@ -295,73 +303,73 @@ export class FormEditDeparturesComponent implements OnInit {
 
   async loadTerritoryCompletionData(
     loc: { territoryPrefix: string; key: string; hasNumberedTerritories: boolean },
-    territories: unknown[],
+    territories: TerritoryNumberData[],
   ): Promise<void> {
+    // Nothing to refresh: keep the last known values instead of wiping them.
+    if (territories.length === 0) return;
+
     const locationPrefix = loc.territoryPrefix;
-    this.territoryLastCompletedDays.update((m) => ({
-      ...m,
-      [locationPrefix]: m[locationPrefix] || {},
+    const requestId = (this.territoryCompletionRequestIds.get(locationPrefix) ?? 0) + 1;
+    this.territoryCompletionRequestIds.set(locationPrefix, requestId);
+    this.territoryCompletionDataStatus.update((current) => ({
+      ...current,
+      [locationPrefix]: 'loading',
     }));
 
-    const promises = (territories as { collection: string; territorio: number }[]).map(
-      (t) =>
-        new Promise<void>((resolve) => {
-          this.territoryDataService
-            .getCardTerritorie(t.collection, 120)
-            .pipe(take(1))
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((cards) => {
-              let lastEnd = null;
-              for (const c of cards) {
-                if (c.end && c.end !== '0') {
-                  lastEnd = c.end;
-                  break;
-                }
-              }
-              if (lastEnd) {
-                const today = new Date();
-                const dateToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                let dateCard: Date;
-                if (typeof lastEnd === 'string' || typeof lastEnd === 'number') {
-                  dateCard = new Date(lastEnd);
-                } else if (
-                  lastEnd &&
-                  typeof (lastEnd as { toDate?: () => Date }).toDate === 'function'
-                ) {
-                  dateCard = (lastEnd as unknown as { toDate: () => Date }).toDate();
-                } else if (
-                  lastEnd &&
-                  typeof (lastEnd as { seconds?: number }).seconds === 'number'
-                ) {
-                  dateCard = new Date((lastEnd as unknown as { seconds: number }).seconds * 1000);
-                } else {
-                  dateCard = new Date(lastEnd);
-                }
-
-                if (!isNaN(dateCard.getTime())) {
-                  const difference = Math.abs(dateCard.getTime() - dateToday.getTime());
-                  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                  this.territoryLastCompletedDays.update((m) => {
-                    m[locationPrefix][t.territorio] = days;
-                    return { ...m };
-                  });
-                } else {
-                  this.territoryLastCompletedDays.update((m) => {
-                    m[locationPrefix][t.territorio] = Infinity;
-                    return { ...m };
-                  });
-                }
-              } else {
-                this.territoryLastCompletedDays.update((m) => {
-                  m[locationPrefix][t.territorio] = Infinity;
-                  return { ...m };
-                });
-              }
-              resolve();
-            });
-        }),
+    const results = await Promise.allSettled(
+      territories.map(async (territory) => {
+        const cards = await this.territoryDataService.getRecentCardsFromServer(
+          territory.collection,
+        );
+        const latestCompletionDate = getMostRecentTerritoryCompletionDate(cards);
+        return [
+          territory.territorio,
+          calculateDaysSinceTerritoryCompletion(latestCompletionDate),
+        ] as const;
+      }),
     );
-    await Promise.all(promises);
+    if (this.territoryCompletionRequestIds.get(locationPrefix) !== requestId) return;
+
+    const completionDays: Record<number, number> = {
+      ...this.territoryLastCompletedDays()[locationPrefix],
+    };
+    for (const result of results) {
+      if (result.status !== 'fulfilled') continue;
+      const [territoryNumber, daysSinceCompletion] = result.value;
+      completionDays[territoryNumber] = daysSinceCompletion;
+    }
+    this.territoryLastCompletedDays.update((current) => ({
+      ...current,
+      [locationPrefix]: completionDays,
+    }));
+
+    const failures = results.filter(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    this.territoryCompletionDataStatus.update((current) => ({
+      ...current,
+      [locationPrefix]: failures.length > 0 ? 'error' : 'ready',
+    }));
+    if (failures.length === 0) return;
+
+    failures.forEach((failure) => {
+      console.error(
+        `[FormEditDepartures] Error refreshing territory completion data for ${locationPrefix}:`,
+        failure.reason,
+      );
+    });
+    throw new Error(
+      `Could not refresh completion data for ${failures.length} territory/territories in ${locationPrefix}.`,
+    );
+  }
+
+  private reportTerritoryCompletionDataError(error: unknown): void {
+    console.error('[FormEditDepartures] Could not load territory completion data:', error);
+    this._snackBar.open(
+      'No se pudieron actualizar las fechas de finalización de los territorios.',
+      'Cerrar',
+      { duration: 5000 },
+    );
   }
 
   loadDrivers(): void {
@@ -369,7 +377,8 @@ export class FormEditDeparturesComponent implements OnInit {
       .getUsers()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((users) => {
-        this.drivers.set(users.sort((a, b) => a.user.localeCompare(b.user)));
+        const sortedUsers = [...users].sort((a, b) => a.user.localeCompare(b.user));
+        this.drivers.set(sortedUsers);
       });
   }
 
@@ -426,6 +435,21 @@ export class FormEditDeparturesComponent implements OnInit {
   openModal(dayIndex: number, groupKey: number): void {
     this.activeModal.set({ dayIndex, groupKey });
     this.selectedTerritoryGroup = groupKey > 0 ? groupKey : null;
+    const locationPrefix = String(
+      this.getCurrentDepartureControl(dayIndex, groupKey)?.get('location')?.value ?? '',
+    );
+    const normalizedLocation = locationPrefix.toLowerCase();
+    const locality = this.localities.find((candidate) =>
+      [candidate.territoryPrefix, candidate.key, candidate.name]
+        .filter(Boolean)
+        .some((name) => String(name).toLowerCase() === normalizedLocation),
+    );
+    if (locality) {
+      const territories = normalizeTerritoryNumberDataList(this.numberTerritoryData[locality.key]);
+      void this.loadTerritoryCompletionData(locality, territories).catch((error: unknown) => {
+        this.reportTerritoryCompletionDataError(error);
+      });
+    }
     this.cdr.detectChanges();
   }
 
@@ -790,7 +814,7 @@ export class FormEditDeparturesComponent implements OnInit {
   }
 
   private normalizeTerritoryNumber(value: string): number {
-    const match = String(value).match(/\d+/);
+    const match = /\d+/.exec(String(value));
     return match ? Number(match[0]) : -1;
   }
 
@@ -913,18 +937,18 @@ export class FormEditDeparturesComponent implements OnInit {
 
       const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
 
+      const defaultLocation =
+        this.localities && this.localities.length > 0 ? this.localities[0].territoryPrefix : '';
+      const fallbackLocation = departure.location || defaultLocation;
+      const initialLocation =
+        departure.location === 'Seleccionar localidad' ? defaultLocation : fallbackLocation;
+
       departureFormArrayItem.push(
         this.fb.group({
           date: new FormControl(departure.date || departure.day),
           driver: new FormControl(departure.driver),
           schedule: new FormControl(departure.schedule),
-          location: new FormControl(
-            !departure.location || departure.location === 'Seleccionar localidad'
-              ? this.localities && this.localities.length > 0
-                ? this.localities[0].territoryPrefix
-                : ''
-              : departure.location,
-          ),
+          location: new FormControl(initialLocation),
           territory: this.fb.array(
             (departure.territory || []).map((t: string) => new FormControl(t)),
           ),

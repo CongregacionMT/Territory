@@ -53,3 +53,4 @@ scripts/service-account/service-account-hughes.json
 scripts/service-account.json
 scripts/service-account
 scripts/last-config/*.json
+*firebase-adminsdk*.json
