@@ -34,6 +34,20 @@ import { CardButtonsData } from '@core/models/CardButtonsData';
 import { Timestamp } from '@angular/fire/firestore';
 import { parseFirebaseDate } from '@shared/utils/date-utils';
 
+/** Un territorio personal puede tenerse como máximo por 4 meses. */
+const PERSONAL_TERRITORY_LOAN_MONTHS = 4;
+
+/** Suma meses sin desbordar al mes siguiente (ej: 31 oct + 4 meses = 28/29 feb). */
+function addMonthsClamped(date: Date, months: number): Date {
+  const result = new Date(date);
+  const dayOfMonth = result.getDate();
+  result.setDate(1);
+  result.setMonth(result.getMonth() + months);
+  const daysInTargetMonth = new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate();
+  result.setDate(Math.min(dayOfMonth, daysInTargetMonth));
+  return result;
+}
+
 @Component({
   selector: 'app-assignment-record-page',
   templateUrl: './assignment-record-page.component.html',
@@ -109,14 +123,12 @@ export class AssignmentRecordPageComponent implements OnInit {
       | undefined,
   ): boolean {
     const cardDate = parseFirebaseDate(dateValue);
-    if (!cardDate || cardDate.getTime() === 0) return false;
+    if (cardDate.getTime() === 0) return false;
 
-    const twoMonthsAgo = new Date();
-    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-
-    return cardDate < twoMonthsAgo;
+    return new Date() > this.getReturnDate(dateValue);
   }
 
+  /** Fecha de devolución: la fecha de entrega más el período máximo de préstamo. */
   getReturnDate(
     dateValue:
       | Date
@@ -126,7 +138,7 @@ export class AssignmentRecordPageComponent implements OnInit {
       | { seconds: number; nanoseconds?: number; toDate?: () => Date }
       | undefined,
   ): Date {
-    return parseFirebaseDate(dateValue);
+    return addMonthsClamped(parseFirebaseDate(dateValue), PERSONAL_TERRITORY_LOAN_MONTHS);
   }
 
   ngOnInit(): void {
@@ -226,7 +238,7 @@ export class AssignmentRecordPageComponent implements OnInit {
     const dateStr: string = String(this.formCard().get('date')?.value || '');
 
     const territoryNumber = parseInt(String(territory), 10);
-    const assignedDate = dateStr ? new Date(dateStr) : new Date();
+    const assignedDate = dateStr ? new Date(`${dateStr.substring(0, 10)}T12:00:00`) : new Date();
 
     // Guardar tarjeta en la colección Assigned
     const cardData: Partial<Card> = {
