@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { HomePageComponent } from './home-page.component';
+import { APP_VERSION } from '@core/config/app-version';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('HomePageComponent', () => {
@@ -21,5 +22,11 @@ describe('HomePageComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows the app version', () => {
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.textContent).toContain(`Versión ${APP_VERSION}`);
   });
 });

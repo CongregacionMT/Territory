@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { PwaService } from '@core/services/pwa.service';
 import { environment } from '@environments/environment';
+import { APP_VERSION } from '@core/config/app-version';
 import { TitleCasePipe } from '@angular/common';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
@@ -26,6 +27,7 @@ export class HomePageComponent implements OnInit {
   private readonly homeFacade = inject(HomeFacadeService);
 
   congregationName: string = environment.congregationName;
+  appVersion = APP_VERSION;
 
   navOptions = signal<NavOption[]>([
     { label: 'Territorios', route: '../territorios', iconPath: 'assets/img/map.png' },

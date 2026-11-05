@@ -145,9 +145,11 @@ async function main() {
 
     // 5. Build de Angular
     console.log('\n🔨 Construyendo la aplicación (Angular Build)...');
-    console.log(`> ng build --configuration=${selectedCongregation}`);
+    const buildDate = new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+    const buildCmd = `npx ng build --configuration=${selectedCongregation} --define 'APP_BUILD_DATE="${buildDate}"'`;
+    console.log(`> ${buildCmd}`);
 
-    execSync(`npx ng build --configuration=${selectedCongregation}`, { stdio: 'inherit' });
+    execSync(buildCmd, { stdio: 'inherit' });
 
     // 6. Verificar sesión de Firebase
     console.log('\n🔍 Verificando usuario de Firebase...');
