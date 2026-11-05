@@ -146,6 +146,8 @@ export class TerritoryDataService {
       creation: Timestamp.now(),
       completed: (card.completed ?? 0) + 1,
       isInitial: false,
+      // The card is usually filled from the blank reset card and inherits its flag
+      isReset: false,
     };
 
     const completedId = campaignIdValid
@@ -186,6 +188,7 @@ export class TerritoryDataService {
       ...card,
       creation: Timestamp.now(),
       isInitial: false,
+      isReset: false,
     };
 
     const cardId = campaignIdValid ? `Campaña-${campaignIdValid}-${Date.now()}` : null;

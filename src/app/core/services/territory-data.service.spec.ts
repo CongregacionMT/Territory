@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { TerritoryDataService } from './territory-data.service';
 import {
   Firestore,
+  addDoc,
   collection,
   collectionData,
   doc,
@@ -18,6 +19,7 @@ import { FirestoreProviderService } from './firestore-provider.service';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { of } from 'rxjs';
 import { getDocsFromServer } from 'firebase/firestore';
+import { Card } from '@core/models/Card';
 
 describe('TerritoryDataService', () => {
   let service: TerritoryDataService;
@@ -193,6 +195,43 @@ describe('TerritoryDataService', () => {
       vi.mocked(getDocsFromServer).mockRejectedValue(error);
 
       await expect(service.getRecentCardsFromServer('SomeCollection')).rejects.toBe(error);
+    });
+  });
+
+  describe('postCardTerritorie', () => {
+    const inheritedResetCard = (checked: boolean[]): Card =>
+      ({
+        driver: 'Conductor',
+        start: '2026-10-28',
+        end: '2026-10-28',
+        isReset: true,
+        applesData: checked.map((isChecked, index) => ({ name: `${index}`, checked: isChecked })),
+      }) as unknown as Card;
+
+    const savedCards = (): Record<string, unknown>[] =>
+      vi.mocked(addDoc).mock.calls.map((call) => call[1] as Record<string, unknown>);
+
+    beforeEach(() => {
+      vi.mocked(collection).mockReturnValue('cardRef' as any);
+      vi.mocked(addDoc).mockResolvedValue({} as any);
+      mockCampaign.getCachedCampaign.mockReturnValue(null);
+    });
+
+    it('clears the inherited reset flag on a completed card and keeps it on the blank card', async () => {
+      await service.postCardTerritorie(inheritedResetCard([true, true]), 'TerritorioVE-1');
+
+      const [completedCard, blankCard] = savedCards();
+      expect(completedCard['isReset']).toBe(false);
+      expect(completedCard['driver']).toBe('Conductor');
+      expect(blankCard['isReset']).toBe(true);
+      expect(blankCard['driver']).toBe('');
+    });
+
+    it('clears the inherited reset flag on a partial card', async () => {
+      await service.postCardTerritorie(inheritedResetCard([true, false]), 'TerritorioVE-1');
+
+      expect(savedCards()).toHaveLength(1);
+      expect(savedCards()[0]['isReset']).toBe(false);
     });
   });
 
