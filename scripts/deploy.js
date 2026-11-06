@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 
 /**
  * Lee y parsea un archivo de configuración environment para obtener el projectId
@@ -36,6 +36,79 @@ function loadEnvironmentConfig(congregationFileName) {
     projectId,
     hostingSite,
   };
+}
+
+const PACKAGE_JSON_PATH = path.join(__dirname, '..', 'package.json');
+const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+const VERSION_FIELD_PATTERN = /("version"\s*:\s*")([^"]+)(")/;
+
+/**
+ * Lee la versión actual desde package.json
+ */
+function readPackageVersion() {
+  const content = fs.readFileSync(PACKAGE_JSON_PATH, 'utf8');
+  const match = content.match(VERSION_FIELD_PATTERN);
+  if (!match) {
+    throw new Error('No se encontró el campo "version" en package.json');
+  }
+  return match[2];
+}
+
+/**
+ * Escribe la versión en package.json sin alterar el resto del formato del archivo
+ */
+function writePackageVersion(version) {
+  const content = fs.readFileSync(PACKAGE_JSON_PATH, 'utf8');
+  fs.writeFileSync(PACKAGE_JSON_PATH, content.replace(VERSION_FIELD_PATTERN, `$1${version}$3`));
+}
+
+/**
+ * Pregunta si se mantiene la versión actual o se define una nueva.
+ * Devuelve la versión elegida (puede ser la misma que la actual).
+ */
+async function askVersion(prompt, currentVersion) {
+  const { keepVersion } = await prompt([
+    {
+      type: 'confirm',
+      name: 'keepVersion',
+      message: `La versión actual es ${currentVersion}. ¿Mantenerla? (No = ingresar una nueva)`,
+      default: true,
+    },
+  ]);
+
+  if (keepVersion) {
+    return currentVersion;
+  }
+
+  const { newVersion } = await prompt([
+    {
+      type: 'input',
+      name: 'newVersion',
+      message: 'Nueva versión (formato X.Y.Z):',
+      validate: (value) =>
+        VERSION_PATTERN.test(value.trim()) || 'Formato inválido. Ejemplo: 3.1.0',
+    },
+  ]);
+
+  return newVersion.trim();
+}
+
+/**
+ * Commitea únicamente package.json con la nueva versión y lo sube a la rama actual.
+ * Se ejecuta recién después de un deploy exitoso. Nunca usa --no-verify: si un hook falla,
+ * el deploy ya está hecho y se informa para resolverlo a mano.
+ */
+function commitAndPushVersion(version) {
+  const git = (...args) => execFileSync('git', args, { stdio: 'inherit' });
+  const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+    encoding: 'utf8',
+  }).trim();
+
+  git('add', 'package.json');
+  // "-- package.json" limita el commit a ese archivo aunque haya otros cambios en staging
+  git('commit', '-m', `chore(release): v${version}`, '--', 'package.json');
+  git('push', '-u', 'origin', branch);
+  console.log(`\n✓ Versión ${version} commiteada y subida a "${branch}"`);
 }
 
 /**
@@ -111,6 +184,17 @@ async function main() {
   if (!confirm) {
     console.log('Operación cancelada para esta congregación.');
   } else {
+
+  // Versión: se pregunta antes del build porque queda embebida en la app (se muestra en el home)
+  const previousVersion = readPackageVersion();
+  const version = await askVersion(prompt, previousVersion);
+  const versionChanged = version !== previousVersion;
+  if (versionChanged) {
+    writePackageVersion(version);
+    console.log(`\n✓ Versión actualizada en package.json: ${previousVersion} → ${version}`);
+  }
+
+  let deployed = false;
 
   try {
     // 4. Configurar firebase.json dinámicamente
@@ -193,11 +277,39 @@ async function main() {
     console.log(`> ${deployCmd}`);
 
     execSync(deployCmd, { stdio: 'inherit' });
+    deployed = true;
 
-    console.log('\n✅ ¡Despliegue completado con éxito!');
+    console.log(`\n✅ ¡Despliegue completado con éxito! Versión ${version}`);
   } catch (error) {
     console.error('\n❌ Error durante el proceso de despliegue.');
+    if (versionChanged) {
+      writePackageVersion(previousVersion);
+      console.log(`↩️  Versión restaurada en package.json: ${version} → ${previousVersion}`);
+    }
     // El error ya se habrá mostrado en stdio: inherit
+  }
+
+  // 8. Registrar la versión en git (solo si el deploy salió bien y la versión cambió)
+  if (deployed && versionChanged) {
+    const { confirmCommit } = await prompt([
+      {
+        type: 'confirm',
+        name: 'confirmCommit',
+        message: `¿Commitear y pushear package.json con la versión ${version}?`,
+        default: true,
+      },
+    ]);
+
+    if (confirmCommit) {
+      try {
+        commitAndPushVersion(version);
+      } catch (error) {
+        console.error(
+          `\n⚠️  El deploy fue exitoso, pero falló el commit/push de la versión ${version}.`,
+        );
+        console.error('   package.json conserva la nueva versión: commitéala manualmente.');
+      }
+    }
   }
   } // fin del else (!confirm)
 
