@@ -7,10 +7,13 @@ import {
   signal,
   effect,
   model,
-  output,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   DestroyRef,
+  Injector,
+  afterNextRender,
+  untracked,
+  viewChildren,
 } from '@angular/core';
 import {
   AbstractControl,
@@ -21,18 +24,21 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { NgClass } from '@angular/common';
-import { DepartureDayCardComponent } from '../departure-day-card/departure-day-card.component';
+import {
+  DepartureDayCardComponent,
+  SuggestionChip,
+} from '../departure-day-card/departure-day-card.component';
 import { TerritorySelectionModalComponent } from '../territory-selection-modal/territory-selection-modal.component';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { DepartureFormService } from '@core/services/departure-form.service';
-import { Departure, WeeklyDeparture } from '../../../../core/models/Departures';
+import { Departure, DepartureCardStatus, WeeklyDeparture } from '@core/models/Departures';
 import { MeetingPoint } from '@core/models/MeetingPoint';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
 import { environment } from '@environments/environment';
 
 import { User } from '@core/models/User';
-import { take } from 'rxjs';
+import { firstValueFrom, take } from 'rxjs';
 import { Card } from '@core/models/Card';
 import { Group } from '@core/models/Group';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
@@ -42,6 +48,18 @@ import {
   getMostRecentTerritoryCompletionDate,
 } from '@shared/utils/territory-completion.utils';
 import { normalizeTerritoryNumberDataList } from '@shared/utils/territory-number-data.utils';
+import { getWeekId, parseIsoDate } from '@shared/utils/date-utils';
+import { DepartureGroupTheme, getDepartureGroupTheme } from '@shared/utils/departure-group-theme';
+import { formatDepartureTitle } from '@shared/utils/departure-format.utils';
+import { sortDeparturesByDateTime } from '@shared/utils/departure-sort.utils';
+import { formatTerritoryAge } from '@shared/utils/territory-age.utils';
+
+export interface WeekSaveResult {
+  /** Departures of the saved week, exactly as stored. */
+  departures: Departure[];
+  /** Departures whose date fell in another week and were stored there. */
+  movedToOtherWeeks: number;
+}
 
 @Component({
   selector: 'app-form-edit-departures',
@@ -74,10 +92,16 @@ export class FormEditDeparturesComponent implements OnInit {
   readonly formDepartureDataInput = input<Departure[]>([] as Departure[]);
   readonly dateDepartureInput = input<string>('');
   readonly meetingPointsInput = input<MeetingPoint[]>([]);
-  readonly saveTrigger = input<number>(0);
+  /** True when the input departures are an unsaved draft (e.g. copied from another week). */
+  readonly draftOnLoad = input<boolean>(false);
   readonly isFormDirty = model<boolean>(false);
-  readonly saveCompleted = output<Departure[]>();
-  readonly formValueChanged = output<void>();
+  readonly isSaving = signal(false);
+  readonly meetingPointsListId = 'meeting-points-list';
+  private readonly injector = inject(Injector);
+  private readonly dayCards = viewChildren(DepartureDayCardComponent);
+  private readonly noSuggestions: SuggestionChip[] = [];
+  /** Card status each departure had when the week was loaded, to protect remote reviews on save. */
+  private loadedCardStatuses: Record<string, DepartureCardStatus | undefined> = {};
 
   drivers = signal<User[]>([]);
   congregationName = environment.congregationName;
@@ -107,21 +131,18 @@ export class FormEditDeparturesComponent implements OnInit {
   publisherGroups = signal<Group[]>([]);
   private readonly territoryCompletionRequestIds = new Map<string, number>();
   numberTerritoryData: Record<string, unknown> = {};
-  private readonly CARD_TRACKING_START_DATE = '2026-05-11';
   constructor() {
-    effect(() => {
-      if (this.saveTrigger() > 0) {
-        this.submitForm();
-      }
-    });
-
     this.isAdmin = this.authService.isAdmin();
     this.formDeparture = this.departureFormService.createForm();
 
-    // Efecto para reaccionar a cambios en los inputs y recargar el formulario
+    // Recarga el formulario solo cuando cambian las salidas de entrada. Todo lo demás
+    // (grupos, semana, borrador) se lee sin seguimiento para no descartar lo que se está editando.
     effect(() => {
       const departures = this.formDepartureDataInput();
-      this.initForm(departures);
+      untracked(() => {
+        this.initForm(departures);
+        if (this.draftOnLoad()) this.markChanged();
+      });
     });
   }
   ngOnInit(): void {
@@ -136,13 +157,10 @@ export class FormEditDeparturesComponent implements OnInit {
       if (this.formDeparture.dirty && !this.isFormDirty()) {
         this.isFormDirty.set(true);
       }
-      this.formValueChanged.emit();
     });
   }
 
   initForm(departures: Departure[]): void {
-    if (this.isFormDirty) this.isFormDirty.set(false);
-
     const targetMondayStr = this.dateDepartureInput();
     const result = this.departureFormService.initForm(
       this.formDeparture,
@@ -154,8 +172,31 @@ export class FormEditDeparturesComponent implements OnInit {
 
     this.ensureGroupKeys();
 
+    this.loadedCardStatuses = this.collectCardStatuses(departures);
     this.formDeparture.markAsPristine();
+    this.isFormDirty.set(false);
 
+    this.cdr.markForCheck();
+  }
+
+  private collectCardStatuses(
+    departures: readonly Departure[],
+  ): Record<string, DepartureCardStatus | undefined> {
+    const statuses: Record<string, DepartureCardStatus | undefined> = {};
+    for (const departure of departures) {
+      if (departure.departureId) {
+        statuses[departure.departureId] = departure.isEvent
+          ? 'not_required'
+          : (departure.cardStatus ?? 'pending');
+      }
+    }
+    return statuses;
+  }
+
+  /** Marks the form as having unsaved changes, including edits made programmatically. */
+  private markChanged(): void {
+    this.formDeparture.markAsDirty();
+    if (!this.isFormDirty()) this.isFormDirty.set(true);
     this.cdr.markForCheck();
   }
 
@@ -279,10 +320,6 @@ export class FormEditDeparturesComponent implements OnInit {
       }));
     }
 
-    const departures = this.formDepartureDataInput();
-    if (departures.length > 0) {
-      this.initForm(departures);
-    }
     void this.loadAllTerritoryCompletionData(data).catch((error: unknown) => {
       this.reportTerritoryCompletionDataError(error);
     });
@@ -368,7 +405,7 @@ export class FormEditDeparturesComponent implements OnInit {
     this._snackBar.open(
       'No se pudieron actualizar las fechas de finalización de los territorios.',
       'Cerrar',
-      { duration: 5000 },
+      { verticalPosition: 'top', duration: 5000 },
     );
   }
 
@@ -377,7 +414,9 @@ export class FormEditDeparturesComponent implements OnInit {
       .getUsers()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((users) => {
-        const sortedUsers = [...users].sort((a, b) => a.user.localeCompare(b.user));
+        // Se ordena por el nombre que se muestra en la lista, no por el usuario interno.
+        const shownName = (user: User): string => user.displayName || user.user;
+        const sortedUsers = [...users].sort((a, b) => shownName(a).localeCompare(shownName(b)));
         this.drivers.set(sortedUsers);
       });
   }
@@ -645,11 +684,6 @@ export class FormEditDeparturesComponent implements OnInit {
     return badges;
   }
 
-  isBeforeTrackingStart(dateStr: string): boolean {
-    if (!dateStr) return false;
-    return dateStr < this.CARD_TRACKING_START_DATE;
-  }
-
   /**
    * Retorna cuántos días hace que se COMPLETÓ un territorio.
    * Infinity = nunca completado (prioridad máxima — aparece primero en rojo).
@@ -681,15 +715,57 @@ export class FormEditDeparturesComponent implements OnInit {
       .slice(0, 3);
   }
 
-  getQuickSuggestionText(index: number, group: number): string {
-    const suggestion = this.getSuggestedMeetingDetails(index, group);
-    if (!suggestion.point) return '';
+  /** Suggested territories with how long ago each one was completed. */
+  getSuggestionChips(index: number, group: number): SuggestionChip[] {
+    const control = this.getCurrentDepartureControl(index, group);
+    if (!control || control.get('isEvent')?.value) return this.noSuggestions;
+    if (this.getTerritories(control).length > 0) return this.noSuggestions;
 
-    return `Punto: ${suggestion.point}`;
+    const location = this.getControlValue(index, group, 'location') as string;
+    const dataReady = this.territoryCompletionDataStatus()[location] === 'ready';
+
+    return this.getSuggestedTerritories(index, group).map((territory) => {
+      const days = this.getTerritoryLastUsedDays(territory, location);
+      return {
+        territory,
+        ageLabel: Number.isFinite(days) || dataReady ? formatTerritoryAge(days) : '',
+      };
+    });
   }
 
-  hasQuickMeetingSuggestions(index: number, group: number): boolean {
-    return !!this.getQuickSuggestionText(index, group);
+  /** Meeting point used the last time the selected (or suggested) territories went out. */
+  getSuggestedPointName(index: number, group: number): string {
+    const control = this.getCurrentDepartureControl(index, group);
+    if (!control || control.get('isEvent')?.value) return '';
+    return this.getSuggestedMeetingDetails(index, group).point;
+  }
+
+  applySuggestedPoint(index: number, group: number): void {
+    const control = this.getCurrentDepartureControl(index, group);
+    if (!control) return;
+
+    const suggestion = this.getSuggestedMeetingDetails(index, group);
+    if (!suggestion.point) return;
+
+    const knownPoint = this.meetingPointsInput().find(
+      (point) => point.name.toLowerCase() === suggestion.point.toLowerCase(),
+    );
+    control.get('point')?.setValue(suggestion.point);
+    control.get('maps')?.setValue(suggestion.maps || knownPoint?.mapsUrl || '');
+    this.markChanged();
+  }
+
+  /** "Martes 10 nov · 18:30 · Grupo 1": names the departure the territory modal is editing. */
+  getModalTitle(): string {
+    const modal = this.activeModal();
+    const control = this.activeModalDays;
+    if (!modal || !control) return '';
+
+    const title = formatDepartureTitle(
+      String(control.get('date')?.value ?? ''),
+      String(control.get('schedule')?.value ?? ''),
+    );
+    return modal.groupKey > 0 ? `${title} · ${this.getGroupTitle(modal.groupKey)}` : title;
   }
 
   getControlValue(index: number, group: number, key: string): unknown {
@@ -779,30 +855,14 @@ export class FormEditDeparturesComponent implements OnInit {
     }
 
     this.syncMeetingDetails(index, group);
-    if (this.isFormDirty) this.isFormDirty.set(true);
+    this.markChanged();
   }
 
-  markDepartureAsReceived(departureToMark: Departure): boolean {
-    for (const group of this.groupKeys) {
-      const departureGroupKey = `departure${group}`;
-      const groupArray = this.formDeparture.get(departureGroupKey) as FormArray;
-      if (!groupArray) continue;
-
-      for (let i = 0; i < groupArray.length; i++) {
-        const control = groupArray.at(i);
-        if (
-          control.get('date')?.value === departureToMark.date &&
-          control.get('schedule')?.value === departureToMark.schedule &&
-          control.get('group')?.value === Number(departureToMark.group) &&
-          control.get('driver')?.value === departureToMark.driver
-        ) {
-          control.get('cardStatus')?.setValue('received');
-          if (this.isFormDirty) this.isFormDirty.set(true);
-          return true;
-        }
-      }
-    }
-    return false;
+  /** Scrolls to a departure card and focuses its first field. */
+  revealDeparture(group: number, index: number): void {
+    this.dayCards()
+      .find((card) => card.groupIndex() === group && card.index() === index)
+      ?.reveal();
   }
 
   getCurrentDepartures(): Departure[] {
@@ -844,6 +904,10 @@ export class FormEditDeparturesComponent implements OnInit {
     const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
     return departureFormArrayItem?.controls || [];
   }
+  getGroupTheme(group: number): DepartureGroupTheme {
+    return getDepartureGroupTheme(group);
+  }
+
   getGroupTitle(group: number | 'generales'): string {
     // Tratar 0, NaN y valores inválidos como "Salidas Generales"
     const num = Number(group);
@@ -873,7 +937,13 @@ export class FormEditDeparturesComponent implements OnInit {
     const targetMondayStr = this.dateDepartureInput();
     this.departureFormService.addControl(this.formDeparture, group, targetMondayStr);
     const newControl = departureFormArrayItem.at(departureFormArrayItem.length - 1);
-    newControl.patchValue(currentControl.value);
+    const isEvent = Boolean(currentControl.get('isEvent')?.value);
+    newControl.patchValue({
+      ...(currentControl.value as Record<string, unknown>),
+      // The copy is a new departure: it needs its own id and a fresh card.
+      departureId: '',
+      cardStatus: isEvent ? 'not_required' : 'pending',
+    });
 
     // Copy territory array values manually
     const sourceTerritories =
@@ -881,33 +951,51 @@ export class FormEditDeparturesComponent implements OnInit {
     const targetTerritoryArray = newControl.get('territory') as FormArray;
     targetTerritoryArray.clear();
     sourceTerritories.forEach((t: string) => targetTerritoryArray.push(new FormControl(t)));
-    if (this.isFormDirty) this.isFormDirty.set(true);
+
+    // Place the copy right below the original instead of at the end of the group
+    departureFormArrayItem.removeAt(departureFormArrayItem.length - 1);
+    departureFormArrayItem.insert(index + 1, newControl);
+    this.markChanged();
+    this.revealAfterRender(group, index + 1);
+  }
+
+  private revealAfterRender(group: number, index: number): void {
+    afterNextRender(() => this.revealDeparture(group, index), { injector: this.injector });
   }
 
   addControl(group: number): void {
     const targetMondayStr = this.dateDepartureInput();
     this.departureFormService.addControl(this.formDeparture, group, targetMondayStr);
-    if (this.isFormDirty) this.isFormDirty.set(true);
+    this.markChanged();
+    this.revealAfterRender(group, this.filterControlsByGroup(group).length - 1);
   }
 
   removeControl(index: number, group: number): void {
     this.departureFormService.removeControl(this.formDeparture, index, group);
-    if (this.isFormDirty()) this.isFormDirty.set(true);
+    this.markChanged();
   }
 
   addInputForm(group: number): void {
     this.addControl(group);
   }
+  /** Removes a departure and offers to undo it for a few seconds. */
   deleteInputForm(index: number, group: number): void {
-    if (this.isFormDirty()) this.isFormDirty.set(true);
     const departureGroupKey = `departure${group}`;
-    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray;
-    if (departureFormArrayItem) {
-      departureFormArrayItem.removeAt(index);
-      if (departureFormArrayItem.length === 0 && group !== 0) {
-        this.groupKeys = this.groupKeys.filter((k) => k !== group);
-      }
-    }
+    const departureFormArrayItem = this.formDeparture.get(departureGroupKey) as FormArray | null;
+    const removed = departureFormArrayItem?.at(index);
+    if (!departureFormArrayItem || !removed) return;
+
+    departureFormArrayItem.removeAt(index);
+    this.markChanged();
+
+    this._snackBar
+      .open('Salida quitada', 'Deshacer', { verticalPosition: 'top', duration: 6000 })
+      .onAction()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        departureFormArrayItem.insert(Math.min(index, departureFormArrayItem.length), removed);
+        this.markChanged();
+      });
   }
   rollbackInputForm(): void {
     if (this.isFormDirty()) this.isFormDirty.set(true);
@@ -1003,97 +1091,111 @@ export class FormEditDeparturesComponent implements OnInit {
     return this.formDeparture.dirty;
   }
 
-  submitForm(): Departure[] {
+  /**
+   * Saves the week shown in the form (and any departure dated in another week to that week).
+   * Resolves once Firestore confirmed the write; rejects, leaving the edits untouched, otherwise.
+   */
+  async submitForm(): Promise<WeekSaveResult> {
     const targetMondayStr = this.dateDepartureInput();
-    const targetMonday = new Date(targetMondayStr + 'T00:00:00');
-    const targetSunday = new Date(targetMonday);
-    targetSunday.setDate(targetMonday.getDate() + 6);
+    if (!targetMondayStr) throw new Error('No week selected');
 
-    const formDepartures = this.groupKeys
-      .map((num) => (this.formDeparture.value as Record<string, Departure[]>)?.[`departure${num}`])
-      .flat();
-
-    // Separar salidas: las de esta semana vs. las de otras semanas
-    const weeklyOnly: Departure[] = [];
-    const otherWeeks: { [weekId: string]: Departure[] } = {};
-
-    formDepartures.forEach((d: Departure) => {
-      if (!d.date) {
-        weeklyOnly.push(d);
-        return;
-      }
-      const date = new Date(d.date + 'T00:00:00');
-      if (isNaN(date.getTime()) || (date >= targetMonday && date <= targetSunday)) {
-        weeklyOnly.push(d);
-      } else {
-        // Esta salida pertenece a otra semana: calcular su lunes
-        const day = date.getDay();
-        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-        const otherMonday = new Date(date);
-        otherMonday.setDate(diff);
-        const otherWeekId = otherMonday.toISOString().split('T')[0];
-        if (!otherWeeks[otherWeekId]) {
-          otherWeeks[otherWeekId] = [];
-        }
-        otherWeeks[otherWeekId].push(d);
-      }
-    });
-
-    // Guardar las salidas de esta semana
-    if (targetMondayStr) {
-      const normalizedWeeklyOnly = weeklyOnly.map((departure, index) =>
-        this.territoryDataService.normalizeDepartureForCardTracking(
-          departure,
-          targetMondayStr,
-          index,
-        ),
+    this.isSaving.set(true);
+    try {
+      const { weeklyOnly, otherWeeks } = this.splitByWeek(
+        this.getCurrentDepartures(),
+        targetMondayStr,
       );
-      const weeklyDeparture: WeeklyDeparture = {
-        departure: normalizedWeeklyOnly,
-        weekId: targetMondayStr,
-        createdAt: new Date(),
-      };
-      void this.territoryDataService.postWeeklyDeparture(weeklyDeparture);
-      weeklyOnly.splice(0, weeklyOnly.length, ...normalizedWeeklyOnly);
+
+      const sortedWeekly = this.ensureUniqueDepartureIds(
+        sortDeparturesByDateTime(weeklyOnly),
+        targetMondayStr,
+      );
+      const savedDepartures = await this.territoryDataService.saveWeeklyDepartureKeepingCardStatus(
+        {
+          departure: sortedWeekly,
+          weekId: targetMondayStr,
+          createdAt: new Date(),
+        },
+        this.loadedCardStatuses,
+      );
+
+      let movedToOtherWeeks = 0;
+      for (const [otherWeekId, newDepartures] of Object.entries(otherWeeks)) {
+        await this.mergeIntoOtherWeek(otherWeekId, newDepartures);
+        movedToOtherWeeks += newDepartures.length;
+      }
+
+      this.initForm(savedDepartures);
+      return { departures: savedDepartures, movedToOtherWeeks };
+    } finally {
+      this.isSaving.set(false);
+    }
+  }
+
+  private splitByWeek(
+    departures: Departure[],
+    targetWeekId: string,
+  ): { weeklyOnly: Departure[]; otherWeeks: Record<string, Departure[]> } {
+    const weeklyOnly: Departure[] = [];
+    const otherWeeks: Record<string, Departure[]> = {};
+
+    for (const departure of departures) {
+      const date = parseIsoDate(departure.date);
+      const departureWeekId = date ? getWeekId(date) : targetWeekId;
+
+      if (departureWeekId === targetWeekId) {
+        weeklyOnly.push(departure);
+      } else {
+        otherWeeks[departureWeekId] = [...(otherWeeks[departureWeekId] ?? []), departure];
+      }
+    }
+    return { weeklyOnly, otherWeeks };
+  }
+
+  /** Every departure needs an id of its own: card tracking finds departures by it. */
+  private ensureUniqueDepartureIds(departures: Departure[], weekId: string): Departure[] {
+    const used = new Set<string>();
+
+    return departures.map((departure, index) => {
+      const current = departure.departureId;
+      if (current && !used.has(current)) {
+        used.add(current);
+        return departure;
+      }
+
+      const base = this.territoryDataService.createDepartureId(
+        weekId,
+        { ...departure, departureId: undefined },
+        index,
+      );
+      let candidate = base;
+      let suffix = 2;
+      while (used.has(candidate)) {
+        candidate = `${base}-${suffix}`;
+        suffix++;
+      }
+      used.add(candidate);
+      return { ...departure, departureId: candidate };
+    });
+  }
+
+  private async mergeIntoOtherWeek(weekId: string, newDepartures: Departure[]): Promise<void> {
+    const existing = await firstValueFrom(
+      this.territoryDataService.getWeeklyDeparture(weekId).pipe(take(1)),
+    );
+    const merged = [...(existing?.departure ?? [])];
+
+    for (const departure of newDepartures) {
+      const alreadyExists = merged.some(
+        (stored) =>
+          stored.date === departure.date &&
+          stored.driver === departure.driver &&
+          stored.schedule === departure.schedule,
+      );
+      if (!alreadyExists) merged.push(departure);
     }
 
-    // Guardar las salidas que pertenecen a otras semanas en su semana correspondiente
-    // Para cada semana distinta, hacemos un merge con lo que ya existe en Firestore
-    Object.entries(otherWeeks).forEach(([otherWeekId, newDepartures]) => {
-      this.territoryDataService
-        .getWeeklyDeparture(otherWeekId)
-        .pipe(take(1))
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((existing) => {
-          const existingDepartures = existing?.departure || [];
-          // Combinar sin duplicar (evitar agregar si ya existe)
-          const merged = [...existingDepartures];
-          newDepartures.forEach((nd) => {
-            const alreadyExists = existingDepartures.some(
-              (ed: Departure) =>
-                ed.date === nd.date && ed.driver === nd.driver && ed.schedule === nd.schedule,
-            );
-            if (!alreadyExists) {
-              merged.push(nd);
-            }
-          });
-          const otherWeeklyDeparture: WeeklyDeparture = {
-            departure: merged,
-            weekId: otherWeekId,
-            createdAt: new Date(),
-          };
-          void this.territoryDataService.postWeeklyDeparture(otherWeeklyDeparture);
-        });
-    });
-
-    this._snackBar.open('✅ Semana y salidas guardadas correctamente', 'Ok', {
-      verticalPosition: 'top',
-      duration: 3000,
-    });
-
-    // Re-inicializar el formulario mostrando solo las salidas de esta semana
-    this.initForm(weeklyOnly);
-    this.saveCompleted.emit(weeklyOnly);
-    return weeklyOnly;
+    const week: WeeklyDeparture = { departure: merged, weekId, createdAt: new Date() };
+    await this.territoryDataService.postWeeklyDeparture(week);
   }
 }

@@ -1,230 +1,281 @@
-
-<div class="mt-4 rounded-3xl bg-slate-900 border border-slate-700/80 overflow-hidden mb-2">
-  <div class="p-4 sm:p-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-      <div>
-        <div class="text-base font-extrabold text-slate-50">{{ getDepartureTitle(dateValue, scheduleValue) }}</div>
-        @if (isAdmin()) {
-          <span class="inline-flex items-center gap-1.5 mt-1.5 px-3 py-1 rounded-full text-xs font-bold" [class]="getCardStatusClass()">
-            {{ getCardStatusLabel() }}
-          </span>
-        }
-      </div>
-      <div class="flex flex-wrap items-center justify-end gap-4 w-full sm:w-auto">
-        <div class="flex items-center gap-2">
-          <input
-            class="w-5 h-5 cursor-pointer accent-green-500 rounded border-slate-600 bg-slate-800"
-            type="checkbox"
-            role="switch"
-            [id]="'isEvent_' + index() + '_' + groupIndex()"
-            [checked]="isEvent"
-            (change)="onChangeCheckbox($event, 'isEvent')"
-          />
-          <label class="text-sm font-bold text-slate-300 cursor-pointer select-none" [for]="'isEvent_' + index() + '_' + groupIndex()">
-            Evento
-          </label>
-        </div>
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-sm font-medium border text-slate-300 border-slate-600 hover:bg-slate-700 transition-colors w-full sm:w-auto cursor-pointer"
-            (click)="dayCopy.emit()"
-            title="Copiar salida"
-          >
-            <i class="fas fa-copy sm:mr-1.5"></i><span class="hidden sm:inline">Copiar</span>
-          </button>
-        </div>
-        @if (isAdmin()) {
-          <div class="flex items-center gap-2">
-            <input
-              class="w-5 h-5 cursor-pointer accent-green-500 rounded border-slate-600 bg-slate-800"
-              type="checkbox"
-              [id]="'cardReceived_' + index() + '_' + groupIndex()"
-              [checked]="cardStatus === 'received' || cardStatus === 'canceled'"
-              (change)="onToggleCardReceived($event)"
-            />
-            <label class="text-sm font-bold text-slate-300 cursor-pointer select-none" [for]="'cardReceived_' + index() + '_' + groupIndex()">
-              Revisada
-            </label>
-          </div>
-        }
-        <button
-          type="button"
-          class="inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-sm font-medium border text-red-300 border-red-400/45 hover:bg-red-400/15 hover:text-red-200 transition-colors w-full sm:w-auto cursor-pointer"
-          (click)="delete.emit()"
+<article
+  class="rounded-2xl bg-slate-900 border border-slate-700/80 p-4 sm:p-5 scroll-mt-24"
+  [attr.aria-labelledby]="idBase() + '-title'"
+>
+  <header class="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 mb-4">
+    <div class="min-w-0 flex-1 basis-48">
+      <h3 [id]="idBase() + '-title'" class="text-base sm:text-lg font-extrabold text-slate-50">
+        {{ title }}
+      </h3>
+      @if (isAdmin()) {
+        <span
+          class="inline-flex items-center gap-1.5 mt-1.5 px-3 py-1 rounded-full text-xs font-bold"
+          [class]="getCardStatusClass()"
         >
-          <i class="fas fa-trash-alt mr-1.5"></i>Quitar
-        </button>
-      </div>
+          Tarjeta: {{ getCardStatusLabel() }}
+        </span>
+      }
     </div>
 
-    <div class="flex flex-wrap gap-3 mb-3 items-end">
-      <div class="flex flex-col gap-1.5 min-w-0 w-full md:w-[140px]">
-        <label class="text-sm font-bold text-slate-300">Fecha</label>
+    <div class="flex items-center gap-1 ml-auto">
+      <div class="flex items-center gap-2 min-h-11 px-2">
         <input
-          type="date"
-          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-2"
-          [value]="dateValue"
-          (input)="onChangeInput($event, 'date')"
+          class="w-5 h-5 cursor-pointer accent-green-500 rounded border-slate-600 bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          type="checkbox"
+          [id]="idBase() + '-event'"
+          [checked]="isEvent"
+          (change)="onChangeCheckbox($event, 'isEvent')"
         />
-      </div>
-      <div class="flex flex-col gap-1.5 min-w-0 w-full md:w-[140px]">
-        <label class="text-sm font-bold text-slate-300">Horario</label>
-        <input
-          type="time"
-          aria-label="schedule"
-          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-2"
-          [value]="scheduleValue"
-          (input)="onChangeInput($event, 'schedule')"
-        />
+        <label class="text-sm font-bold text-slate-300 cursor-pointer select-none" [for]="idBase() + '-event'">
+          Evento
+        </label>
       </div>
 
-      @if (isEvent) {
-        <div class="flex flex-col gap-1.5 min-w-0 w-full md:flex-1 md:min-w-[320px]">
-          <label class="text-sm font-bold text-slate-300">Título</label>
+      @if (isAdmin() && !isEvent) {
+        <div class="flex items-center gap-2 min-h-11 px-2">
           <input
-            type="text"
-            aria-label="title"
-            class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
-            placeholder="Conmemoración"
-            [value]="dayFormGroup().get('title')?.value || ''"
-            (input)="onChangeInput($event, 'title')"
+            class="w-5 h-5 cursor-pointer accent-green-500 rounded border-slate-600 bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            type="checkbox"
+            [id]="idBase() + '-received'"
+            [checked]="cardStatus === 'received' || cardStatus === 'canceled'"
+            (change)="onToggleCardReceived($event)"
           />
-        </div>
-      } @else {
-        <div class="flex flex-col gap-1.5 min-w-0 w-full md:flex-1 md:min-w-[200px]">
-          <label class="text-sm font-bold text-slate-300">Conductor</label>
-          <select
-            aria-label="driver"
-            class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3"
-            (change)="onChangeInput($event, 'driver')"
+          <label
+            class="text-sm font-bold text-slate-300 cursor-pointer select-none"
+            [for]="idBase() + '-received'"
           >
-            <option value="" [selected]="!dayFormGroup().get('driver')?.value" disabled>
-              Conductor
-            </option>
-            @for (driver of drivers(); track driver.user) {
-              <option [value]="driver.displayName || driver.user" [selected]="(driver.displayName || driver.user) === dayFormGroup().get('driver')?.value">
-                {{ driver.displayName || driver.user }}
-              </option>
-            }
-          </select>
+            Recibida
+          </label>
         </div>
-        <div class="flex flex-col gap-1.5 min-w-0 w-full md:flex-1 md:min-w-[170px]">
-          <label class="text-sm font-bold text-slate-300">Localidad</label>
+      }
+
+      <div class="relative" #menuRoot>
+        <button
+          #menuButton
+          type="button"
+          [id]="idBase() + '-menu-button'"
+          class="flex items-center justify-center w-11 h-11 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="menuOpen()"
+          [attr.aria-controls]="idBase() + '-menu'"
+          aria-label="Acciones de la salida"
+          (click)="toggleMenu()"
+        >
+          <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+        </button>
+        @if (menuOpen()) {
+          <div
+            [id]="idBase() + '-menu'"
+            role="menu"
+            [attr.aria-labelledby]="idBase() + '-menu-button'"
+            class="absolute right-0 top-full mt-1 z-20 w-52 rounded-xl border border-slate-700 bg-slate-800 shadow-xl p-1"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              class="flex items-center gap-2 w-full min-h-11 px-3 rounded-lg text-sm font-medium text-slate-200 hover:bg-slate-700 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              (click)="onCopy()"
+            >
+              <i class="fas fa-copy w-4" aria-hidden="true"></i>Duplicar salida
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="flex items-center gap-2 w-full min-h-11 px-3 rounded-lg text-sm font-medium text-red-300 hover:bg-red-400/15 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              (click)="onDelete()"
+            >
+              <i class="fas fa-trash-alt w-4" aria-hidden="true"></i>Quitar salida
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-2 lg:grid-cols-12 gap-3 items-start">
+    <div class="flex flex-col gap-1.5 min-w-0 lg:col-span-2">
+      <label [class]="labelClass" [for]="idBase() + '-date'">Fecha</label>
+      <input
+        type="date"
+        [id]="idBase() + '-date'"
+        [class]="fieldClass"
+        [value]="dateValue"
+        (input)="onChangeInput($event, 'date')"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5 min-w-0 lg:col-span-2">
+      <label [class]="labelClass" [for]="idBase() + '-schedule'">Horario</label>
+      <input
+        #scheduleField
+        type="time"
+        [id]="idBase() + '-schedule'"
+        [class]="fieldClass"
+        [value]="scheduleValue"
+        (input)="onChangeInput($event, 'schedule')"
+      />
+    </div>
+
+    @if (isEvent) {
+      <div class="flex flex-col gap-1.5 min-w-0 col-span-2 lg:col-span-8">
+        <label [class]="labelClass" [for]="idBase() + '-title-input'">Título del evento</label>
+        <input
+          type="text"
+          [id]="idBase() + '-title-input'"
+          [class]="fieldClass"
+          placeholder="Conmemoración"
+          [value]="eventTitleValue"
+          (input)="onChangeInput($event, 'title')"
+        />
+      </div>
+    } @else {
+      <div
+        class="flex flex-col gap-1.5 min-w-0 col-span-2"
+        [class]="hasSeveralLocalities ? 'lg:col-span-5' : 'lg:col-span-8'"
+      >
+        <label [class]="labelClass" [for]="idBase() + '-driver'">Conductor</label>
+        <select
+          [id]="idBase() + '-driver'"
+          [class]="fieldClass"
+          (change)="onChangeInput($event, 'driver')"
+        >
+          <option value="" [selected]="!driverValue" disabled>Elegir conductor</option>
+          @for (driver of drivers(); track driver.user) {
+            <option
+              [value]="getDriverOptionValue(driver)"
+              [selected]="getDriverOptionValue(driver) === driverValue"
+            >
+              {{ getDriverOptionValue(driver) }}
+            </option>
+          }
+        </select>
+      </div>
+
+      @if (hasSeveralLocalities) {
+        <div class="flex flex-col gap-1.5 min-w-0 col-span-2 lg:col-span-3">
+          <label [class]="labelClass" [for]="idBase() + '-location'">Localidad</label>
           <select
-            class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3"
-            [value]="locationValue"
+            [id]="idBase() + '-location'"
+            [class]="fieldClass"
             (change)="onChangeInput($event, 'location')"
           >
             @for (loc of localities(); track loc.key) {
-              <option [value]="loc.territoryPrefix">
+              <option [value]="loc.territoryPrefix" [selected]="loc.territoryPrefix === locationValue">
                 {{ loc.name }}
               </option>
             }
           </select>
         </div>
       }
-      <div class="flex flex-col gap-1.5 min-w-0 w-full md:w-[135px]">
-        <label class="text-sm font-bold text-slate-300 flex items-center">
-          Color
-          <span
-            class="inline-block w-4 h-4 ml-2 rounded-full border border-slate-400/25"
-            [style.background-color]="getColorSwatch(dayFormGroup().get('color')?.value)"
-          ></span>
-        </label>
-        <select
-          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 pl-3"
-          [style.border-left]="'12px solid ' + getColorSwatch(dayFormGroup().get('color')?.value)"
-          (change)="onChangeInput($event, 'color')"
-        >
-          <option value="secondary" [selected]="dayFormGroup().get('color')?.value === 'secondary'">Gris</option>
-          <option value="primary" [selected]="dayFormGroup().get('color')?.value === 'primary'">Azul</option>
-          <option value="success" [selected]="dayFormGroup().get('color')?.value === 'success'">Verde</option>
-          <option value="danger" [selected]="dayFormGroup().get('color')?.value === 'danger'">Rojo</option>
-          <option value="warning" [selected]="dayFormGroup().get('color')?.value === 'warning'">Amarillo</option>
-          <option value="info" [selected]="dayFormGroup().get('color')?.value === 'info'">Celeste</option>
-          <option value="light" [selected]="dayFormGroup().get('color')?.value === 'light'">Blanco</option>
-          <option value="dark" [selected]="dayFormGroup().get('color')?.value === 'dark'">Negro</option>
-        </select>
-      </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[290px_310px_365px] gap-3 lg:gap-4 items-start">
-      @if (!isEvent) {
-        <div class="flex flex-col gap-1.5 w-full">
+      <div class="flex flex-col gap-2 min-w-0 col-span-2 lg:col-span-12">
+        <span [class]="labelClass">Territorios</span>
+        <div class="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium border border-transparent text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full cursor-pointer"
+            class="inline-flex items-center justify-center gap-2 min-h-11 sm:min-h-10 px-4 rounded-xl text-sm font-bold border border-blue-500/60 text-blue-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             (click)="openModal.emit()"
           >
-            📍 Seleccionar territorios
+            <i class="fas fa-map-marked-alt" aria-hidden="true"></i>
+            {{ getTerritories().length > 0 ? 'Cambiar territorios' : 'Elegir territorios' }}
           </button>
-          @if (getTerritories().length === 0 && suggestedTerritories().length > 0) {
-            <div class="p-3 rounded-2xl bg-slate-800/95 border border-dashed border-blue-500/35 mt-1.5">
-              <div class="text-sm font-bold text-slate-300 mb-2">Sugerencias rápidas</div>
-              <div class="flex flex-wrap gap-2">
-                @for (t of suggestedTerritories(); track t) {
-                  <button
-                    type="button"
-                    class="rounded-full font-bold text-slate-200 bg-blue-500/15 border border-blue-500/30 px-3 py-1 text-xs hover:bg-blue-500/25 transition-colors cursor-pointer"
-                    (click)="applySuggested.emit(t)"
-                    title="Asignar territorio y reutilizar el punto/mapa si están guardados"
-                  >
-                    {{ t }}
-                  </button>
-                }
-              </div>
-            </div>
-          }
-          <div class="flex flex-wrap gap-2 mt-1">
-            @for (t of getTerritories(); track t) {
+
+          @for (t of getTerritories(); track t) {
+            <span class="inline-flex items-center rounded-full bg-blue-700 text-white text-sm font-extrabold">
               <a
                 [href]="getTerritoryLink(locationValue, t)"
                 target="_blank"
-                class="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-700 text-white text-sm font-extrabold no-underline focus:ring-2 focus:ring-blue-500 focus:outline-none hover:bg-blue-600 transition-colors"
+                rel="noopener"
+                class="pl-3 pr-1 py-1.5 no-underline rounded-l-full hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+                [attr.aria-label]="'Abrir mapa de ' + t"
               >
                 {{ t }}
               </a>
-            }
-          </div>
-        </div>
-      }
-
-      <div class="flex flex-col gap-1.5 w-full">
-        <label class="text-sm font-bold text-slate-300">Punto de encuentro</label>
-        <input
-          type="text"
-          aria-label="point"
-          list="meeting-points-list"
-          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
-          placeholder="Punto de encuentro"
-          [value]="dayFormGroup().get('point')?.value || ''"
-          (input)="onChangeInput($event, 'point')"
-        />
-        <datalist id="meeting-points-list">
-          @for (point of meetingPoints(); track point.id) {
-            <option [value]="point.name"></option>
+              <button
+                type="button"
+                class="flex items-center justify-center w-8 h-8 rounded-r-full hover:bg-blue-600 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+                [attr.aria-label]="'Quitar ' + t"
+                (click)="removeTerritory(t)"
+              >
+                <i class="fas fa-times text-xs" aria-hidden="true"></i>
+              </button>
+            </span>
           }
-        </datalist>
-        @if (quickSuggestionText()) {
-          <div class="text-[0.78rem] text-blue-300 mt-1">
-            <i class="fas fa-lightbulb mr-1"></i>
-            {{ quickSuggestionText() }}
-          </div>
-        }
-      </div>
 
-      <div class="flex flex-col gap-1.5 w-full min-w-0">
-        <label class="text-sm font-bold text-slate-300">Mapa (opcional)</label>
-        <input
-          type="text"
-          aria-label="maps"
-          class="block w-full bg-slate-900 border border-slate-700 text-slate-50 rounded-xl focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 placeholder:text-slate-500"
-          placeholder="Link Google Maps"
-          [value]="dayFormGroup().get('maps')?.value || ''"
-          (input)="onChangeInput($event, 'maps')"
-        />
+          @if (getTerritories().length === 0 && suggestedTerritories().length > 0) {
+            <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Territorios sugeridos">
+              <span class="text-xs font-bold text-slate-400">Sugeridos:</span>
+              @for (chip of suggestedTerritories(); track chip.territory) {
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1.5 min-h-9 px-3 rounded-full text-xs font-bold text-slate-100 bg-blue-500/15 border border-blue-500/30 hover:bg-blue-500/25 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  (click)="applySuggested.emit(chip.territory)"
+                >
+                  {{ chip.territory }}
+                  @if (chip.ageLabel) {
+                    <span class="font-medium text-slate-400">· {{ chip.ageLabel }}</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="flex flex-col gap-1.5 min-w-0 col-span-2 sm:col-span-1 lg:col-span-5">
+      <label [class]="labelClass" [for]="idBase() + '-point'">Punto de encuentro</label>
+      <input
+        type="text"
+        [id]="idBase() + '-point'"
+        [attr.list]="meetingPointsListId()"
+        [class]="fieldClass"
+        placeholder="Ej.: Plaza central"
+        autocomplete="off"
+        [value]="pointValue"
+        (input)="onChangeInput($event, 'point')"
+      />
+      @if (showSuggestedPoint) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 self-start min-h-9 px-3 rounded-full text-xs font-bold text-blue-200 bg-blue-500/15 border border-blue-500/30 hover:bg-blue-500/25 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          (click)="applyPoint.emit()"
+        >
+          <i class="fas fa-lightbulb" aria-hidden="true"></i>
+          Usar: {{ suggestedPoint() }}
+        </button>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5 min-w-0 col-span-2 sm:col-span-1 lg:col-span-4">
+      <label [class]="labelClass" [for]="idBase() + '-maps'">Mapa (opcional)</label>
+      <input
+        type="text"
+        [id]="idBase() + '-maps'"
+        [class]="fieldClass"
+        placeholder="Enlace de Google Maps"
+        [value]="mapsValue"
+        (input)="onChangeInput($event, 'maps')"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5 min-w-0 col-span-2 lg:col-span-3">
+      <span [class]="labelClass" [id]="idBase() + '-color-label'">Color</span>
+      <div role="radiogroup" [attr.aria-labelledby]="idBase() + '-color-label'" class="flex flex-wrap items-center gap-1.5 sm:min-h-10">
+        @for (option of colorOptions; track option.value) {
+          <button
+            type="button"
+            role="radio"
+            class="w-11 h-11 sm:w-8 sm:h-8 rounded-full border-2 cursor-pointer transition-transform motion-reduce:transition-none hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+            [class]="colorValue === option.value ? 'border-white' : 'border-transparent'"
+            [style.background-color]="option.hex"
+            [attr.aria-checked]="colorValue === option.value"
+            [attr.aria-label]="option.label"
+            [title]="option.label"
+            (click)="setColor(option.value)"
+          ></button>
+        }
       </div>
     </div>
   </div>
-</div>
+</article>

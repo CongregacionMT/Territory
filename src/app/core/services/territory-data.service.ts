@@ -26,7 +26,13 @@ import { Group } from '@core/models/Group';
 import { StatisticsButton } from '@core/models/StatisticsButton';
 import { User } from '@core/models/User';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
-import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
+import {
+  DateDeparture,
+  Departure,
+  DepartureCardStatus,
+  DepartureData,
+  WeeklyDeparture,
+} from '@core/models/Departures';
 import { FirestoreProviderService } from './firestore-provider.service';
 import { MeetingPointService } from './meeting-point.service';
 import { isCompletionEnd } from '@shared/utils/territory-completion.utils';
@@ -415,15 +421,7 @@ export class TerritoryDataService {
     // Usamos weekId como ID del documento para que sea único por semana y sea fácil de actualizar si se vuelve a guardar
     const docRef = doc(departuresRef, weeklyDeparture.weekId);
 
-    // Guardar automáticamente los puntos de encuentro
-    for (const departure of weeklyDeparture.departure || []) {
-      if (departure.point && departure.maps) {
-        // No esperamos que termine para no bloquear, o podemos usar Promise.all
-        this.meetingPointService
-          .saveMeetingPoint(departure.point, departure.maps)
-          .catch(console.error);
-      }
-    }
+    this.saveMeetingPointsOf(weeklyDeparture.departure || []);
 
     const normalizedDepartures = (weeklyDeparture.departure || []).map((departure, index) =>
       this.normalizeDepartureForCardTracking(departure, weeklyDeparture.weekId, index),
@@ -433,6 +431,75 @@ export class TerritoryDataService {
       departure: normalizedDepartures,
       createdAt: Timestamp.now(),
     });
+  }
+
+  /**
+   * Saves a week in a single transaction without reverting card reviews made elsewhere.
+   *
+   * `loadedCardStatuses` holds the status each departure had when the editor loaded the week.
+   * If the editor did not touch a departure's status but Firestore now holds a different one
+   * (a driver delivered the card meanwhile), the stored status wins.
+   * Resolves with the departures exactly as they were written.
+   */
+  async saveWeeklyDepartureKeepingCardStatus(
+    weeklyDeparture: WeeklyDeparture,
+    loadedCardStatuses: Record<string, DepartureCardStatus | undefined>,
+  ): Promise<Departure[]> {
+    const docRef = doc(this.firestore, 'WeeklyDepartures', weeklyDeparture.weekId);
+    const normalized = (weeklyDeparture.departure || []).map((departure, index) =>
+      this.normalizeDepartureForCardTracking(departure, weeklyDeparture.weekId, index),
+    );
+
+    const written = await runTransaction(this.firestore, async (tx) => {
+      const snapshot = await tx.get(docRef);
+      const storedDepartures = snapshot.exists()
+        ? ((snapshot.data() as WeeklyDeparture).departure ?? [])
+        : [];
+      const storedStatuses = new Map<string, DepartureCardStatus | undefined>(
+        storedDepartures
+          .filter((stored) => !!stored.departureId)
+          .map((stored) => [stored.departureId as string, stored.cardStatus]),
+      );
+
+      const merged = normalized.map((departure) =>
+        this.keepStoredCardStatus(departure, loadedCardStatuses, storedStatuses),
+      );
+
+      tx.set(docRef, { ...weeklyDeparture, departure: merged, createdAt: Timestamp.now() });
+      return merged;
+    });
+
+    this.saveMeetingPointsOf(written);
+    return written;
+  }
+
+  private keepStoredCardStatus(
+    departure: Departure,
+    loadedCardStatuses: Record<string, DepartureCardStatus | undefined>,
+    storedStatuses: Map<string, DepartureCardStatus | undefined>,
+  ): Departure {
+    const id = departure.departureId;
+    if (!id || departure.isEvent) return departure;
+
+    const storedStatus = storedStatuses.get(id);
+    const editorStartedWith = loadedCardStatuses[id] ?? 'pending';
+    const editorChangedIt = departure.cardStatus !== editorStartedWith;
+
+    if (storedStatus && !editorChangedIt && storedStatus !== departure.cardStatus) {
+      return { ...departure, cardStatus: storedStatus };
+    }
+    return departure;
+  }
+
+  private saveMeetingPointsOf(departures: readonly Departure[]): void {
+    for (const departure of departures) {
+      if (departure.point && departure.maps) {
+        // No bloquea el guardado de la semana: es una ayuda para autocompletar.
+        this.meetingPointService
+          .saveMeetingPoint(departure.point, departure.maps)
+          .catch(console.error);
+      }
+    }
   }
 
   async deleteWeeklyDeparture(weekId: string): Promise<void> {

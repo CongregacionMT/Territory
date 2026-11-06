@@ -1,7 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { Departure } from '@core/models/Departures';
+import { Departure, WeeklyDeparture } from '@core/models/Departures';
 import { environment } from '@environments/environment';
+import { daysBetweenIsoDates, addDaysToIsoDate } from '@shared/utils/date-utils';
+import { DEFAULT_DEPARTURE_COLOR } from '@shared/utils/departure-colors';
+import { sortDeparturesByDateTime } from '@shared/utils/departure-sort.utils';
+
+export type AssignmentStatus =
+  'complete' | 'missing-driver' | 'missing-territory' | 'missing-both' | 'event';
+
+export type WeekFillState = 'empty' | 'incomplete' | 'complete';
 
 @Injectable({
   providedIn: 'root',
@@ -49,7 +57,7 @@ export class DepartureFormService {
       return { groupKeys: [0], groupedDepartures: {} };
     }
 
-    filteredDepartures.forEach((departure: Departure) => {
+    sortDeparturesByDateTime(filteredDepartures).forEach((departure: Departure) => {
       const rawGroup = Number(departure.group);
       const groupKey = isNaN(rawGroup) ? 0 : rawGroup;
 
@@ -76,6 +84,7 @@ export class DepartureFormService {
 
       groupArray.push(
         this.fb.group({
+          departureId: new FormControl(departure.departureId || ''),
           date: new FormControl(departure.date || targetMondayStr),
           driver: new FormControl(departure.driver || ''),
           schedule: new FormControl(departure.schedule || ''),
@@ -115,6 +124,7 @@ export class DepartureFormService {
 
     departureFormArrayItem.push(
       this.fb.group({
+        departureId: new FormControl(''),
         date: new FormControl(dateStr),
         driver: new FormControl(''),
         schedule: new FormControl(''),
@@ -137,6 +147,72 @@ export class DepartureFormService {
     if (departureFormArrayItem) {
       departureFormArrayItem.removeAt(index);
     }
+  }
+
+  /** What is still missing for a departure to be ready: driver and/or territory. */
+  getAssignmentStatus(departure: Departure): AssignmentStatus {
+    if (departure.isEvent) return 'event';
+
+    const missingDriver = !departure.driver?.trim();
+    const missingTerritory = (departure.territory ?? []).length === 0;
+
+    if (missingDriver && missingTerritory) return 'missing-both';
+    if (missingDriver) return 'missing-driver';
+    if (missingTerritory) return 'missing-territory';
+    return 'complete';
+  }
+
+  getWeekFillState(departures: readonly Departure[]): WeekFillState {
+    if (departures.length === 0) return 'empty';
+    const allReady = departures.every((departure) => {
+      const status = this.getAssignmentStatus(departure);
+      return status === 'complete' || status === 'event';
+    });
+    return allReady ? 'complete' : 'incomplete';
+  }
+
+  /** Weeks worth copying: they have at least one regular (non-event) departure. */
+  hasCopyableDepartures(week: WeeklyDeparture | undefined): boolean {
+    return (week?.departure ?? []).some((departure) => !departure.isEvent);
+  }
+
+  /** The most recent week before `targetWeekId` that has departures to copy. */
+  findSourceWeek(
+    history: readonly WeeklyDeparture[],
+    targetWeekId: string,
+  ): WeeklyDeparture | undefined {
+    return [...history]
+      .filter((week) => !!week.weekId && week.weekId < targetWeekId)
+      .sort((a, b) => b.weekId.localeCompare(a.weekId))
+      .find((week) => this.hasCopyableDepartures(week));
+  }
+
+  /**
+   * Builds the departures of a new week from another one: same days, times, places,
+   * colors and groups. Drivers, territories, events and card progress are not carried over.
+   */
+  createWeekFromSource(source: WeeklyDeparture, targetWeekId: string): Departure[] {
+    const shiftDays = daysBetweenIsoDates(source.weekId, targetWeekId) ?? 0;
+    const defaultLocation = this.localities[0]?.territoryPrefix ?? environment.territoryPrefix;
+
+    const copies = (source.departure ?? [])
+      .filter((departure) => !departure.isEvent)
+      .map((departure): Departure => ({
+        driver: '',
+        location: departure.location || defaultLocation,
+        territory: [],
+        date: departure.date ? addDaysToIsoDate(departure.date, shiftDays) : targetWeekId,
+        maps: departure.maps || '',
+        point: departure.point || '',
+        schedule: departure.schedule || '',
+        color: departure.color || DEFAULT_DEPARTURE_COLOR,
+        group: Number(departure.group) || 0,
+        isEvent: false,
+        title: '',
+        cardStatus: 'pending',
+      }));
+
+    return sortDeparturesByDateTime(copies);
   }
 
   addTerritoryControl(

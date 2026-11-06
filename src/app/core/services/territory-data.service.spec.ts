@@ -11,6 +11,7 @@ import {
   query,
   where,
   orderBy,
+  runTransaction,
 } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { SpinnerService } from './spinner.service';
@@ -255,5 +256,86 @@ describe('TerritoryDataService', () => {
     service.deleteCardAssigned({ id: '123' } as any);
     expect(doc).toHaveBeenCalledWith(mockFirestore, 'Assigned', '123');
     expect(deleteDoc).toHaveBeenCalledWith('docRef');
+  });
+
+  describe('saveWeeklyDepartureKeepingCardStatus', () => {
+    const departure = (overrides: Record<string, unknown>) => ({
+      driver: 'Ana',
+      location: 'TerritorioW',
+      territory: ['N°1'],
+      date: '2026-11-10',
+      maps: '',
+      point: '',
+      schedule: '18:30',
+      color: 'info',
+      group: 0,
+      cardStatus: 'pending',
+      ...overrides,
+    });
+
+    function mockTransaction(storedDepartures: unknown[] | null) {
+      const tx = {
+        get: vi.fn().mockResolvedValue({
+          exists: () => storedDepartures !== null,
+          data: () => ({ departure: storedDepartures }),
+        }),
+        set: vi.fn(),
+      };
+      vi.mocked(doc).mockReturnValue('weekRef' as any);
+      vi.mocked(runTransaction).mockImplementation(((_firestore: unknown, update: any) =>
+        update(tx)) as any);
+      return tx;
+    }
+
+    it('keeps a card review made elsewhere when the editor did not touch that status', async () => {
+      const tx = mockTransaction([departure({ departureId: 'a', cardStatus: 'received' })]);
+
+      const saved = await service.saveWeeklyDepartureKeepingCardStatus(
+        {
+          weekId: '2026-11-09',
+          departure: [departure({ departureId: 'a', driver: 'Beto' })] as any,
+        },
+        { a: 'pending' },
+      );
+
+      expect(saved[0].cardStatus).toBe('received');
+      expect(saved[0].driver).toBe('Beto');
+      expect(tx.set).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets the editor change a card status on purpose', async () => {
+      mockTransaction([departure({ departureId: 'a', cardStatus: 'received' })]);
+
+      const saved = await service.saveWeeklyDepartureKeepingCardStatus(
+        {
+          weekId: '2026-11-09',
+          departure: [departure({ departureId: 'a', cardStatus: 'canceled' })] as any,
+        },
+        { a: 'pending' },
+      );
+
+      expect(saved[0].cardStatus).toBe('canceled');
+    });
+
+    it('writes brand new departures with an id even when the week does not exist yet', async () => {
+      mockTransaction(null);
+
+      const saved = await service.saveWeeklyDepartureKeepingCardStatus(
+        { weekId: '2026-11-09', departure: [departure({})] as any },
+        {},
+      );
+
+      expect(saved[0].departureId).toBeTruthy();
+      expect(saved[0].cardStatus).toBe('pending');
+    });
+
+    it('rejects, so the caller never reports a false success', async () => {
+      vi.mocked(doc).mockReturnValue('weekRef' as any);
+      vi.mocked(runTransaction).mockRejectedValue(new Error('offline'));
+
+      await expect(
+        service.saveWeeklyDepartureKeepingCardStatus({ weekId: '2026-11-09', departure: [] }, {}),
+      ).rejects.toThrow('offline');
+    });
   });
 });

@@ -1,73 +1,81 @@
+<datalist [id]="meetingPointsListId">
+  @for (point of meetingPointsInput(); track point.id ?? point.name) {
+    <option [value]="point.name"></option>
+  }
+</datalist>
 
-@for (group of groupKeys.sort(); track group) {
-  <div class="p-4 sm:p-6 rounded-3xl mb-6 border" [ngClass]="group > 0 ? 'bg-slate-900/65 border-l-4 border-l-sky-400/90 border-slate-600/30' : 'bg-slate-800/45 border-slate-600/30'">
-    <h3 class="text-2xl font-extrabold text-slate-50 text-center mb-4">{{ getGroupTitle(group) }}</h3>
-    <form [formGroup]="formDeparture" class="flex flex-col justify-center">
-      <div class="flex flex-wrap -mx-4 gap-y-3">
-        @for (
-          days of filterControlsByGroup(group);
-          track days;
-          let i = $index
-        ) {
-          <div class="w-full px-4">
-            <app-departure-day-card
-              [dayFormGroup]="getFormGroup(days)"
-              [index]="i"
-              [groupIndex]="group"
-              [isAdmin]="isAdmin"
-              [drivers]="drivers()"
-              [localities]="localities"
-              [suggestedTerritories]="getSuggestedTerritories(i, group)"
-              [quickSuggestionText]="getQuickSuggestionText(i, group)"
-              [meetingPoints]="meetingPointsInput()"
-              (delete)="deleteInputForm(i, group)"
-              (dayCopy)="copyDay(i, group)"
-              (openModal)="openModal(i, group)"
-              (applySuggested)="applySuggestedTerritory(i, group, $event)"
-            ></app-departure-day-card>
-          </div>
+<form [formGroup]="formDeparture" class="flex flex-col gap-8">
+  @for (group of groupKeys; track group) {
+    @let controls = filterControlsByGroup(group);
+    @let theme = getGroupTheme(group);
+    @if (controls.length > 0) {
+      <section
+        class="flex flex-col gap-3"
+        [ngClass]="theme.frame"
+        [attr.aria-labelledby]="'group-title-' + group"
+      >
+        <h2 [id]="'group-title-' + group" class="flex items-center gap-3 text-lg font-extrabold text-slate-50">
+          <span
+            class="inline-block w-1.5 h-6 rounded-full"
+            [ngClass]="theme.bar"
+            aria-hidden="true"
+          ></span>
+          {{ getGroupTitle(group) }}
+          <span class="text-sm font-medium text-slate-400">
+            {{ controls.length === 1 ? '1 salida' : controls.length + ' salidas' }}
+          </span>
+        </h2>
+
+        @for (days of controls; track days; let i = $index) {
+          <app-departure-day-card
+            [dayFormGroup]="getFormGroup(days)"
+            [index]="i"
+            [groupIndex]="group"
+            [isAdmin]="isAdmin"
+            [drivers]="drivers()"
+            [localities]="localities"
+            [suggestedTerritories]="getSuggestionChips(i, group)"
+            [suggestedPoint]="getSuggestedPointName(i, group)"
+            [meetingPoints]="meetingPointsInput()"
+            [meetingPointsListId]="meetingPointsListId"
+            (delete)="deleteInputForm(i, group)"
+            (dayCopy)="copyDay(i, group)"
+            (openModal)="openModal(i, group)"
+            (applySuggested)="applySuggestedTerritory(i, group, $event)"
+            (applyPoint)="applySuggestedPoint(i, group)"
+          ></app-departure-day-card>
         }
-      </div>
 
-      <div class="w-full flex justify-center mt-6">
         <button
           type="button"
-          class="group relative inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-slate-300 bg-slate-800/50 border border-slate-700/50 rounded-2xl hover:bg-slate-700 hover:text-white hover:border-blue-500/50 transition-all duration-300 overflow-hidden cursor-pointer w-full max-w-sm"
+          class="inline-flex items-center justify-center gap-2 min-h-11 px-6 text-sm font-bold text-slate-300 bg-slate-800/50 border border-slate-700/50 rounded-2xl hover:bg-slate-700 hover:text-white hover:border-blue-500/50 transition-colors motion-reduce:transition-none cursor-pointer w-full sm:max-w-sm sm:self-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
           (click)="addInputForm(group)"
         >
-          <div class="absolute inset-0 w-0 bg-blue-600/20 transition-all duration-300 ease-out group-hover:w-full"></div>
-          <i class="fas fa-plus mr-2 text-blue-400 group-hover:text-blue-300 transition-colors"></i>
-          <span class="relative z-10">Agregar salida</span>
+          <i class="fas fa-plus text-blue-400" aria-hidden="true"></i>
+          Agregar salida
+        </button>
+      </section>
+    } @else {
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed px-4 py-2"
+        [ngClass]="theme.emptyRow"
+      >
+        <h2 class="text-base font-bold text-slate-300">
+          {{ getGroupTitle(group) }}
+          <span class="font-normal text-slate-500">· sin salidas</span>
+        </h2>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 min-h-11 px-4 text-sm font-bold text-slate-300 rounded-xl hover:bg-slate-800 hover:text-white transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          (click)="addInputForm(group)"
+        >
+          <i class="fas fa-plus text-blue-400" aria-hidden="true"></i>
+          Agregar salida
         </button>
       </div>
-    </form>
-  </div>
-}
-
-<div class="flex flex-col md:flex-row justify-between items-center bg-slate-800/50 p-4 sm:p-6 rounded-3xl border border-slate-700/50 gap-4 mt-8">
-  <div class="flex flex-col">
-    <span class="text-slate-400 text-sm font-medium">Estado del formulario</span>
-    <span class="text-slate-200 font-bold flex items-center gap-2">
-      @if (formDeparture.valid) {
-        <i class="fas fa-check-circle text-green-500"></i> Listo para guardar
-      } @else {
-        <i class="fas fa-exclamation-circle text-amber-500"></i> Faltan campos requeridos
-      }
-    </span>
-  </div>
-  <button
-    (click)="submitForm()"
-    [disabled]="!formDeparture.valid || formDeparture.pristine"
-    class="relative inline-flex items-center justify-center px-8 py-3 text-sm font-bold text-white transition-all duration-300 rounded-2xl overflow-hidden group w-full md:w-auto"
-    [ngClass]="formDeparture.valid && !formDeparture.pristine ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]' : 'bg-slate-700 text-slate-400 cursor-not-allowed border border-slate-600'"
-  >
-    @if (formDeparture.valid && !formDeparture.pristine) {
-      <div class="absolute inset-0 w-0 bg-white/20 transition-all duration-300 ease-out group-hover:w-full"></div>
     }
-    <i class="fas fa-save mr-2"></i>
-    <span class="relative z-10">{{ formDepartureDataInput().length > 0 ? 'Actualizar semana' : 'Guardar semana' }}</span>
-  </button>
-</div>
+  }
+</form>
 
 @if (activeModal()) {
   <app-territory-selection-modal
@@ -81,6 +89,8 @@
     [territoryNumbersCache]="territoryOptionsMap()"
     [personalAssignments]="personalAssignments()"
     [localities]="localities"
+    [departureTitle]="getModalTitle()"
+    [initialGroupFilter]="selectedTerritoryGroup"
     (modalClose)="closeModal()"
   ></app-territory-selection-modal>
 }
