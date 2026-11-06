@@ -19,15 +19,21 @@
     <div class="flex flex-col items-center justify-center py-16 px-4 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 mt-8 shadow-xl max-w-3xl mx-auto text-center">
       <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-white/80 mb-6"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
       <h3 class="text-2xl font-bold text-white mb-3 m-0">Sin arreglos de carrito</h3>
-      <p class="text-sky-100 text-lg mb-8 max-w-md mx-auto">No hay arreglos del carrito programados en este momento.</p>
-      
-      <a
-        class="bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-400 hover:to-blue-500 border border-blue-400 hover:border-blue-300 px-8 py-3.5 text-lg font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 cursor-pointer flex items-center justify-center gap-2"
-        routerLink="editar"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Crear arreglos
-      </a>
+      @if (isAdmin()) {
+        <p class="text-sky-100 text-lg mb-8 max-w-md mx-auto">No hay arreglos del carrito programados en este momento.</p>
+
+        <a
+          class="bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-400 hover:to-blue-500 border border-blue-400 hover:border-blue-300 px-8 py-3.5 text-lg font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 cursor-pointer flex items-center justify-center gap-2"
+          routerLink="editar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Crear arreglos
+        </a>
+      } @else {
+        <p class="text-sky-100 text-lg max-w-md mx-auto">
+          Todavía no se publicó el programa del carrito. Volvé a revisar más tarde, ¡gracias por tu paciencia! 🙌
+        </p>
+      }
     </div>
   }
 
