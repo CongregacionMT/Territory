@@ -7,18 +7,13 @@ import {
   effect,
 } from '@angular/core';
 import { FormControl, FormsModule } from '@angular/forms';
-import { TerritoryDataService } from '@core/services/territory-data.service';
+import { DeparturesStoreService } from '@core/services/departures-store.service';
 import { NetworkService } from '@core/services/network.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { WeeklyDeparture, DepartureData } from '@core/models/Departures';
+import { WeeklyDeparture } from '@core/models/Departures';
 import { NgClass } from '@angular/common';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils';
-import { sortDeparturesByDateTime } from '@shared/utils/departure-sort.utils';
-
-import { toSignal, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { of, concat } from 'rxjs';
 
 @Component({
   selector: 'app-departure-page',
@@ -28,7 +23,7 @@ import { of, concat } from 'rxjs';
   imports: [DeparturesCardsComponent, RouterLink, NgClass, FormsModule],
 })
 export class DeparturePageComponent {
-  private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly departuresStore = inject(DeparturesStoreService);
   private readonly rutaActiva = inject(ActivatedRoute);
   public networkService = inject(NetworkService);
 
@@ -44,31 +39,10 @@ export class DeparturePageComponent {
   isCurrentWeek = computed(() => this.selectedWeekId() === getWeekId(new Date()));
 
   // Data streams converted to Signals
-  weeklyHistory = toSignal(this.territoryDataService.getWeeklyDepartures(15), { initialValue: [] });
+  weeklyHistory = this.departuresStore.weeklyHistory;
 
-  departures$ = toSignal(
-    toObservable(this.selectedWeekId).pipe(
-      switchMap((weekId) =>
-        concat(
-          of(undefined),
-          this.territoryDataService.getWeeklyDeparture(weekId).pipe(
-            map((weeklyData: WeeklyDeparture | undefined) =>
-              sortDeparturesByDateTime(weeklyData?.departure ?? []),
-            ),
-            catchError(() =>
-              this.territoryDataService.getDepartures().pipe(
-                map((masterData: DepartureData | undefined) =>
-                  sortDeparturesByDateTime(masterData?.departure ?? []),
-                ),
-                catchError(() => of([])),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-    { initialValue: undefined },
-  );
+  // Kept in the session-long store: returning to a loaded week shows its data immediately.
+  departures$ = computed(() => this.departuresStore.weekDepartures(this.selectedWeekId())());
 
   pastWeeks = computed(() => {
     const history = this.weeklyHistory();
@@ -108,6 +82,7 @@ export class DeparturePageComponent {
   });
 
   constructor() {
+    this.departuresStore.connect();
     this.numberGroup = this.rutaActiva.snapshot.params;
     if (this.numberGroup['number'] && this.numberGroup['number'] !== '0') {
       this.titleGroup.set(`(Grupo ${this.numberGroup['number']})`);

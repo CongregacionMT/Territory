@@ -1,7 +1,8 @@
 <div class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-6">
-  @for (departure of departures(); track departure) {
+  @for (departure of departures(); track trackDeparture($index, departure)) {
     @if (currentPath === departure.group || departure.group === 0) {
-      <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm flex flex-col relative transition-all duration-300 animate-[fadeInUp_0.5s_ease_backwards] hover:-translate-y-1 hover:shadow-xl departure-card" 
+      <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm flex flex-col relative transition-all duration-300 hover:-translate-y-1 hover:shadow-xl departure-card"
+           [class]="animateEntrance ? 'animate-[fadeInUp_0.5s_ease_backwards]' : ''"
            [class.is-today]="isToday(departure.date)"
            [class.border-sky-500]="isToday(departure.date)"
            [class.shadow-sky-500/20]="isToday(departure.date)"

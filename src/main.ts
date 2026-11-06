@@ -9,9 +9,14 @@ import { environment } from './environments/environment';
 import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideMessaging, getMessaging } from '@angular/fire/messaging';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import {
+  provideRouter,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  withPreloading,
+} from '@angular/router';
+import { SelectivePreloadingStrategy } from './app/core/strategies/selective-preloading.strategy';
 import { routes } from './app/app.routes';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { AppComponent } from './app/app.component';
 import localeEs from '@angular/common/locales/es';
@@ -40,10 +45,10 @@ bootstrapApplication(AppComponent, {
       routes,
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
+      withPreloading(SelectivePreloadingStrategy),
     ),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideMessaging(() => getMessaging(getApp())),
-    provideAnimations(),
     { provide: LOCALE_ID, useValue: 'es' },
   ],
 }).catch((err) => console.error(err));

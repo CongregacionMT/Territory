@@ -1,4 +1,4 @@
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   inject,
@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { TerritoryDataService } from '@core/services/territory-data.service';
+import { DeparturesStoreService } from '@core/services/departures-store.service';
 import { Router, RouterLink } from '@angular/router';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 
@@ -29,13 +30,14 @@ import { forkJoin, take } from 'rxjs';
 export class HomeDeparturePageComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly territoryDataService = inject(TerritoryDataService);
+  private readonly departuresStore = inject(DeparturesStoreService);
   private readonly router = inject(Router);
   private readonly pdfService = inject(DeparturePdfService);
 
   isAdmin: boolean = false;
 
-  groups = toSignal(this.territoryDataService.getGroupList());
-  weeklyHistory = toSignal(this.territoryDataService.getWeeklyDepartures(20), { initialValue: [] });
+  groups = this.departuresStore.groups;
+  weeklyHistory = this.departuresStore.weeklyHistory;
 
   groupKeys = computed(() => {
     const groupData = this.groups();
@@ -171,6 +173,7 @@ export class HomeDeparturePageComponent {
   });
 
   constructor() {
+    this.departuresStore.connect();
     this.isAdmin = !!localStorage.getItem('tokenAdmin');
 
     effect(() => {
