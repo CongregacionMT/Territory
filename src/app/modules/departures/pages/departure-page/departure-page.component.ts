@@ -1,6 +1,5 @@
 import {
   Component,
-  OnInit,
   inject,
   signal,
   computed,
@@ -8,18 +7,13 @@ import {
   effect,
 } from '@angular/core';
 import { FormControl, FormsModule } from '@angular/forms';
-import { SpinnerService } from '@core/services/spinner.service';
-import { TerritoryDataService } from '@core/services/territory-data.service';
+import { DeparturesStoreService } from '@core/services/departures-store.service';
 import { NetworkService } from '@core/services/network.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Departure, WeeklyDeparture, DepartureData } from '@core/models/Departures';
+import { WeeklyDeparture } from '@core/models/Departures';
 import { NgClass } from '@angular/common';
 import { DeparturesCardsComponent } from '../../../../shared/components/departures-cards/departures-cards.component';
 import { formatWeekRange, getMonday, getWeekId } from '@shared/utils/date-utils';
-
-import { toSignal, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
 
 @Component({
   selector: 'app-departure-page',
@@ -28,10 +22,9 @@ import { of } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DeparturesCardsComponent, RouterLink, NgClass, FormsModule],
 })
-export class DeparturePageComponent implements OnInit {
-  private territoryDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
-  private rutaActiva = inject(ActivatedRoute);
+export class DeparturePageComponent {
+  private readonly departuresStore = inject(DeparturesStoreService);
+  private readonly rutaActiva = inject(ActivatedRoute);
   public networkService = inject(NetworkService);
 
   // Simple state
@@ -46,45 +39,10 @@ export class DeparturePageComponent implements OnInit {
   isCurrentWeek = computed(() => this.selectedWeekId() === getWeekId(new Date()));
 
   // Data streams converted to Signals
-  weeklyHistory = toSignal(this.territoryDataService.getWeeklyDepartures(), { initialValue: [] });
+  weeklyHistory = this.departuresStore.weeklyHistory;
 
-  departures$ = toSignal(
-    toObservable(this.selectedWeekId).pipe(
-      tap(() => this.spinner.cargarSpinner()),
-      switchMap((weekId) =>
-        this.territoryDataService.getWeeklyDeparture(weekId).pipe(
-          map((weeklyData: WeeklyDeparture | undefined) => {
-            const deps = weeklyData?.departure || [];
-            deps.sort(
-              (a: Departure, b: Departure) =>
-                new Date(a.date || '').getTime() - new Date(b.date || '').getTime(),
-            );
-            return deps;
-          }),
-          catchError(() =>
-            this.territoryDataService.getDepartures().pipe(
-              map((masterData: DepartureData | undefined) => {
-                const deps = masterData?.departure || [];
-                deps.sort(
-                  (a: Departure, b: Departure) =>
-                    new Date(a.date || '').getTime() - new Date(b.date || '').getTime(),
-                );
-                return deps;
-              }),
-              catchError(() => of([])),
-            ),
-          ),
-        ),
-      ),
-      tap(() => {
-        this.spinner.cerrarSpinner();
-        if (!this.networkService.isOnline()) {
-          setTimeout(() => this.spinner.cerrarSpinner(), 1500);
-        }
-      }),
-    ),
-    { initialValue: [] },
-  );
+  // Kept in the session-long store: returning to a loaded week shows its data immediately.
+  departures$ = computed(() => this.departuresStore.weekDepartures(this.selectedWeekId())());
 
   pastWeeks = computed(() => {
     const history = this.weeklyHistory();
@@ -124,7 +82,7 @@ export class DeparturePageComponent implements OnInit {
   });
 
   constructor() {
-    this.spinner.cargarSpinner();
+    this.departuresStore.connect();
     this.numberGroup = this.rutaActiva.snapshot.params;
     if (this.numberGroup['number'] && this.numberGroup['number'] !== '0') {
       this.titleGroup.set(`(Grupo ${this.numberGroup['number']})`);
@@ -134,12 +92,6 @@ export class DeparturePageComponent implements OnInit {
     effect(() => {
       this.dateDeparture.setValue(this.selectedWeekId(), { emitEvent: false });
     });
-  }
-
-  ngOnInit(): void {
-    if (!this.networkService.isOnline()) {
-      setTimeout(() => this.spinner.cerrarSpinner(), 1500);
-    }
   }
 
   selectWeek(id: string): void {
@@ -209,31 +161,31 @@ export class DeparturePageComponent implements OnInit {
       return {
         label: 'Esta semana',
         badgeClass: 'badge-current-week',
-        icon: 'https://api.iconify.design/mdi:calendar-check.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-check-ffffff.svg',
       };
     } else if (diffWeeks === 1) {
       return {
         label: 'Semana próxima',
         badgeClass: 'badge-future-week',
-        icon: 'https://api.iconify.design/mdi:calendar-arrow-right.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-arrow-right-ffffff.svg',
       };
     } else if (diffWeeks > 1) {
       return {
         label: `En ${diffWeeks} semanas`,
         badgeClass: 'badge-future-week',
-        icon: 'https://api.iconify.design/mdi:calendar-arrow-right.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-arrow-right-ffffff.svg',
       };
     } else if (diffWeeks === -1) {
       return {
         label: 'La semana pasada',
         badgeClass: 'badge-past-week',
-        icon: 'https://api.iconify.design/mdi:calendar-arrow-left.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-arrow-left-ffffff.svg',
       };
     } else {
       return {
         label: `Hace ${Math.abs(diffWeeks)} semanas`,
         badgeClass: 'badge-past-week',
-        icon: 'https://api.iconify.design/mdi:calendar-arrow-left.svg?color=%23ffffff',
+        icon: 'assets/icons/ui/mdi-calendar-arrow-left-ffffff.svg',
       };
     }
   }

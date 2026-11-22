@@ -71,10 +71,9 @@ describe('OfflineMapViewerComponent', () => {
 
     fixture.detectChanges(); // starts loadKml
 
-    // wait for async fetch
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    // wait for the dynamic imports and the async fetch
+    await vi.waitFor(() => expect(component.error()).toContain('HTTP Error 404'));
 
-    expect(component.error()).toContain('HTTP Error 404');
     expect(component.loading()).toBe(false);
   });
 });

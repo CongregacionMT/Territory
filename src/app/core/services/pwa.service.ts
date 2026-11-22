@@ -1,9 +1,5 @@
-import { Injectable, inject, signal, computed, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { filter, switchMap } from 'rxjs';
-import { UpdateSnackbarComponent } from '@shared/components/update-snackbar/update-snackbar.component';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void> | void;
@@ -14,13 +10,11 @@ interface BeforeInstallPromptEvent extends Event {
   providedIn: 'root',
 })
 export class PwaService {
-  private swUpdate = inject(SwUpdate);
-  private _snackBar = inject(MatSnackBar);
-  private destroyRef = inject(DestroyRef);
+  private readonly _snackBar = inject(MatSnackBar);
 
   private deferredPrompt: BeforeInstallPromptEvent | null = null;
-  private _isIos = signal<boolean>(false);
-  private _btnPWA = signal<boolean>(true);
+  private readonly _isIos = signal<boolean>(false);
+  private readonly _btnPWA = signal<boolean>(true);
 
   // Expose as readonly computed properties
   isIos = computed(() => this._isIos());
@@ -28,30 +22,6 @@ export class PwaService {
 
   constructor() {
     this.initPWA();
-    this.checkForUpdates();
-  }
-
-  private checkForUpdates(): void {
-    if (!this.swUpdate.isEnabled) return;
-
-    this.swUpdate.versionUpdates
-      .pipe(
-        filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'),
-        switchMap(() => {
-          const snack = this._snackBar.openFromComponent(UpdateSnackbarComponent, {
-            duration: undefined,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-          });
-          return snack.onAction();
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(() => {
-        document.location.reload();
-      });
-
-    void this.swUpdate.checkForUpdate();
   }
 
   private initPWA(): void {

@@ -11,7 +11,11 @@ import { User } from '@core/models/User';
 describe('LoginPageComponent', () => {
   let component: LoginPageComponent;
   let fixture: ComponentFixture<LoginPageComponent>;
-  let mockAuthService: { login: ReturnType<typeof vi.fn> };
+  let mockAuthService: {
+    login: ReturnType<typeof vi.fn>;
+    getDrivers: ReturnType<typeof vi.fn>;
+    loginAsDriver: ReturnType<typeof vi.fn>;
+  };
   let mockSpinnerService: {
     cargarSpinner: ReturnType<typeof vi.fn>;
     cerrarSpinner: ReturnType<typeof vi.fn>;
@@ -21,6 +25,8 @@ describe('LoginPageComponent', () => {
   beforeEach(async () => {
     mockAuthService = {
       login: vi.fn().mockReturnValue(of([])),
+      getDrivers: vi.fn().mockReturnValue(of([])),
+      loginAsDriver: vi.fn(),
     };
 
     mockSpinnerService = {
@@ -88,5 +94,23 @@ describe('LoginPageComponent', () => {
     expect(mockAuthService.login).toHaveBeenCalledWith('admin', '123');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['home']);
     expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
+  });
+
+  it('should load drivers on init', () => {
+    const driver: User = { user: 'd', rol: 'conductor', uid: '2', nombre: 'Driver', clave: '' };
+    mockAuthService.getDrivers.mockReturnValue(of([driver]));
+
+    component.ngOnInit();
+
+    expect(component.drivers()).toEqual([driver]);
+  });
+
+  it('should login as driver and navigate to home', () => {
+    const driver: User = { user: 'd', rol: 'conductor', uid: '2', nombre: 'Driver', clave: '' };
+
+    component.loginAsDriver(driver);
+
+    expect(mockAuthService.loginAsDriver).toHaveBeenCalledWith(driver);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['home']);
   });
 });

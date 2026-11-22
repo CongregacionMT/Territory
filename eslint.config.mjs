@@ -1,7 +1,9 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import angular from 'angular-eslint';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import sonarjs from 'eslint-plugin-sonarjs';
+import unusedImports from 'eslint-plugin-unused-imports';
+
 
 export default tseslint.config(
   {
@@ -10,7 +12,11 @@ export default tseslint.config(
       eslint.configs.recommended,
       ...tseslint.configs.recommendedTypeChecked,
       ...angular.configs.tsRecommended,
+      sonarjs.configs.recommended,
     ],
+    plugins: {
+      'unused-imports': unusedImports,
+    },
     processor: angular.processInlineTemplates,
     languageOptions: {
       parserOptions: {
@@ -19,6 +25,16 @@ export default tseslint.config(
       },
     },
     rules: {
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
       '@angular-eslint/directive-selector': [
         'error',
         { type: 'attribute', prefix: 'app', style: 'camelCase' },
@@ -35,6 +51,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-return': 'error',
       '@typescript-eslint/no-unsafe-argument': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/prefer-readonly': 'error',
     },
   },
   {

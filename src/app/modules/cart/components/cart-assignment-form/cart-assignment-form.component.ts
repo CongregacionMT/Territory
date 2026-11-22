@@ -27,10 +27,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [ReactiveFormsModule, NgClass],
 })
 export class CartAssignmentFormComponent implements OnInit {
-  private cartDataService = inject(CartDataService);
-  private fb = inject(FormBuilder);
-  private _snackBar = inject(MatSnackBar);
-  private destroyRef = inject(DestroyRef);
+  private readonly cartDataService = inject(CartDataService);
+  private readonly fb = inject(FormBuilder);
+  private readonly _snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly cartData = input.required<CartData[]>();
 
@@ -72,7 +72,7 @@ export class CartAssignmentFormComponent implements OnInit {
     return this.fb.group({
       assignment: new FormControl(cart.assignment || '', Validators.required.bind(Validators)),
       date: new FormControl(cart.date || '', Validators.required.bind(Validators)),
-      schedule: new FormControl(cart.schedule || '', Validators.required.bind(Validators)),
+      schedule: new FormControl(cart.schedule || ''),
       location: new FormControl(cart.location?.name || '', Validators.required.bind(Validators)),
       color: new FormControl(cart.color || 'secondary', Validators.required.bind(Validators)),
     });

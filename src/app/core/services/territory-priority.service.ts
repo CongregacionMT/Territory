@@ -3,18 +3,19 @@ import { TerritoryDataService } from './territory-data.service';
 import { Card } from '../models/Card';
 import { environment } from '@environments/environment';
 import { take } from 'rxjs';
+import { isCompletionEnd } from '@shared/utils/territory-completion.utils';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TerritoryPriorityService {
-  private territoryDataService = inject(TerritoryDataService);
+  private readonly territoryDataService = inject(TerritoryDataService);
 
   // Cache for territory last completed days
   // Maps location prefix -> territory number -> days since last completion
   public territoryLastCompletedDays: { [locationPrefix: string]: { [num: number]: number } } = {};
 
-  private localities = environment.localities;
+  private readonly localities = environment.localities;
 
   /**
    * Initializes the cache of territory completion data
@@ -65,7 +66,7 @@ export class TerritoryPriorityService {
               if (num !== undefined) {
                 let lastEnd = null;
                 for (let i = 0; i < 6 && i < territoryCards.length; i++) {
-                  if (territoryCards[i].end) {
+                  if (isCompletionEnd(territoryCards[i].end)) {
                     lastEnd = territoryCards[i].end;
                     break;
                   }
@@ -93,7 +94,7 @@ export class TerritoryPriorityService {
             .subscribe((cards) => {
               let lastEnd = null;
               for (const c of cards) {
-                if (c.end) {
+                if (isCompletionEnd(c.end)) {
                   lastEnd = c.end;
                   break;
                 }
@@ -150,7 +151,7 @@ export class TerritoryPriorityService {
   }
 
   private normalizeTerritoryNumber(value: string): number {
-    const match = String(value).match(/\d+/);
+    const match = /\d+/.exec(String(value));
     return match ? Number(match[0]) : -1;
   }
 

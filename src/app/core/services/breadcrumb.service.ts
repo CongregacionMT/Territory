@@ -7,13 +7,13 @@ import { filter } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class BreadcrumbService {
-  private _breadcrumbs = signal<BreadcrumbItem[]>([]);
+  private readonly _breadcrumbs = signal<BreadcrumbItem[]>([]);
   public readonly breadcrumbs = this._breadcrumbs.asReadonly();
 
-  private _showBreadcrumb = signal<boolean>(false);
+  private readonly _showBreadcrumb = signal<boolean>(false);
   public readonly showBreadcrumb = this._showBreadcrumb.asReadonly();
 
-  private router = inject(Router);
+  private readonly router = inject(Router);
 
   constructor() {
     this.router.events

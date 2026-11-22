@@ -3,7 +3,6 @@ import {
   addDoc,
   collection,
   collectionData,
-  deleteDoc,
   doc,
   Firestore,
   getDoc,
@@ -16,7 +15,6 @@ import {
   updateDoc,
   where,
   writeBatch,
-  documentId,
   WriteBatch,
 } from '@angular/fire/firestore';
 import { TERRITORY_COUNT } from '@shared/utils/territories.config';
@@ -26,6 +24,7 @@ import { TerritoriesNumberData, TerritoryNumberData } from '@core/models/Territo
 import { Campaign, CampaignStats, DeparturesInfo } from '@core/models/Campaign';
 import { Card, CardApplesData } from '@core/models/Card';
 import { FirestoreProviderService } from './firestore-provider.service';
+import { removeUndefined } from '@shared/utils/campaign.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -229,6 +228,71 @@ export class CampaignService {
     return collectionData(campaignRef, { idField: 'id' }) as Observable<Campaign[]>;
   }
 
+  private resolveStatKey(card: Card): string {
+    const isValidString = (s: string | undefined): boolean => Boolean(s) && s !== 'undefined';
+    if (isValidString(card.link)) {
+      return card.link as string;
+    }
+    if (isValidString(card.territory)) {
+      return card.territory as string;
+    }
+    const loc = isValidString(card.location) ? card.location : '';
+    const num = card.territoryNumber ? String(card.territoryNumber) : '';
+    if (loc && num) {
+      return `${loc}-${num}`;
+    }
+    if (num) {
+      return `Territorio ${num}`;
+    }
+    return 'Territorio Desconocido';
+  }
+
+  private async recalculateGlobalStats(campaignId: string): Promise<void> {
+    const campaignRef = doc(this.firestore, 'campaigns', campaignId);
+    const snap = await getDoc(campaignRef);
+    const snapStats = (snap.data()?.['stats'] as Record<string, CampaignStats>) || {};
+
+    const territorios = Object.keys(snapStats)
+      .filter((k) => k !== 'global')
+      .map((k) => snapStats[k]);
+
+    let globalDone = 0;
+    let globalTotal = 0;
+    let completedTerritories = 0;
+
+    territorios.forEach((t) => {
+      globalDone += t.done || 0;
+      globalTotal += t.total || 0;
+      if (t.percent === 100) completedTerritories++;
+    });
+
+    const globalPercent = globalTotal > 0 ? Math.round((globalDone / globalTotal) * 100) : 0;
+    const today = new Date().toISOString().split('T')[0];
+    const progressEntry = { date: today, percent: globalPercent };
+
+    const globalStats = snapStats['global'] as CampaignStats | undefined;
+    const existingHistory = globalStats?.progressHistory || [];
+    const lastEntry = existingHistory[existingHistory.length - 1];
+
+    if (lastEntry?.percent !== globalPercent || lastEntry?.date !== today) {
+      existingHistory.push(progressEntry);
+    }
+
+    await updateDoc(campaignRef, {
+      'stats.global': {
+        done: globalDone,
+        total: globalTotal,
+        percent: globalPercent,
+        completedTerritories,
+        totalTerritories: territorios.length,
+        avgPerTerritory:
+          territorios.length > 0 ? Math.round(globalPercent / territorios.length) : 0,
+        progressHistory: existingHistory,
+        lastUpdate: Timestamp.now(),
+      },
+    });
+  }
+
   async updateCampaignStats(campaignId: string, card: Card): Promise<void> {
     if (!card.applesData) return;
     const total = card.applesData.length;
@@ -245,24 +309,7 @@ export class CampaignService {
     });
 
     const campaignRef = doc(this.firestore, 'campaigns', campaignId);
-
-    // Usar la colección completa (link) como clave si está disponible, sino fallback robusto
-    // IMPORTANTE: Evitar usar el string "undefined" que a veces viene en card.territory
-    const isValidString = (s: string | undefined): boolean => !!s && s !== 'undefined';
-
-    let statKey = isValidString(card.link)
-      ? card.link
-      : isValidString(card.territory)
-        ? card.territory
-        : undefined;
-
-    if (!statKey) {
-      const loc = isValidString(card.location) ? card.location : '';
-      const num = card.territoryNumber ? String(card.territoryNumber) : '';
-
-      statKey = loc && num ? `${loc}-${num}` : num ? `Territorio ${num}` : 'Territorio Desconocido';
-    }
-
+    const statKey = this.resolveStatKey(card);
     console.log('[CampaignService] Using statKey:', statKey);
 
     // ✅ Actualizar solo los campos, no reemplazar el objeto entero
@@ -285,53 +332,7 @@ export class CampaignService {
       });
     }
 
-    // Recalcular global
-    const snap = await getDoc(campaignRef);
-    const snapStats = (snap.data()?.['stats'] as Record<string, CampaignStats>) || {};
-
-    // Filtrar claves que parecen territorios (excluir 'global')
-    const territorios = Object.keys(snapStats)
-      .filter((k) => k !== 'global')
-      .map((k) => snapStats[k]);
-
-    let globalDone = 0;
-    let globalTotal = 0;
-    let completedTerritories = 0;
-
-    territorios.forEach((t) => {
-      globalDone += t.done || 0;
-      globalTotal += t.total || 0;
-      if (t.percent === 100) completedTerritories++;
-    });
-
-    const globalPercent = globalTotal > 0 ? Math.round((globalDone / globalTotal) * 100) : 0;
-
-    // Histórico de progreso
-    const today = new Date().toISOString().split('T')[0];
-    const progressEntry = { date: today, percent: globalPercent };
-
-    const globalStats = snapStats['global'] as CampaignStats | undefined;
-    const existingHistory = globalStats?.progressHistory || [];
-    const lastEntry = existingHistory[existingHistory.length - 1];
-
-    if (lastEntry?.percent !== globalPercent || lastEntry?.date !== today) {
-      existingHistory.push(progressEntry);
-    }
-
-    // Guardar global
-    await updateDoc(campaignRef, {
-      'stats.global': {
-        done: globalDone,
-        total: globalTotal,
-        percent: globalPercent,
-        completedTerritories,
-        totalTerritories: territorios.length,
-        avgPerTerritory:
-          territorios.length > 0 ? Math.round(globalPercent / territorios.length) : 0,
-        progressHistory: existingHistory,
-        lastUpdate: Timestamp.now(),
-      },
-    });
+    await this.recalculateGlobalStats(campaignId);
   }
 
   async getCampaignStats(campaignId: string): Promise<Record<string, CampaignStats>> {
@@ -372,35 +373,8 @@ export class CampaignService {
     };
   }
 
-  async endCampaign(
-    campaignId: string,
-    finalStats: Record<string, CampaignStats>,
-    leftoverInvitations?: string,
-    departuresInfo?: DeparturesInfo,
-    missingInvitations?: number | null,
-    finalComments?: string,
-    manualEndDate?: Date | Timestamp,
-    onProgress?: (current: number, total: number) => void,
-  ): Promise<void> {
-    const campaignDocRef = doc(this.firestore, 'campaigns', campaignId);
-
-    const updateData: Record<string, unknown> = {
-      active: false,
-      dateEnd: manualEndDate || Timestamp.now(),
-      stats: finalStats,
-      ...(leftoverInvitations && { leftoverInvitations }),
-      ...(missingInvitations !== undefined &&
-        missingInvitations !== null && { missingInvitations }),
-      ...(departuresInfo && { departuresInfo }),
-      ...(finalComments && { finalComments }),
-    };
-
-    await updateDoc(campaignDocRef, updateData);
-
+  private resolveCollectionsToReset(): string[] {
     const allTerritories = this.getAllTerritoriesFromAllLocalities();
-
-    // Fallback robusto: si sessionStorage no tiene datos (ej: se recargó la pestaña),
-    // construir la lista de colecciones directamente desde environment
     let collectionsToReset: string[] = [];
 
     if (allTerritories.length > 0) {
@@ -408,7 +382,6 @@ export class CampaignService {
     }
 
     if (collectionsToReset.length === 0) {
-      // Intentar leer también de localStorage como fallback
       const storedInLocal = localStorage.getItem('numberTerritory');
       if (storedInLocal) {
         try {
@@ -432,13 +405,42 @@ export class CampaignService {
       }
     }
 
-    // Último fallback: usar prefix legacy + números del 1 al TERRITORY_COUNT
     if (collectionsToReset.length === 0) {
       console.warn('[CampaignService] Sin territorios en storage, usando fallback numérico');
       for (let n = 1; n <= TERRITORY_COUNT; n++) {
         collectionsToReset.push(`${environment.territoryPrefix}-${n}`);
       }
     }
+
+    return collectionsToReset;
+  }
+
+  async endCampaign(
+    campaignId: string,
+    finalStats: Record<string, CampaignStats>,
+    leftoverInvitations?: string,
+    departuresInfo?: DeparturesInfo,
+    missingInvitations?: number | null,
+    finalComments?: string,
+    manualEndDate?: Date | Timestamp,
+    onProgress?: (current: number, total: number) => void,
+  ): Promise<void> {
+    const campaignDocRef = doc(this.firestore, 'campaigns', campaignId);
+
+    const updateData: Record<string, unknown> = {
+      active: false,
+      dateEnd: manualEndDate || Timestamp.now(),
+      stats: finalStats,
+      ...(leftoverInvitations && { leftoverInvitations }),
+      ...(missingInvitations !== undefined &&
+        missingInvitations !== null && { missingInvitations }),
+      ...(departuresInfo && { departuresInfo }),
+      ...(finalComments && { finalComments }),
+    };
+
+    await updateDoc(campaignDocRef, removeUndefined(updateData));
+
+    const collectionsToReset = this.resolveCollectionsToReset();
 
     console.log(
       '[CampaignService] Territorios a resetear:',
@@ -604,10 +606,6 @@ export class CampaignService {
     const batch = writeBatch(this.firestore);
     let count = 0;
 
-    // ✅ Optimización: Fetch en paralelo del cleanup usando queries de prefijo exacto (documentId)
-    // Esto evita descargar TODA la colección por cada territorio.
-    const prefix = `Campaña-${campaignId}`;
-
     await Promise.all(
       collectionsToCheck.map(async (collectionName) => {
         if (!collectionName?.trim()) return;
@@ -615,42 +613,24 @@ export class CampaignService {
 
         const snapshot = await getDocs(colRef);
 
-        const deletes = snapshot.docs
-          .filter((d) => d.id.startsWith(`Campaña-${campaignId}`)) // 👈 match exacto
+        snapshot.docs
+          .filter((d) => d.id.startsWith(`Campaña-${campaignId}`))
           .filter((d) => {
             const data = d.data();
             const apples = (data['applesData'] as CardApplesData[]) || [];
             const hasActivity = apples.some((a) => a.checked === true);
-            // Omitir el borrado si la tarjeta tiene actividad (fue completada)
+            // Omitir el borrado si la tarjeta tiene actividad (fue completada o trabajada)
             return !hasActivity;
           })
-          .map((d) => deleteDoc(doc(this.firestore, collectionName, d.id)));
-
-        if (deletes.length > 0) {
-          await Promise.all(deletes);
-          // console.log(`🗑️ Eliminados ${deletes.length} docs de ${collectionName}`);
-        }
-        // Query eficiente por ID del documento
-        const q = query(
-          colRef,
-          where(documentId(), '>=', prefix),
-          where(documentId(), '<', prefix + '\uf8ff'),
-        );
-
-        try {
-          const prefixSnapshot = await getDocs(q);
-          prefixSnapshot.docs.forEach((d) => {
+          .forEach((d) => {
             batch.delete(doc(this.firestore, collectionName, d.id));
             count++;
           });
-        } catch (err) {
-          console.error('[CampaignService] Cleanup error in', collectionName, err);
-        }
       }),
     );
 
     if (count > 0) {
-      console.log(`[CampaignService] Limpiando ${count} docs temporales...`);
+      console.log(`[CampaignService] Limpiando ${count} docs temporales sin actividad...`);
       await batch.commit();
     }
   }

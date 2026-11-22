@@ -9,13 +9,13 @@ import { FirestoreProviderService } from './firestore-provider.service';
   providedIn: 'root',
 })
 export class AuthService {
-  private router = inject(Router);
-  private firestoreProvider = inject(FirestoreProviderService);
+  private readonly router = inject(Router);
+  private readonly firestoreProvider = inject(FirestoreProviderService);
 
   // Private signals for state
-  private _isAdmin = signal<boolean>(false);
-  private _isDriver = signal<boolean>(false);
-  private _driverName = signal<string>('');
+  private readonly _isAdmin = signal<boolean>(false);
+  private readonly _isDriver = signal<boolean>(false);
+  private readonly _driverName = signal<string>('');
 
   // Public computed signals
   isAdmin = computed(() => this._isAdmin());
@@ -88,5 +88,24 @@ export class AuthService {
         }
       }),
     );
+  }
+
+  getDrivers(): Observable<User[]> {
+    const firestore = this.firestoreProvider.getFirestore();
+    const userRef = collection(firestore, 'users');
+    const q = query(userRef, where('rol', '==', 'conductor'));
+
+    return collectionData(q) as Observable<User[]>;
+  }
+
+  loginAsDriver(loggedUser: User): void {
+    localStorage.setItem(
+      'tokenConductor',
+      'ei9qjwifojaiosdjfalksdfconductorlksjdfkljasldkfafklaksflk',
+    );
+    localStorage.setItem(loggedUser.user, JSON.stringify(loggedUser));
+    localStorage.setItem('nombreConductor', loggedUser.displayName || loggedUser.user);
+
+    this.checkAuthStatus();
   }
 }

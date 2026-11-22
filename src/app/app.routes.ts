@@ -19,7 +19,7 @@ export const routes: Routes = [
   {
     path: 'salidas',
     loadChildren: () => import('./modules/departures/departures.routes').then((m) => m.ROUTES),
-    data: { breadcrumb: 'Salidas' },
+    data: { breadcrumb: 'Salidas', preload: true },
   },
   {
     path: 'registro-territorios',

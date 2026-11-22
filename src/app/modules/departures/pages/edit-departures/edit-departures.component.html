@@ -1,164 +1,262 @@
-<div class="min-h-screen bg-slate-900 text-slate-200 pt-6 px-2 sm:px-4">
-  <section class="max-w-7xl mx-auto">
-    <div class="bg-slate-900 rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden">
-      <div class="p-4 sm:p-6">
-        <div class="flex flex-col lg:flex-row gap-6 justify-between lg:items-center">
-          <div class="flex flex-col">
-            <div class="text-xs font-extrabold text-blue-400 uppercase tracking-widest mb-2">Edición de Salidas</div>
-            <div class="text-2xl sm:text-3xl font-extrabold text-slate-50">{{ selectedWeekRange || 'Cargando...' }}</div>
-            <div class="flex flex-wrap gap-2 mt-3">
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold" 
-                    [ngClass]="isCurrentWeek() ? 'bg-green-500/20 text-green-300' : 'bg-slate-700/50 text-slate-300'">
-                <i class="fas" [class.fa-star]="isCurrentWeek()" [class.fa-calendar]="!isCurrentWeek()"></i>
-                {{ isCurrentWeek() ? 'Actual' : 'Otra semana' }}
+<div class="min-h-screen bg-slate-900 text-slate-200 [color-scheme:dark] pt-6 px-2 sm:px-4">
+  <main class="max-w-6xl mx-auto flex flex-col gap-6 pb-8">
+    <header class="bg-slate-900 rounded-3xl border border-slate-700/80 shadow-2xl p-4 sm:p-6">
+      <div class="flex flex-col lg:flex-row gap-5 justify-between lg:items-center">
+        <div class="min-w-0">
+          <p class="text-xs font-extrabold text-blue-400 uppercase tracking-widest mb-2">Edición de salidas</p>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-50">
+            {{ selectedWeekRange() || 'Cargando…' }}
+          </h1>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <span
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold"
+              [ngClass]="isCurrentWeek() ? 'bg-green-500/20 text-green-300' : 'bg-slate-700/50 text-slate-300'"
+            >
+              <i class="fas" [class.fa-star]="isCurrentWeek()" [class.fa-calendar]="!isCurrentWeek()" aria-hidden="true"></i>
+              {{ isCurrentWeek() ? 'Semana actual' : 'Otra semana' }}
+            </span>
+            @if (hasUnsavedChanges()) {
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold bg-amber-500/20 text-amber-300">
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                Cambios sin guardar
               </span>
-              @if (isChildFormDirty() || dateDeparture.dirty) {
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold bg-amber-500/20 text-amber-300">
-                  <i class="fas fa-exclamation-triangle"></i>
-                  Cambios sin guardar
-                </span>
-              } @else if (isSaved) {
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold bg-green-500/20 text-green-300">
-                  <i class="fas fa-check"></i>
-                  Guardado
-                </span>
-              }
-            </div>
-          </div>
-
-          <div class="flex flex-col sm:flex-row gap-6 w-full lg:w-auto">
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-blue-400 uppercase tracking-widest">Cambiar semana</label>
-              <div class="flex items-center gap-2">
-                <button class="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer" (click)="prevWeek()" title="Semana anterior">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-                <input
-                  type="date"
-                  class="block w-full text-center rounded-xl bg-slate-800 border border-slate-700 text-slate-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-2"
-                  [formControl]="dateDeparture"
-                />
-                <button class="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer" (click)="nextWeek()" title="Semana siguiente">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-blue-400 uppercase tracking-widest">Acciones rápidas</label>
-              <div>
-                <select
-                  class="block w-full rounded-xl bg-slate-800 border border-slate-700 text-slate-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3"
-                  [(ngModel)]="selectedHistoryWeek"
-                  (change)="onWeekSelect()"
-                >
-                  <option value="" disabled selected>Historial</option>
-                  @for (week of weeklyHistory; track week.id) {
-                    <option [value]="week.id">
-                      {{ getFormattedHistoryDate(week.weekId) }}
-                    </option>
-                  }
-                </select>
-              </div>
-              <div class="flex flex-wrap items-center gap-2 mt-1">
-                <button class="inline-flex items-center px-3 py-1.5 border border-slate-600 rounded-xl text-sm font-medium text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer" type="button" (click)="createStandardWeek(false)">
-                  <i class="fas fa-calendar-plus mr-1.5"></i>Plantilla
-                </button>
-                <button class="inline-flex items-center px-3 py-1.5 border border-slate-600 rounded-xl text-sm font-medium text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer" type="button" (click)="createStandardWeek(true)">
-                  <i class="fas fa-copy mr-1.5"></i>Duplicar
-                </button>
-                <button class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" type="button" (click)="triggerSave()" [disabled]="!dateDeparture.value">
-                  <i class="fas fa-save mr-1.5"></i>Guardar Salidas
-                </button>
-              </div>
-            </div>
+            } @else if (justSaved()) {
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold bg-green-500/20 text-green-300">
+                <i class="fas fa-check" aria-hidden="true"></i>
+                Guardado
+              </span>
+            }
           </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  @if (dataLoaded && isAdmin) {
-    <section class="max-w-7xl mx-auto mt-6">
-      <div class="bg-slate-900 rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden">
-        <div class="p-4 sm:p-6">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-            <div>
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/60 text-cyan-300 text-xs font-bold uppercase tracking-widest mb-2">Tarjetas</div>
-              <h2 class="text-xl font-extrabold text-slate-50 m-0">Pendientes de esta semana</h2>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-bold">
-                <i class="fas fa-clock"></i>
-                {{ getPendingCardDepartures().length }} pendientes
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/20 text-green-300 text-sm font-bold">
-                <i class="fas fa-check"></i>
-                {{ getReceivedCardCount() }} revisadas
-              </span>
-            </div>
-          </div>
-
-          <div class="mt-5 mb-5">
-            <button class="inline-flex items-center px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors cursor-pointer" (click)="isCardsCollapsed = !isCardsCollapsed">
-              <i class="fas mr-2" [class.fa-chevron-up]="!isCardsCollapsed" [class.fa-chevron-down]="isCardsCollapsed"></i>
-              {{ isCardsCollapsed ? 'Mostrar tarjetas' : 'Ocultar tarjetas' }}
+        <div class="flex flex-col gap-3 w-full lg:w-auto">
+          <nav class="flex items-center gap-2" aria-label="Cambiar de semana">
+            <button
+              type="button"
+              class="flex shrink-0 items-center justify-center w-11 h-11 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              aria-label="Semana anterior"
+              (click)="prevWeek()"
+            >
+              <i class="fas fa-chevron-left" aria-hidden="true"></i>
             </button>
-          </div>
 
-          @if (!isCardsCollapsed) {
-            @if (getPendingCardDepartures().length > 0) {
-              <div class="flex flex-col gap-3">
-                @for (departure of getPendingCardDepartures(); track departure.date + '_' + departure.schedule + '_' + departure.group + '_' + departure.driver) {
-                  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-slate-800 rounded-2xl border border-blue-500/20 gap-4">
-                    <div>
-                      <div class="text-base font-extrabold text-slate-50">{{ getHumanDate(departure.date) }}</div>
-                      <div class="text-sm text-slate-300 mt-0.5">{{ departure.schedule }} • {{ departure.driver || 'Sin conductor' }}</div>
-                      @if (departure.territory && departure.territory.length > 0) {
-                        <div class="text-sm font-medium text-cyan-400 mt-1.5">{{ departure.territory.join(', ') }}</div>
-                      }
-                    </div>
-                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                      <button class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-xl text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors w-full sm:w-auto cursor-pointer" type="button" (click)="markAsReceivedQuick(departure)">
-                        <i class="fas fa-check mr-1.5"></i>Recibida
-                      </button>
-                      <button class="inline-flex items-center justify-center px-4 py-2 border border-slate-600 rounded-xl text-sm font-medium text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors w-full sm:w-auto cursor-pointer" type="button" (click)="copyReminder(departure)">
-                        <i class="fas fa-clipboard mr-1.5"></i>Recordatorio
-                      </button>
-                    </div>
+            <div class="relative flex-1 lg:flex-none lg:w-80" #weekMenuRoot>
+              <button
+                #weekMenuButton
+                type="button"
+                class="flex items-center justify-between gap-2 w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-sm font-bold text-slate-100 hover:border-blue-500 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                aria-haspopup="true"
+                [attr.aria-expanded]="weekMenuOpen()"
+                aria-controls="week-menu"
+                (click)="toggleWeekMenu()"
+              >
+                <span class="truncate">
+                  <i class="fas fa-calendar-alt mr-2 text-blue-400" aria-hidden="true"></i>Elegir semana
+                </span>
+                <i class="fas fa-chevron-down text-xs transition-transform motion-reduce:transition-none" [class.rotate-180]="weekMenuOpen()" aria-hidden="true"></i>
+              </button>
+
+              @if (weekMenuOpen()) {
+                <div
+                  id="week-menu"
+                  class="absolute left-0 right-0 top-full mt-2 z-40 rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl overflow-hidden"
+                >
+                  <ul class="max-h-80 overflow-y-auto p-1">
+                    @for (option of weekOptions(); track option.weekId) {
+                      <li>
+                        <button
+                          type="button"
+                          class="flex items-center justify-between gap-3 w-full min-h-11 px-3 py-2 rounded-xl text-left hover:bg-slate-700 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                          [class.bg-slate-700]="option.isSelected"
+                          [attr.aria-current]="option.isSelected ? 'true' : null"
+                          (click)="navigateToWeek(option.weekId)"
+                        >
+                          <span class="min-w-0">
+                            <span class="block text-sm font-bold text-slate-100 truncate">{{ option.label }}</span>
+                            <span class="block text-xs text-slate-400">{{ option.relativeLabel }}</span>
+                          </span>
+                          <span class="shrink-0 px-2 py-0.5 rounded-full text-xs font-bold" [class]="option.stateClass">
+                            {{ option.stateLabel }}
+                          </span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                  <div class="border-t border-slate-700 p-3 flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-slate-300" for="week-date">Ir a una fecha</label>
+                    <input
+                      id="week-date"
+                      type="date"
+                      class="block w-full h-11 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      (change)="onPickDate($event)"
+                    />
+                    <span class="text-xs text-slate-400">Se abre la semana que contiene ese día.</span>
                   </div>
-                }
-              </div>
-            } @else {
-              <div class="flex items-center justify-center p-6 bg-slate-800/50 rounded-2xl border border-dashed border-slate-700">
-                <div class="text-center text-slate-400">
-                  <i class="fas fa-check-circle text-2xl mb-2 text-green-500/70"></i>
-                  <div class="text-sm font-medium">No quedan tarjetas pendientes.</div>
                 </div>
-              </div>
-            }
+              }
+            </div>
+
+            <button
+              type="button"
+              class="flex shrink-0 items-center justify-center w-11 h-11 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              aria-label="Semana siguiente"
+              (click)="nextWeek()"
+            >
+              <i class="fas fa-chevron-right" aria-hidden="true"></i>
+            </button>
+          </nav>
+
+          @if (!isCurrentWeek() || shouldOfferNextWeek()) {
+            <div class="flex flex-wrap gap-2">
+              @if (!isCurrentWeek()) {
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-2 min-h-11 px-4 border border-slate-600 rounded-xl text-sm font-medium text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  (click)="goToCurrentWeek()"
+                >
+                  <i class="fas fa-undo" aria-hidden="true"></i>Semana actual
+                </button>
+              }
+              @if (shouldOfferNextWeek()) {
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-2 min-h-11 px-4 border border-blue-500/60 rounded-xl text-sm font-bold text-blue-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  (click)="goToNextWeek()"
+                >
+                  <i class="fas fa-calendar-plus" aria-hidden="true"></i>Preparar semana siguiente
+                </button>
+              }
+            </div>
           }
         </div>
       </div>
-    </section>
-  }
+    </header>
 
-  @if (dataLoaded) {
-    <section class="max-w-7xl mx-auto mt-6 pb-8">
-      <div class="bg-slate-900 rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden">
-        <div class="p-4 sm:p-6">
-          <app-form-edit-departures
-            #formEditDepartures
-            [formDepartureDataInput]="formDepartureData"
-            [dateDepartureInput]="dateDeparture.value"
-            [meetingPointsInput]="meetingPoints()"
-            (saveCompleted)="onChildFormSubmit($event)"
-            [(isFormDirty)]="isChildFormDirty"
-            [saveTrigger]="saveTrigger()"
-            (formValueChanged)="onFormChanged()"
-          ></app-form-edit-departures>
-        </div>
+    @if (loadState() === 'loading') {
+      <div role="status" class="flex flex-col gap-4">
+        <span class="sr-only">Cargando la semana…</span>
+        @for (placeholder of [1, 2, 3]; track placeholder) {
+          <div class="h-40 rounded-2xl bg-slate-800/60 border border-slate-800 animate-pulse motion-reduce:animate-none" aria-hidden="true"></div>
+        }
       </div>
-    </section>
+    }
+
+    @if (loadState() === 'error') {
+      <section class="rounded-3xl border border-red-500/40 bg-red-500/10 p-6 text-center" role="alert">
+        <h2 class="text-lg font-extrabold text-red-200">No se pudo cargar la semana</h2>
+        <p class="text-sm text-red-100/80 mt-1">
+          No se muestra una semana vacía a propósito, para que no la pises sin querer.
+        </p>
+        <button
+          type="button"
+          class="mt-4 inline-flex items-center gap-2 min-h-11 px-5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+          (click)="retryLoad()"
+        >
+          <i class="fas fa-redo" aria-hidden="true"></i>Reintentar
+        </button>
+      </section>
+    }
+
+    @if (isEmptyWeekPrompt()) {
+      <section
+        class="rounded-3xl border border-dashed border-slate-600 bg-slate-800/30 p-6 sm:p-10 text-center flex flex-col items-center gap-4"
+        aria-labelledby="empty-week-title"
+      >
+        <i class="fas fa-calendar-plus text-3xl text-blue-400" aria-hidden="true"></i>
+        <div>
+          <h2 id="empty-week-title" class="text-xl font-extrabold text-slate-50">
+            Esta semana todavía no tiene salidas
+          </h2>
+          <p class="text-sm text-slate-300 mt-2 max-w-xl">
+            Copiá los días, horarios y lugares de una semana anterior. Los conductores y los territorios
+            quedan vacíos para que los asignes, y nada se publica hasta que guardes.
+          </p>
+        </div>
+
+        @if (copySourceWeekId()) {
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 min-h-12 px-6 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+            (click)="copyFromPreviousWeek()"
+          >
+            <i class="fas fa-copy" aria-hidden="true"></i>
+            Copiar de la semana del {{ copySourceLabel() }}
+          </button>
+
+          @if (copySourceOptions().length > 1) {
+            <div class="flex flex-col gap-1.5 w-full max-w-sm text-left">
+              <label class="text-sm font-bold text-slate-300" for="copy-source">Copiar desde otra semana</label>
+              <select
+                id="copy-source"
+                class="block w-full h-11 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                (change)="chooseCopySource($event)"
+              >
+                @for (option of copySourceOptions(); track option.weekId) {
+                  <option [value]="option.weekId" [selected]="option.weekId === copySourceWeekId()">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+            </div>
+          }
+        } @else {
+          <p class="text-sm text-slate-400">No hay semanas anteriores con salidas para copiar.</p>
+        }
+
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 min-h-11 px-5 rounded-xl text-sm font-medium text-slate-300 border border-slate-600 hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          (click)="startBlank()"
+        >
+          Empezar en blanco
+        </button>
+      </section>
+    }
+
+    <div [class.hidden]="!showForm()">
+      <app-form-edit-departures
+        [formDepartureDataInput]="formDepartureData()"
+        [dateDepartureInput]="weekId()"
+        [meetingPointsInput]="meetingPoints()"
+        [draftOnLoad]="draftOnLoad()"
+        [(isFormDirty)]="isChildFormDirty"
+      ></app-form-edit-departures>
+    </div>
+  </main>
+
+  @if (showForm()) {
+    <div class="sticky bottom-0 z-30 -mx-2 sm:-mx-4 px-2 sm:px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-900/95 backdrop-blur border-t border-slate-700">
+      <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+        <p class="flex items-center gap-2 text-sm font-bold" role="status">
+          @switch (saveStatus()) {
+            @case ('saving') {
+              <i class="fas fa-spinner fa-spin text-blue-300" aria-hidden="true"></i>
+              <span class="text-slate-200">Guardando…</span>
+            }
+            @case ('dirty') {
+              <i class="fas fa-exclamation-triangle text-amber-300" aria-hidden="true"></i>
+              <span class="text-amber-200">Cambios sin guardar</span>
+            }
+            @case ('saved') {
+              <i class="fas fa-check-circle text-green-400" aria-hidden="true"></i>
+              <span class="text-green-300">Guardado</span>
+            }
+            @default {
+              <i class="fas fa-info-circle text-slate-400" aria-hidden="true"></i>
+              <span class="text-slate-400">Sin cambios</span>
+            }
+          }
+        </p>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-xl text-sm font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-not-allowed"
+          [ngClass]="canSave() ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer' : 'bg-slate-700 text-slate-400 border border-slate-600'"
+          [disabled]="!canSave()"
+          (click)="saveWeek()"
+        >
+          <i class="fas fa-save" aria-hidden="true"></i>Guardar semana
+        </button>
+      </div>
+    </div>
   }
 </div>

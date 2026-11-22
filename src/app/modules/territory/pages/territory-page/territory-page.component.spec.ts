@@ -6,7 +6,7 @@ import { CardService } from '@core/services/card.service';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { of } from 'rxjs';
 import { Component, Input } from '@angular/core';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { CardSComponent } from '../../../../shared/components/card-s/card-s.component';
 
@@ -44,6 +44,7 @@ describe('TerritoryPageComponent', () => {
       getMaps: vi
         .fn()
         .mockReturnValue(of([{ maps: [{ mapSRC: 'src', mapName: 'name', link: 'link' }] }])),
+      getNumberTerritory: vi.fn().mockReturnValue(of([])),
     };
 
     mockSpinnerService = {
@@ -54,8 +55,9 @@ describe('TerritoryPageComponent', () => {
     mockCardService = {};
 
     await TestBed.configureTestingModule({
-      imports: [TerritoryPageComponent, RouterTestingModule],
+      imports: [TerritoryPageComponent],
       providers: [
+        provideRouter([]),
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: SpinnerService, useValue: mockSpinnerService },
         { provide: CardService, useValue: mockCardService },
@@ -90,7 +92,7 @@ describe('TerritoryPageComponent', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
     expect(component.isAdmin()).toBe(true);
-    expect(component.isDriver()).toBe(false);
+    expect(component.isDriver()).toBe(true); // admins can also act as drivers
   });
 
   it('should set isDriver if tokenConductor is in localStorage', () => {
@@ -109,7 +111,7 @@ describe('TerritoryPageComponent', () => {
 
     expect(mockSpinnerService.cargarSpinner).toHaveBeenCalled();
     expect(mockTerritoryDataService.getMaps).toHaveBeenCalled();
-    expect(component.territorioMaps.length).toBe(1);
+    expect(component.territorioMaps()).toHaveLength(1);
     expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
     expect(sessionStorage.getItem('territorioMaps')).toBeTruthy();
   });
@@ -125,16 +127,15 @@ describe('TerritoryPageComponent', () => {
 
     expect(mockSpinnerService.cargarSpinner).not.toHaveBeenCalled();
     expect(mockTerritoryDataService.getMaps).not.toHaveBeenCalled();
-    expect(component.territorioMaps[0].mapSRC).toBe('session');
+    expect(component.territorioMaps()[0].mapSRC).toBe('session');
   });
 
   it('should group territories by locality on init', () => {
-    sessionStorage.setItem(
-      'numberTerritory',
-      JSON.stringify({
-        wheelwright: [{ collection: 'coll1', territorio: 1 }],
-        rural: [{ collection: 'coll2', territorio: 2 }],
-      }),
+    mockTerritoryDataService.getNumberTerritory.mockReturnValue(
+      of([
+        { wheelwright: [{ collection: 'coll1', territorio: 1 }] },
+        { rural: [{ collection: 'coll2', territorio: 2 }] },
+      ]),
     );
 
     fixture = TestBed.createComponent(TerritoryPageComponent);
@@ -158,18 +159,13 @@ describe('TerritoryPageComponent', () => {
 
     fixture.detectChanges();
 
-    expect(component.localitiesWithTerritories.length).toBe(2);
-    expect(component.localitiesWithTerritories[0].key).toBe('wheelwright');
-    expect(component.localitiesWithTerritories[0].territories.length).toBe(1);
+    expect(component.localitiesWithTerritories()).toHaveLength(2);
+    expect(component.localitiesWithTerritories()[0].key).toBe('wheelwright');
+    expect(component.localitiesWithTerritories()[0].territories).toHaveLength(1);
   });
 
   it('should filter out localities without territories', () => {
-    sessionStorage.setItem(
-      'numberTerritory',
-      JSON.stringify({
-        wheelwright: [],
-      }),
-    );
+    mockTerritoryDataService.getNumberTerritory.mockReturnValue(of([{ wheelwright: [] }]));
 
     fixture = TestBed.createComponent(TerritoryPageComponent);
     component = fixture.componentInstance;
@@ -185,6 +181,6 @@ describe('TerritoryPageComponent', () => {
 
     fixture.detectChanges();
 
-    expect(component.localitiesWithTerritories.length).toBe(0);
+    expect(component.localitiesWithTerritories()).toHaveLength(0);
   });
 });

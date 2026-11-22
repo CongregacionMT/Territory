@@ -50,7 +50,8 @@ node scripts/setup-congregation.js
 
 1. Actualiza los iframes de mapas en `src/app/core/config/maps.*.ts`
 2. Configura las imágenes en Firebase Console (MapsTerritory y Statistics)
-3. Prueba la aplicación: `ng serve --configuration=[congregacionKey]`
+3. **Habilitar Dominio en Google Maps API (IMPORTANTE)**: En la Consola de Google Cloud (API y Servicios > Credenciales), agrega el nuevo dominio a las restricciones de la API Key para que el mapa interactivo se muestre correctamente sin errores de "Referer".
+4. Prueba la aplicación: `ng serve --configuration=[congregacionKey]`
 
 ---
 

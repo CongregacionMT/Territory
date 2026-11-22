@@ -15,3 +15,6 @@
 ## Styles & HTML
 - Use SCSS and maintain modular styles.
 - Ensure semantic HTML and accessibility (a11y) standards.
+
+## Git & Commits
+- **NEVER** use `--no-verify` when committing. If there are pre-commit hooks failing (e.g., SonarJS cognitive complexity, unused variables, ESLint issues), you must FIX the errors until the code is 100% compliant before committing. Do not bypass the hooks.

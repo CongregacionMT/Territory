@@ -4,6 +4,9 @@ import { Departure } from '@core/models/Departures';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { environment } from '@environments/environment';
 
+/** The entrance animation is a first-visit effect: it must not replay on every return. */
+let entranceAnimationPlayed = false;
+
 @Component({
   selector: 'app-departures-cards',
   templateUrl: './departures-cards.component.html',
@@ -17,11 +20,13 @@ export class DeparturesCardsComponent implements OnInit {
   readonly departures = input<Departure[]>([] as Departure[]);
   readonly weekId = input<string>('');
   currentPath: number = 0;
+  readonly animateEntrance = !entranceAnimationPlayed;
   private hasScrolled: boolean = false;
 
   constructor() {
     effect(() => {
       const deps = this.departures();
+      if (deps.length > 0) entranceAnimationPlayed = true;
       if (deps.length > 0 && !this.hasScrolled) {
         // Scroll to today's departure after a short delay to ensure rendering
         setTimeout(() => {
@@ -37,6 +42,12 @@ export class DeparturesCardsComponent implements OnInit {
     const lastPath = this.route.snapshot.url.at(-1)?.path;
     const parsedPath = Number(lastPath);
     this.currentPath = !Number.isNaN(parsedPath) ? parsedPath : 0;
+  }
+
+  trackDeparture(index: number, departure: Departure): string {
+    return (
+      departure.departureId ?? `${departure.date}|${departure.schedule}|${departure.group}|${index}`
+    );
   }
 
   private scrollToToday(): boolean {

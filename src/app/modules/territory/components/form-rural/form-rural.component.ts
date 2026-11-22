@@ -20,9 +20,9 @@ import { TerritoryDataService } from '@core/services/territory-data.service';
   imports: [ReactiveFormsModule],
 })
 export class FormRuralComponent implements OnInit {
-  private spinner = inject(SpinnerService);
-  private territorieDataService = inject(TerritoryDataService);
-  private fb = inject(FormBuilder);
+  private readonly spinner = inject(SpinnerService);
+  private readonly territorieDataService = inject(TerritoryDataService);
+  private readonly fb = inject(FormBuilder);
 
   formRoad: FormGroup;
   readonly editionForm = input<DataRural>();
@@ -55,8 +55,7 @@ export class FormRuralComponent implements OnInit {
 
   postForm(roadId?: string): void {
     this.spinner.cargarSpinner();
-    if (roadId === null) roadId = undefined;
-    if (roadId === undefined) {
+    if (!roadId) {
       void this.territorieDataService.postNewRoad(this.formRoad.value as DataRural);
     } else {
       void this.territorieDataService.putNewRoad(this.formRoad.value as DataRural, roadId);

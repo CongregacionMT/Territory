@@ -14,7 +14,9 @@ import {
   where,
   setDoc,
   runTransaction,
+  limit,
 } from '@angular/fire/firestore';
+import { getDocsFromServer } from 'firebase/firestore';
 import { Observable, tap, of } from 'rxjs';
 import { DataRural } from '@core/models/DataRural';
 import { CampaignService } from './campaign.service';
@@ -24,9 +26,16 @@ import { Group } from '@core/models/Group';
 import { StatisticsButton } from '@core/models/StatisticsButton';
 import { User } from '@core/models/User';
 import { TerritoriesNumberData } from '@core/models/TerritoryNumberData';
-import { DateDeparture, Departure, DepartureData, WeeklyDeparture } from '@core/models/Departures';
+import {
+  DateDeparture,
+  Departure,
+  DepartureCardStatus,
+  DepartureData,
+  WeeklyDeparture,
+} from '@core/models/Departures';
 import { FirestoreProviderService } from './firestore-provider.service';
 import { MeetingPointService } from './meeting-point.service';
+import { isCompletionEnd } from '@shared/utils/territory-completion.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -88,6 +97,37 @@ export class TerritoryDataService {
     return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
   }
 
+  async getCardTerritorieFromServer(collectionParam: string): Promise<Card[]> {
+    const cardRef = collection(this.firestore, collectionParam);
+    const snapshot = await getDocsFromServer(cardRef);
+    return this.mapCardDocuments(snapshot.docs);
+  }
+
+  /**
+   * Reads only the newest cards from the server. The full collection is read
+   * only when none of them is a completion, so a completion hidden further back
+   * (or in a card without `creation`) is still found.
+   */
+  async getRecentCardsFromServer(
+    collectionParam: string,
+    recentLimit: number = 10,
+  ): Promise<Card[]> {
+    const cardRef = collection(this.firestore, collectionParam);
+    const recentQuery = query(cardRef, orderBy('creation', 'desc'), limit(recentLimit));
+    const snapshot = await getDocsFromServer(recentQuery);
+    const recentCards = this.mapCardDocuments(snapshot.docs);
+
+    const hasCompletion = recentCards.some((card) => isCompletionEnd(card.end));
+    return hasCompletion ? recentCards : this.getCardTerritorieFromServer(collectionParam);
+  }
+
+  private mapCardDocuments(documents: readonly { id: string; data: () => unknown }[]): Card[] {
+    return documents.map((cardDocument) => ({
+      ...(cardDocument.data() as object),
+      id: cardDocument.id,
+    })) as Card[];
+  }
+
   async sendRevisionCardTerritorie(card: Card): Promise<void> {
     const cardRef = collection(this.firestore, 'revision');
     await addDoc(cardRef, { ...card });
@@ -101,6 +141,69 @@ export class TerritoryDataService {
   }
 
   private isCreating = false;
+  private async saveCompletedCardFlow(
+    card: Card,
+    collectionName: string,
+    campaignIdValid: string | null,
+    territorioKey: string,
+  ): Promise<void> {
+    const completedCard = {
+      ...card,
+      creation: Timestamp.now(),
+      completed: (card.completed ?? 0) + 1,
+      isInitial: false,
+      // The card is usually filled from the blank reset card and inherits its flag
+      isReset: false,
+    };
+
+    const completedId = campaignIdValid
+      ? `Campaña-${campaignIdValid}-${Date.now()}-completed`
+      : null;
+    await this.saveDocument(collectionName, completedId, completedCard);
+    if (completedId && campaignIdValid) {
+      await this.incrementSalidasTx(campaignIdValid, territorioKey);
+    }
+
+    const resetCard = {
+      ...card,
+      isReset: true,
+      driver: '',
+      start: '',
+      end: '',
+      comments: '',
+      creation: Timestamp.now(),
+      completed: (card.completed ?? 0) + 1,
+      isInitial: false,
+      applesData: (card.applesData ?? []).map((a) => ({
+        ...a,
+        checked: false,
+      })),
+    };
+
+    const resetId = campaignIdValid ? `Campaña-${campaignIdValid}-${Date.now()}-reset` : null;
+    await this.saveDocument(collectionName, resetId, resetCard);
+  }
+
+  private async savePartialCardFlow(
+    card: Card,
+    collectionName: string,
+    campaignIdValid: string | null,
+    territorioKey: string,
+  ): Promise<void> {
+    const partialCard = {
+      ...card,
+      creation: Timestamp.now(),
+      isInitial: false,
+      isReset: false,
+    };
+
+    const cardId = campaignIdValid ? `Campaña-${campaignIdValid}-${Date.now()}` : null;
+    await this.saveDocument(collectionName, cardId, partialCard);
+    if (cardId && campaignIdValid) {
+      await this.incrementSalidasTx(campaignIdValid, territorioKey);
+    }
+  }
+
   async postCardTerritorie(card: Card, collectionName: string): Promise<void> {
     if (this.isCreating) {
       return;
@@ -124,56 +227,11 @@ export class TerritoryDataService {
       const territorioKey = this.getTerritorioKeyStrict(card, collectionName);
       const campaignIdValid =
         activeCampaign?.id && activeCampaign.id !== 'undefined' ? activeCampaign.id : null;
-      const isInCampaignMode = campaignIdValid != null;
 
       if (countFalseApples === 0) {
-        const completedCard = {
-          ...card,
-          creation: Timestamp.now(),
-          completed: (card.completed ?? 0) + 1,
-          isInitial: false,
-        };
-
-        const completedId =
-          isInCampaignMode && activeCampaign
-            ? `Campaña-${campaignIdValid}-${Date.now()}-completed`
-            : null;
-        await this.saveDocument(collectionName, completedId, completedCard);
-        if (completedId && campaignIdValid) {
-          await this.incrementSalidasTx(campaignIdValid, territorioKey);
-        }
-
-        const resetCard = {
-          ...card,
-          isReset: true,
-          driver: '',
-          start: '',
-          end: '0',
-          comments: '',
-          creation: Timestamp.now(),
-          completed: (card.completed ?? 0) + 1,
-          isInitial: false,
-          applesData: (card.applesData ?? []).map((a) => ({
-            ...a,
-            checked: false,
-          })),
-        };
-
-        const resetId = isInCampaignMode ? `Campaña-${campaignIdValid}-${Date.now()}-reset` : null;
-        await this.saveDocument(collectionName, resetId, resetCard);
+        await this.saveCompletedCardFlow(card, collectionName, campaignIdValid, territorioKey);
       } else {
-        const partialCard = {
-          ...card,
-          creation: Timestamp.now(),
-          isInitial: false,
-        };
-
-        const cardId =
-          isInCampaignMode && activeCampaign ? `Campaña-${campaignIdValid}-${Date.now()}` : null;
-        await this.saveDocument(collectionName, cardId, partialCard);
-        if (cardId && campaignIdValid) {
-          await this.incrementSalidasTx(campaignIdValid, territorioKey);
-        }
+        await this.savePartialCardFlow(card, collectionName, campaignIdValid, territorioKey);
       }
     } catch (err: unknown) {
       console.error(err);
@@ -235,10 +293,10 @@ export class TerritoryDataService {
       String(collectionName ?? ''),
     ];
     for (const s of sources) {
-      const m = /(\d+)(?=\D*$)/.exec(s);
-      if (m) {
-        const key = `Territorio ${m[1]}`;
-        return key;
+      const match = s.match(/\d+/g);
+      if (match && match.length > 0) {
+        const lastNum = match[match.length - 1];
+        return `Territorio ${lastNum}`;
       }
     }
     return 'Territorio 0';
@@ -345,9 +403,11 @@ export class TerritoryDataService {
   }
 
   // HISTORIAL DE SALIDAS
-  getWeeklyDepartures(): Observable<WeeklyDeparture[]> {
+  getWeeklyDepartures(limitValue?: number): Observable<WeeklyDeparture[]> {
     const departuresRef = collection(this.firestore, 'WeeklyDepartures');
-    const q = query(departuresRef, orderBy('weekId', 'desc'));
+    const q = limitValue
+      ? query(departuresRef, orderBy('weekId', 'desc'), limit(limitValue))
+      : query(departuresRef, orderBy('weekId', 'desc'));
     return collectionData(q, { idField: 'id' }) as Observable<WeeklyDeparture[]>;
   }
 
@@ -361,15 +421,7 @@ export class TerritoryDataService {
     // Usamos weekId como ID del documento para que sea único por semana y sea fácil de actualizar si se vuelve a guardar
     const docRef = doc(departuresRef, weeklyDeparture.weekId);
 
-    // Guardar automáticamente los puntos de encuentro
-    for (const departure of weeklyDeparture.departure || []) {
-      if (departure.point && departure.maps) {
-        // No esperamos que termine para no bloquear, o podemos usar Promise.all
-        this.meetingPointService
-          .saveMeetingPoint(departure.point, departure.maps)
-          .catch(console.error);
-      }
-    }
+    this.saveMeetingPointsOf(weeklyDeparture.departure || []);
 
     const normalizedDepartures = (weeklyDeparture.departure || []).map((departure, index) =>
       this.normalizeDepartureForCardTracking(departure, weeklyDeparture.weekId, index),
@@ -379,6 +431,75 @@ export class TerritoryDataService {
       departure: normalizedDepartures,
       createdAt: Timestamp.now(),
     });
+  }
+
+  /**
+   * Saves a week in a single transaction without reverting card reviews made elsewhere.
+   *
+   * `loadedCardStatuses` holds the status each departure had when the editor loaded the week.
+   * If the editor did not touch a departure's status but Firestore now holds a different one
+   * (a driver delivered the card meanwhile), the stored status wins.
+   * Resolves with the departures exactly as they were written.
+   */
+  async saveWeeklyDepartureKeepingCardStatus(
+    weeklyDeparture: WeeklyDeparture,
+    loadedCardStatuses: Record<string, DepartureCardStatus | undefined>,
+  ): Promise<Departure[]> {
+    const docRef = doc(this.firestore, 'WeeklyDepartures', weeklyDeparture.weekId);
+    const normalized = (weeklyDeparture.departure || []).map((departure, index) =>
+      this.normalizeDepartureForCardTracking(departure, weeklyDeparture.weekId, index),
+    );
+
+    const written = await runTransaction(this.firestore, async (tx) => {
+      const snapshot = await tx.get(docRef);
+      const storedDepartures = snapshot.exists()
+        ? ((snapshot.data() as WeeklyDeparture).departure ?? [])
+        : [];
+      const storedStatuses = new Map<string, DepartureCardStatus | undefined>(
+        storedDepartures
+          .filter((stored) => !!stored.departureId)
+          .map((stored) => [stored.departureId as string, stored.cardStatus]),
+      );
+
+      const merged = normalized.map((departure) =>
+        this.keepStoredCardStatus(departure, loadedCardStatuses, storedStatuses),
+      );
+
+      tx.set(docRef, { ...weeklyDeparture, departure: merged, createdAt: Timestamp.now() });
+      return merged;
+    });
+
+    this.saveMeetingPointsOf(written);
+    return written;
+  }
+
+  private keepStoredCardStatus(
+    departure: Departure,
+    loadedCardStatuses: Record<string, DepartureCardStatus | undefined>,
+    storedStatuses: Map<string, DepartureCardStatus | undefined>,
+  ): Departure {
+    const id = departure.departureId;
+    if (!id || departure.isEvent) return departure;
+
+    const storedStatus = storedStatuses.get(id);
+    const editorStartedWith = loadedCardStatuses[id] ?? 'pending';
+    const editorChangedIt = departure.cardStatus !== editorStartedWith;
+
+    if (storedStatus && !editorChangedIt && storedStatus !== departure.cardStatus) {
+      return { ...departure, cardStatus: storedStatus };
+    }
+    return departure;
+  }
+
+  private saveMeetingPointsOf(departures: readonly Departure[]): void {
+    for (const departure of departures) {
+      if (departure.point && departure.maps) {
+        // No bloquea el guardado de la semana: es una ayuda para autocompletar.
+        this.meetingPointService
+          .saveMeetingPoint(departure.point, departure.maps)
+          .catch(console.error);
+      }
+    }
   }
 
   async deleteWeeklyDeparture(weekId: string): Promise<void> {
@@ -460,6 +581,18 @@ export class TerritoryDataService {
     const cardRef = collection(this.firestore, collectionParam);
     const q = query(cardRef, orderBy('creation', 'asc'));
     return collectionData(q, { idField: 'id' }) as Observable<Card[]>;
+  }
+
+  async getCardTerritorieRegisterTableOnce(collectionParam: string): Promise<Card[]> {
+    const cardRef = collection(this.firestore, collectionParam);
+    const q = query(cardRef, orderBy('creation', 'asc'));
+    try {
+      const snapshot = await getDocsFromServer(q);
+      return snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }) as Card);
+    } catch (e) {
+      console.error(`Error fetching once for ${collectionParam}:`, e);
+      return [];
+    }
   }
 
   async updateCardInCollection(

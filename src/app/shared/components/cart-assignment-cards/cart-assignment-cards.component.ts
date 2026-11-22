@@ -19,15 +19,27 @@ export class CartAssignmentCardsComponent implements OnInit {
   sortCartData(): void {
     const dayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     this.cartData().sort((a, b) => {
-      const dayComparison = dayOrder.indexOf(a.date) - dayOrder.indexOf(b.date);
-      if (dayComparison !== 0) {
-        return dayComparison;
+      const isDateA = a.date?.includes('-');
+      const isDateB = b.date?.includes('-');
+
+      if (isDateA && isDateB) {
+        const dateComparison = a.date.localeCompare(b.date);
+        if (dateComparison !== 0) return dateComparison;
+      } else if (!isDateA && !isDateB) {
+        const dayComparison = dayOrder.indexOf(a.date) - dayOrder.indexOf(b.date);
+        if (dayComparison !== 0) return dayComparison;
+      } else {
+        return isDateA ? -1 : 1;
       }
-      return this.compareTimes(a.schedule, b.schedule);
+
+      return this.compareTimes(a.schedule || '', b.schedule || '');
     });
   }
 
   compareTimes(timeA: string, timeB: string): number {
+    if (!timeA && !timeB) return 0;
+    if (!timeA) return 1;
+    if (!timeB) return -1;
     const [hoursA, minutesA] = timeA.split(':').map(Number);
     const [hoursB, minutesB] = timeB.split(':').map(Number);
     if (hoursA !== hoursB) {
@@ -36,12 +48,41 @@ export class CartAssignmentCardsComponent implements OnInit {
     return minutesA - minutesB;
   }
 
-  isToday(dayName: string): boolean {
+  isToday(dateString: string): boolean {
+    if (!dateString) return false;
     const today = new Date();
-    // getDay() returns 0 for Sunday, 1 for Monday, etc.
+
+    if (dateString.includes('-')) {
+      const parts = dateString.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        return (
+          today.getFullYear() === year && today.getMonth() === month && today.getDate() === day
+        );
+      }
+    }
+
     const dayOrder = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const currentDayName = dayOrder[today.getDay()];
-    return dayName.toLowerCase() === currentDayName.toLowerCase();
+    return dateString.toLowerCase() === currentDayName.toLowerCase();
+  }
+
+  getDayOfWeek(dateString: string): string {
+    if (!dateString) return '';
+    if (!dateString.includes('-')) return dateString;
+
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const date = new Date(year, month, day);
+      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      return days[date.getDay()];
+    }
+    return dateString;
   }
 
   getTailwindColor(color: string): { bg: string; border: string; text: string } {

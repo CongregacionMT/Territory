@@ -69,7 +69,7 @@ describe('StatisticsPageComponent', () => {
   it('should refresh data', () => {
     fixture.detectChanges();
     component.refreshData();
-    expect(mockStatsService.loadLocalityData).toHaveBeenCalledWith('Wheelwright', true);
+    expect(mockStatsService.loadLocalityData).toHaveBeenCalledWith('Wheelwright');
   });
 
   it('should sort data path ascending', () => {

@@ -21,6 +21,7 @@ describe('PrintPdfModalComponent', () => {
       getNextWeekId: vi.fn().mockReturnValue('2023-W02'),
       getPrintWeekRange: vi.fn().mockReturnValue({ label: 'Range Label' }),
       getDeparturesForPrintWeek: vi.fn().mockReturnValue([]),
+      getPrintRangeDescription: vi.fn().mockReturnValue('viernes a jueves'),
       generateAllGroupsPdf: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
       downloadPdf: vi.fn(),
     };

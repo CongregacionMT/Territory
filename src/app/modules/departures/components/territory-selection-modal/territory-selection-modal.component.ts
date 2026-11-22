@@ -1,17 +1,20 @@
-import { Component, input, output, ChangeDetectionStrategy, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormGroup, FormArray, FormControl } from '@angular/forms';
+import { Component, input, output, ChangeDetectionStrategy, computed, OnInit } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { AbstractControl, FormGroup, FormArray, FormControl } from '@angular/forms';
 import { Card } from '@core/models/Card';
 import { LocalityConfig } from '@core/models/LocalityData';
+import { formatDaysAgo } from '@shared/utils/territory-age.utils';
+import { getWeekdayName } from '@shared/utils/departure-format.utils';
 
 @Component({
   selector: 'app-territory-selection-modal',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [NgClass, CdkTrapFocus],
   templateUrl: './territory-selection-modal.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:keydown.escape)': 'closeModal()' },
 })
-export class TerritorySelectionModalComponent {
+export class TerritorySelectionModalComponent implements OnInit {
   // Inputs
   activeModalDays = input.required<FormGroup>();
   dayIndex = input.required<number>();
@@ -19,10 +22,15 @@ export class TerritorySelectionModalComponent {
   formDeparture = input.required<FormGroup>();
 
   territoryLastCompletedDays = input.required<Record<string, Record<number, number>>>();
+  territoryCompletionDataStatus = input<Record<string, 'loading' | 'ready' | 'error'>>({});
   territoryGroupsMap = input.required<Record<string, Record<number, number>>>();
   territoryNumbersCache = input.required<Record<string, string[]>>();
   personalAssignments = input.required<Card[]>();
   localities = input.required<LocalityConfig[]>();
+  /** "Martes 10 nov · 18:30 · Grupo 1": tells which departure the territories are for. */
+  departureTitle = input<string>('');
+  /** Group the list opens filtered by (the group of the departure being edited). */
+  initialGroupFilter = input<number | null>(null);
 
   // Outputs
   modalClose = output<void>();
@@ -31,6 +39,18 @@ export class TerritorySelectionModalComponent {
   sortByAge = true;
   showPersonalTerritories = true;
   selectedTerritoryGroup: number | null = null;
+  searchTerm = '';
+
+  readonly ageLegend = [
+    { label: 'Nunca o más de 8 sem', dotClass: 'bg-red-500' },
+    { label: '6 a 8 sem', dotClass: 'bg-amber-500' },
+    { label: '4 a 6 sem', dotClass: 'bg-sky-500' },
+    { label: 'Menos de 4 sem', dotClass: 'bg-emerald-500' },
+  ];
+
+  ngOnInit(): void {
+    this.selectedTerritoryGroup = this.initialGroupFilter();
+  }
 
   locationPrefix = computed<string>(() => {
     return String(this.activeModalDays().get('location')?.value ?? '');
@@ -47,42 +67,47 @@ export class TerritorySelectionModalComponent {
     const locPrefix = this.locationPrefix();
     if (!locPrefix) return [];
 
-    let list = this.getTerritoryList(locPrefix);
+    // Copy: the list below is sorted in place and must never reorder the shared cache.
+    const list = this.filterTerritories([...this.getTerritoryList(locPrefix)], locPrefix);
 
-    if (this.selectedTerritoryGroup !== null) {
-      list = list.filter(
-        (num) => this.getTerritoryGroupNumber(num, locPrefix) === this.selectedTerritoryGroup,
+    const completionStatus = this.territoryCompletionDataStatus()[locPrefix];
+    const canSortByAge = !completionStatus || completionStatus === 'ready';
+    return this.sortByAge && canSortByAge ? this.sortByPriority(list, locPrefix) : list;
+  }
+
+  private filterTerritories(list: string[], locPrefix: string): string[] {
+    const term = this.searchTerm.trim().toLowerCase();
+
+    return list.filter((num) => {
+      if (term && !num.toLowerCase().includes(term)) return false;
+
+      const group = this.selectedTerritoryGroup;
+      if (group !== null && this.getTerritoryGroupNumber(num, locPrefix) !== group) return false;
+
+      const hiddenPersonal =
+        !this.showPersonalTerritories &&
+        this.isPersonalTerritory(num, locPrefix) &&
+        !this.isTerritoryChecked(num);
+      return !hiddenPersonal;
+    });
+  }
+
+  private sortByPriority(list: string[], locPrefix: string): string[] {
+    return list.sort((a, b) => {
+      const aUsed = this.isTerritoryUsedInWeek(a) ? 1 : 0;
+      const bUsed = this.isTerritoryUsedInWeek(b) ? 1 : 0;
+      if (aUsed !== bUsed) return aUsed - bUsed;
+
+      const aPersonal =
+        this.isPersonalTerritory(a, locPrefix) && !this.isTerritoryChecked(a) ? 1 : 0;
+      const bPersonal =
+        this.isPersonalTerritory(b, locPrefix) && !this.isTerritoryChecked(b) ? 1 : 0;
+      if (aPersonal !== bPersonal) return aPersonal - bPersonal;
+
+      return (
+        this.getTerritoryLastUsedDays(b, locPrefix) - this.getTerritoryLastUsedDays(a, locPrefix)
       );
-    }
-
-    if (!this.showPersonalTerritories) {
-      list = list.filter((num) => {
-        if (this.isPersonalTerritory(num, locPrefix)) {
-          return this.isTerritoryChecked(num);
-        }
-        return true;
-      });
-    }
-
-    if (this.sortByAge) {
-      list.sort((a, b) => {
-        const aUsed = this.isTerritoryUsedInWeek(a) ? 1 : 0;
-        const bUsed = this.isTerritoryUsedInWeek(b) ? 1 : 0;
-        if (aUsed !== bUsed) return aUsed - bUsed;
-
-        const aPersonal =
-          this.isPersonalTerritory(a, locPrefix) && !this.isTerritoryChecked(a) ? 1 : 0;
-        const bPersonal =
-          this.isPersonalTerritory(b, locPrefix) && !this.isTerritoryChecked(b) ? 1 : 0;
-        if (aPersonal !== bPersonal) return aPersonal - bPersonal;
-
-        const ageA = this.getTerritoryLastUsedDays(a, locPrefix);
-        const ageB = this.getTerritoryLastUsedDays(b, locPrefix);
-        return ageB - ageA;
-      });
-    }
-
-    return list;
+    });
   }
 
   getTerritoryList(locationPrefix: string): string[] {
@@ -152,29 +177,57 @@ export class TerritorySelectionModalComponent {
   }
 
   isTerritoryUsedInWeek(num: string): boolean {
+    return this.findOtherDepartureUsing(num) !== null;
+  }
+
+  /** "Usado el jueves 18:30" when another departure of the week already has this territory. */
+  getTerritoryUsageLabel(num: string): string {
+    const other = this.findOtherDepartureUsing(num);
+    if (!other) return '';
+
+    const weekday = getWeekdayName(other.date).toLowerCase();
+    const when = [weekday, other.schedule].filter(Boolean).join(' ');
+    return when ? `Usado el ${when}` : 'Usado en otra salida';
+  }
+
+  getSelectedCount(): number {
+    const territoryArray = this.activeModalDays().get('territory') as FormArray | null;
+    return ((territoryArray?.value as string[] | undefined) ?? []).length;
+  }
+
+  onSearch(event: Event): void {
+    this.searchTerm = (event.target as HTMLInputElement).value;
+  }
+
+  private findOtherDepartureUsing(num: string): { date: string; schedule: string } | null {
     const locPrefix = this.locationPrefix();
-    let isUsed = false;
 
-    Object.keys(this.formDeparture().controls).forEach((key) => {
-      if (key.startsWith('departure')) {
+    const match = this.getOtherDepartureControls().find(
+      (control) =>
+        String(control.get('location')?.value ?? '') === locPrefix &&
+        ((control.get('territory')?.value as string[] | null) ?? []).includes(num),
+    );
+    if (!match) return null;
+
+    return {
+      date: String(match.get('date')?.value ?? ''),
+      schedule: String(match.get('schedule')?.value ?? ''),
+    };
+  }
+
+  /** Every departure control in the form except the one being edited. */
+  private getOtherDepartureControls(): AbstractControl[] {
+    const form = this.formDeparture();
+
+    return Object.keys(form.controls)
+      .filter((key) => key.startsWith('departure'))
+      .flatMap((key) => {
         const groupIndex = parseInt(key.replace('departure', ''), 10);
-        const formArray = this.formDeparture().get(key) as FormArray | null;
-        if (!formArray) return;
-
-        formArray.controls.forEach((groupControl, i) => {
-          if (groupIndex === this.groupKey() && i === this.dayIndex()) return;
-
-          const controlLocation = String(groupControl.get('location')?.value ?? '');
-          if (controlLocation === locPrefix) {
-            const territoryVals = (groupControl.get('territory')?.value as string[]) || [];
-            if (territoryVals.includes(num)) {
-              isUsed = true;
-            }
-          }
-        });
-      }
-    });
-    return isUsed;
+        const formArray = form.get(key) as FormArray | null;
+        return (formArray?.controls ?? []).filter(
+          (_control, index) => !(groupIndex === this.groupKey() && index === this.dayIndex()),
+        );
+      });
   }
 
   getTerritoryLastUsedDays(num: string, locationPrefix: string): number {
@@ -189,12 +242,14 @@ export class TerritorySelectionModalComponent {
   }
 
   getTerritoryAgeLabel(num: string, locationPrefix: string): string {
+    const completionStatus = this.territoryCompletionDataStatus()[locationPrefix];
     const days = this.getTerritoryLastUsedDays(num, locationPrefix);
+    if (completionStatus === 'loading' && !isFinite(days)) return 'Actualizando…';
+    if (completionStatus === 'error' && !isFinite(days)) return 'Error al actualizar';
     if (!isFinite(days)) return 'Nunca';
-    if (days < 7) return `Hace ${days}d`;
-    if (days < 30) return `Hace ${Math.floor(days / 7)} sem`;
-    const months = Math.floor(days / 30);
-    return `Hace ${months} ${months === 1 ? 'mes' : 'meses'}`;
+
+    const label = formatDaysAgo(days);
+    return completionStatus === 'error' ? `${label} (sin actualizar)` : label;
   }
 
   getTerritoryPriorityColor(num: string, locationPrefix: string): string {
@@ -206,6 +261,12 @@ export class TerritorySelectionModalComponent {
   }
 
   getPriorityColorClass(num: string, locationPrefix: string): string {
+    const completionStatus = this.territoryCompletionDataStatus()[locationPrefix];
+    const isUnknown = !isFinite(this.getTerritoryLastUsedDays(num, locationPrefix));
+    if (isUnknown && (completionStatus === 'loading' || completionStatus === 'error')) {
+      return 'border-l-[6px] border-l-slate-500 border-slate-700/50 bg-slate-800/80 hover:bg-slate-700/80';
+    }
+
     const color = this.getTerritoryPriorityColor(num, locationPrefix);
     switch (color) {
       case 'danger':
@@ -228,7 +289,8 @@ export class TerritorySelectionModalComponent {
     ) {
       return '#';
     }
-    return `https://www.territoryhelper.com/es/Territory/${locationPrefix}-${territoryNumber}`;
+    const cleanNumber = territoryNumber.replace(/\D/g, '');
+    return `${window.location.origin}/territorios/${locationPrefix}-${cleanNumber}`;
   }
 
   closeModal(): void {
@@ -236,7 +298,7 @@ export class TerritorySelectionModalComponent {
   }
 
   private normalizeTerritoryNumber(value: string): number {
-    const match = String(value).match(/\d+/);
+    const match = /\d+/.exec(String(value));
     return match ? Number(match[0]) : -1;
   }
 

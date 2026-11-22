@@ -5,6 +5,7 @@
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "strict": true,
     "types": ["google.maps", "geojson", "leaflet", "node"],
     "noImplicitOverride": true,

@@ -12,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DeparturePdfService, PrintMode } from '@core/services/departure-pdf.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { getWeekId } from '@shared/utils/date-utils';
-import { Departure } from '@core/models/Departures';
+import { Departure, WeeklyDeparture, DepartureData } from '@core/models/Departures';
 import { forkJoin, take } from 'rxjs';
 
 @Component({
@@ -31,6 +31,7 @@ export class PrintPdfModalComponent {
 
   isPrintingPdf = signal<boolean>(false);
   pdfGenerated = signal<boolean>(false);
+  readonly printRangeDescription = this.pdfService.getPrintRangeDescription();
 
   closeModal(): void {
     this.closeModalEvent.emit();
@@ -53,9 +54,9 @@ export class PrintPdfModalComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (result: {
-            current: { departure?: Departure[] } | null;
-            next: { departure?: Departure[] } | null;
-            master: { departure?: Departure[] } | null;
+            current: WeeklyDeparture | undefined;
+            next: WeeklyDeparture | undefined;
+            master: DepartureData;
           }) => {
             void (async (): Promise<void> => {
               try {

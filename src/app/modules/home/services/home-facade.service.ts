@@ -4,6 +4,7 @@ import { AuthService } from '@core/services/auth.service';
 import { CampaignService } from '@core/services/campaign.service';
 import { CartDataService } from '@core/services/cart-data.service';
 import { MessagingService } from '@core/services/messaging.service';
+import { DeparturesStoreService } from '@core/services/departures-store.service';
 import { TerritoryDataService } from '@core/services/territory-data.service';
 import { User } from '@core/models/User';
 import { take } from 'rxjs';
@@ -18,12 +19,15 @@ export class HomeFacadeService {
   private readonly cartDataService = inject(CartDataService);
   private readonly _snackBar = inject(MatSnackBar);
   private readonly authService = inject(AuthService);
+  private readonly departuresStore = inject(DeparturesStoreService);
 
   initializeHomeState(): void {
     // 🚀 Hacemos pre-fetching de datos en background SIN bloquear la pantalla con el spinner
     this.territorieDataService.getNumberTerritory().pipe(take(1)).subscribe();
     this.territorieDataService.getStatisticsButtons().pipe(take(1)).subscribe();
     this.cartDataService.getCartAssignment().pipe(take(1)).subscribe();
+    // Salidas is the most used screen: have its data in memory before the user opens it.
+    this.departuresStore.connect();
 
     if (sessionStorage.getItem('redirectedToGroup0')) {
       sessionStorage.removeItem('redirectedToGroup0');

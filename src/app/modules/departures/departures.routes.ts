@@ -11,6 +11,7 @@ export const ROUTES: Routes = [
           import('./pages/home-departure-page/home-departure-page.component').then(
             (m) => m.HomeDeparturePageComponent,
           ),
+        data: { preload: true },
       },
       {
         path: 'editar',
@@ -35,7 +36,7 @@ export const ROUTES: Routes = [
           import('./pages/departure-page/departure-page.component').then(
             (m) => m.DeparturePageComponent,
           ),
-        data: { breadcrumb: 'Grupo' },
+        data: { breadcrumb: 'Grupo', preload: true },
       },
       {
         path: 'publicadores',

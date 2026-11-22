@@ -10,7 +10,7 @@ import { BreadcrumbService } from '@core/services/breadcrumb.service';
   imports: [RouterLink],
 })
 export class BreadcrumbComponent {
-  private breadcrumbService = inject(BreadcrumbService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   readonly breadcrumbItems = this.breadcrumbService.breadcrumbs;
 }

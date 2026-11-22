@@ -5,7 +5,7 @@ import { isPlatformBrowser } from '@angular/common';
   providedIn: 'root',
 })
 export class StorageService {
-  private platformId = inject(PLATFORM_ID);
+  private readonly platformId = inject(PLATFORM_ID);
 
   private get isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);
@@ -44,6 +44,22 @@ export class StorageService {
   removeItem(key: string): void {
     if (!this.isBrowser) return;
     sessionStorage.removeItem(key);
+  }
+
+  /**
+   * Elimina todos los elementos del sessionStorage que empiecen con un prefijo.
+   */
+  removeItemsByPrefix(prefix: string): void {
+    if (!this.isBrowser) return;
+    try {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith(prefix)) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.error(`Error removing items by prefix ${prefix} from sessionStorage`, error);
+    }
   }
 
   /**

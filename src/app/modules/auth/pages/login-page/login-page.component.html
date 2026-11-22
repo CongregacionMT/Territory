@@ -1,7 +1,8 @@
 <div class="min-h-[80vh] flex items-center justify-center p-4">
   <div class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl shadow-2xl p-8 animate-[fadeInUp_0.5s_ease_backwards]">
     
-    <div class="text-center mb-8">
+    @if (view() === 'login') {
+      <div class="text-center mb-8">
       <div class="inline-flex items-center justify-center w-16 h-16 bg-sky-900/30 rounded-2xl border border-sky-500/30 text-sky-400 mb-4 shadow-lg shadow-sky-900/20">
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
       </div>
@@ -96,5 +97,60 @@
       </div>
 
     </form>
+    
+      <div class="mt-6 border-t border-slate-700/50 pt-6">
+        <button
+          type="button"
+          (click)="view.set('drivers')"
+          class="w-full bg-slate-800 hover:bg-slate-700 text-sky-400 px-6 py-3 rounded-xl font-bold transition-all flex justify-center items-center gap-2 cursor-pointer"
+        >
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Soy conductor
+        </button>
+      </div>
+
+    } @else {
+      <!-- Driver list view -->
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-900/30 rounded-2xl border border-emerald-500/30 text-emerald-400 mb-4 shadow-lg shadow-emerald-900/20">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h1 class="text-3xl font-extrabold text-white tracking-tight">Selecciona tu usuario</h1>
+        <p class="text-slate-400 mt-2 text-sm">Toca tu nombre para iniciar sesión</p>
+      </div>
+
+      <div class="flex flex-col gap-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+        @for (driver of drivers(); track driver.user) {
+          <button
+            type="button"
+            (click)="loginAsDriver(driver)"
+            class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-sky-500/50 p-4 rounded-xl flex items-center gap-4 transition-all group cursor-pointer text-left"
+          >
+            <div class="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center text-xl font-bold text-slate-300 group-hover:bg-sky-500 group-hover:text-white transition-colors shrink-0">
+              {{ (driver.displayName || driver.user).charAt(0).toUpperCase() }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-white font-bold truncate text-lg">{{ driver.displayName || driver.user }}</p>
+            </div>
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500 group-hover:text-sky-400 transition-colors"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        } @empty {
+          <div class="text-center p-8 border border-dashed border-slate-700 rounded-xl">
+            <p class="text-slate-400">No hay conductores registrados.</p>
+          </div>
+        }
+      </div>
+
+      <div class="mt-6 pt-6 border-t border-slate-700/50">
+        <button
+          type="button"
+          (click)="view.set('login')"
+          class="w-full text-slate-400 hover:text-white py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Volver al inicio de sesión
+        </button>
+      </div>
+    }
   </div>
 </div>

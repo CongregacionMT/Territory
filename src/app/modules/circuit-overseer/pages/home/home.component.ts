@@ -22,8 +22,8 @@ interface DashboardCard {
 })
 export class HomeComponent {
   congregationName = environment.congregationName;
-  private circuitOverseerService = inject(CircuitOverseerService);
-  private authService = inject(AuthService);
+  private readonly circuitOverseerService = inject(CircuitOverseerService);
+  private readonly authService = inject(AuthService);
 
   overseer = toSignal(this.circuitOverseerService.getOverseerData(), {
     initialValue: { name: 'Esteban y Natalia' },

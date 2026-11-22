@@ -6,8 +6,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class UsersFeatureService {
-  private territoryData = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
+  private readonly territoryData = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
 
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);

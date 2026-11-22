@@ -3,6 +3,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { RouterOutlet } from '@angular/router';
 import { BreadcrumbComponent } from './shared/components/breadcrumb/breadcrumb.component';
 import { BreadcrumbService } from '@core/services/breadcrumb.service';
+import { AppUpdateService } from '@core/services/app-update.service';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,12 @@ import { BreadcrumbService } from '@core/services/breadcrumb.service';
 export class AppComponent {
   private readonly spinner = inject(SpinnerService);
   private readonly breadcrumbService = inject(BreadcrumbService);
+  private readonly appUpdate = inject(AppUpdateService);
 
   isLoading$ = this.spinner.isLoading;
   showBreadcrumb = this.breadcrumbService.showBreadcrumb;
+
+  constructor() {
+    this.appUpdate.start();
+  }
 }

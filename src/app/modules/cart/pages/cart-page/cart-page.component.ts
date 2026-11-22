@@ -16,8 +16,8 @@ import { map, finalize } from 'rxjs/operators';
   imports: [CartAssignmentCardsComponent, RouterLink],
 })
 export class CartPageComponent {
-  private cartDataService = inject(CartDataService);
-  private spinner = inject(SpinnerService);
+  private readonly cartDataService = inject(CartDataService);
+  private readonly spinner = inject(SpinnerService);
 
   isAdmin = signal<boolean>(false);
 

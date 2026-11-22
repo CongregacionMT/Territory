@@ -9,9 +9,9 @@ import { UserLocationService } from './user-location.service';
   providedIn: 'root',
 })
 export class TerritoryMapService {
-  private googleMapsLoader = inject(GoogleMapsLoaderService);
-  private kmlService = inject(TerritoryMapKmlService);
-  private userLocationService = inject(UserLocationService);
+  private readonly googleMapsLoader = inject(GoogleMapsLoaderService);
+  private readonly kmlService = inject(TerritoryMapKmlService);
+  private readonly userLocationService = inject(UserLocationService);
 
   private map: google.maps.Map | null = null;
   private userLocationMarker: google.maps.marker.AdvancedMarkerElement | null = null;
@@ -24,9 +24,9 @@ export class TerritoryMapService {
   async initMap(element: HTMLElement): Promise<google.maps.Map> {
     await this.loadMapsApi();
 
-    const { Map } = await google.maps.importLibrary('maps');
+    const { Map: GoogleMap } = await google.maps.importLibrary('maps');
 
-    this.map = new Map(element, {
+    this.map = new GoogleMap(element, {
       center: { lat: -33.787, lng: -61.205 },
       zoom: 16,
       mapId: environment.mapId,

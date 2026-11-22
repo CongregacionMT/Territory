@@ -22,10 +22,10 @@ import { Card } from '@core/models/Card';
   imports: [DatePipe],
 })
 export class NumberTerritoryComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private activatedRoute = inject(ActivatedRoute);
-  private territorieDataService = inject(TerritoryDataService);
-  private spinner = inject(SpinnerService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly territorieDataService = inject(TerritoryDataService);
+  private readonly spinner = inject(SpinnerService);
 
   path: string = '';
   dataList = signal<Card[]>([]);

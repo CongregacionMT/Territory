@@ -30,7 +30,7 @@ export class TerritoryMapComponent implements OnInit, OnDestroy {
   congregationKey = input.required<string>();
   forceFallback = input<boolean>(false);
 
-  private mapService = inject(TerritoryMapService);
+  private readonly mapService = inject(TerritoryMapService);
   public networkService = inject(NetworkService);
 
   mapContainer = viewChild.required<ElementRef<HTMLDivElement>>('mapContainer');

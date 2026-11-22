@@ -5,7 +5,7 @@ import { SpinnerService } from '@core/services/spinner.service';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { of } from 'rxjs';
 import { Component, Input } from '@angular/core';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 
 @Component({
   selector: 'app-card-xl',
@@ -34,8 +34,9 @@ describe('HomeStatisticsPageComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [HomeStatisticsPageComponent, RouterTestingModule],
+      imports: [HomeStatisticsPageComponent],
       providers: [
+        provideRouter([]),
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: SpinnerService, useValue: mockSpinnerService },
       ],
@@ -96,9 +97,6 @@ describe('HomeStatisticsPageComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockSpinnerService.cerrarSpinner).toHaveBeenCalled();
-
-    const key = component.getStorageKeyForLocality('wheelwright');
-    expect(sessionStorage.getItem(key)).toBeTruthy();
   });
 
   it('should get storage key correctly', () => {

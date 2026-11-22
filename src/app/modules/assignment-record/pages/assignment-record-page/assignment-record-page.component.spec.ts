@@ -6,7 +6,6 @@ import { CardService } from '@core/services/card.service';
 import { SpinnerService } from '@core/services/spinner.service';
 import { CardXlComponent } from '../../../../shared/components/card-xl/card-xl.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { of } from 'rxjs';
 import { Component, Input } from '@angular/core';
@@ -52,7 +51,7 @@ describe('AssignmentRecordPageComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [AssignmentRecordPageComponent, ReactiveFormsModule, RouterTestingModule],
+      imports: [AssignmentRecordPageComponent, ReactiveFormsModule],
       providers: [
         { provide: TerritoryDataService, useValue: mockTerritoryDataService },
         { provide: CardService, useValue: mockCardService },
@@ -85,25 +84,34 @@ describe('AssignmentRecordPageComponent', () => {
     expect(mockSpinnerService['cargarSpinner']).toHaveBeenCalled();
     expect(mockTerritoryDataService['getCardAssigned']).toHaveBeenCalled();
     expect(mockTerritoryDataService['getRevisionCardTerritorie']).toHaveBeenCalled();
-    expect(component.allCardsAssigned().length).toBe(1);
-    expect(component.allCardsReceived().length).toBe(1);
+    expect(component.allCardsAssigned()).toHaveLength(1);
+    expect(component.allCardsReceived()).toHaveLength(1);
   });
 
   it('should get maps from session storage if exists', () => {
     sessionStorage.setItem('territorioMaps', JSON.stringify([{ name: 'test' }]));
     vi.clearAllMocks();
     component.ngOnInit();
-    expect(component.territorioMaps().length).toBe(1);
+    expect(component.territorioMaps()).toHaveLength(1);
     expect(mockTerritoryDataService['getMaps']).not.toHaveBeenCalled();
   });
 
   it('should check if date is overdue', () => {
     const pastDate = new Date();
-    pastDate.setMonth(pastDate.getMonth() - 3);
+    pastDate.setMonth(pastDate.getMonth() - 5);
     expect(component.isOverdue(pastDate)).toBe(true);
+
+    const withinLoanPeriod = new Date();
+    withinLoanPeriod.setMonth(withinLoanPeriod.getMonth() - 3);
+    expect(component.isOverdue(withinLoanPeriod)).toBe(false);
 
     const futureDate = new Date();
     expect(component.isOverdue(futureDate)).toBe(false);
+  });
+
+  it('should calculate the return date 4 months after the assigned date', () => {
+    expect(component.getReturnDate(new Date(2026, 0, 15, 12))).toEqual(new Date(2026, 4, 15, 12));
+    expect(component.getReturnDate(new Date(2026, 9, 31, 12))).toEqual(new Date(2027, 1, 28, 12));
   });
 
   it('should post card assigned', async () => {

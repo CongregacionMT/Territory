@@ -24,9 +24,14 @@ describe('TerritoryAssignmentComponent', () => {
       getNumberTerritory: vi
         .fn()
         .mockReturnValue(of([{ test: [{ collection: 'coll1', territorio: 1 }] }])),
-      getCardTerritorieRegisterTable: vi
-        .fn()
-        .mockReturnValue(of([{ id: '1', driver: 'John', applesData: [{ checked: true }] }])),
+      getCardTerritorieRegisterTableOnce: vi.fn().mockResolvedValue([
+        {
+          id: '1',
+          driver: 'John',
+          applesData: [{ checked: true }],
+          start: new Date().toISOString(),
+        },
+      ]),
       addCardInCollection: vi.fn().mockResolvedValue(true),
       updateCardInCollection: vi.fn().mockResolvedValue(true),
       deleteCardInCollection: vi.fn().mockResolvedValue(true),
@@ -76,42 +81,21 @@ describe('TerritoryAssignmentComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize data from sessionStorage if available', () => {
-    sessionStorage.setItem(
-      'numberTerritory',
-      JSON.stringify({ test: [{ collection: 'coll1', territorio: 1 }] }),
-    );
-    sessionStorage.setItem(
-      'registerStatisticDataTerritorioMT',
-      JSON.stringify([
-        [
-          {
-            id: '1',
-            driver: 'John',
-            applesData: [{ checked: true }],
-            start: new Date().toISOString(),
-          },
-        ],
-      ]),
-    );
-
+  it('should load territory cards from the data service on init', async () => {
     fixture.detectChanges();
 
-    expect(component.dataListFull().length).toBeGreaterThan(0);
-    expect(component.territoriesNumber().length).toBe(1);
-    expect(mockSpinnerService['cargarSpinner']).not.toHaveBeenCalled(); // Since data is loaded from session
+    await vi.waitFor(() => expect(component.dataListFull()).toHaveLength(1));
+    expect(component.territoriesNumber()).toHaveLength(1);
+    expect(component.dataListFull()[0][0].driver).toBe('John');
+    expect(mockSpinnerService['cerrarSpinner']).toHaveBeenCalled();
   });
 
-  it('should fetch data if sessionStorage is missing data', () => {
-    sessionStorage.setItem(
-      'numberTerritory',
-      JSON.stringify({ test: [{ collection: 'coll1', territorio: 1 }] }),
-    );
-
+  it('should fetch cards for every territory collection', async () => {
     fixture.detectChanges();
 
+    await vi.waitFor(() => expect(component.dataListFull()).toHaveLength(1));
     expect(mockSpinnerService['cargarSpinner']).toHaveBeenCalled();
-    expect(mockTerritoryDataService['getCardTerritorieRegisterTable']).toHaveBeenCalledWith(
+    expect(mockTerritoryDataService['getCardTerritorieRegisterTableOnce']).toHaveBeenCalledWith(
       'coll1',
     );
   });
@@ -136,14 +120,14 @@ describe('TerritoryAssignmentComponent', () => {
     component.dataListFull.set(data);
     component.sortByDate('1'); // Last 6 months
 
-    expect(component.filterDataListFull()[0].length).toBe(1);
+    expect(component.filterDataListFull()[0]).toHaveLength(1);
     expect(component.filterDataListFull()[0][0].driver).toBe('Recent');
 
     component.sortByDate('2'); // Last year
-    expect(component.filterDataListFull()[0].length).toBe(1);
+    expect(component.filterDataListFull()[0]).toHaveLength(1);
 
     component.sortByDate(twoYearsAgo.getFullYear().toString()); // Specific year
-    expect(component.filterDataListFull()[0].length).toBe(1);
+    expect(component.filterDataListFull()[0]).toHaveLength(1);
     expect(component.filterDataListFull()[0][0].driver).toBe('Old');
   });
 
@@ -163,9 +147,9 @@ describe('TerritoryAssignmentComponent', () => {
 
     const pending = component.pendingChanges();
     const keys = Object.keys(pending);
-    expect(keys.length).toBe(1);
+    expect(keys).toHaveLength(1);
     expect(pending[keys[0]].isNew).toBe(true);
-    expect(component.dataListFull()[0].length).toBe(1);
+    expect(component.dataListFull()[0]).toHaveLength(1);
   });
 
   it('should mark card for delete', () => {
@@ -189,12 +173,27 @@ describe('TerritoryAssignmentComponent', () => {
   });
 
   it('should save all changes', async () => {
+    const completedCard = {
+      driver: 'John',
+      start: '2026-01-01',
+      end: '2026-02-01',
+      applesData: [{ name: 'A', checked: true }],
+    };
     fixture.detectChanges();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     component.pendingChanges.set({
-      coll1_1: { collectionName: 'coll1', cardId: '1', data: { driver: 'Update' } },
-      coll1_temp: { collectionName: 'coll1', cardId: 'temp', data: { id: 'temp' }, isNew: true },
+      coll1_1: {
+        collectionName: 'coll1',
+        cardId: '1',
+        data: { ...completedCard, driver: 'Update' },
+      },
+      coll1_temp: {
+        collectionName: 'coll1',
+        cardId: 'temp',
+        data: { ...completedCard, id: 'temp' },
+        isNew: true,
+      },
     });
     component.pendingDeletes.set({
       coll1_2: { collectionName: 'coll1', cardId: '2' },
@@ -203,6 +202,7 @@ describe('TerritoryAssignmentComponent', () => {
     await component.saveAllChanges();
 
     expect(mockTerritoryDataService['updateCardInCollection']).toHaveBeenCalledWith('coll1', '1', {
+      ...completedCard,
       driver: 'Update',
     });
     expect(mockTerritoryDataService['addCardInCollection']).toHaveBeenCalled();
@@ -216,6 +216,6 @@ describe('TerritoryAssignmentComponent', () => {
     component.pendingChanges.set({ coll1_1: { collectionName: 'coll1', cardId: '1', data: {} } });
     component.discardAllChanges();
 
-    expect(Object.keys(component.pendingChanges()).length).toBe(0);
+    expect(Object.keys(component.pendingChanges())).toHaveLength(0);
   });
 });

@@ -1,9 +1,10 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpinnerService } from '@core/services/spinner.service';
 import { AuthService } from '@core/services/auth.service';
+import { User } from '@core/models/User';
 
 @Component({
   selector: 'app-login-page',
@@ -12,7 +13,7 @@ import { AuthService } from '@core/services/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, NgStyle],
 })
-export class LoginPageComponent {
+export class LoginPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
@@ -20,11 +21,24 @@ export class LoginPageComponent {
 
   loginError = signal(false);
   passwordVisible = signal(false);
+  view = signal<'login' | 'drivers'>('login');
+  drivers = signal<User[]>([]);
 
   formLogin = this.fb.nonNullable.group({
     user: ['', [Validators.required.bind(Validators)]],
     password: ['', [Validators.required.bind(Validators)]],
   });
+
+  ngOnInit(): void {
+    this.authService.getDrivers().subscribe((drivers) => {
+      this.drivers.set(drivers);
+    });
+  }
+
+  loginAsDriver(driver: User): void {
+    this.authService.loginAsDriver(driver);
+    void this.router.navigate(['home']);
+  }
 
   loginWithUser(): void {
     if (this.formLogin.invalid) return;

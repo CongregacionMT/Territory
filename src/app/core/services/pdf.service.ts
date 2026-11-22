@@ -3,6 +3,7 @@ import type { PDFPage } from 'pdf-lib';
 import { TerritoryNumberData } from '@core/models/TerritoryNumberData';
 import { environment } from '@environments/environment';
 import { Card } from '@core/models/Card';
+import { isCompletionEnd } from '@shared/utils/territory-completion.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -67,7 +68,7 @@ export class PdfService {
       // Analyze max assignments in this chunk to determine horizontal pages needed
       const maxAssignmentsInChunk = Math.max(
         0,
-        ...dataChunk.map((dl) => dl.filter((item: Card) => item.end).length),
+        ...dataChunk.map((dl) => dl.filter((item: Card) => isCompletionEnd(item.end)).length),
       );
 
       const horizontalPagesNeeded =
@@ -95,7 +96,9 @@ export class PdfService {
 
         dataChunk.forEach((rowAssignments, rowIndex) => {
           // Filter only completed assignments
-          const completedAssignments = rowAssignments.filter((item: Card) => item.end);
+          const completedAssignments = rowAssignments.filter((item: Card) =>
+            isCompletionEnd(item.end),
+          );
 
           // Get the slice for this page
           const assignmentsForPage = completedAssignments.slice(startIndex, endIndex);

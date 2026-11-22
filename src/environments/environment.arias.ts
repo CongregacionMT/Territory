@@ -14,6 +14,8 @@ export const environment = {
   congregationName: 'Arias',
   congregationKey: 'arias',
   territoryPrefix: 'TerritorioA',
+  // Midweek meeting day (0 = Sunday ... 6 = Saturday). Defines the print range for departures.
+  meetingDay: 4,
 
   // Configuración de localidades
   localities: [

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { CampaignService } from './campaign.service';
-import { Firestore, collection, getDocs, query, doc, getDoc } from '@angular/fire/firestore';
+import { collection, getDocs, query, doc, getDoc, updateDoc } from '@angular/fire/firestore';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { environment } from '@environments/environment';
 
@@ -12,6 +12,8 @@ vi.mock('@environments/environment', () => ({
   },
 }));
 
+import { FirestoreProviderService } from './firestore-provider.service';
+
 describe('CampaignService', () => {
   let service: CampaignService;
   let mockFirestore: any;
@@ -19,7 +21,13 @@ describe('CampaignService', () => {
   beforeEach(() => {
     mockFirestore = {};
     TestBed.configureTestingModule({
-      providers: [CampaignService, { provide: Firestore, useValue: mockFirestore }],
+      providers: [
+        CampaignService,
+        {
+          provide: FirestoreProviderService,
+          useValue: { getFirestore: () => mockFirestore },
+        },
+      ],
     });
     service = TestBed.inject(CampaignService);
 
@@ -115,5 +123,46 @@ describe('CampaignService', () => {
 
     const result = await service.getCampaignStats('camp1');
     expect(result).toEqual({});
+  });
+
+  it('should end campaign and sanitize undefined values before updating firestore', async () => {
+    vi.mocked(doc).mockReturnValue('docRef' as any);
+    vi.mocked(updateDoc).mockResolvedValue(undefined);
+    vi.spyOn(service, 'getAllTerritoriesFromAllLocalities').mockReturnValue([]);
+
+    const departuresInfoWithUndefined: any = {
+      checkedCount: 1,
+      details: [
+        {
+          id: 'dep-1',
+          date: '2026-10-01',
+          checked: true,
+          publishers: undefined,
+        },
+      ],
+    };
+
+    await service.endCampaign(
+      'camp1',
+      { global: { done: 5, total: 10, percent: 50 } },
+      'algunas',
+      departuresInfoWithUndefined,
+      undefined,
+      'Final remarks',
+    );
+
+    expect(doc).toHaveBeenCalledWith(mockFirestore, 'campaigns', 'camp1');
+    expect(updateDoc).toHaveBeenCalled();
+
+    const updatePayload = vi.mocked(updateDoc).mock.calls[0][1] as Record<string, any>;
+    expect(updatePayload.active).toBe(false);
+    expect(updatePayload.leftoverInvitations).toBe('algunas');
+    expect(updatePayload.finalComments).toBe('Final remarks');
+    expect(updatePayload.missingInvitations).toBeUndefined();
+    expect('missingInvitations' in updatePayload).toBe(false);
+
+    // Verify nested undefined inside departuresInfo.details is completely stripped
+    expect(updatePayload.departuresInfo.details[0].id).toBe('dep-1');
+    expect('publishers' in updatePayload.departuresInfo.details[0]).toBe(false);
   });
 });

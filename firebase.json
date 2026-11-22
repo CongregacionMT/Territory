@@ -10,6 +10,14 @@
     ],
     "headers": [
       {
+        "source": "/@(index.html|ngsw.json)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "**/!(*.*)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
         "source": "**/*.@(js|css)",
         "headers": [
           {
